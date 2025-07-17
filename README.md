@@ -187,3 +187,5 @@ inject everything from the top, and keep navigation decoupled!
 
 **Feel free to explore the code and see how each layer communicates.
 Fork this for your next Swift project (but please check the license and give me a shout out!), or use it as a study reference.**
+
+Modelled after https://github.com/DenisBronx/Real-Clean-Architecture-In-Android---Sample by @DenisBronx
