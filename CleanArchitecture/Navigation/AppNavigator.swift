@@ -12,7 +12,7 @@ import Combine
 
 final class AppNavigator: ObservableObject {
     enum Tabs: Hashable {
-        case home, favorites, cart, search
+        case home, favorites, cart
     }
     
     @Published var selectedTab: Tabs = .home
@@ -48,7 +48,6 @@ final class AppNavigator: ObservableObject {
         case .home: homePath = NavigationPath()
         case .favorites: favoritesPath = NavigationPath()
         case .cart: cartPath = NavigationPath()
-        case .search: searchPath = NavigationPath()
         }
     }
 
@@ -63,7 +62,6 @@ final class AppNavigator: ObservableObject {
         case .home: homePath.append(anyRoute)
         case .favorites: favoritesPath.append(anyRoute)
         case .cart: cartPath.append(anyRoute)
-        case .search: searchPath.append(anyRoute)
         }
     }
 
@@ -72,7 +70,6 @@ final class AppNavigator: ObservableObject {
         case .home: homePath.removeLast()
         case .favorites: favoritesPath.removeLast()
         case .cart: cartPath.removeLast()
-        case .search: searchPath.removeLast()
         }
     }
 }
