@@ -9,6 +9,9 @@
 import Foundation
 import Combine
 
+import Foundation
+import Combine
+
 protocol UserSessionProtocol: AnyObject {
     var user: User? { get }
     var authToken: AuthToken? { get }
@@ -19,11 +22,19 @@ protocol UserSessionProtocol: AnyObject {
     func clear()
 }
 
-final class UserSession: ObservableObject, UserSessionProtocol {
-    @Published private(set) var user: User?
-    @Published private(set) var authToken: AuthToken?
-
+final class UserSession: UserSessionProtocol {
+    private(set) var user: User?
+    private(set) var authToken: AuthToken?
     private var expiryTimer: DispatchSourceTimer?
+    private let isLoggedInSubject: CurrentValueSubject<Bool, Never>
+
+    init() {
+        if let token = authToken, !token.isExpired {
+            isLoggedInSubject = CurrentValueSubject(true)
+        } else {
+            isLoggedInSubject = CurrentValueSubject(false)
+        }
+    }
 
     var isLoggedIn: Bool {
         guard let token = authToken, !token.isExpired else { return false }
@@ -31,25 +42,20 @@ final class UserSession: ObservableObject, UserSessionProtocol {
     }
 
     var isLoggedInPublisher: AnyPublisher<Bool, Never> {
-        $authToken
-            .map { token in
-                guard let token = token else { return false }
-                return !token.isExpired
-            }
-            .eraseToAnyPublisher()
+        isLoggedInSubject.eraseToAnyPublisher()
     }
 
     func setUser(_ user: User, token: AuthToken) {
         self.user = user
         self.authToken = token
+        isLoggedInSubject.send(true)
         scheduleExpiry(for: token)
     }
 
     func clear() {
-        DispatchQueue.main.async { [weak self] in
-            self?.user = nil
-            self?.authToken = nil
-        }
+        self.user = nil
+        self.authToken = nil
+        isLoggedInSubject.send(false)
         cancelExpiryTimer()
     }
 
@@ -71,11 +77,9 @@ final class UserSession: ObservableObject, UserSessionProtocol {
         timer.resume()
         expiryTimer = timer
     }
-    
+
     private func cancelExpiryTimer() {
         expiryTimer?.cancel()
         expiryTimer = nil
     }
-
 }
-
