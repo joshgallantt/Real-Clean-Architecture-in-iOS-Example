@@ -8,34 +8,28 @@
 import SwiftUI
 
 struct LoginScreenView: View {
-    let userLogin: UserLoginUseCase
+    @ObservedObject var viewModel: LoginScreenViewModel
 
-    @State private var username = ""
-    @State private var password = ""
-    @State private var isLoading = false
-    @State private var error: String?
+    init(viewModel: LoginScreenViewModel) {
+        self.viewModel = viewModel
+    }
 
     var body: some View {
         VStack(spacing: 20) {
-            TextField("Username", text: $username)
-            SecureField("Password", text: $password)
-            if isLoading {
+            TextField("Username", text: $viewModel.username)
+                .textInputAutocapitalization(.never)
+                .autocorrectionDisabled(true)
+            SecureField("Password", text: $viewModel.password)
+            if viewModel.isLoading {
                 ProgressView()
             } else {
                 Button("Login") {
                     Task {
-                        isLoading = true
-                        let success = await userLogin.execute(username: username, password: password)
-                        isLoading = false
-                        if success {
-                            print("Logged in!")
-                        } else {
-                            error = "Login failed"
-                        }
+                        await viewModel.login()
                     }
                 }
             }
-            if let error {
+            if let error = viewModel.error {
                 Text(error).foregroundColor(.red)
             }
         }

@@ -6,7 +6,7 @@
 //
 
 
-struct UserIsLoggedInUseCase {
+public struct UserIsLoggedInUseCase {
     let userRepository: UserRepository
     func execute() -> Bool {
         userRepository.isLoggedIn

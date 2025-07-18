@@ -10,11 +10,15 @@ import SwiftUI
 public struct LoginUIDI {
     let userLogin: UserLoginUseCase
 
-    init(userLogin: UserLoginUseCase) {
+    public init(userLogin: UserLoginUseCase) {
         self.userLogin = userLogin
+    }
+
+    func makeLoginScreenViewModel() -> LoginScreenViewModel {
+        LoginScreenViewModel(userLogin: userLogin)
     }
     
     func mainView() -> some View {
-        LoginScreenView(userLogin: userLogin)
+        LoginScreenView(viewModel: makeLoginScreenViewModel())
     }
 }

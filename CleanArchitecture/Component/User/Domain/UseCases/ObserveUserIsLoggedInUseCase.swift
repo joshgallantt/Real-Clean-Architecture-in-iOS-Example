@@ -8,7 +8,7 @@
 
 import Combine
 
-struct ObserveUserIsLoggedInUseCase {
+public struct ObserveUserIsLoggedInUseCase {
     let userRepository: UserRepository
     func execute() -> AnyPublisher<Bool, Never> {
         userRepository.loggedInPublisher
