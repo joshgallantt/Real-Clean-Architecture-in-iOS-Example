@@ -1,186 +1,145 @@
 # Clean Architecture Example for iOS
 
-Welcome! This project demonstrates a pragmatic, production-ready approach to [Clean Architecture](https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html) in Swift, using modern SwiftUI and strict concurrency. It’s designed to teach you *how* to implement Clean Architecture in scalable, modular iOS apps — and *why* you should.
+A pragmatic, production-ready [Clean Architecture](https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html) example using SwiftUI, strict concurrency, and scalable patterns for iOS.
 
 ---
 
 ## Why Clean Architecture?
 
-Clean Architecture is all about **separation of concerns**, **independence**, and **testability**.
-
-* **Separation of concerns:** Features, business logic, data, and UI are all decoupled.
-* **Independence:** You can swap frameworks, change your data source, or redesign the UI — with minimal code changes elsewhere.
-* **Testability:** Business logic and core rules live in pure Swift, not frameworks. That makes them easy to unit test.
-* **Scalability:** Features can grow independently, allowing larger teams to work without stepping on each other.
-* **Resilience to change:** You can adopt new Apple frameworks, architectures, or UI approaches without rewriting your app’s core.
-
-In enterprise and long-lived apps, these benefits make a *huge* difference.
+* **Separation of Concerns:** Business logic, data, and UI are decoupled.
+* **Testability:** Pure Swift business logic, independent of Apple frameworks.
+* **Scalability:** Features and teams grow independently.
+* **Resilience:** Swap UI, frameworks, or data sources with minimal effort.
 
 ---
 
 ## Project Structure
 
-This project uses these main layers, which map directly to Clean Architecture concepts:
-
-```
-├── Application/          # Entry point, bootstrapping, dependency graph
-├── Component/            # Business logic, data, domain (e.g. User)
-├── Navigation/           # Navigation abstraction, tab & flow handling
-├── Presentation/         # SwiftUI screens, ViewModels, UI Dependency Injection
+```plaintext
+├── Application/      # App entry point, bootstrapping, dependency graph
+├── Component/        # Feature modules: data, domain, DI
+├── Navigation/       # Navigation abstraction, navigators, flows
+├── Presentation/     # SwiftUI views, ViewModels, UI composition/DI
 ```
 
-### Layer Overview
-
-| Layer            | Responsibility                            | Example Files                                  |
-| ---------------- | ----------------------------------------- | ---------------------------------------------- |
-| **Application**  | App launch, dependency injection, graph   | `Boot.swift`, `Injector.swift`                 |
-| **Component**    | Feature modules: data, domain, DI         | `Component/User/Data`, `Component/User/Domain` |
-| **Navigation**   | Flow and screen routing, navigators       | `AppNavigator.swift`, `HomeNavigator.swift`    |
-| **Presentation** | SwiftUI views, ViewModels, UI composition | `Presentation/HomeUI/Presentation/*`           |
+| Layer        | Role                      | Example Files                           |
+| ------------ | ------------------------- | --------------------------------------- |
+| Application  | Launch, graph, DI         | Boot.swift, Injector.swift              |
+| Component    | Data/domain per feature   | User/Data, User/Domain, etc             |
+| Navigation   | Routing, navigators       | AppNavigator.swift, HomeNavigator.swift |
+| Presentation | SwiftUI views, ViewModels | HomeUI/Presentation/*, LoginUI/*        |
 
 ---
 
-## How Clean Architecture Maps to Code
+## Layer Overview
 
-### 1. **Domain Layer** (`Component/User/Domain`)
-
-* *Pure business rules.*
-* Defines entities (like `User`), and repository contracts (`UserRepository`).
-* UseCases wrap specific business logic (`UserLoginUseCase`, etc).
-* *No reference to Apple frameworks or UI!*
-
-### 2. **Data Layer** (`Component/User/Data`)
-
-* Concrete implementations of repositories.
-* Handles data sources, persistence, API calls.
-* Example: `DefaultUserRepository` uses a `UserSession` and an `AuthClient`.
-
-### 3. **Dependency Injection** (`Component/User/DI`)
-
-* Assembles the feature’s dependencies, exposes ready-to-use UseCases.
-* Isolated per feature, makes features portable and testable.
-
-### 4. **Presentation Layer** (`Presentation/*UI`)
-
-* Pure SwiftUI Views, each screen or flow in its own folder.
-* ViewModels are injected with UseCases, never know about data or navigation.
-* UI DI structs build ViewModels and screens (e.g. `HomeUIDI`).
-
-### 5. **Navigation Abstraction** (`Navigation/`)
-
-* Features never know about tab bar, navigation stacks, or how routing works.
-* `Navigator` classes handle screen transitions, using an `AppNavigator` orchestrator.
-* Makes it easy to evolve navigation, add new flows, or run feature modules in isolation.
-
-### 6. **Application Bootstrap** (`Application/`)
-
-* `Injector.swift` wires up the full dependency graph.
-* `Boot.swift` is the app’s entry point, assembling the whole app.
+* **Domain:** Entities, protocols, and use cases. No Apple frameworks.
+* **Data:** Implements repositories and data sources.
+* **DI:** Assembles feature dependencies.
+* **Presentation:** SwiftUI Views and ViewModels, using DI.
+* **Navigation:** All routing is abstracted—no UI logic in features.
+* **Application:** Bootstraps and wires up everything.
 
 ---
 
-## SOLID Principles in Clean Architecture
+## SOLID Principles in Practice
 
-Clean Architecture is powered by **SOLID** — a set of five principles for designing clean, modular, and maintainable code. Applying these principles across all layers of your iOS app gives you flexible, scalable features that remain easy to change and test.
+Clean Architecture is powered by [SOLID](https://en.wikipedia.org/wiki/SOLID), five principles for designing modular, maintainable code. Here's how each applies, with a complete example:
 
-**What is SOLID?**
-
-| Principle                     | Meaning                                                 | How Clean Architecture Applies                                                       |
-| ----------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------ |
-| **S** – Single Responsibility | Each type/class/module should have one job              | UseCases handle only one piece of business logic, repositories handle only data      |
-| **O** – Open/Closed           | Open for extension, closed for modification             | Swap repository or navigation implementations without editing UseCases or ViewModels |
-| **L** – Liskov Substitution   | Subtypes must be replaceable for their base types       | Swap any `UserRepository` implementation in tests or prod with no code changes       |
-| **I** – Interface Segregation | Prefer smaller, focused protocols over big interfaces   | `UserRepository` only exposes user-related operations, not unrelated features        |
-| **D** – Dependency Inversion  | Depend on abstractions, not on concrete implementations | Features, ViewModels, and UseCases depend on protocols, and DI decides the rest      |
-
-### Why SOLID Matters
-
-* **Decoupling**: ViewModels, UseCases, and Repositories each do one thing and nothing more.
-* **Flexibility**: Need a new data source? Add a new repository implementation. Need different navigation? Swap in a new navigator.
-* **Testability**: All business logic and core features depend on protocols. That means you can test with mocks or fakes, not real services or UI.
+| Principle | How It's Applied                                                          |
+| --------- | ------------------------------------------------------------------------- |
+| SRP       | Each type/class/module has a single job (UseCase for business logic, etc) |
+| OCP       | Can add new repository implementations or navigation flows freely         |
+| LSP       | Any `UserRepository` can be swapped in for testing or production          |
+| ISP       | Protocols focused only on what the feature needs                          |
+| DIP       | High-level code (UseCases, ViewModels) depend on protocols, not concrete  |
 
 ```swift
-// Single Responsibility (S) & Dependency Inversion (D)
-protocol UserRepository {
+// SRP — Single Responsibility: Each type does one job
+
+protocol UserRepository { // ISP — Interface Segregation: Only user-related methods
     func login(email: String, password: String) async throws -> User
+    func register(email: String, password: String) async throws -> User
+    // No unrelated methods!
 }
 
-struct UserLoginUseCase {
-    let repository: UserRepository
+struct UserLoginUseCase { // SRP: Handles only user login use case
+    let repository: UserRepository // DIP — Dependency Inversion: Depends on protocol
 
     func execute(email: String, password: String) async throws -> User {
         try await repository.login(email: email, password: password)
     }
 }
 
-// Liskov Substitution (L)
-struct MockUserRepository: UserRepository { ... }
-struct DefaultUserRepository: UserRepository { ... }
+// OCP — Open/Closed: Can extend with new implementations, no change needed here
 
-// Open/Closed (O)
-let useCase = UserLoginUseCase(repository: MockUserRepository()) // or DefaultUserRepository
-
-// Interface Segregation (I)
-protocol UserRepository {
-    func login(...)
-    func register(...)
-    // No unrelated methods here!
+struct DefaultUserRepository: UserRepository { // Concrete data layer
+    func login(email: String, password: String) async throws -> User {
+        // Actual login logic (e.g. API, local, etc)
+        return User(email: email)
+    }
+    func register(email: String, password: String) async throws -> User {
+        // Actual register logic
+        return User(email: email)
+    }
 }
+
+struct MockUserRepository: UserRepository { // LSP — Liskov Substitution: Safe to swap
+    func login(email: String, password: String) async throws -> User {
+        return User(email: email)
+    }
+    func register(email: String, password: String) async throws -> User {
+        return User(email: email)
+    }
+}
+
+// Usage — OCP: Swap repositories with no changes elsewhere
+let useCase = UserLoginUseCase(repository: DefaultUserRepository())
+// Or, for testing:
+let mockUseCase = UserLoginUseCase(repository: MockUserRepository())
 ```
 
-By weaving SOLID into your Clean Architecture, you ensure that every feature is easier to test, change, and extend. It’s a backbone for serious, maintainable iOS projects.
+---
+
+## Example: The "User" Feature
+
+* `Component/User/Domain/Repository/UserRepository.swift`: Repository contract.
+* `Component/User/Data/DefaultUserRepository.swift`: Concrete implementation.
+* `Component/User/Domain/UseCases/UserLoginUseCase.swift`: Business logic.
+* `Component/User/DI/UserDI.swift`: Dependency injection.
+* `Presentation/LoginUI/DI/LoginUIDI.swift`: UI DI.
+
+Navigation is handled via `*Navigator.swift` classes—completely decoupled from features and UI.
 
 ---
 
-## File Walkthrough
+## Why This Structure?
 
-**Example:** Let’s look at the User feature.
-
-* `Component/User/Domain/Repository/UserRepository.swift` — Defines *what* the repository must do (contract).
-* `Component/User/Data/DefaultUserRepository.swift` — Implements the repository using data sources.
-* `Component/User/Domain/UseCases/UserLoginUseCase.swift` — Business logic, only uses repository protocol.
-* `Component/User/DI/UserDI.swift` — Wires together the feature dependencies.
-* `Presentation/LoginUI/DI/LoginUIDI.swift` — Creates ViewModels and screens, injecting UseCases.
-
-Navigation for each feature is handled by `*Navigator.swift` classes. The main navigator is `AppNavigator.swift`, which enables deep linking, tab switching, and navigation stack handling — all decoupled from UI and features.
+* **Easy onboarding:** Clear, isolated modules.
+* **Test without UI:** Core logic never depends on Apple frameworks.
+* **Safe to refactor:** Swap implementations, add features, or migrate data sources independently.
 
 ---
 
-## Why is This Important for Enterprise Apps?
+## Getting Started
 
-* **You can onboard new team members faster.**
-* **You can test business logic without running the UI or needing mocks of UIKit/SwiftUI.**
-* **You can evolve, refactor, or migrate features and data sources independently.**
-* **You can scale the codebase as features and teams grow.**
-
----
-
-## How to Explore This Example
-
-* Start with `Application/Boot.swift` to see how the app boots.
-* Follow how `Injector.swift` wires dependencies.
-* Look at any feature folder under `Component/` for its data/domain separation.
-* See how each `*UIDI.swift` handles UI dependency injection, keeping your Views clean and easy to preview.
-* Notice that ViewModels *never* reference navigation, and that business logic lives in UseCases, not in your Views.
+* Open in Xcode 15+ (Swift 5.9+).
+* Explore from `Application/Boot.swift`.
+* Trace dependency setup in `Injector.swift`.
+* Follow any feature in `Component/` for full data/domain separation.
+* Notice: ViewModels never reference navigation, and UseCases have no UI code.
 
 ---
 
-## Want to Try It Out?
+## Resources
 
-Open in Xcode (Swift 5.9+), build, and run. You’ll see a tab-based app with “Home”, “Favorites”, and “Cart” — each feature independently navigable and easily extensible.
-
-Try swapping out repositories, refactoring features, or replacing navigation approaches. Clean Architecture makes this easy.
-
----
-
-## Clean Architecture Resources
-
-* [Android Example (Denis Brandi)](https://github.com/joshgallantt/Real-Clean-Architecture-in-iOS-Example/edit/main/README.md)
+* [Denis Brandi: Android Clean Architecture Example](https://github.com/denisbrandi/clean-architecture-example)
 * [The Clean Architecture (Uncle Bob)](https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html)
 * [Clean Swift (iOS Focused)](https://clean-swift.com/clean-swift-ios-architecture/)
-* [Why Clean Architecture? (Thoughts on scaling iOS codebases)](https://www.essentialdeveloper.com/articles/clean-architecture-in-ios/)
+* [Clean Architecture in iOS (Essential Developer)](https://www.essentialdeveloper.com/articles/clean-architecture-in-ios/)
 
 ---
 
 ## License
-Fork this for your next Swift project (but please check the license and give me a shout out!), or use it as a study reference.**
+
+Use, fork, or reference for your next project. Please check the license and give a shout out if helpful!
