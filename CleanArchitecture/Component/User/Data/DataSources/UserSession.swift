@@ -9,9 +9,6 @@
 import Foundation
 import Combine
 
-import Foundation
-import Combine
-
 protocol UserSessionProtocol: AnyObject {
     var user: User? { get }
     var authToken: AuthToken? { get }
