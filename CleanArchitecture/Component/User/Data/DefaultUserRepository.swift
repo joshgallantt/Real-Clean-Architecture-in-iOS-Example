@@ -1,5 +1,5 @@
 //
-//  RealUserRepository.swift
+//  DefaultUserRepository.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 14/07/2025.
@@ -8,7 +8,7 @@
 import Combine
 import Foundation
 
-final class RealUserRepository: UserRepository {
+final class DefaultUserRepository: UserRepository {
     private let session: UserSession
     private let authClient: AuthClient
 

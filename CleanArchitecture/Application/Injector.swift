@@ -43,7 +43,7 @@ final class Injector {
         
         // MARK: Domain Component - User
         userSession = UserSession()
-        userRepository = RealUserRepository(session: userSession, authClient: FakeAuthClient())
+        userRepository = DefaultUserRepository(session: userSession, authClient: FakeAuthClient())
         userIsLoggedIn = UserIsLoggedInUseCase(userRepository: userRepository)
         observeUserIsLoggedIn = ObserveUserIsLoggedInUseCase(userRepository: userRepository)
         userLogin = UserLoginUseCase(userRepository: userRepository)
