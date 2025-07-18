@@ -133,7 +133,7 @@ Navigation is handled via `*Navigator.swift` classes—completely decoupled from
 
 ## Resources
 
-* [Denis Brandi: Android Clean Architecture Example](https://github.com/denisbrandi/clean-architecture-example)
+* [Denis Brandi: Android Clean Architecture Example](https://github.com/DenisBronx/Real-Clean-Architecture-In-Android---Sample)
 * [The Clean Architecture (Uncle Bob)](https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html)
 * [Clean Swift (iOS Focused)](https://clean-swift.com/clean-swift-ios-architecture/)
 * [Clean Architecture in iOS (Essential Developer)](https://www.essentialdeveloper.com/articles/clean-architecture-in-ios/)
