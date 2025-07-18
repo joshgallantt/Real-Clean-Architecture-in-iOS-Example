@@ -9,19 +9,25 @@ import SwiftUI
 
 struct FavoritesScreenView: View {
     @ObservedObject var viewModel: FavoritesScreenViewModel
+    let navigation: FavoritesNavigation
 
     var body: some View {
         VStack {
             Text("Favorites Screen")
             Button("Open Favorites Detail") {
-                viewModel.openDetail(id: UUID())
+                let id = UUID()
+                viewModel.didSelectFavorite(id: id)
+                navigation.openFavoritesDetail(id: id)
             }
             Button("Go to Cart Detail") {
-                viewModel.goToCartDetail(id: UUID())
+                let id = UUID()
+                viewModel.didSelectGoToCart(id: id)
+                navigation.goToCartDetail(id: id)
             }
         }
     }
 }
+
 
 struct FavoritesDetailScreenView: View {
     let id: UUID

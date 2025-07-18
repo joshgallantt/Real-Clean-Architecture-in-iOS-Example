@@ -7,26 +7,27 @@
 
 import SwiftUI
 
-
 public struct CartScreenView: View {
     @ObservedObject var viewModel: CartScreenViewModel
-
-    public init(viewModel: CartScreenViewModel) {
-        self.viewModel = viewModel
-    }
+    let navigation: CartNavigation
 
     public var body: some View {
         VStack {
             Text("Cart")
             Button("Open Cart Detail") {
-                viewModel.openDetail(id: UUID())
+                let id = UUID()
+                viewModel.didSelectCartDetail(id: id)
+                navigation.openCartDetail(id: id)
             }
             Button("Go to Home Detail") {
-                viewModel.goToHomeDetail(id: UUID())
+                let id = UUID()
+                viewModel.didSelectGoToHomeDetail(id: id)
+                navigation.openHomeDetail(id: id)
             }
         }
     }
 }
+
 
 public struct CartDetailScreenView: View {
     let id: UUID

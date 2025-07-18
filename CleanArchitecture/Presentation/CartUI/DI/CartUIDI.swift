@@ -15,8 +15,8 @@ public struct CartUIDI {
     }
 
     public func mainView() -> some View {
-        let viewModel = CartScreenViewModel(navigation: navigation)
-        return CartScreenView(viewModel: viewModel)
+        let viewModel = CartScreenViewModel()
+        return CartScreenView(viewModel: viewModel, navigation: navigation)
     }
 
     public func makeView(for destination: CartDestination) -> some View {
