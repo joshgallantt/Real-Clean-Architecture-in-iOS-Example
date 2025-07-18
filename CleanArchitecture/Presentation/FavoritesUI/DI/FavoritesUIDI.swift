@@ -16,8 +16,8 @@ public struct FavoritesUIDI {
     }
 
     public func mainView() -> some View {
-        let viewModel = FavoritesScreenViewModel(navigation: navigation)
-        return FavoritesScreenView(viewModel: viewModel)
+        let viewModel = FavoritesScreenViewModel()
+        return FavoritesScreenView(viewModel: viewModel, navigation: navigation)
     }
 
     public func makeView(for destination: FavoritesDestination) -> some View {

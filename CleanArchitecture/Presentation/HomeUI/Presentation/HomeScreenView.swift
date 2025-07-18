@@ -10,20 +10,20 @@ import Combine
 
 struct HomeScreenView: View {
     @ObservedObject var viewModel: HomeScreenViewModel
-    
-    public init(viewModel: HomeScreenViewModel) {
-        self.viewModel = viewModel
-    }
-    
-    
+    let navigation: HomeNavigation
+
     var body: some View {
         VStack {
             Text("Home Screen")
             Button("Open Home Detail") {
-                viewModel.openDetail(id: UUID())
+                let id = UUID()
+                viewModel.didSelectHomeDetail(id: id)
+                navigation.openHomeDetail(id: id)
             }
             Button("Go to Favorites Detail") {
-                viewModel.goToFavoritesDetail(id: UUID())
+                let id = UUID()
+                viewModel.didSelectGoToFavorites(id: id)
+                navigation.goToFavoritesDetail(id: id)
             }
         }
     }

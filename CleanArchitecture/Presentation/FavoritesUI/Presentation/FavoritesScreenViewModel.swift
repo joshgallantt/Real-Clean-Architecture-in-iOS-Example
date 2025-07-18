@@ -10,17 +10,12 @@ import Foundation
 
 
 final class FavoritesScreenViewModel: ObservableObject {
-    private weak var navigation: FavoritesNavigation?
-
-    init(navigation: FavoritesNavigation) {
-        self.navigation = navigation
+    func didSelectFavorite(id: UUID) {
+        // Any non-navigation side effects, e.g. analytics or state mutation
     }
 
-    func openDetail(id: UUID) {
-        navigation?.openFavoritesDetail(id: id)
-    }
-
-    func goToCartDetail(id: UUID) {
-        navigation?.goToCartDetail(id: id)
+    func didSelectGoToCart(id: UUID) {
+        // Any business logic for this action
     }
 }
+

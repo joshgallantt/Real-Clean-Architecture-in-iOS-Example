@@ -15,8 +15,8 @@ public struct HomeUIDI {
     }
 
     public func mainView() -> some View {
-        let viewModel = HomeScreenViewModel(navigation: navigation)
-        return HomeScreenView(viewModel: viewModel)
+        let viewModel = HomeScreenViewModel()
+        return HomeScreenView(viewModel: viewModel, navigation: navigation)
     }
 
     public func makeView(for destination: HomeDestination) -> some View {
@@ -26,4 +26,3 @@ public struct HomeUIDI {
         }
     }
 }
-

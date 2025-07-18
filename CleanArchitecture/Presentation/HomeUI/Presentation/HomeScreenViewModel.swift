@@ -9,17 +9,13 @@ import Combine
 import Foundation
 
 final class HomeScreenViewModel: ObservableObject {
-    private weak var navigation: HomeNavigation?
 
-    init(navigation: HomeNavigation) {
-        self.navigation = navigation
+    func didSelectHomeDetail(id: UUID) {
+        // Business logic if any
     }
 
-    func openDetail(id: UUID) {
-        navigation?.openHomeDetail(id: id)
-    }
-
-    func goToFavoritesDetail(id: UUID) {
-        navigation?.goToFavoritesDetail(id: id)
+    func didSelectGoToFavorites(id: UUID) {
+        // Business logic if any
     }
 }
+
