@@ -93,7 +93,7 @@ Clean Architecture is powered by **SOLID** — a set of five principles for des
 | **I** – Interface Segregation | Prefer smaller, focused protocols over big interfaces   | `UserRepository` only exposes user-related operations, not unrelated features        |
 | **D** – Dependency Inversion  | Depend on abstractions, not on concrete implementations | Features, ViewModels, and UseCases depend on protocols, and DI decides the rest      |
 
-### Why SOLID Matters for iOS
+### Why SOLID Matters
 
 * **Decoupling**: ViewModels, UseCases, and Repositories each do one thing and nothing more.
 * **Flexibility**: Need a new data source? Add a new repository implementation. Need different navigation? Swap in a new navigator.
