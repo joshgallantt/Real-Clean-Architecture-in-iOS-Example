@@ -65,19 +65,5 @@ final class Injector {
             favoritesUIDI: favoritesUIDI,
             cartUIDI: cartUIDI
         )
-        
-        // MARK: UI Navigation
-        appNavigator.register { (destination: HomeDestination) in
-            self.homeUIDI.makeView(for: destination)
-        }
-        
-        appNavigator.register { (destination: FavoritesDestination) in
-            self.favoritesUIDI.makeView(for: destination)
-        }
-
-        appNavigator.register { (destination: CartDestination) in
-            self.cartUIDI.makeView(for: destination)
-        }
-        
     }
 }
