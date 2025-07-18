@@ -122,7 +122,7 @@ Try swapping out repositories, refactoring features, or replacing navigation app
 
 ## Clean Architecture Resources
 
-* [Android Example (Denis Brandi)] (https://github.com/joshgallantt/Real-Clean-Architecture-in-iOS-Example/edit/main/README.md)
+* [Android Example (Denis Brandi)](https://github.com/joshgallantt/Real-Clean-Architecture-in-iOS-Example/edit/main/README.md)
 * [The Clean Architecture (Uncle Bob)](https://8thlight.com/blog/uncle-bob/2012/08/13/the-clean-architecture.html)
 * [Clean Swift (iOS Focused)](https://clean-swift.com/clean-swift-ios-architecture/)
 * [Why Clean Architecture? (Thoughts on scaling iOS codebases)](https://www.essentialdeveloper.com/articles/clean-architecture-in-ios/)
