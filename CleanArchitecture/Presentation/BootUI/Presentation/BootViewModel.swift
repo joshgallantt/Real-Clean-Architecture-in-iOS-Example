@@ -9,7 +9,7 @@ import Foundation
 import SwiftUI
 import Combine
 
-final class BootViewModel: ObservableObject, BootNavigation {
+final class BootViewModel: ObservableObject {
     @Published var path: BootDestination
     private var cancellable: AnyCancellable?
     private let observeUserLoggedIn: ObserveUserIsLoggedInUseCase
@@ -26,13 +26,5 @@ final class BootViewModel: ObservableObject, BootNavigation {
             .sink { [weak self] loggedIn in
                 self?.path = loggedIn ? .main : .login
             }
-    }
-
-    func goToLogin() {
-        path = .login
-    }
-
-    func goToMain() {
-        path = .main
     }
 }
