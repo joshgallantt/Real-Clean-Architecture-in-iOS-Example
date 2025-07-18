@@ -79,6 +79,59 @@ This project uses these main layers, which map directly to Clean Architecture co
 
 ---
 
+## SOLID Principles in Clean Architecture
+
+Clean Architecture is powered by **SOLID** — a set of five principles for designing clean, modular, and maintainable code. Applying these principles across all layers of your iOS app gives you flexible, scalable features that remain easy to change and test.
+
+**What is SOLID?**
+
+| Principle                     | Meaning                                                 | How Clean Architecture Applies                                                       |
+| ----------------------------- | ------------------------------------------------------- | ------------------------------------------------------------------------------------ |
+| **S** – Single Responsibility | Each type/class/module should have one job              | UseCases handle only one piece of business logic, repositories handle only data      |
+| **O** – Open/Closed           | Open for extension, closed for modification             | Swap repository or navigation implementations without editing UseCases or ViewModels |
+| **L** – Liskov Substitution   | Subtypes must be replaceable for their base types       | Swap any `UserRepository` implementation in tests or prod with no code changes       |
+| **I** – Interface Segregation | Prefer smaller, focused protocols over big interfaces   | `UserRepository` only exposes user-related operations, not unrelated features        |
+| **D** – Dependency Inversion  | Depend on abstractions, not on concrete implementations | Features, ViewModels, and UseCases depend on protocols, and DI decides the rest      |
+
+### Why SOLID Matters for iOS
+
+* **Decoupling**: ViewModels, UseCases, and Repositories each do one thing and nothing more.
+* **Flexibility**: Need a new data source? Add a new repository implementation. Need different navigation? Swap in a new navigator.
+* **Testability**: All business logic and core features depend on protocols. That means you can test with mocks or fakes, not real services or UI.
+
+```swift
+// Single Responsibility (S) & Dependency Inversion (D)
+protocol UserRepository {
+    func login(email: String, password: String) async throws -> User
+}
+
+struct UserLoginUseCase {
+    let repository: UserRepository
+
+    func execute(email: String, password: String) async throws -> User {
+        try await repository.login(email: email, password: password)
+    }
+}
+
+// Liskov Substitution (L)
+struct MockUserRepository: UserRepository { ... }
+struct DefaultUserRepository: UserRepository { ... }
+
+// Open/Closed (O)
+let useCase = UserLoginUseCase(repository: MockUserRepository()) // or DefaultUserRepository
+
+// Interface Segregation (I)
+protocol UserRepository {
+    func login(...)
+    func register(...)
+    // No unrelated methods here!
+}
+```
+
+By weaving SOLID into your Clean Architecture, you ensure that every feature is easier to test, change, and extend. It’s a backbone for serious, maintainable iOS projects.
+
+---
+
 ## File Walkthrough
 
 **Example:** Let’s look at the User feature.
