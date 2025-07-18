@@ -13,17 +13,17 @@ final class Injector {
     // MARK: - Component Properties
     
     // MARK: - User
-    let userSession: UserSession
-    let userRepository: UserRepository
-    let userIsLoggedIn: UserIsLoggedInUseCase
-    let observeUserIsLoggedIn: ObserveUserIsLoggedInUseCase
-    let userLogin: UserLoginUseCase
+    private let userSession: UserSession
+    private let userRepository: UserRepository
+    private let userIsLoggedIn: UserIsLoggedInUseCase
+    private let observeUserIsLoggedIn: ObserveUserIsLoggedInUseCase
+    private let userLogin: UserLoginUseCase
 
     // MARK: - Feature Navigators
     let appNavigator: AppNavigator
-    let homeNavigator: HomeNavigator
-    let cartNavigator: CartNavigator
-    let favoritesNavigator: FavoritesNavigator
+    private let homeNavigator: HomeNavigator
+    private let cartNavigator: CartNavigator
+    private let favoritesNavigator: FavoritesNavigator
 
     // MARK: - UIDI Properties
     let bootUIDI: BootUIDI
