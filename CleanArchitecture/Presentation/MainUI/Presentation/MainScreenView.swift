@@ -20,6 +20,7 @@ struct MainScreenView<Home: View, Favorites: View, Cart: View>: View {
             Tab("Home", systemImage: "house", value: AppNavigator.Tabs.home) {
                 NavigationStack(path: $navigator.homePath) {
                     homeView()
+                        .navigationTitle("Home")
                         .navigationDestination(for: AnyHashable.self) { route in
                             navigator.view(for: route.base) ?? AnyView(EmptyView())
                         }
@@ -29,6 +30,7 @@ struct MainScreenView<Home: View, Favorites: View, Cart: View>: View {
             Tab("Favorites", systemImage: "star", value: AppNavigator.Tabs.favorites) {
                 NavigationStack(path: $navigator.favoritesPath) {
                     favoritesView()
+                        .navigationTitle("Favorites")
                         .navigationDestination(for: AnyHashable.self) { route in
                             navigator.view(for: route.base) ?? AnyView(EmptyView())
                         }
@@ -38,6 +40,7 @@ struct MainScreenView<Home: View, Favorites: View, Cart: View>: View {
             Tab("Cart", systemImage: "cart.fill", value: AppNavigator.Tabs.cart) {
                 NavigationStack(path: $navigator.cartPath) {
                     cartView()
+                        .navigationTitle("Cart")
                         .navigationDestination(for: AnyHashable.self) { route in
                             navigator.view(for: route.base) ?? AnyView(EmptyView())
                         }
