@@ -128,12 +128,6 @@ Try swapping out repositories, refactoring features, or replacing navigation app
 
 ---
 
-**Questions, feedback, or want to contribute? PRs and issues welcome!**
-
----
-
-Let me know if you want to see specific workflow examples, diagrams, or a deeper dive into one feature’s implementation.
-
 **Feel free to explore the code and see how each layer communicates.
 Fork this for your next Swift project (but please check the license and give me a shout out!), or use it as a study reference.**
 
