@@ -50,45 +50,36 @@ final class UserSession: ObservableObject, UserSessionProtocol {
     }
 
     func clear() {
-        print("[UserSession] Clearing session")
         DispatchQueue.main.async { [weak self] in
             self?.user = nil
             self?.authToken = nil
         }
-        expiryTimer?.cancel()
-        expiryTimer = nil
+        cancelExpiryTimer()
     }
 
     private func scheduleExpiry(for token: AuthToken) {
-        expiryTimer?.cancel()
-        expiryTimer = nil
-        
+        cancelExpiryTimer()
+
         let interval = token.expiresAt.timeIntervalSinceNow
-        print("[UserSession] Scheduling expiry timer")
-        print("[UserSession] Token expires at: \(token.expiresAt) (now: \(Date()))")
-        print("[UserSession] Calculated interval until expiry: \(interval) seconds")
-        
+
         guard interval > 0 else {
-            print("[UserSession] Token already expired, clearing session")
             clear()
             return
         }
-        
-        let clampedInterval = max(interval, 1)
-        if interval != clampedInterval {
-            print("[UserSession] Interval clamped to 1 second minimum")
-        }
-        
-        let timer = DispatchSource.makeTimerSource(queue: DispatchQueue.main)
-        timer.schedule(deadline: .now() + clampedInterval)
+
+        let timer = DispatchSource.makeTimerSource(queue: .main)
+        timer.schedule(deadline: .now() + interval)
         timer.setEventHandler { [weak self] in
-            print("[UserSession] Expiry timer fired, clearing session")
             self?.clear()
         }
         timer.resume()
         expiryTimer = timer
-        
-        print("[UserSession] Expiry timer scheduled to fire in \(clampedInterval) seconds")
     }
+    
+    private func cancelExpiryTimer() {
+        expiryTimer?.cancel()
+        expiryTimer = nil
+    }
+
 }
 
