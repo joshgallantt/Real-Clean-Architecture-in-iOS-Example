@@ -24,10 +24,6 @@ final class UserSession: ObservableObject, UserSessionProtocol {
     @Published private(set) var authToken: AuthToken?
 
     private var expiryTimer: DispatchSourceTimer?
-    
-    init() {
-        print("[UserSession] Initilising")
-    }
 
     var isLoggedIn: Bool {
         guard let token = authToken, !token.isExpired else { return false }
