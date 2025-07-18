@@ -13,7 +13,6 @@ final class Injector {
     // MARK: - Component Properties
     
     // MARK: - User
-    private let userSession: UserSession
     private let userRepository: UserRepository
     private let userIsLoggedIn: UserIsLoggedInUseCase
     private let observeUserIsLoggedIn: ObserveUserIsLoggedInUseCase
@@ -42,8 +41,7 @@ final class Injector {
         favoritesNavigator = FavoritesNavigator(navigator: appNavigator)
         
         // MARK: Domain Component - User
-        userSession = UserSession()
-        userRepository = DefaultUserRepository(session: userSession, authClient: FakeAuthClient())
+        userRepository = DefaultUserRepository(session: UserSession(), authClient: FakeAuthClient())
         userIsLoggedIn = UserIsLoggedInUseCase(userRepository: userRepository)
         observeUserIsLoggedIn = ObserveUserIsLoggedInUseCase(userRepository: userRepository)
         userLogin = UserLoginUseCase(userRepository: userRepository)
