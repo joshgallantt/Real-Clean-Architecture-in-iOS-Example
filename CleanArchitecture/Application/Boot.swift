@@ -11,7 +11,7 @@ import SwiftUI
 @main
 struct Boot: App {
     init() {
-        
+        AppNavigator.registerAllDestinations(using: Injector.shared)
     }
 
     var body: some Scene {
@@ -20,4 +20,3 @@ struct Boot: App {
         }
     }
 }
-
