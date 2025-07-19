@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import HomeDI
 
 public struct MainUIDI {
     let navigator: AppNavigator

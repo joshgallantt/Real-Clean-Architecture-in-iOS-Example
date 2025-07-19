@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import HomePresentation
 
 public struct HomeUIDI {
     private let navigation: HomeNavigation
@@ -14,11 +15,13 @@ public struct HomeUIDI {
         self.navigation = navigation
     }
 
+    @MainActor
     public func mainView() -> some View {
         let viewModel = HomeScreenViewModel()
         return HomeScreenView(viewModel: viewModel, navigation: navigation)
     }
 
+    @MainActor
     public func makeView(for destination: HomeDestination) -> some View {
         switch destination {
         case .detail(let id):
