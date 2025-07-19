@@ -11,6 +11,11 @@ public struct CartScreenView: View {
     @ObservedObject var viewModel: CartScreenViewModel
     let navigation: CartNavigation
 
+    public init(viewModel: CartScreenViewModel, navigation: CartNavigation) {
+        self.viewModel = viewModel
+        self.navigation = navigation
+    }
+    
     public var body: some View {
         VStack {
             Text("Cart")
@@ -25,13 +30,5 @@ public struct CartScreenView: View {
                 navigation.openHomeDetail(id: id)
             }
         }
-    }
-}
-
-
-public struct CartDetailScreenView: View {
-    let id: UUID
-    public var body: some View {
-        Text("Cart Detail for \(id.uuidString)")
     }
 }

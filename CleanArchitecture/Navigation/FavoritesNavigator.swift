@@ -7,6 +7,7 @@
 
 import Foundation
 import WishlistPresentation
+import CartPresentation
 
 final class WishlistNavigator: WishlistNavigation {
     private unowned let navigator: AppNavigator

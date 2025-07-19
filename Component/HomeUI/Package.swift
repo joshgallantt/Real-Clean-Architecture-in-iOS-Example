@@ -14,8 +14,8 @@ let package = Package(
             targets: ["HomePresentation"]
         ),
         .library(
-            name: "HomeDI",
-            targets: ["HomeDI"]
+            name: "HomeUIDI",
+            targets: ["HomeUIDI"]
         ),
     ],
     targets: [
@@ -25,13 +25,13 @@ let package = Package(
             path: "Sources/Presentation"
         ),
         .target(
-            name: "HomeDI",
+            name: "HomeUIDI",
             dependencies: ["HomePresentation"],
             path: "Sources/DI"
         ),
         .testTarget(
             name: "HomeUITests",
-            dependencies: ["HomeDI"],
+            dependencies: ["HomeUIDI"],
             path: "Tests/HomeUITests"
         ),
     ]
