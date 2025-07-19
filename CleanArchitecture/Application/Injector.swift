@@ -28,7 +28,7 @@ final class Injector {
     // MARK: - UIDI Properties
     let bootUIDI: BootUIDI
     let loginUIDI: LoginUIDI
-    let mainUIDI: MainUIDI
+    let tabUIDI: TabUIDI
     let homeUIDI: HomeUIDI
     let wishlistUIDI: WishlistUIDI
     let cartUIDI: CartUIDI
@@ -63,7 +63,7 @@ final class Injector {
         cartUIDI = CartUIDI(
             navigation: cartNavigator
         )
-        mainUIDI = MainUIDI(
+        tabUIDI = TabUIDI(
             navigator: appNavigator,
             homeUIDI: homeUIDI,
             wishlistUIDI: wishlistUIDI,

@@ -17,7 +17,7 @@ struct BootScreenView: View {
         case .login:
             return AnyView(Injector.shared.loginUIDI.mainView())
         case .main:
-            return AnyView(Injector.shared.mainUIDI.mainView())
+            return AnyView(Injector.shared.tabUIDI.mainView())
         }
     }
 }
