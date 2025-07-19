@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		144CCA4D2E2BABC100899DD3 /* HomeUI in Resources */ = {isa = PBXBuildFile; fileRef = 144CCA482E2BABC100899DD3 /* HomeUI */; };
 		14BD45AE2E2B925300FE6875 /* CartUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45AD2E2B925300FE6875 /* CartUIDI */; };
 		14BD45B02E2B925300FE6875 /* HomeUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45AF2E2B925300FE6875 /* HomeUIDI */; };
 		14BD45B22E2B925300FE6875 /* WishlistUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45B12E2B925300FE6875 /* WishlistUIDI */; };
@@ -33,23 +34,15 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		144CCA472E2BABC100899DD3 /* CartUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = CartUI; sourceTree = "<group>"; };
+		144CCA482E2BABC100899DD3 /* HomeUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = HomeUI; sourceTree = "<group>"; };
+		144CCA492E2BABC100899DD3 /* LoginUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = LoginUI; sourceTree = "<group>"; };
+		144CCA4A2E2BABC100899DD3 /* User */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = User; sourceTree = "<group>"; };
+		144CCA4B2E2BABC100899DD3 /* WishlistUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WishlistUI; sourceTree = "<group>"; };
 		1485C9A82E29746D0006933B /* CleanArchitecture.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CleanArchitecture.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1485C9B52E29746E0006933B /* CleanArchitectureTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CleanArchitectureTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1485C9BF2E29746E0006933B /* CleanArchitectureUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CleanArchitectureUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
-
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		14BD44D92E2B8BF500FE6875 /* Exceptions for "Component" folder in "CleanArchitecture" target */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				CartUI,
-				LoginUI,
-				User,
-				WishlistUI,
-			);
-			target = 1485C9A72E29746D0006933B /* CleanArchitecture */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1485C9AA2E29746D0006933B /* CleanArchitecture */ = {
@@ -65,14 +58,6 @@
 		1485C9C22E29746E0006933B /* CleanArchitectureUITests */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = CleanArchitectureUITests;
-			sourceTree = "<group>";
-		};
-		14BD44D12E2B88BD00FE6875 /* Component */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			exceptions = (
-				14BD44D92E2B8BF500FE6875 /* Exceptions for "Component" folder in "CleanArchitecture" target */,
-			);
-			path = Component;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -111,7 +96,11 @@
 		1485C99F2E29746D0006933B = {
 			isa = PBXGroup;
 			children = (
-				14BD44D12E2B88BD00FE6875 /* Component */,
+				144CCA472E2BABC100899DD3 /* CartUI */,
+				144CCA482E2BABC100899DD3 /* HomeUI */,
+				144CCA492E2BABC100899DD3 /* LoginUI */,
+				144CCA4A2E2BABC100899DD3 /* User */,
+				144CCA4B2E2BABC100899DD3 /* WishlistUI */,
 				1485C9AA2E29746D0006933B /* CleanArchitecture */,
 				1485C9B82E29746E0006933B /* CleanArchitectureTests */,
 				1485C9C22E29746E0006933B /* CleanArchitectureUITests */,
@@ -146,7 +135,6 @@
 			);
 			fileSystemSynchronizedGroups = (
 				1485C9AA2E29746D0006933B /* CleanArchitecture */,
-				14BD44D12E2B88BD00FE6875 /* Component */,
 			);
 			name = CleanArchitecture;
 			packageProductDependencies = (
@@ -256,6 +244,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				144CCA4D2E2BABC100899DD3 /* HomeUI in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
