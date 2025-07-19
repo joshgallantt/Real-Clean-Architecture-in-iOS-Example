@@ -1,21 +1,22 @@
 //
-//  FavoritesNavigator.swift
+//  WishlistNavigator.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 16/07/2025.
 //
 
 import Foundation
+import WishlistPresentation
 
-final class FavoritesNavigator: FavoritesNavigation {
+final class WishlistNavigator: WishlistNavigation {
     private unowned let navigator: AppNavigator
 
     init(navigator: AppNavigator) {
         self.navigator = navigator
     }
 
-    func openFavoritesDetail(id: UUID) {
-        navigator.push(FavoritesDestination.detail(id: id), tab: .favorites)
+    func openWishlistDetail(id: UUID) {
+        navigator.push(WishlistDestination.detail(id: id), tab: .favorites)
     }
 
     func goToCartDetail(id: UUID) {

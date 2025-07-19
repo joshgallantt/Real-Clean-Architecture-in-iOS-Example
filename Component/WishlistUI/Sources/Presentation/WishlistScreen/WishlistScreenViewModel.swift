@@ -1,5 +1,5 @@
 //
-//  FavoritesScreenViewModel.swift
+//  WishlistScreenViewModel.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 15/07/2025.
@@ -9,8 +9,10 @@ import Combine
 import Foundation
 
 
-final class FavoritesScreenViewModel: ObservableObject {
-    func didSelectFavorite(id: UUID) {
+public final class WishlistScreenViewModel: ObservableObject {
+    public init() {}
+    
+    func didSelectWishlistItem(id: UUID) {
         // Any non-navigation side effects, e.g. analytics or state mutation
     }
 

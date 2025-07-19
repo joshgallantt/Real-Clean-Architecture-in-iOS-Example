@@ -7,6 +7,7 @@
 
 import SwiftUI
 import HomeDI
+import WishlistDI
 
 final class Injector {
     static let shared = Injector()
@@ -17,15 +18,15 @@ final class Injector {
     // MARK: - Feature Navigators
     let appNavigator: AppNavigator
     private let homeNavigator: HomeNavigator
+    private let wishlistNavigator: WishlistNavigator
     private let cartNavigator: CartNavigator
-    private let favoritesNavigator: FavoritesNavigator
-
+    
     // MARK: - UIDI Properties
     let bootUIDI: BootUIDI
     let loginUIDI: LoginUIDI
     let mainUIDI: MainUIDI
     let homeUIDI: HomeUIDI
-    let favoritesUIDI: FavoritesUIDI
+    let wishlistUIDI: WishlistUIDI
     let cartUIDI: CartUIDI
 
     private init() {
@@ -33,7 +34,7 @@ final class Injector {
         appNavigator = AppNavigator()
         homeNavigator = HomeNavigator(navigator: appNavigator)
         cartNavigator = CartNavigator(navigator: appNavigator)
-        favoritesNavigator = FavoritesNavigator(navigator: appNavigator)
+        wishlistNavigator = WishlistNavigator(navigator: appNavigator)
         
         // MARK: User Component DI
         let userRepository = DefaultUserRepository(
@@ -52,8 +53,8 @@ final class Injector {
         homeUIDI = HomeUIDI(
             navigation: homeNavigator
         )
-        favoritesUIDI = FavoritesUIDI(
-            navigation: favoritesNavigator
+        wishlistUIDI = WishlistUIDI(
+            navigation: wishlistNavigator
         )
         cartUIDI = CartUIDI(
             navigation: cartNavigator
@@ -61,7 +62,7 @@ final class Injector {
         mainUIDI = MainUIDI(
             navigator: appNavigator,
             homeUIDI: homeUIDI,
-            favoritesUIDI: favoritesUIDI,
+            wishlistUIDI: wishlistUIDI,
             cartUIDI: cartUIDI
         )
     }

@@ -8,6 +8,7 @@
 
 /* Begin PBXBuildFile section */
 		14BD44D72E2B8B1200FE6875 /* HomeDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD44D62E2B8B1200FE6875 /* HomeDI */; };
+		14BD44DB2E2B8E0C00FE6875 /* WishlistDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD44DA2E2B8E0C00FE6875 /* WishlistDI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -33,6 +34,16 @@
 		1485C9BF2E29746E0006933B /* CleanArchitectureUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CleanArchitectureUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		14BD44D92E2B8BF500FE6875 /* Exceptions for "Component" folder in "CleanArchitecture" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				WishlistUI,
+			);
+			target = 1485C9A72E29746D0006933B /* CleanArchitecture */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1485C9AA2E29746D0006933B /* CleanArchitecture */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
@@ -51,6 +62,9 @@
 		};
 		14BD44D12E2B88BD00FE6875 /* Component */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				14BD44D92E2B8BF500FE6875 /* Exceptions for "Component" folder in "CleanArchitecture" target */,
+			);
 			path = Component;
 			sourceTree = "<group>";
 		};
@@ -61,6 +75,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				14BD44DB2E2B8E0C00FE6875 /* WishlistDI in Frameworks */,
 				14BD44D72E2B8B1200FE6875 /* HomeDI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -133,6 +148,7 @@
 			name = CleanArchitecture;
 			packageProductDependencies = (
 				14BD44D62E2B8B1200FE6875 /* HomeDI */,
+				14BD44DA2E2B8E0C00FE6875 /* WishlistDI */,
 			);
 			productName = CleanArchitecture;
 			productReference = 1485C9A82E29746D0006933B /* CleanArchitecture.app */;
@@ -631,6 +647,10 @@
 		14BD44D62E2B8B1200FE6875 /* HomeDI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = HomeDI;
+		};
+		14BD44DA2E2B8E0C00FE6875 /* WishlistDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WishlistDI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
