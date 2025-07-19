@@ -1,5 +1,5 @@
 //
-//  FavoritesNavigation.swift
+//  WishlistNavigation.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 16/07/2025.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol FavoritesNavigation: AnyObject {
-    func openFavoritesDetail(id: UUID)
+public protocol WishlistNavigation: AnyObject {
+    func openWishlistDetail(id: UUID)
     func goToCartDetail(id: UUID)
 }

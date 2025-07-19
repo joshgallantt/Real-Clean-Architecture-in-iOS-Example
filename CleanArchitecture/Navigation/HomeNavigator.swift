@@ -7,6 +7,7 @@
 
 import Foundation
 import HomePresentation
+import WishlistPresentation
 
 final class HomeNavigator: HomeNavigation {
     private unowned let navigator: AppNavigator
@@ -20,6 +21,6 @@ final class HomeNavigator: HomeNavigation {
     }
 
     func goToFavoritesDetail(id: UUID) {
-        navigator.push(FavoritesDestination.detail(id: id), tab: .favorites)
+        navigator.push(WishlistDestination.detail(id: id), tab: .favorites)
     }
 }

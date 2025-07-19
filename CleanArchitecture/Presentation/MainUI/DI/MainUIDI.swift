@@ -7,22 +7,23 @@
 
 import SwiftUI
 import HomeDI
+import WishlistDI
 
 public struct MainUIDI {
     let navigator: AppNavigator
     let homeUIDI: HomeUIDI
-    let favoritesUIDI: FavoritesUIDI
+    let wishlistUIDI: WishlistUIDI
     let cartUIDI: CartUIDI
 
     init(
         navigator: AppNavigator,
         homeUIDI: HomeUIDI,
-        favoritesUIDI: FavoritesUIDI,
+        wishlistUIDI: WishlistUIDI,
         cartUIDI: CartUIDI,
     ) {
         self.navigator = navigator
         self.homeUIDI = homeUIDI
-        self.favoritesUIDI = favoritesUIDI
+        self.wishlistUIDI = wishlistUIDI
         self.cartUIDI = cartUIDI
     }
 
@@ -30,7 +31,7 @@ public struct MainUIDI {
         MainScreenView(
             navigator: navigator,
             homeView: { self.homeUIDI.mainView() },
-            favoritesView: { self.favoritesUIDI.mainView() },
+            favoritesView: { self.wishlistUIDI.mainView() },
             cartView: { self.cartUIDI.mainView() }
         )
     }
