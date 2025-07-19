@@ -1,6 +1,6 @@
 # Clean Architecture iOS Template
 
-A production-grade starter template for SwiftUI apps, built with Clean Architecture, SOLID principles, and strict Swift 5.9+ concurrency. Each feature is isolated, navigation is registry-driven, and everything is testable by default.
+A production-grade starter template for SwiftUI apps, built with Clean Architecture, SOLID principles, and strict Swift 5.9+ concurrency. Each feature is isolated, navigation is registry-driven, and everything is testable by default. Hope you enjoy!
 
 ---
 
