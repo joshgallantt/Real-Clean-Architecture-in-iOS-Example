@@ -36,18 +36,18 @@ A production-grade starter template for SwiftUI apps, built with Clean Architect
 ## Project Structure
 
 ```plaintext
-├── CleanArchitecture/      # App entrypoint, navigation, DI, root-level composition
+├── App/                     # App entrypoint, navigation, DI, root-level composition
 │   ├── Boot.swift
 │   ├── Injector.swift
 │   └── Navigation/
 │   └── Root/
-├── User/                   # User domain module (domain, data, DI)
-├── HomeUI/                 # Home feature module (DI, Presentation)
-├── CartUI/                 # Cart feature module (DI, Presentation)
-├── WishlistUI/             # Wishlist feature module (DI, Presentation)
-├── LoginUI/                # Login feature module (DI, Presentation)
-├── CleanArchitectureTests/ # App-level tests
-├── CleanArchitectureUITests/
+├── AppTests/                # App-level unit and UI tests
+├── User/                    # User domain module (domain, data, DI)
+├── HomeUI/                  # Home feature module (DI, Presentation)
+├── CartUI/                  # Cart feature module (DI, Presentation)
+├── WishlistUI/              # Wishlist feature module (DI, Presentation)
+├── LoginUI/                 # Login feature module (DI, Presentation)
+
 ```
 
 **Each feature package contains:**
@@ -84,9 +84,15 @@ HomeUI/
 
 ## Architecture Breakdown
 
-### SOLID in Practice (Swift snippets)
+Absolutely, here’s an improved README section with concise explanations and Swift-centric context, keeping it clear and practical for other iOS devs:
 
-| Principle | How it’s applied                |
+---
+
+### SOLID Principles in Practice
+
+SOLID is a set of five principles for writing maintainable, testable, and scalable code. Each principle helps structure your codebase so it’s easier to extend, refactor, and reason about—especially as your project grows.
+
+| Principle | How it’s applied in Swift       |
 | --------- | ------------------------------- |
 | SRP       | Single-purpose types, modules   |
 | OCP       | New features via extension      |
@@ -94,7 +100,9 @@ HomeUI/
 | ISP       | Lean, client-focused protocols  |
 | DIP       | All wiring via abstractions     |
 
-**SRP:**
+#### SRP (Single Responsibility Principle)
+
+A type should do one thing well, and only one thing. This makes your code easier to test, maintain, and reason about.
 
 ```swift
 // UserLoginUseCase is only responsible for login.
@@ -107,7 +115,9 @@ struct UserLoginUseCase {
 }
 ```
 
-**OCP:**
+#### OCP (Open/Closed Principle)
+
+Code should be open for extension but closed for modification. Add new functionality by conforming to protocols or extending types—don’t modify existing code.
 
 ```swift
 struct MockUserRepository: UserRepository {
@@ -116,7 +126,9 @@ struct MockUserRepository: UserRepository {
 }
 ```
 
-**LSP:**
+#### LSP (Liskov Substitution Principle)
+
+You should be able to use any conforming type in place of its protocol without breaking your code.
 
 ```swift
 protocol CartNavigation {
@@ -126,7 +138,9 @@ final class CartNavigator: CartNavigation { /* ... */ }
 final class TestCartNavigator: CartNavigation { /* ... */ }
 ```
 
-**ISP:**
+#### ISP (Interface Segregation Principle)
+
+Define focused, client-specific protocols instead of bloated ones, so each conformer only implements what it actually needs.
 
 ```swift
 protocol WishlistNavigation {
@@ -135,7 +149,9 @@ protocol WishlistNavigation {
 }
 ```
 
-**DIP:**
+#### DIP (Dependency Inversion Principle)
+
+Depend on abstractions (protocols), not concrete implementations. This enables loose coupling, testability, and flexible wiring.
 
 ```swift
 final class Injector {
