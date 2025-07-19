@@ -10,6 +10,7 @@ A robust, production-ready template for SwiftUI apps, architected around Clean A
 * [Project Structure](#project-structure)
 * [Clean Architecture Principles](#clean-architecture-principles)
 * [SOLID in Practice (with Swift snippets)](#solid-in-practice-with-swift-snippets)
+* [Dependency Injection & The Injector](#dependency-injection--the-injector)
 * [Navigation Registry & Tab Management](#navigation-registry--tab-management)
 * [Root Layer & Authentication Flow](#root-layer--authentication-flow)
 * [Feature Module Example](#feature-module-example)
@@ -151,6 +152,38 @@ final class Injector {
     }
 }
 ```
+
+---
+
+## Dependency Injection & The Injector
+
+A single **Injector** composes all dependencies for the app at startup.
+No feature or ViewModel creates its own dependencies—everything is injected.
+
+**How it works:**
+
+* The `Injector` builds navigators, repositories, use cases, and UI modules.
+* Each module receives its dependencies via initializer injection.
+* Swap or mock any dependency by updating the Injector.
+
+**Example:**
+
+```swift
+final class Injector {
+    static let shared = Injector()
+
+    let homeUIDI: HomeUIDI
+
+    private init() {
+        let appNavigator = Navigation()
+        let homeNavigator = HomeNavigator(navigator: appNavigator)
+        homeUIDI = HomeUIDI(navigation: homeNavigator)
+        // ...set up other features
+    }
+}
+```
+
+This keeps dependencies explicit, feature code decoupled, and testing simple.
 
 ---
 
