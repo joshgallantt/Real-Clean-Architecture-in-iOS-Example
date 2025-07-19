@@ -20,7 +20,7 @@ final class HomeNavigator: HomeNavigation {
         navigator.push(HomeDestination.detail(id: id), tab: .home)
     }
 
-    func goToFavoritesDetail(id: UUID) {
-        navigator.push(WishlistDestination.detail(id: id), tab: .favorites)
+    func goToWishlistDetail(id: UUID) {
+        navigator.push(WishlistDestination.detail(id: id), tab: .wishlist)
     }
 }

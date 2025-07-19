@@ -9,5 +9,5 @@ import Foundation
 
 public protocol HomeNavigation: AnyObject {
     func openHomeDetail(id: UUID)
-    func goToFavoritesDetail(id: UUID)
+    func goToWishlistDetail(id: UUID)
 }

@@ -7,16 +7,17 @@
 
 
 import SwiftUI
+import UserDomain
 
 public struct BootUIDI {
-    private let observeUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCase
+    private let observeUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCaseProtocol
 
-    init(observeUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCase) {
+    init(observeUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCaseProtocol) {
         self.observeUserIsLoggedInUseCase = observeUserIsLoggedInUseCase
     }
     
     private func makeBootViewModel() -> BootViewModel {
-        .init(observeUserLoggedIn: observeUserIsLoggedInUseCase)
+        BootViewModel(observeUserLoggedIn: observeUserIsLoggedInUseCase)
     }
 
     func mainView() -> some View {

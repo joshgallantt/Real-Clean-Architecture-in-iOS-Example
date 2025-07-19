@@ -8,7 +8,7 @@
 
 import Foundation
 
-struct AuthToken: Equatable {
+public struct AuthToken: Equatable, Sendable {
     let value: String
     let expiresAt: Date
     
@@ -16,3 +16,4 @@ struct AuthToken: Equatable {
         Date() >= expiresAt
     }
 }
+

@@ -7,6 +7,7 @@
 
 
 import SwiftUI
+import LoginUIDI
 
 struct BootScreenView: View {
     @ObservedObject var bootViewModel: BootViewModel

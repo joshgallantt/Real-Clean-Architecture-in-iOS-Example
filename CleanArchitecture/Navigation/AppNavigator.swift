@@ -12,12 +12,12 @@ import Combine
 
 final class AppNavigator: ObservableObject {
     enum Tabs: Hashable {
-        case home, favorites, cart
+        case home, wishlist, cart
     }
     
     @Published var selectedTab: Tabs = .home
     @Published var homePath = NavigationPath()
-    @Published var favoritesPath = NavigationPath()
+    @Published var wishlistPath = NavigationPath()
     @Published var cartPath = NavigationPath()
     @Published var searchPath = NavigationPath()
 
@@ -46,7 +46,7 @@ final class AppNavigator: ObservableObject {
     func resetPath(for tab: Tabs) {
         switch tab {
         case .home: homePath = NavigationPath()
-        case .favorites: favoritesPath = NavigationPath()
+        case .wishlist: wishlistPath = NavigationPath()
         case .cart: cartPath = NavigationPath()
         }
     }
@@ -60,7 +60,7 @@ final class AppNavigator: ObservableObject {
         let anyRoute = AnyHashable(route)
         switch destinationTab {
         case .home: homePath.append(anyRoute)
-        case .favorites: favoritesPath.append(anyRoute)
+        case .wishlist: wishlistPath.append(anyRoute)
         case .cart: cartPath.append(anyRoute)
         }
     }
@@ -68,7 +68,7 @@ final class AppNavigator: ObservableObject {
     func pop() {
         switch selectedTab {
         case .home: homePath.removeLast()
-        case .favorites: favoritesPath.removeLast()
+        case .wishlist: wishlistPath.removeLast()
         case .cart: cartPath.removeLast()
         }
     }

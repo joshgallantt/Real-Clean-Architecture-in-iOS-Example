@@ -7,18 +7,23 @@
 
 
 import Foundation
+import UserDomain
 
-protocol AuthClient {
+public protocol AuthClient: Sendable {
     func login(username: String, password: String) async -> (User, AuthToken)?
     func logout() async
 }
 
-
-final class FakeAuthClient: AuthClient {
+public actor FakeAuthClient: AuthClient {
     private(set) var lastLoginToken: AuthToken? = nil
     private(set) var exampleExpiry: TimeInterval = 60
+    
+    public init(lastLoginToken: AuthToken? = nil, exampleExpiry: TimeInterval = 60) {
+        self.lastLoginToken = lastLoginToken
+        self.exampleExpiry = exampleExpiry
+    }
 
-    func login(username: String, password: String) async -> (User, AuthToken)? {
+    public func login(username: String, password: String) async -> (User, AuthToken)? {
         try? await Task.sleep(nanoseconds: 500_000_000)
         guard !username.isEmpty, !password.isEmpty else { return nil }
         let expiry = Date().addingTimeInterval(exampleExpiry)
@@ -27,8 +32,9 @@ final class FakeAuthClient: AuthClient {
         return (User(id: UUID(), username: username), token)
     }
 
-    func logout() async {
+    public func logout() async {
         try? await Task.sleep(nanoseconds: 100_000_000)
         lastLoginToken = nil
     }
 }
+

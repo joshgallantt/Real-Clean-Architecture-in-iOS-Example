@@ -32,7 +32,7 @@ public struct MainUIDI {
         MainScreenView(
             navigator: navigator,
             homeView: { self.homeUIDI.mainView() },
-            favoritesView: { self.wishlistUIDI.mainView() },
+            wishlistView: { self.wishlistUIDI.mainView() },
             cartView: { self.cartUIDI.mainView() }
         )
     }

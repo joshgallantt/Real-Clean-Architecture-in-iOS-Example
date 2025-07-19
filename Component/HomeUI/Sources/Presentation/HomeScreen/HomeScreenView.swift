@@ -25,10 +25,10 @@ public struct HomeScreenView: View {
                 viewModel.didSelectHomeDetail(id: id)
                 navigation.openHomeDetail(id: id)
             }
-            Button("Go to Favorites Detail") {
+            Button("Go to Wishlist Detail") {
                 let id = UUID()
-                viewModel.didSelectGoToFavorites(id: id)
-                navigation.goToFavoritesDetail(id: id)
+                viewModel.didSelectGoToWishlist(id: id)
+                navigation.goToWishlistDetail(id: id)
             }
         }
     }
