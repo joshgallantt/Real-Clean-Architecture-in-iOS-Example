@@ -8,11 +8,16 @@
 import SwiftUI
 import Combine
 
-struct HomeScreenView: View {
+public struct HomeScreenView: View {
     @ObservedObject var viewModel: HomeScreenViewModel
     let navigation: HomeNavigation
+    
+    public init(viewModel: HomeScreenViewModel, navigation: HomeNavigation) {
+        self.viewModel = viewModel
+        self.navigation = navigation
+    }
 
-    var body: some View {
+    public var body: some View {
         VStack {
             Text("Home Screen")
             Button("Open Home Detail") {
@@ -26,12 +31,5 @@ struct HomeScreenView: View {
                 navigation.goToFavoritesDetail(id: id)
             }
         }
-    }
-}
-
-struct HomeDetailScreenView: View {
-    let id: UUID
-    var body: some View {
-        Text("Home Detail for \(id.uuidString)")
     }
 }

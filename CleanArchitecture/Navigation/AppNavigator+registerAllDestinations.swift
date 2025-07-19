@@ -5,6 +5,9 @@
 //  Created by Josh Gallant on 18/07/2025.
 //
 
+import HomePresentation
+import HomeDI
+
 extension AppNavigator {
     static func registerAllDestinations(using injector: Injector) {
         let appNavigator = injector.appNavigator

@@ -8,8 +8,10 @@
 import Combine
 import Foundation
 
-final class HomeScreenViewModel: ObservableObject {
+public final class HomeScreenViewModel: ObservableObject {
 
+    public init() {}
+    
     func didSelectHomeDetail(id: UUID) {
         // Business logic if any
     }

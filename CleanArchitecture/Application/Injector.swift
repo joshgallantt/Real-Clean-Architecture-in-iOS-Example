@@ -6,6 +6,7 @@
 //
 
 import SwiftUI
+import HomeDI
 
 final class Injector {
     static let shared = Injector()
