@@ -45,9 +45,9 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		1485C9AA2E29746D0006933B /* CleanArchitecture */ = {
+		1485C9AA2E29746D0006933B /* App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
-			path = CleanArchitecture;
+			path = App;
 			sourceTree = "<group>";
 		};
 		1485C9B82E29746E0006933B /* CleanArchitectureTests */ = {
@@ -96,7 +96,7 @@
 		1485C99F2E29746D0006933B = {
 			isa = PBXGroup;
 			children = (
-				1485C9AA2E29746D0006933B /* CleanArchitecture */,
+				1485C9AA2E29746D0006933B /* App */,
 				1485C9B82E29746E0006933B /* CleanArchitectureTests */,
 				1485C9C22E29746E0006933B /* CleanArchitectureUITests */,
 				144CCA472E2BABC100899DD3 /* CartUI */,
@@ -134,7 +134,7 @@
 			dependencies = (
 			);
 			fileSystemSynchronizedGroups = (
-				1485C9AA2E29746D0006933B /* CleanArchitecture */,
+				1485C9AA2E29746D0006933B /* App */,
 			);
 			name = CleanArchitecture;
 			packageProductDependencies = (
