@@ -4,35 +4,35 @@
 import PackageDescription
 
 let package = Package(
-    name: "WishlistUI",
+    name: "CartUI",
     platforms: [
         .iOS(.v18)
     ],
     products: [
         .library(
-            name: "WishlistPresentation",
-            targets: ["WishlistPresentation"]
+            name: "CartPresentation",
+            targets: ["CartPresentation"]
         ),
         .library(
-            name: "WishlistUIDI",
-            targets: ["WishlistUIDI"]
+            name: "CartUIDI",
+            targets: ["CartUIDI"]
         ),
     ],
     targets: [
         .target(
-            name: "WishlistPresentation",
+            name: "CartPresentation",
             dependencies: [],
             path: "Sources/Presentation"
         ),
         .target(
-            name: "WishlistUIDI",
-            dependencies: ["WishlistPresentation"],
+            name: "CartUIDI",
+            dependencies: ["CartPresentation"],
             path: "Sources/DI"
         ),
         .testTarget(
-            name: "WishlistUITests",
-            dependencies: ["WishlistUIDI"],
-            path: "Tests/WishlistUITests"
+            name: "CartUITests",
+            dependencies: ["CartUIDI"],
+            path: "Tests/CartUITests"
         ),
     ]
 )

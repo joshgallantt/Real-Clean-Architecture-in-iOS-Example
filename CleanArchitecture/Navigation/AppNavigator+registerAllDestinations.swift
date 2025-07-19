@@ -5,10 +5,12 @@
 //  Created by Josh Gallant on 18/07/2025.
 //
 
-import HomeDI
+import HomeUIDI
 import HomePresentation
-import WishlistDI
+import WishlistUIDI
 import WishlistPresentation
+import CartUIDI
+import CartPresentation
 
 extension AppNavigator {
     static func registerAllDestinations(using injector: Injector) {

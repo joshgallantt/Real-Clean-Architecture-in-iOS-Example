@@ -7,8 +7,9 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		14BD44D72E2B8B1200FE6875 /* HomeDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD44D62E2B8B1200FE6875 /* HomeDI */; };
-		14BD44DB2E2B8E0C00FE6875 /* WishlistDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD44DA2E2B8E0C00FE6875 /* WishlistDI */; };
+		14BD45AE2E2B925300FE6875 /* CartUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45AD2E2B925300FE6875 /* CartUIDI */; };
+		14BD45B02E2B925300FE6875 /* HomeUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45AF2E2B925300FE6875 /* HomeUIDI */; };
+		14BD45B22E2B925300FE6875 /* WishlistUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45B12E2B925300FE6875 /* WishlistUIDI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -38,6 +39,7 @@
 		14BD44D92E2B8BF500FE6875 /* Exceptions for "Component" folder in "CleanArchitecture" target */ = {
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
+				CartUI,
 				WishlistUI,
 			);
 			target = 1485C9A72E29746D0006933B /* CleanArchitecture */;
@@ -75,8 +77,9 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				14BD44DB2E2B8E0C00FE6875 /* WishlistDI in Frameworks */,
-				14BD44D72E2B8B1200FE6875 /* HomeDI in Frameworks */,
+				14BD45B02E2B925300FE6875 /* HomeUIDI in Frameworks */,
+				14BD45AE2E2B925300FE6875 /* CartUIDI in Frameworks */,
+				14BD45B22E2B925300FE6875 /* WishlistUIDI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -147,8 +150,9 @@
 			);
 			name = CleanArchitecture;
 			packageProductDependencies = (
-				14BD44D62E2B8B1200FE6875 /* HomeDI */,
-				14BD44DA2E2B8E0C00FE6875 /* WishlistDI */,
+				14BD45AD2E2B925300FE6875 /* CartUIDI */,
+				14BD45AF2E2B925300FE6875 /* HomeUIDI */,
+				14BD45B12E2B925300FE6875 /* WishlistUIDI */,
 			);
 			productName = CleanArchitecture;
 			productReference = 1485C9A82E29746D0006933B /* CleanArchitecture.app */;
@@ -644,13 +648,17 @@
 /* End XCConfigurationList section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		14BD44D62E2B8B1200FE6875 /* HomeDI */ = {
+		14BD45AD2E2B925300FE6875 /* CartUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = HomeDI;
+			productName = CartUIDI;
 		};
-		14BD44DA2E2B8E0C00FE6875 /* WishlistDI */ = {
+		14BD45AF2E2B925300FE6875 /* HomeUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
-			productName = WishlistDI;
+			productName = HomeUIDI;
+		};
+		14BD45B12E2B925300FE6875 /* WishlistUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = WishlistUIDI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

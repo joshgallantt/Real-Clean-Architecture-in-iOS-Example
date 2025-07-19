@@ -9,7 +9,8 @@ import Foundation
 import Combine
 
 public final class CartScreenViewModel: ObservableObject {
-    // No navigation reference
+    
+    public init() {}
 
     public func didSelectCartDetail(id: UUID) {
         // Business logic if any

@@ -6,8 +6,9 @@
 //
 
 import SwiftUI
-import HomeDI
-import WishlistDI
+import HomeUIDI
+import WishlistUIDI
+import CartUIDI
 
 final class Injector {
     static let shared = Injector()
