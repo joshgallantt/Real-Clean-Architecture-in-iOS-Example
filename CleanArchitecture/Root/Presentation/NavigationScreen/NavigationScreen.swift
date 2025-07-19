@@ -1,43 +1,41 @@
 //
-//  TabScreenView.swift
+//  NavigationScreen.swift
 //  CleanArchitecture
 //
-//  Created by Josh Gallant on 14/07/2025.
+//  Created by Josh Gallant on 19/07/2025.
 //
 
 import SwiftUI
 
-struct TabScreenView<Home: View, Wishlist: View, Cart: View>: View {
-    @ObservedObject var navigator: AppNavigator
-    let homeView: () -> Home
-    let wishlistView: () -> Wishlist
-    let cartView: () -> Cart
+struct NavigationScreen<Home: View, Wishlist: View, Cart: View>: View {
+    @ObservedObject var navigator: Navigation
+    let homeView: Home
+    let wishlistView: Wishlist
+    let cartView: Cart
 
     var body: some View {
         TabView(selection: $navigator.selectedTab) {
-            Tab("Home", systemImage: "house", value: AppNavigator.Tabs.home) {
+            Tab("Home", systemImage: "house", value: Navigation.Tabs.home) {
                 NavigationStack(path: $navigator.homePath) {
-                    homeView()
+                    homeView
                         .navigationTitle("Home")
                         .navigationDestination(for: AnyHashable.self) { route in
                             navigator.view(for: route.base) ?? AnyView(EmptyView())
                         }
                 }
             }
-
-            Tab("Wishlist", systemImage: "star", value: AppNavigator.Tabs.wishlist) {
+            Tab("Wishlist", systemImage: "heart.fill", value: Navigation.Tabs.wishlist) {
                 NavigationStack(path: $navigator.wishlistPath) {
-                    wishlistView()
+                    wishlistView
                         .navigationTitle("Wishlist")
                         .navigationDestination(for: AnyHashable.self) { route in
                             navigator.view(for: route.base) ?? AnyView(EmptyView())
                         }
                 }
             }
-
-            Tab("Cart", systemImage: "cart.fill", value: AppNavigator.Tabs.cart) {
+            Tab("Cart", systemImage: "cart.fill", value: Navigation.Tabs.cart) {
                 NavigationStack(path: $navigator.cartPath) {
-                    cartView()
+                    cartView
                         .navigationTitle("Cart")
                         .navigationDestination(for: AnyHashable.self) { route in
                             navigator.view(for: route.base) ?? AnyView(EmptyView())

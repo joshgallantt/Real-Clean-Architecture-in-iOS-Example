@@ -10,9 +10,9 @@ import HomePresentation
 import WishlistPresentation
 
 final class HomeNavigator: HomeNavigation {
-    private unowned let navigator: AppNavigator
+    private unowned let navigator: Navigation
 
-    init(navigator: AppNavigator) {
+    init(navigator: Navigation) {
         self.navigator = navigator
     }
 
