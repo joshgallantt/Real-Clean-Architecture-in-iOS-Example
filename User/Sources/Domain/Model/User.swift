@@ -8,12 +8,11 @@
 import Foundation
 
 public struct User: Equatable, Sendable {
-    let id: UUID
-    let username: String
-    
+    public let id: UUID
+    public let username: String
+
     public init(id: UUID, username: String) {
         self.id = id
         self.username = username
     }
-    
 }

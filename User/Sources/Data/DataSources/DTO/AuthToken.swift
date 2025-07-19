@@ -9,10 +9,10 @@
 import Foundation
 
 public struct AuthToken: Equatable, Sendable {
-    let value: String
-    let expiresAt: Date
+    public let value: String
+    public let expiresAt: Date
     
-    var isExpired: Bool {
+    public var isExpired: Bool {
         Date() >= expiresAt
     }
 }
