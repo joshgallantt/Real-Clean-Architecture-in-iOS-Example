@@ -10,6 +10,9 @@
 		14BD45AE2E2B925300FE6875 /* CartUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45AD2E2B925300FE6875 /* CartUIDI */; };
 		14BD45B02E2B925300FE6875 /* HomeUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45AF2E2B925300FE6875 /* HomeUIDI */; };
 		14BD45B22E2B925300FE6875 /* WishlistUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45B12E2B925300FE6875 /* WishlistUIDI */; };
+		14BD45B62E2B940E00FE6875 /* LoginUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45B52E2B940E00FE6875 /* LoginUIDI */; };
+		14BD45B92E2B951700FE6875 /* UserDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45B82E2B951700FE6875 /* UserDI */; };
+		14BD45BB2E2B959300FE6875 /* UserDomain in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45BA2E2B959300FE6875 /* UserDomain */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -40,6 +43,8 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				CartUI,
+				LoginUI,
+				User,
 				WishlistUI,
 			);
 			target = 1485C9A72E29746D0006933B /* CleanArchitecture */;
@@ -77,9 +82,12 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				14BD45B92E2B951700FE6875 /* UserDI in Frameworks */,
 				14BD45B02E2B925300FE6875 /* HomeUIDI in Frameworks */,
+				14BD45B62E2B940E00FE6875 /* LoginUIDI in Frameworks */,
 				14BD45AE2E2B925300FE6875 /* CartUIDI in Frameworks */,
 				14BD45B22E2B925300FE6875 /* WishlistUIDI in Frameworks */,
+				14BD45BB2E2B959300FE6875 /* UserDomain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -107,7 +115,6 @@
 				1485C9AA2E29746D0006933B /* CleanArchitecture */,
 				1485C9B82E29746E0006933B /* CleanArchitectureTests */,
 				1485C9C22E29746E0006933B /* CleanArchitectureUITests */,
-				14BD44D52E2B8B1200FE6875 /* Frameworks */,
 				1485C9A92E29746D0006933B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -120,13 +127,6 @@
 				1485C9BF2E29746E0006933B /* CleanArchitectureUITests.xctest */,
 			);
 			name = Products;
-			sourceTree = "<group>";
-		};
-		14BD44D52E2B8B1200FE6875 /* Frameworks */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			name = Frameworks;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -153,6 +153,9 @@
 				14BD45AD2E2B925300FE6875 /* CartUIDI */,
 				14BD45AF2E2B925300FE6875 /* HomeUIDI */,
 				14BD45B12E2B925300FE6875 /* WishlistUIDI */,
+				14BD45B52E2B940E00FE6875 /* LoginUIDI */,
+				14BD45B82E2B951700FE6875 /* UserDI */,
+				14BD45BA2E2B959300FE6875 /* UserDomain */,
 			);
 			productName = CleanArchitecture;
 			productReference = 1485C9A82E29746D0006933B /* CleanArchitecture.app */;
@@ -659,6 +662,18 @@
 		14BD45B12E2B925300FE6875 /* WishlistUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = WishlistUIDI;
+		};
+		14BD45B52E2B940E00FE6875 /* LoginUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = LoginUIDI;
+		};
+		14BD45B82E2B951700FE6875 /* UserDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = UserDI;
+		};
+		14BD45BA2E2B959300FE6875 /* UserDomain */ = {
+			isa = XCSwiftPackageProductDependency;
+			productName = UserDomain;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

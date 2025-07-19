@@ -7,14 +7,14 @@
 
 import SwiftUI
 
-struct LoginScreenView: View {
+public struct LoginScreenView: View {
     @ObservedObject var viewModel: LoginScreenViewModel
 
-    init(viewModel: LoginScreenViewModel) {
+    public init(viewModel: LoginScreenViewModel) {
         self.viewModel = viewModel
     }
 
-    var body: some View {
+    public var body: some View {
         VStack(spacing: 20) {
             TextField("Username", text: $viewModel.username)
                 .textInputAutocapitalization(.never)

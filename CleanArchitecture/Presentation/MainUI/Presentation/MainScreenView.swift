@@ -9,10 +9,10 @@ import SwiftUI
 
 import SwiftUI
 
-struct MainScreenView<Home: View, Favorites: View, Cart: View>: View {
+struct MainScreenView<Home: View, Wishlist: View, Cart: View>: View {
     @ObservedObject var navigator: AppNavigator
     let homeView: () -> Home
-    let favoritesView: () -> Favorites
+    let wishlistView: () -> Wishlist
     let cartView: () -> Cart
 
     var body: some View {
@@ -27,10 +27,10 @@ struct MainScreenView<Home: View, Favorites: View, Cart: View>: View {
                 }
             }
 
-            Tab("Favorites", systemImage: "star", value: AppNavigator.Tabs.favorites) {
-                NavigationStack(path: $navigator.favoritesPath) {
-                    favoritesView()
-                        .navigationTitle("Favorites")
+            Tab("Wishlist", systemImage: "star", value: AppNavigator.Tabs.wishlist) {
+                NavigationStack(path: $navigator.wishlistPath) {
+                    wishlistView()
+                        .navigationTitle("Wishlist")
                         .navigationDestination(for: AnyHashable.self) { route in
                             navigator.view(for: route.base) ?? AnyView(EmptyView())
                         }

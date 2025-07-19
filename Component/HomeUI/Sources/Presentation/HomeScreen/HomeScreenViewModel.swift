@@ -16,7 +16,7 @@ public final class HomeScreenViewModel: ObservableObject {
         // Business logic if any
     }
 
-    func didSelectGoToFavorites(id: UUID) {
+    func didSelectGoToWishlist(id: UUID) {
         // Business logic if any
     }
 }

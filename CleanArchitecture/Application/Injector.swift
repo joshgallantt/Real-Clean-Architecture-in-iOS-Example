@@ -9,6 +9,9 @@ import SwiftUI
 import HomeUIDI
 import WishlistUIDI
 import CartUIDI
+import LoginUIDI
+import UserDI
+import UserData
 
 final class Injector {
     static let shared = Injector()

@@ -17,7 +17,7 @@ final class WishlistNavigator: WishlistNavigation {
     }
 
     func openWishlistDetail(id: UUID) {
-        navigator.push(WishlistDestination.detail(id: id), tab: .favorites)
+        navigator.push(WishlistDestination.detail(id: id), tab: .wishlist)
     }
 
     func goToCartDetail(id: UUID) {

@@ -8,29 +8,27 @@
 
 import Foundation
 import Combine
+import UserDomain
 
+@MainActor
 protocol UserSessionProtocol: AnyObject {
     var user: User? { get }
     var authToken: AuthToken? { get }
     var isLoggedIn: Bool { get }
     var isLoggedInPublisher: AnyPublisher<Bool, Never> { get }
-
     func setUser(_ user: User, token: AuthToken)
     func clear()
 }
 
-final class UserSession: UserSessionProtocol {
+@MainActor
+public final class UserSession: UserSessionProtocol {
     private(set) var user: User?
     private(set) var authToken: AuthToken?
     private var expiryTimer: DispatchSourceTimer?
     private let isLoggedInSubject: CurrentValueSubject<Bool, Never>
 
-    init() {
-        if let token = authToken, !token.isExpired {
-            isLoggedInSubject = CurrentValueSubject(true)
-        } else {
-            isLoggedInSubject = CurrentValueSubject(false)
-        }
+    public init() {
+        self.isLoggedInSubject = CurrentValueSubject(false)
     }
 
     var isLoggedIn: Bool {
@@ -58,18 +56,15 @@ final class UserSession: UserSessionProtocol {
 
     private func scheduleExpiry(for token: AuthToken) {
         cancelExpiryTimer()
-
         let interval = token.expiresAt.timeIntervalSinceNow
-
         guard interval > 0 else {
             clear()
             return
         }
-
         let timer = DispatchSource.makeTimerSource(queue: .main)
         timer.schedule(deadline: .now() + interval)
         timer.setEventHandler { [weak self] in
-            self?.clear()
+            Task { @MainActor in self?.clear() }
         }
         timer.resume()
         expiryTimer = timer

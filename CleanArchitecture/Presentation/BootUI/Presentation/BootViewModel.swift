@@ -8,14 +8,15 @@
 import Foundation
 import SwiftUI
 import Combine
+import UserDomain
 
 final class BootViewModel: ObservableObject {
     @Published var path: BootDestination
     private var cancellable: AnyCancellable?
-    private let observeUserLoggedIn: ObserveUserIsLoggedInUseCase
+    private let observeUserLoggedIn: ObserveUserIsLoggedInUseCaseProtocol
 
     init(
-        observeUserLoggedIn: ObserveUserIsLoggedInUseCase,
+        observeUserLoggedIn: ObserveUserIsLoggedInUseCaseProtocol,
         initial: BootDestination = .main
     ) {
         self.observeUserLoggedIn = observeUserLoggedIn

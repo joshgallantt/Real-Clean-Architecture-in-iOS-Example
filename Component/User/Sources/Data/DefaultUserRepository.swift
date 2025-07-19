@@ -7,36 +7,38 @@
 
 import Combine
 import Foundation
+import UserDomain
 
-final class DefaultUserRepository: UserRepository {
+@MainActor
+public final class DefaultUserRepository: UserRepository {
     private let session: UserSession
     private let authClient: AuthClient
 
-    var isLoggedIn: Bool {
+    public var isLoggedIn: Bool {
         session.isLoggedIn
     }
 
-    var loggedInPublisher: AnyPublisher<Bool, Never> {
+    public var loggedInPublisher: AnyPublisher<Bool, Never> {
         session.isLoggedInPublisher
     }
 
-    init(session: UserSession, authClient: AuthClient) {
+    public init(session: UserSession, authClient: AuthClient) {
         self.session = session
         self.authClient = authClient
     }
 
-    func login(username: String, password: String) async -> Bool {
+    public func login(username: String, password: String) async -> Bool {
         guard let (user, token) = await authClient.login(username: username, password: password) else {
             return false
         }
-        await MainActor.run {
-            session.setUser(user, token: token)
-        }
+        session.setUser(user, token: token)
         return true
     }
-    
-    func logout() async {
+
+    public func logout() async {
         await authClient.logout()
-        await MainActor.run { session.clear() }
+        session.clear()
     }
 }
+
+
