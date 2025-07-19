@@ -1,5 +1,5 @@
 //
-//  MainUIDI.swift
+//  TabUIDI.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 14/07/2025.
@@ -10,7 +10,7 @@ import HomeUIDI
 import WishlistUIDI
 import CartUIDI
 
-public struct MainUIDI {
+public struct TabUIDI {
     let navigator: AppNavigator
     let homeUIDI: HomeUIDI
     let wishlistUIDI: WishlistUIDI
@@ -29,7 +29,7 @@ public struct MainUIDI {
     }
 
     func mainView() -> some View {
-        MainScreenView(
+        TabScreenView(
             navigator: navigator,
             homeView: { self.homeUIDI.mainView() },
             wishlistView: { self.wishlistUIDI.mainView() },
