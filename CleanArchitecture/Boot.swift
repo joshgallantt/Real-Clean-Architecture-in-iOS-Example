@@ -11,12 +11,12 @@ import SwiftUI
 @main
 struct Boot: App {
     init() {
-        AppNavigator.registerAllDestinations(using: Injector.shared)
+        Navigation.registerAllDestinations(using: Injector.shared)
     }
 
     var body: some Scene {
         WindowGroup {
-            Injector.shared.bootUIDI.mainView()
+            Injector.shared.rootUIDI.mainView()
         }
     }
 }

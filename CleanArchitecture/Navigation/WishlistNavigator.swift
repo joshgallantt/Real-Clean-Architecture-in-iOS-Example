@@ -10,9 +10,9 @@ import WishlistPresentation
 import CartPresentation
 
 final class WishlistNavigator: WishlistNavigation {
-    private unowned let navigator: AppNavigator
+    private unowned let navigator: Navigation
 
-    init(navigator: AppNavigator) {
+    init(navigator: Navigation) {
         self.navigator = navigator
     }
 

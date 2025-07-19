@@ -1,5 +1,5 @@
 //
-//  AppNavigator+registerAllDestinations.swift
+//  Navigation+registerAllDestinations.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 18/07/2025.
@@ -12,7 +12,7 @@ import WishlistPresentation
 import CartUIDI
 import CartPresentation
 
-extension AppNavigator {
+extension Navigation {
     static func registerAllDestinations(using injector: Injector) {
         let appNavigator = injector.appNavigator
 

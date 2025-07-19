@@ -1,23 +1,23 @@
 //
-//  BootViewModel.swift
+//  RootScreenViewModel.swift
 //  CleanArchitecture
 //
-//  Created by Josh Gallant on 17/07/2025.
+//  Created by Josh Gallant on 19/07/2025.
 //
 
 import Foundation
-import SwiftUI
 import Combine
 import UserDomain
 
-final class BootViewModel: ObservableObject {
-    @Published var path: BootDestination
+@MainActor
+final class RootScreenViewModel: ObservableObject {
+    @Published var path: RootDestination
     private var cancellable: AnyCancellable?
     private let observeUserLoggedIn: ObserveUserIsLoggedInUseCaseProtocol
 
     init(
         observeUserLoggedIn: ObserveUserIsLoggedInUseCaseProtocol,
-        initial: BootDestination = .main
+        initial: RootDestination = .main
     ) {
         self.observeUserLoggedIn = observeUserLoggedIn
         self.path = initial

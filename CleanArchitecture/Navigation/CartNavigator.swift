@@ -10,9 +10,9 @@ import HomePresentation
 import CartPresentation
 
 final class CartNavigator: CartNavigation {
-    private unowned let navigator: AppNavigator
+    private unowned let navigator: Navigation
 
-    init(navigator: AppNavigator) {
+    init(navigator: Navigation) {
         self.navigator = navigator
     }
 
