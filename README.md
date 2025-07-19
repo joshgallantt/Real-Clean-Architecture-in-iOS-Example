@@ -1,19 +1,20 @@
 # Clean Architecture iOS Template
 
-A robust, production-ready template for SwiftUI apps, architected around Clean Architecture, SOLID principles, and strict Swift 5.9+ concurrency. Each feature is isolated, navigation is registry-driven, and everything is testable by default.
+A production-grade starter template for SwiftUI apps, built with Clean Architecture, SOLID principles, and strict Swift 5.9+ concurrency. Each feature is isolated, navigation is registry-driven, and everything is testable by default.
 
 ---
 
-## Contents
+## Table of Contents
 
 * [Overview](#overview)
 * [Project Structure](#project-structure)
 * [Architecture Breakdown](#architecture-breakdown)
-* [SOLID in Practice (Swift snippets)](#solid-in-practice-swift-snippets)
-* [Dependency Injection & The Injector](#dependency-injection--the-injector)
-* [Navigation Registry & Tab Management](#navigation-registry--tab-management)
-* [Root Layer & Authentication Flow](#root-layer--authentication-flow)
-* [Feature Module Example](#feature-module-example)
+
+  * [SOLID in Practice (Swift snippets)](#solid-in-practice-swift-snippets)
+  * [Dependency Injection & The Injector](#dependency-injection--the-injector)
+  * [Navigation Registry & Tab Management](#navigation-registry--tab-management)
+  * [Root Layer & Authentication Flow](#root-layer--authentication-flow)
+  * [Feature Module Example](#feature-module-example)
 * [Adding a New Feature](#adding-a-new-feature)
 * [Getting Started](#getting-started)
 * [Resources](#resources)
@@ -25,81 +26,78 @@ A robust, production-ready template for SwiftUI apps, architected around Clean A
 
 * **Feature-first:** Each business area is a self-contained module (domain, data, DI, UI).
 * **Centralized, protocol-driven navigation:** Navigation is injected and managed at app launch, never inside UI or feature modules.
-* **Authentication-first root:** The root layer observes authentication state and automatically switches between login and tabbed main UI.
+* **Authentication-first root:** The root observes authentication state and automatically switches between login and main UI.
 * **100% SOLID:** Every layer is protocol-oriented for maximal testability and decoupling.
-* **Strict concurrency:** Architected for Swift 5.9+ concurrency enforcement.
+* **Strict concurrency:** Designed for Swift 5.9+ concurrency enforcement.
+* **Package-by-component:** Every feature (Home, Cart, Wishlist, etc) lives as a Swift Package at the repo root for clear boundaries, independent builds, and testability.
 
 ---
 
 ## Project Structure
 
 ```plaintext
-├── Application/         # App entry, dependency graph (DI)
+├── CleanArchitecture/      # App entrypoint, navigation, DI, root-level composition
 │   ├── Boot.swift
-│   └── Injector.swift
-├── Navigation/          # Tab/feature navigators, registry, protocols
-│   ├── HomeNavigator.swift
-│   ├── WishlistNavigator.swift
-│   ├── CartNavigator.swift
-│   └── _Navigation+registerAllDestinations.swift
-├── Root/                # Auth observer, root screen, tab UI composition
-│   ├── DI/
-│   │   └── RootUIDI.swift
-│   └── Presentation/
-│       ├── RootScreen/
-│       │   ├── RootDestination.swift
-│       │   ├── RootScreenView.swift
-│       │   └── RootScreenViewModel.swift
-│       └── NavigationScreen/
-│           ├── Navigation.swift
-│           └── NavigationScreen.swift
-├── Component/           # Feature modules: domain, data, DI, UI per module
-│   ├── Home/
-│   ├── Wishlist/
-│   └── Cart/
+│   ├── Injector.swift
+│   └── Navigation/
+│   └── Root/
+├── User/                   # User domain module (domain, data, DI)
+├── HomeUI/                 # Home feature module (DI, Presentation)
+├── CartUI/                 # Cart feature module (DI, Presentation)
+├── WishlistUI/             # Wishlist feature module (DI, Presentation)
+├── LoginUI/                # Login feature module (DI, Presentation)
+├── CleanArchitectureTests/ # App-level tests
+├── CleanArchitectureUITests/
 ```
 
-| Layer       | Role                                 | Example Files                                  |
-| ----------- | ------------------------------------ | ---------------------------------------------- |
-| Application | Launch, DI graph                     | Boot.swift, Injector.swift                     |
-| Navigation  | Navigators, registry, protocols      | HomeNavigator.swift, CartNavigator.swift, ...  |
-| Root        | Auth state, login/tab switcher       | RootUIDI.swift, RootScreenView\.swift, ...     |
-| Component   | Features (Home, Wishlist, Cart, ...) | Home/, Wishlist/, Cart/ (domain, data, UI, DI) |
+**Each feature package contains:**
+
+* `Sources/Domain`: Business logic, models, protocols.
+* `Sources/Data`: Repositories, service clients.
+* `Sources/DI`: DI container for the feature.
+* `Sources/Presentation`: Views, ViewModels, navigation contracts.
+* `Tests/`: Given\_When\_Then test targets per feature.
+
+**Example File Layout:**
+
+```plaintext
+HomeUI/
+├── Package.swift
+├── Sources/
+│   ├── DI/
+│   │   └── HomeUIDI.swift
+│   └── Presentation/
+│       ├── HomeScreen/
+│       │   ├── HomeScreenView.swift
+│       │   └── HomeScreenViewModel.swift
+│       ├── Navigation/
+│       │   ├── HomeNavigation.swift
+│       │   └── HomeDestination.swift
+│       └── HomeDetails/
+│           └── HomeDetailScreenView.swift
+└── Tests/
+    └── HomeUITests/
+        └── HomeUITests.swift
+```
 
 ---
 
 ## Architecture Breakdown
 
-**Clean Architecture** separates business logic, data, UI, and navigation.
+### SOLID in Practice (Swift snippets)
 
-* **Domain:** Pure business logic and protocols. No frameworks.
-* **Data:** Repository implementations, data sources (remote/local).
-* **Presentation:** SwiftUI Views and ViewModels. No business or navigation logic.
-* **Navigation:** Injected navigator protocols. Actual navigation is centralized.
-* **Root/Application:** DI graph bootstrapping, navigation registry, root flow control.
+| Principle | How it’s applied                |
+| --------- | ------------------------------- |
+| SRP       | Single-purpose types, modules   |
+| OCP       | New features via extension      |
+| LSP       | Protocol conformance everywhere |
+| ISP       | Lean, client-focused protocols  |
+| DIP       | All wiring via abstractions     |
 
-**Why this matters:**
-
-* Swap any implementation (UI, data, navigation) with zero effect on business logic.
-* Pure Swift unit tests for all core flows.
-* Feature devs onboard to a single module without full app context.
-
----
-
-## SOLID in Practice (Swift snippets)
-
-| Principle | How it’s applied in this codebase                    |
-| --------- | ---------------------------------------------------- |
-| SRP       | Each type/class/module has a single responsibility   |
-| OCP       | Add new features/flows by addition, not modification |
-| LSP       | Any protocol conformer can be swapped anywhere       |
-| ISP       | Protocols are lean; only what consumers need         |
-| DIP       | All wiring uses abstractions, never concrete types   |
-
-### SRP: Single Responsibility Principle
+**SRP:**
 
 ```swift
-// UserLoginUseCase is only responsible for login, nothing else.
+// UserLoginUseCase is only responsible for login.
 struct UserLoginUseCase {
     let repository: UserRepository
 
@@ -109,40 +107,35 @@ struct UserLoginUseCase {
 }
 ```
 
-### OCP: Open/Closed Principle
+**OCP:**
 
 ```swift
-// Add new repository implementations without changing consumer code.
 struct MockUserRepository: UserRepository {
     func login(email: String, password: String) async throws -> User { User(email: email) }
     func register(email: String, password: String) async throws -> User { User(email: email) }
 }
 ```
 
-### LSP: Liskov Substitution Principle
+**LSP:**
 
 ```swift
 protocol CartNavigation {
     func openCartDetail(id: UUID)
 }
-
 final class CartNavigator: CartNavigation { /* ... */ }
 final class TestCartNavigator: CartNavigation { /* ... */ }
-
-// Swap any CartNavigation in DI; consumer is unaware.
 ```
 
-### ISP: Interface Segregation Principle
+**ISP:**
 
 ```swift
-// Protocol exposes only the actions needed for Wishlist.
 protocol WishlistNavigation {
     func openWishlistDetail(id: UUID)
     func goToCartDetail(id: UUID)
 }
 ```
 
-### DIP: Dependency Inversion Principle
+**DIP:**
 
 ```swift
 final class Injector {
@@ -158,28 +151,23 @@ final class Injector {
 
 ---
 
-## Dependency Injection & The Injector
+### Dependency Injection & The Injector
 
-A singleton **Injector** composes all dependencies at startup.
-No ViewModel or feature creates its own dependencies—everything is injected.
-
-**How it works:**
-
-* `Injector` builds navigators, repositories, use cases, and UI modules.
-* Each module receives its dependencies via initializer injection.
+* **Singleton Injector** composes all dependencies at startup.
+* No ViewModel or feature creates its own dependencies—everything is injected.
 * Swap or mock any dependency by updating the Injector.
 
 ```swift
 final class Injector {
     static let shared = Injector()
     // ... component and navigator setup ...
-    private init() { /* ... see code ... */ }
+    private init() { /* ... */ }
 }
 ```
 
 ---
 
-## Navigation Registry & Tab Management
+### Navigation Registry & Tab Management
 
 * **Destinations registered at app launch:** Each feature route is mapped to a view factory.
 * **Navigator protocols push routes:** Features never manage navigation stacks directly.
@@ -206,15 +194,14 @@ final class WishlistNavigator: WishlistNavigation {
     func openWishlistDetail(id: UUID) {
         navigator.push(WishlistDestination.detail(id: id), tab: .wishlist)
     }
-    // ...
 }
 ```
 
 ---
 
-## Root Layer & Authentication Flow
+### Root Layer & Authentication Flow
 
-* **RootScreenViewModel** observes user authentication status, switches between login and main UI tabs.
+* **RootScreenViewModel** observes user authentication and switches between login and main UI tabs.
 * **RootUIDI** composes login, main tabs, and injects all feature UI modules.
 
 ```swift
@@ -250,16 +237,14 @@ final class RootScreenViewModel: ObservableObject {
 
 ---
 
-## Feature Module Example
+### Feature Module Example
 
-Each feature contains:
+* **Domain:** protocols, use cases
+* **Data:** implementations
+* **DI:** composition and UI injection
+* **UI:** SwiftUI views and ViewModels
 
-* Domain (protocols, use cases)
-* Data (implementations)
-* DI (feature composition, UI injection)
-* UI (SwiftUI views, ViewModels)
-
-**Feature navigation is protocol-driven and injected**:
+**Feature navigation is protocol-driven and injected:**
 
 ```swift
 protocol HomeNavigation {
@@ -273,7 +258,6 @@ final class HomeNavigator: HomeNavigation {
     func openHomeDetail(id: UUID) {
         navigator.push(HomeDestination.detail(id: id), tab: .home)
     }
-    // ...
 }
 ```
 
@@ -282,7 +266,6 @@ final class HomeNavigator: HomeNavigation {
 ```swift
 struct HomeView: View {
     @ObservedObject var viewModel: HomeViewModel
-    // ...
 }
 ```
 
@@ -290,22 +273,22 @@ struct HomeView: View {
 
 ## Adding a New Feature
 
-1. Create a module under `Component/FeatureName/`
+1. Create a module at the repo root.
 2. Define your domain protocols and use cases.
 3. Implement repositories/data sources.
 4. Create navigator protocols and destination enums.
-5. Implement your navigator, register it in `Navigation+registerAllDestinations.swift`.
+5. Implement your navigator and register it in `Navigation+registerAllDestinations.swift`.
 6. Create a `FeatureUIDI` entry point for feature UI composition.
-7. Inject via `Injector.swift` and wire into `RootUIDI.swift`.
+7. Inject via `Injector.swift`.
 
 ---
 
 ## Getting Started
 
-* Open in **Xcode 15+** with **Swift 5.9+**.
-* App boots from `Boot.swift`, registering destinations and building the DI graph via `Injector.swift`.
-* The root layer handles authentication flow and tabbed navigation.
-* All features are modular—follow the same pattern to add more.
+* Requires **Xcode 15+** and **Swift 5.9+**.
+* App boots from `Boot.swift`, registers destinations, and builds the DI graph via `Injector.swift`.
+* The root layer manages authentication and tabbed navigation.
+* All features are modular—follow the pattern above to add more.
 
 ---
 
