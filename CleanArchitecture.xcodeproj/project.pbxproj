@@ -44,20 +44,37 @@
 		1485C9BF2E29746E0006933B /* CleanArchitectureUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = CleanArchitectureUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
+/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
+		142709F62E2BE0B4000802F1 /* Exceptions for "AppTests" folder in "CleanArchitectureTests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Unit/CleanArchitectureTests.swift,
+			);
+			target = 1485C9B42E29746E0006933B /* CleanArchitectureTests */;
+		};
+		142709F72E2BE0B4000802F1 /* Exceptions for "AppTests" folder in "CleanArchitectureUITests" target */ = {
+			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
+			membershipExceptions = (
+				Snapshot/CleanArchitectureUITests.swift,
+				Snapshot/CleanArchitectureUITestsLaunchTests.swift,
+			);
+			target = 1485C9BE2E29746E0006933B /* CleanArchitectureUITests */;
+		};
+/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
+
 /* Begin PBXFileSystemSynchronizedRootGroup section */
+		142709ED2E2BE0A5000802F1 /* AppTests */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			exceptions = (
+				142709F62E2BE0B4000802F1 /* Exceptions for "AppTests" folder in "CleanArchitectureTests" target */,
+				142709F72E2BE0B4000802F1 /* Exceptions for "AppTests" folder in "CleanArchitectureUITests" target */,
+			);
+			path = AppTests;
+			sourceTree = "<group>";
+		};
 		1485C9AA2E29746D0006933B /* App */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = App;
-			sourceTree = "<group>";
-		};
-		1485C9B82E29746E0006933B /* CleanArchitectureTests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = CleanArchitectureTests;
-			sourceTree = "<group>";
-		};
-		1485C9C22E29746E0006933B /* CleanArchitectureUITests */ = {
-			isa = PBXFileSystemSynchronizedRootGroup;
-			path = CleanArchitectureUITests;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -97,8 +114,7 @@
 			isa = PBXGroup;
 			children = (
 				1485C9AA2E29746D0006933B /* App */,
-				1485C9B82E29746E0006933B /* CleanArchitectureTests */,
-				1485C9C22E29746E0006933B /* CleanArchitectureUITests */,
+				142709ED2E2BE0A5000802F1 /* AppTests */,
 				144CCA472E2BABC100899DD3 /* CartUI */,
 				144CCA482E2BABC100899DD3 /* HomeUI */,
 				144CCA492E2BABC100899DD3 /* LoginUI */,
@@ -162,9 +178,6 @@
 			dependencies = (
 				1485C9B72E29746E0006933B /* PBXTargetDependency */,
 			);
-			fileSystemSynchronizedGroups = (
-				1485C9B82E29746E0006933B /* CleanArchitectureTests */,
-			);
 			name = CleanArchitectureTests;
 			packageProductDependencies = (
 			);
@@ -184,9 +197,6 @@
 			);
 			dependencies = (
 				1485C9C12E29746E0006933B /* PBXTargetDependency */,
-			);
-			fileSystemSynchronizedGroups = (
-				1485C9C22E29746E0006933B /* CleanArchitectureUITests */,
 			);
 			name = CleanArchitectureUITests;
 			packageProductDependencies = (
