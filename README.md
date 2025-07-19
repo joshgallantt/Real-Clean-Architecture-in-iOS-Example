@@ -90,7 +90,7 @@ Absolutely, here’s an improved README section with concise explanations and Sw
 
 ### SOLID Principles in Practice
 
-SOLID is a set of five principles for writing maintainable, testable, and scalable code. Each principle helps structure your codebase so it’s easier to extend, refactor, and reason about—especially as your project grows.
+SOLID is a set of five principles for writing maintainable, testable, and scalable code. Each principle helps structure your codebase so it’s easier to extend, refactor, and reason about,especially as your project grows.
 
 | Principle | How it’s applied in Swift       |
 | --------- | ------------------------------- |
@@ -117,7 +117,7 @@ struct UserLoginUseCase {
 
 #### OCP (Open/Closed Principle)
 
-Code should be open for extension but closed for modification. Add new functionality by conforming to protocols or extending types—don’t modify existing code.
+Code should be open for extension but closed for modification. Add new functionality by conforming to protocols or extending types,don’t modify existing code.
 
 ```swift
 struct MockUserRepository: UserRepository {
@@ -170,7 +170,7 @@ final class Injector {
 ### Dependency Injection & The Injector
 
 * **Singleton Injector** composes all dependencies at startup.
-* No ViewModel or feature creates its own dependencies—everything is injected.
+* No ViewModel or feature creates its own dependencies,everything is injected.
 * Swap or mock any dependency by updating the Injector.
 
 ```swift
@@ -304,7 +304,7 @@ struct HomeView: View {
 * Requires **Xcode 15+** and **Swift 5.9+**.
 * App boots from `Boot.swift`, registers destinations, and builds the DI graph via `Injector.swift`.
 * The root layer manages authentication and tabbed navigation.
-* All features are modular—follow the pattern above to add more.
+* All features are modular,follow the pattern above to add more.
 
 ---
 
