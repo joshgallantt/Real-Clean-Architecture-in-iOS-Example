@@ -84,10 +84,6 @@ HomeUI/
 
 ## Architecture Breakdown
 
-Absolutely, here’s an improved README section with concise explanations and Swift-centric context, keeping it clear and practical for other iOS devs:
-
----
-
 ### SOLID Principles in Practice
 
 SOLID is a set of five principles for writing maintainable, testable, and scalable code. Each principle helps structure your codebase so it’s easier to extend, refactor, and reason about,especially as your project grows.
