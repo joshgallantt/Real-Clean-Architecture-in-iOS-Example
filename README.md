@@ -24,9 +24,7 @@ A production-grade starter template for SwiftUI apps, built with Clean Architect
 
 ## Overview
 
-* **Feature-first:** Each business area is a self-contained module (domain, data, DI, UI).
 * **Centralized, protocol-driven navigation:** Navigation is injected and managed at app launch, never inside UI or feature modules.
-* **Authentication-first root:** The root observes authentication state and automatically switches between login and main UI.
 * **100% SOLID:** Every layer is protocol-oriented for maximal testability and decoupling.
 * **Strict concurrency:** Designed for Swift 5.9+ concurrency enforcement.
 * **Package-by-component:** Every feature (Home, Cart, Wishlist, etc) lives as a Swift Package at the repo root for clear boundaries, independent builds, and testability.
