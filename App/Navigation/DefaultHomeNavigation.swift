@@ -1,5 +1,5 @@
 //
-//  HomeNavigator.swift
+//  DefaultHomeNavigation.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 16/07/2025.
@@ -9,10 +9,10 @@ import Foundation
 import HomePresentation
 import WishlistPresentation
 
-final class HomeNavigator: HomeNavigation {
-    private unowned let navigator: Navigation
+final class DefaultHomeNavigation: HomeNavigation {
+    private unowned let navigator: Navigator
 
-    init(navigator: Navigation) {
+    init(navigator: Navigator) {
         self.navigator = navigator
     }
 

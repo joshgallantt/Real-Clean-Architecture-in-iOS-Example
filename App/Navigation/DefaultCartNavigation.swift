@@ -1,5 +1,5 @@
 //
-//  CartNavigator.swift
+//  DefaultCartNavigation.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 16/07/2025.
@@ -9,10 +9,10 @@ import Foundation
 import HomePresentation
 import CartPresentation
 
-final class CartNavigator: CartNavigation {
-    private unowned let navigator: Navigation
+final class DefaultCartNavigation: CartNavigation {
+    private unowned let navigator: Navigator
 
-    init(navigator: Navigation) {
+    init(navigator: Navigator) {
         self.navigator = navigator
     }
 

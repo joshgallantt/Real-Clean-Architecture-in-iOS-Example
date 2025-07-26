@@ -19,11 +19,11 @@ final class Injector {
     // MARK: - Components
     private let userDI: UserDI
 
-    // MARK: - Feature Navigators
-    let appNavigator: Navigation
-    private let homeNavigator: HomeNavigator
-    private let wishlistNavigator: WishlistNavigator
-    private let cartNavigator: CartNavigator
+    // MARK: - Feature Navigation
+    let appNavigator: Navigator
+    private let homeNavigation: DefaultHomeNavigation
+    private let wishlistNavigation: DefaultWishlistNavigation
+    private let cartNavigation: DefaultCartNavigation
     
     // MARK: - UIDI Properties
     let rootUIDI: RootUIDI
@@ -34,10 +34,10 @@ final class Injector {
 
     private init() {
         // MARK: Navigation
-        appNavigator = Navigation()
-        homeNavigator = HomeNavigator(navigator: appNavigator)
-        cartNavigator = CartNavigator(navigator: appNavigator)
-        wishlistNavigator = WishlistNavigator(navigator: appNavigator)
+        appNavigator = Navigator()
+        homeNavigation = DefaultHomeNavigation(navigator: appNavigator)
+        cartNavigation = DefaultCartNavigation(navigator: appNavigator)
+        wishlistNavigation = DefaultWishlistNavigation(navigator: appNavigator)
         
         // MARK: User Component DI
         let userRepository = DefaultUserRepository(
@@ -51,13 +51,13 @@ final class Injector {
             userLogin: userDI.userLoginUseCase
         )
         homeUIDI = HomeUIDI(
-            navigation: homeNavigator
+            navigation: homeNavigation
         )
         wishlistUIDI = WishlistUIDI(
-            navigation: wishlistNavigator
+            navigation: wishlistNavigation
         )
         cartUIDI = CartUIDI(
-            navigation: cartNavigator
+            navigation: cartNavigation
         )
         rootUIDI = RootUIDI(
             observeUserIsLoggedInUseCase: userDI.observeUserIsLoggedInUseCase,

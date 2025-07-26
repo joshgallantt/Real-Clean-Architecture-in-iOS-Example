@@ -1,5 +1,5 @@
 //
-//  Navigation.swift
+//  Navigator.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 15/07/2025.
@@ -10,7 +10,7 @@ import SwiftUI
 import Combine
 
 
-final class Navigation: ObservableObject {
+final class Navigator: ObservableObject {
     enum Tabs: Hashable {
         case home, wishlist, cart
     }

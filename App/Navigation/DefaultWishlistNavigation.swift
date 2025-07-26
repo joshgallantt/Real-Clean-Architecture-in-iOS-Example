@@ -1,5 +1,5 @@
 //
-//  WishlistNavigator.swift
+//  DefaultWishlistNavigation.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 16/07/2025.
@@ -9,10 +9,10 @@ import Foundation
 import WishlistPresentation
 import CartPresentation
 
-final class WishlistNavigator: WishlistNavigation {
-    private unowned let navigator: Navigation
+final class DefaultWishlistNavigation: WishlistNavigation {
+    private unowned let navigator: Navigator
 
-    init(navigator: Navigation) {
+    init(navigator: Navigator) {
         self.navigator = navigator
     }
 

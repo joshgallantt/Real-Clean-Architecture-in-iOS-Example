@@ -18,7 +18,7 @@ public struct RootUIDI {
     private let homeUIDI: HomeUIDI
     private let wishlistUIDI: WishlistUIDI
     private let cartUIDI: CartUIDI
-    private let navigator: Navigation
+    private let navigator: Navigator
 
     init(
         observeUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCaseProtocol,
@@ -26,7 +26,7 @@ public struct RootUIDI {
         homeUIDI: HomeUIDI,
         wishlistUIDI: WishlistUIDI,
         cartUIDI: CartUIDI,
-        navigator: Navigation
+        navigator: Navigator
     ) {
         self.observeUserIsLoggedInUseCase = observeUserIsLoggedInUseCase
         self.loginUIDI = loginUIDI
@@ -45,7 +45,7 @@ public struct RootUIDI {
     }
 
     private func makeTabView() -> some View {
-        NavigationScreen(
+        TabScreen(
             navigator: navigator,
             homeView: homeUIDI.mainView(),
             wishlistView: wishlistUIDI.mainView(),
