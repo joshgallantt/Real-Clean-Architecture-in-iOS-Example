@@ -10,16 +10,16 @@ import SwiftUI
 struct RootScreenView: View {
     @ObservedObject var viewModel: RootScreenViewModel
     let loginView: AnyView
-    let tabView: AnyView
+    let main: AnyView
 
     init(
         viewModel: RootScreenViewModel,
         loginView: some View,
-        tabView: some View
+        mainView: some View
     ) {
         self.viewModel = viewModel
         self.loginView = AnyView(loginView)
-        self.tabView = AnyView(tabView)
+        self.main = AnyView(mainView)
     }
 
     var body: some View {
@@ -27,7 +27,7 @@ struct RootScreenView: View {
         case .login:
             loginView
         case .main:
-            tabView
+            main
         }
     }
 }

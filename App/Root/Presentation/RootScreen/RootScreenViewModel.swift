@@ -13,10 +13,10 @@ import UserDomain
 final class RootScreenViewModel: ObservableObject {
     @Published var path: RootDestination
     private var cancellable: AnyCancellable?
-    private let observeUserLoggedIn: ObserveUserIsLoggedInUseCaseProtocol
+    private let observeUserLoggedIn: ObserveUserIsLoggedInUseCase
 
     init(
-        observeUserLoggedIn: ObserveUserIsLoggedInUseCaseProtocol,
+        observeUserLoggedIn: ObserveUserIsLoggedInUseCase,
         initial: RootDestination = .main
     ) {
         self.observeUserLoggedIn = observeUserLoggedIn

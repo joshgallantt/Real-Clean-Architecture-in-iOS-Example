@@ -12,7 +12,7 @@ import UserDomain
 
 @MainActor
 public final class LoginScreenViewModel: ObservableObject {
-    private let userLogin: UserLoginUseCaseProtocol
+    private let userLogin: UserLoginUseCase
 
     @Published var username: String = ""
     @Published var password: String = ""
@@ -20,7 +20,7 @@ public final class LoginScreenViewModel: ObservableObject {
     @Published var error: String?
     @Published var loginSuccess: Bool = false
 
-    public init(userLogin: UserLoginUseCaseProtocol) {
+    public init(userLogin: UserLoginUseCase) {
         self.userLogin = userLogin
     }
 

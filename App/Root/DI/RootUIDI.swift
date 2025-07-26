@@ -13,7 +13,7 @@ import WishlistUIDI
 import CartUIDI
 
 public struct RootUIDI {
-    private let observeUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCaseProtocol
+    private let observeUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCase
     private let loginUIDI: LoginUIDI
     private let homeUIDI: HomeUIDI
     private let wishlistUIDI: WishlistUIDI
@@ -21,7 +21,7 @@ public struct RootUIDI {
     private let navigator: Navigator
 
     init(
-        observeUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCaseProtocol,
+        observeUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCase,
         loginUIDI: LoginUIDI,
         homeUIDI: HomeUIDI,
         wishlistUIDI: WishlistUIDI,
@@ -44,8 +44,8 @@ public struct RootUIDI {
         loginUIDI.mainView()
     }
 
-    private func makeTabView() -> some View {
-        TabScreen(
+    private func makeMainTabView() -> some View {
+        MainTabScreen(
             navigator: navigator,
             homeView: homeUIDI.mainView(),
             wishlistView: wishlistUIDI.mainView(),
@@ -57,7 +57,7 @@ public struct RootUIDI {
         RootScreenView(
             viewModel: makeRootViewModel(),
             loginView: makeLoginView(),
-            tabView: makeTabView()
+            mainView: makeMainTabView()
         )
     }
 }

@@ -5,12 +5,12 @@
 //  Created by Josh Gallant on 14/07/2025.
 //
 
-public protocol UserLoginUseCaseProtocol {
+public protocol UserLoginUseCase {
     @MainActor
     func execute(username: String, password: String) async -> Bool
 }
 
-public struct UserLoginUseCase: UserLoginUseCaseProtocol {
+public struct DefaultUserLoginUseCase: UserLoginUseCase {
     let userRepository: UserRepository
     
     public init(userRepository: UserRepository) {

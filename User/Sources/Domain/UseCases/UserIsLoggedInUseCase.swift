@@ -5,12 +5,12 @@
 //  Created by Josh Gallant on 14/07/2025.
 //
 
-public protocol UserIsLoggedInUseCaseProtocol {
+public protocol UserIsLoggedInUseCase {
     @MainActor
     func execute() -> Bool
 }
 
-public struct UserIsLoggedInUseCase: UserIsLoggedInUseCaseProtocol {
+public struct DefaultUserIsLoggedInUseCase: UserIsLoggedInUseCase {
     let userRepository: UserRepository
     
     public init(userRepository: UserRepository) {

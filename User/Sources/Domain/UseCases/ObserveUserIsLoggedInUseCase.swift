@@ -7,12 +7,12 @@
 
 import Combine
 
-public protocol ObserveUserIsLoggedInUseCaseProtocol {
+public protocol ObserveUserIsLoggedInUseCase {
     @MainActor
     func execute() -> AnyPublisher<Bool, Never>
 }
 
-public struct ObserveUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCaseProtocol {
+public struct DefaultObserveUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCase {
     let userRepository: UserRepository
     
     public init(userRepository: UserRepository) {

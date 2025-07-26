@@ -11,7 +11,7 @@ import Combine
 import UserDomain
 
 @MainActor
-protocol UserSessionProtocol: AnyObject {
+public protocol UserSession: AnyObject {
     var user: User? { get }
     var authToken: AuthToken? { get }
     var isLoggedIn: Bool { get }
@@ -21,9 +21,9 @@ protocol UserSessionProtocol: AnyObject {
 }
 
 @MainActor
-public final class UserSession: UserSessionProtocol {
-    private(set) var user: User?
-    private(set) var authToken: AuthToken?
+public final class DefaultUserSession: UserSession {
+    public private(set) var user: User?
+    public private(set) var authToken: AuthToken?
     private var expiryTimer: DispatchSourceTimer?
     private let isLoggedInSubject: CurrentValueSubject<Bool, Never>
 
@@ -31,23 +31,23 @@ public final class UserSession: UserSessionProtocol {
         self.isLoggedInSubject = CurrentValueSubject(false)
     }
 
-    var isLoggedIn: Bool {
+    public var isLoggedIn: Bool {
         guard let token = authToken, !token.isExpired else { return false }
         return true
     }
 
-    var isLoggedInPublisher: AnyPublisher<Bool, Never> {
+    public var isLoggedInPublisher: AnyPublisher<Bool, Never> {
         isLoggedInSubject.eraseToAnyPublisher()
     }
 
-    func setUser(_ user: User, token: AuthToken) {
+    public func setUser(_ user: User, token: AuthToken) {
         self.user = user
         self.authToken = token
         isLoggedInSubject.send(true)
         scheduleExpiry(for: token)
     }
 
-    func clear() {
+    public func clear() {
         self.user = nil
         self.authToken = nil
         isLoggedInSubject.send(false)
