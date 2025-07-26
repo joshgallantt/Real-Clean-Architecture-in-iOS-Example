@@ -41,7 +41,7 @@ final class Injector {
         
         // MARK: User Component DI
         let userRepository = DefaultUserRepository(
-            session: UserSession(),
+            session: DefaultUserSession(),
             authClient: FakeAuthClient()
         )
         userDI = UserDI(userRepository: userRepository)

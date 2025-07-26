@@ -1,5 +1,5 @@
 //
-//  TabScreen.swift
+//  MainTabScreen.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 19/07/2025.
@@ -7,7 +7,7 @@
 
 import SwiftUI
 
-struct TabScreen<Home: View, Wishlist: View, Cart: View>: View {
+struct MainTabScreen<Home: View, Wishlist: View, Cart: View>: View {
     @ObservedObject var navigator: Navigator
     let homeView: Home
     let wishlistView: Wishlist

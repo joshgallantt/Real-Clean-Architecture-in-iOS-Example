@@ -10,9 +10,9 @@ import UserDomain
 import LoginPresentation
 
 public struct LoginUIDI {
-    let userLogin: UserLoginUseCaseProtocol
+    let userLogin: UserLoginUseCase
 
-    public init(userLogin: UserLoginUseCaseProtocol) {
+    public init(userLogin: UserLoginUseCase) {
         self.userLogin = userLogin
     }
 
