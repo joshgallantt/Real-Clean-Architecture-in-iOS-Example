@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import HomePresentation
-import WishlistPresentation
+import HomeUI
+import WishlistUI
 
 final class DefaultHomeNavigation: HomeNavigation {
     private unowned let navigator: Navigator

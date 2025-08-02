@@ -8,10 +8,14 @@
 
 import Combine
 
-@MainActor
 public protocol UserRepository {
-    var isLoggedIn: Bool { get }
+    @MainActor
     var loggedInPublisher: AnyPublisher<Bool, Never> { get }
-    func login(username: String, password: String) async -> Bool
+    
+    @MainActor
+    func login(username: String, password: String) async -> Result<Void, LoginError>
+    
+    @MainActor
     func logout() async
 }
+

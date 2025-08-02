@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import CartPresentation
+import CartUI
 
 public struct CartUIDI {
     private let navigation: CartNavigation

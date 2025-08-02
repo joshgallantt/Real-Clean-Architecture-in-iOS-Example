@@ -7,7 +7,7 @@
 
 
 import SwiftUI
-import WishlistPresentation
+import WishlistUI
 
 public struct WishlistUIDI {
     private let navigation: WishlistNavigation

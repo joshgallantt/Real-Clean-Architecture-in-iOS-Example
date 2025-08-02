@@ -6,19 +6,19 @@
 //
 
 import SwiftUI
-import UserDomain
-import LoginPresentation
+import LoginUI
+import UserDI
 
 public struct LoginUIDI {
-    let userLogin: UserLoginUseCase
+    private let userDI: UserDI
 
-    public init(userLogin: UserLoginUseCase) {
-        self.userLogin = userLogin
+    public init(userDI: UserDI) {
+        self.userDI = userDI
     }
 
     @MainActor
     public func makeLoginScreenViewModel() -> LoginScreenViewModel {
-        LoginScreenViewModel(userLogin: userLogin)
+        LoginScreenViewModel(userLogin: userDI.userLoginUseCase)
     }
     
     @MainActor

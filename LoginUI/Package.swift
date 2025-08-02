@@ -1,6 +1,4 @@
 // swift-tools-version: 6.2
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
 let package = Package(
@@ -19,15 +17,18 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "LoginPresentation",
+            name: "LoginUI",
             dependencies: [
-                .product(name: "UserDomain", package: "User")
+                .product(name: "UserDI", package: "UserDI")
             ],
-            path: "Sources/Presentation"
+            path: "Sources/UI"
         ),
         .target(
             name: "LoginUIDI",
-            dependencies: ["LoginPresentation"],
+            dependencies: [
+                "LoginUI",
+                .product(name: "UserDI", package: "UserDI")
+            ],
             path: "Sources/DI"
         ),
         .testTarget(

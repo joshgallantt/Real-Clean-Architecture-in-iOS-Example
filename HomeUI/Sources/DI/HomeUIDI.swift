@@ -6,7 +6,7 @@
 //
 
 import SwiftUI
-import HomePresentation
+import HomeUI
 
 public struct HomeUIDI {
     private let navigation: HomeNavigation

@@ -40,25 +40,14 @@ final class Injector {
         wishlistNavigation = DefaultWishlistNavigation(navigator: appNavigator)
         
         // MARK: User Component DI
-        let userRepository = DefaultUserRepository(
-            session: DefaultUserSession(),
-            authClient: FakeAuthClient()
-        )
-        userDI = UserDI(userRepository: userRepository)
+        userDI = UserDI()
 
         // MARK: UI Features
-        loginUIDI = LoginUIDI(
-            userLogin: userDI.userLoginUseCase
-        )
-        homeUIDI = HomeUIDI(
-            navigation: homeNavigation
-        )
-        wishlistUIDI = WishlistUIDI(
-            navigation: wishlistNavigation
-        )
-        cartUIDI = CartUIDI(
-            navigation: cartNavigation
-        )
+        loginUIDI = LoginUIDI(userDI: userDI)
+        homeUIDI = HomeUIDI(navigation: homeNavigation)
+        wishlistUIDI = WishlistUIDI(navigation: wishlistNavigation)
+        cartUIDI = CartUIDI(navigation: cartNavigation)
+        
         rootUIDI = RootUIDI(
             observeUserIsLoggedInUseCase: userDI.observeUserIsLoggedInUseCase,
             loginUIDI: loginUIDI,

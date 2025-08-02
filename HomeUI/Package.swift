@@ -16,13 +16,13 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "HomePresentation",
+            name: "HomeUI",
             dependencies: [],
-            path: "Sources/Presentation"
+            path: "Sources/UI"
         ),
         .target(
             name: "HomeUIDI",
-            dependencies: ["HomePresentation"],
+            dependencies: ["HomeUI"],
             path: "Sources/DI"
         ),
         .testTarget(

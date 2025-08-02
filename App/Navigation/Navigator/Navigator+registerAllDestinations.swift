@@ -6,11 +6,11 @@
 //
 
 import HomeUIDI
-import HomePresentation
+import HomeUI
 import WishlistUIDI
-import WishlistPresentation
+import WishlistUI
 import CartUIDI
-import CartPresentation
+import CartUI
 
 extension Navigator {
     static func registerAllDestinations(using injector: Injector) {

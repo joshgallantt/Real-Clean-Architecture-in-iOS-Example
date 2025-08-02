@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import WishlistPresentation
-import CartPresentation
+import WishlistUI
+import CartUI
 
 final class DefaultWishlistNavigation: WishlistNavigation {
     private unowned let navigator: Navigator
