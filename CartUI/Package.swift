@@ -16,13 +16,13 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "CartPresentation",
+            name: "CartUI",
             dependencies: [],
-            path: "Sources/Presentation"
+            path: "Sources/UI"
         ),
         .target(
             name: "CartUIDI",
-            dependencies: ["CartPresentation"],
+            dependencies: ["CartUI"],
             path: "Sources/DI"
         ),
         .testTarget(

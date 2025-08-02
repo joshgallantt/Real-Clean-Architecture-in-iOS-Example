@@ -6,8 +6,8 @@
 //
 
 import Foundation
-import HomePresentation
-import CartPresentation
+import HomeUI
+import CartUI
 
 final class DefaultCartNavigation: CartNavigation {
     private unowned let navigator: Navigator

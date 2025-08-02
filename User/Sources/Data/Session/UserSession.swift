@@ -14,7 +14,6 @@ import UserDomain
 public protocol UserSession: AnyObject {
     var user: User? { get }
     var authToken: AuthToken? { get }
-    var isLoggedIn: Bool { get }
     var isLoggedInPublisher: AnyPublisher<Bool, Never> { get }
     func setUser(_ user: User, token: AuthToken)
     func clear()
@@ -29,11 +28,6 @@ public final class DefaultUserSession: UserSession {
 
     public init() {
         self.isLoggedInSubject = CurrentValueSubject(false)
-    }
-
-    public var isLoggedIn: Bool {
-        guard let token = authToken, !token.isExpired else { return false }
-        return true
     }
 
     public var isLoggedInPublisher: AnyPublisher<Bool, Never> {
@@ -64,7 +58,7 @@ public final class DefaultUserSession: UserSession {
         let timer = DispatchSource.makeTimerSource(queue: .main)
         timer.schedule(deadline: .now() + interval)
         timer.setEventHandler { [weak self] in
-            Task { @MainActor in self?.clear() }
+            self?.clear()
         }
         timer.resume()
         expiryTimer = timer

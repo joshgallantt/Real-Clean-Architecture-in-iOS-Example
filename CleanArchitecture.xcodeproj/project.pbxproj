@@ -13,7 +13,6 @@
 		14BD45B22E2B925300FE6875 /* WishlistUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45B12E2B925300FE6875 /* WishlistUIDI */; };
 		14BD45B62E2B940E00FE6875 /* LoginUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45B52E2B940E00FE6875 /* LoginUIDI */; };
 		14BD45B92E2B951700FE6875 /* UserDI in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45B82E2B951700FE6875 /* UserDI */; };
-		14BD45BB2E2B959300FE6875 /* UserDomain in Frameworks */ = {isa = PBXBuildFile; productRef = 14BD45BA2E2B959300FE6875 /* UserDomain */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -89,7 +88,6 @@
 				14BD45B62E2B940E00FE6875 /* LoginUIDI in Frameworks */,
 				14BD45AE2E2B925300FE6875 /* CartUIDI in Frameworks */,
 				14BD45B22E2B925300FE6875 /* WishlistUIDI in Frameworks */,
-				14BD45BB2E2B959300FE6875 /* UserDomain in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -159,7 +157,6 @@
 				14BD45B12E2B925300FE6875 /* WishlistUIDI */,
 				14BD45B52E2B940E00FE6875 /* LoginUIDI */,
 				14BD45B82E2B951700FE6875 /* UserDI */,
-				14BD45BA2E2B959300FE6875 /* UserDomain */,
 			);
 			productName = CleanArchitecture;
 			productReference = 1485C9A82E29746D0006933B /* CleanArchitecture.app */;
@@ -671,10 +668,6 @@
 		14BD45B82E2B951700FE6875 /* UserDI */ = {
 			isa = XCSwiftPackageProductDependency;
 			productName = UserDI;
-		};
-		14BD45BA2E2B959300FE6875 /* UserDomain */ = {
-			isa = XCSwiftPackageProductDependency;
-			productName = UserDomain;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

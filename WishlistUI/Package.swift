@@ -16,13 +16,13 @@ let package = Package(
     ],
     targets: [
         .target(
-            name: "WishlistPresentation",
+            name: "WishlistUI",
             dependencies: [],
-            path: "Sources/Presentation"
+            path: "Sources/UI"
         ),
         .target(
             name: "WishlistUIDI",
-            dependencies: ["WishlistPresentation"],
+            dependencies: ["WishlistUI"],
             path: "Sources/DI"
         ),
         .testTarget(

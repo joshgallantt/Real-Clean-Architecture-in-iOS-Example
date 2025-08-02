@@ -9,14 +9,9 @@ import Combine
 import Foundation
 import UserDomain
 
-@MainActor
 public final class DefaultUserRepository: UserRepository {
     private let session: UserSession
     private let authClient: AuthClient
-
-    public var isLoggedIn: Bool {
-        session.isLoggedIn
-    }
 
     public var loggedInPublisher: AnyPublisher<Bool, Never> {
         session.isLoggedInPublisher
@@ -27,18 +22,31 @@ public final class DefaultUserRepository: UserRepository {
         self.authClient = authClient
     }
 
-    public func login(username: String, password: String) async -> Bool {
-        guard let (user, token) = await authClient.login(username: username, password: password) else {
-            return false
+    @MainActor
+    public func login(username: String, password: String) async -> Result<Void, LoginError> {
+        let result = await authClient.login(username: username, password: password)
+        switch result {
+        case let .success((user, token)):
+            session.setUser(user, token: token)
+            return .success(())
+        case .failure(let error):
+            return .failure(mapAuthClientErrorToLoginError(error))
         }
-        session.setUser(user, token: token)
-        return true
     }
 
+    @MainActor
     public func logout() async {
-        await authClient.logout()
+        _ = await authClient.logout()
         session.clear()
     }
-}
 
+    private func mapAuthClientErrorToLoginError(_ error: AuthClientError) -> LoginError {
+        switch error {
+        case .invalidCredentials:
+            return .invalidCredentials
+        case .networkFailure, .unknown:
+            return .unknown
+        }
+    }
+}
 
