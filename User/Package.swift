@@ -10,17 +10,9 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "UserDomain",
-            targets: ["UserDomain"]
-        ),
-        .library(
-            name: "UserData",
-            targets: ["UserData"]
-        ),
-        .library(
             name: "UserDI",
             targets: ["UserDI"]
-        ),
+        )
     ],
     targets: [
         .target(
