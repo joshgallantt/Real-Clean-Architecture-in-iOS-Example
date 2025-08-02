@@ -10,25 +10,33 @@ import UserDomain
 import UserData
 
 public struct UserDI {
+    // MARK: - Data Sources
+    private let userSession: UserSession
+    private let authClient: AuthClient
+
+    // MARK: - Repository
     private let userRepository: UserRepository
+
+    // MARK: - Use Cases
     public let userLoginUseCase: UserLoginUseCase
     public let userIsLoggedInUseCase: UserIsLoggedInUseCase
     public let observeUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCase
 
+    // MARK: - Initializer
+
     @MainActor
-    public init() {
-        self.userRepository = UserDI.makeRepository()
-        self.userLoginUseCase = DefaultUserLoginUseCase(userRepository: userRepository)
-        self.userIsLoggedInUseCase = DefaultUserIsLoggedInUseCase(userRepository: userRepository)
-        self.observeUserIsLoggedInUseCase = DefaultObserveUserIsLoggedInUseCase(userRepository: userRepository)
-    }
-    
-    @MainActor
-    private static func makeRepository() -> UserRepository {
-        DefaultUserRepository(
-            session: DefaultUserSession(),
-            authClient: FakeAuthClient()
-        )
+    public init(
+        userSession: UserSession = DefaultUserSession(),
+        authClient: AuthClient = FakeAuthClient()
+    ) {
+        self.userSession = userSession
+        self.authClient = authClient
+
+        let repository = DefaultUserRepository(session: userSession, authClient: authClient)
+        self.userRepository = repository
+        
+        self.userLoginUseCase = DefaultUserLoginUseCase(userRepository: repository)
+        self.userIsLoggedInUseCase = DefaultUserIsLoggedInUseCase(userRepository: repository)
+        self.observeUserIsLoggedInUseCase = DefaultObserveUserIsLoggedInUseCase(userRepository: repository)
     }
 }
-
