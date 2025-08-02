@@ -10,16 +10,12 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "LoginPresentation",
-            targets: ["LoginPresentation"]
-        ),
-        .library(
             name: "LoginUIDI",
             targets: ["LoginUIDI"]
-        ),
+        )
     ],
     dependencies: [
-        .package(name: "User", path: "../User")
+        .package(name: "UserDI", path: "../User")
     ],
     targets: [
         .target(

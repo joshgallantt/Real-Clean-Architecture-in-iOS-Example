@@ -10,13 +10,9 @@ let package = Package(
     ],
     products: [
         .library(
-            name: "WishlistPresentation",
-            targets: ["WishlistPresentation"]
-        ),
-        .library(
             name: "WishlistUIDI",
             targets: ["WishlistUIDI"]
-        ),
+        )
     ],
     targets: [
         .target(
