@@ -10,6 +10,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "WishlistUI",
+            targets: ["WishlistUI"]
+        ),
+        .library(
             name: "WishlistUIDI",
             targets: ["WishlistUIDI"]
         )
@@ -18,7 +22,9 @@ let package = Package(
         .target(
             name: "WishlistUI",
             dependencies: [],
-            path: "Sources/UI"
+            path: "Sources",
+            exclude: ["DI"],
+            sources: ["UI", "Navigation"]
         ),
         .target(
             name: "WishlistUIDI",

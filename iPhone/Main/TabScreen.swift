@@ -1,23 +1,23 @@
 //
-//  MainTabScreen.swift
+//  TabScreen.swift
 //  CleanArchitecture
 //
-//  Created by Josh Gallant on 19/07/2025.
+//  Created by Josh Gallant on 22/12/2025.
 //
 
 import SwiftUI
+import HomeUIDI
+import WishlistUIDI
+import CartUIDI
 
-struct MainTabScreen<Home: View, Wishlist: View, Cart: View>: View {
+struct TabScreen: View {
     @ObservedObject var navigator: Navigator
-    let homeView: Home
-    let wishlistView: Wishlist
-    let cartView: Cart
-
+    
     var body: some View {
         TabView(selection: $navigator.selectedTab) {
             Tab("Home", systemImage: "house", value: Navigator.Tabs.home) {
                 NavigationStack(path: $navigator.homePath) {
-                    homeView
+                    Injector.shared.homeUIDI.mainView()
                         .navigationTitle("Home")
                         .navigationDestination(for: AnyHashable.self) { route in
                             navigator.view(for: route.base) ?? AnyView(EmptyView())
@@ -26,7 +26,7 @@ struct MainTabScreen<Home: View, Wishlist: View, Cart: View>: View {
             }
             Tab("Wishlist", systemImage: "heart.fill", value: Navigator.Tabs.wishlist) {
                 NavigationStack(path: $navigator.wishlistPath) {
-                    wishlistView
+                    Injector.shared.wishlistUIDI.mainView()
                         .navigationTitle("Wishlist")
                         .navigationDestination(for: AnyHashable.self) { route in
                             navigator.view(for: route.base) ?? AnyView(EmptyView())
@@ -35,7 +35,7 @@ struct MainTabScreen<Home: View, Wishlist: View, Cart: View>: View {
             }
             Tab("Cart", systemImage: "cart.fill", value: Navigator.Tabs.cart) {
                 NavigationStack(path: $navigator.cartPath) {
-                    cartView
+                    Injector.shared.cartUIDI.mainView()
                         .navigationTitle("Cart")
                         .navigationDestination(for: AnyHashable.self) { route in
                             navigator.view(for: route.base) ?? AnyView(EmptyView())

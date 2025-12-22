@@ -17,15 +17,14 @@ public struct HomeUIDI {
 
     @MainActor
     public func mainView() -> some View {
-        let viewModel = HomeScreenViewModel()
-        return HomeScreenView(viewModel: viewModel, navigation: navigation)
+        HomeScreenView(
+            viewModel: HomeScreenViewModel(),
+            navigation: navigation
+        )
     }
-
+    
     @MainActor
-    public func makeView(for destination: HomeDestination) -> some View {
-        switch destination {
-        case .detail(let id):
-            HomeDetailScreenView(id: id)
-        }
+    public func detailView(id: UUID) -> some View {
+        HomeDetailScreenView(id: id)
     }
 }

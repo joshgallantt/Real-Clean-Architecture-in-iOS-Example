@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import UserDomain
+import User
 import UserData
 
 public struct UserDI {

@@ -8,7 +8,7 @@
 
 import Foundation
 import Combine
-import UserDomain
+import User
 
 @MainActor
 public protocol UserSession: AnyObject {
@@ -69,3 +69,4 @@ public final class DefaultUserSession: UserSession {
         expiryTimer = nil
     }
 }
+

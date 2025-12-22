@@ -27,7 +27,7 @@ public struct WishlistScreenView: View {
             Button("Go to Cart Detail") {
                 let id = UUID()
                 viewModel.didSelectGoToCart(id: id)
-                navigation.goToCartDetail(id: id)
+                navigation.openCartDetail(id: id)
             }
         }
     }

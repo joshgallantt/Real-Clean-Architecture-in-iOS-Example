@@ -28,7 +28,7 @@ public struct HomeScreenView: View {
             Button("Go to Wishlist Detail") {
                 let id = UUID()
                 viewModel.didSelectGoToWishlist(id: id)
-                navigation.goToWishlistDetail(id: id)
+                navigation.openWishlistDetail(id: id)
             }
         }
     }

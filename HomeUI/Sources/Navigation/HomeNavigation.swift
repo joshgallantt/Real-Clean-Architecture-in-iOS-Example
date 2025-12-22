@@ -1,5 +1,5 @@
 //
-//  WishlistNavigation.swift
+//  HomeNavigation.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 16/07/2025.
@@ -7,7 +7,7 @@
 
 import Foundation
 
-public protocol WishlistNavigation: AnyObject {
+public protocol HomeNavigation: AnyObject {
+    func openHomeDetail(id: UUID)
     func openWishlistDetail(id: UUID)
-    func goToCartDetail(id: UUID)
 }
