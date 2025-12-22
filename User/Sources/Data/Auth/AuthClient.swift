@@ -6,7 +6,7 @@
 //
 
 import Foundation
-import UserDomain
+import User
 
 public enum AuthClientError: Error, Equatable {
     case invalidCredentials
@@ -20,20 +20,15 @@ public protocol AuthClient: Sendable {
 }
 
 public actor FakeAuthClient: AuthClient {
-    public typealias ErrorGenerator = () -> AuthClientError?
-    
-    private let errorGenerator: ErrorGenerator
-    private(set) var lastLoginToken: AuthToken? = nil
-    private(set) var exampleExpiry: TimeInterval = 60
+    public private(set) var lastLoginToken: AuthToken? = nil
+    public private(set) var exampleExpiry: TimeInterval = 60
 
     public init(
         lastLoginToken: AuthToken? = nil,
-        exampleExpiry: TimeInterval = 60,
-        errorGenerator: @escaping ErrorGenerator = { nil }
+        exampleExpiry: TimeInterval = 60
     ) {
         self.lastLoginToken = lastLoginToken
         self.exampleExpiry = exampleExpiry
-        self.errorGenerator = errorGenerator
     }
     
     public func login(username: String, password: String) async -> Result<(User, AuthToken), AuthClientError> {
@@ -41,9 +36,6 @@ public actor FakeAuthClient: AuthClient {
         
         if username == "test", password == "test" {
             return .failure(.invalidCredentials)
-        }
-        if let error = errorGenerator() {
-            return .failure(error)
         }
         guard !username.isEmpty, !password.isEmpty else {
             return .failure(.invalidCredentials)
@@ -57,10 +49,8 @@ public actor FakeAuthClient: AuthClient {
 
     public func logout() async -> Result<Void, AuthClientError> {
         try? await Task.sleep(nanoseconds: 500_000_000)
-        if let error = errorGenerator() {
-            return .failure(error)
-        }
         lastLoginToken = nil
         return .success(())
     }
 }
+

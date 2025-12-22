@@ -10,24 +10,36 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "User",
+            targets: ["User"]
+        ),
+        .library(
+            name: "UserData",
+            targets: ["UserData"]
+        ),
+        .library(
             name: "UserDI",
             targets: ["UserDI"]
         )
     ],
     targets: [
         .target(
-            name: "UserDomain",
+            name: "User",
             dependencies: [],
-            path: "Sources/Domain"
+            path: "Sources",
+            exclude: ["DI", "Data"],
+            sources: ["Domain"]
         ),
         .target(
             name: "UserData",
-            dependencies: ["UserDomain"],
-            path: "Sources/Data"
+            dependencies: ["User"],
+            path: "Sources",
+            exclude: ["Domain", "DI"],
+            sources: ["Data"]
         ),
         .target(
             name: "UserDI",
-            dependencies: ["UserDomain", "UserData"],
+            dependencies: ["User", "UserData"],
             path: "Sources/DI"
         ),
         .testTarget(

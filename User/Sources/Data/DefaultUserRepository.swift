@@ -7,7 +7,7 @@
 
 import Combine
 import Foundation
-import UserDomain
+import User
 
 public final class DefaultUserRepository: UserRepository {
     private let session: UserSession

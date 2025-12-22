@@ -17,15 +17,14 @@ public struct CartUIDI {
 
     @MainActor
     public func mainView() -> some View {
-        let viewModel = CartScreenViewModel()
-        return CartScreenView(viewModel: viewModel, navigation: navigation)
+        CartScreenView(
+            viewModel: CartScreenViewModel(),
+            navigation: navigation
+        )
     }
-
+    
     @MainActor
-    public func makeView(for destination: CartDestination) -> some View {
-        switch destination {
-        case .detail(let id):
-            CartDetailScreenView(id: id)
-        }
+    public func detailView(id: UUID) -> some View {
+        CartDetailScreenView(id: id)
     }
 }

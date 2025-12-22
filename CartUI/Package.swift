@@ -10,6 +10,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "CartUI",
+            targets: ["CartUI"]
+        ),
+        .library(
             name: "CartUIDI",
             targets: ["CartUIDI"]
         )
@@ -18,7 +22,9 @@ let package = Package(
         .target(
             name: "CartUI",
             dependencies: [],
-            path: "Sources/UI"
+            path: "Sources",
+            exclude: ["DI"],
+            sources: ["UI", "Navigation"]
         ),
         .target(
             name: "CartUIDI",

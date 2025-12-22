@@ -18,15 +18,14 @@ public struct WishlistUIDI {
 
     @MainActor
     public func mainView() -> some View {
-        let viewModel = WishlistScreenViewModel()
-        return WishlistScreenView(viewModel: viewModel, navigation: navigation)
+        WishlistScreenView(
+            viewModel: WishlistScreenViewModel(),
+            navigation: navigation
+        )
     }
-
+    
     @MainActor
-    public func makeView(for destination: WishlistDestination) -> some View {
-        switch destination {
-        case .detail(let id):
-            WishlistDetailScreenView(id: id)
-        }
+    public func detailView(id: UUID) -> some View {
+        WishlistDetailScreenView(id: id, navigation: navigation)
     }
 }

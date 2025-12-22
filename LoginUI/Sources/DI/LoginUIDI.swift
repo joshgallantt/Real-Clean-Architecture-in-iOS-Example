@@ -22,7 +22,7 @@ public struct LoginUIDI {
     }
     
     @MainActor
-    public func mainView() -> some View {
+    public func loginView() -> some View {
         LoginScreenView(viewModel: makeLoginScreenViewModel())
     }
 }
