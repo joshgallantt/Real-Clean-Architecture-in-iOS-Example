@@ -4,6 +4,19 @@ A practical implementation of Clean Architecture in SwiftUI, demonstrating how t
 
 ---
 
+## Why Architecture Matters
+
+> *"The cost of maintaining a software system is not determined by how it was originally built, but by how easy it is to change."*
+> — Robert C. Martin, *Clean Architecture* (2017), Chapter 1
+
+Every architectural decision in this project is an answer to the same underlying question: **how do we keep the cost of change low as the application grows?**
+
+Without deliberate structure, iOS codebases tend toward a familiar failure mode: ViewModels that call URLSession directly, business rules scattered across UI handlers, and navigation logic tangled into screen transitions. The result is code that cannot be tested without a simulator, cannot be changed without reading all of it first, and cannot be extended without risking breakage in unrelated features.
+
+The layers and patterns here are not ceremony. Each one solves a specific coupling problem.
+
+---
+
 ## Architecture Principles
 
 ### The Dependency Rule
@@ -18,31 +31,37 @@ Presentation ──▶ Domain ◀── Data
      └──────────────────────────▶ (never)
 ```
 
-This ensures business logic can be tested without a simulator, a network connection, or a database.
+**Why this matters:** If the domain layer depended on the data layer, changing your persistence mechanism would require touching business logic. If business logic lived in ViewModels, you couldn't test it without constructing a SwiftUI view. The Dependency Rule is the mechanism that makes each layer independently replaceable and testable. The direction of dependencies is the architecture.
 
 ### SOLID Principles
 
-Robert C. Martin introduced the SOLID principles in *Agile Software Development, Principles, Patterns, and Practices* (2002). This project applies them as follows:
+Robert C. Martin introduced the SOLID principles in *Agile Software Development, Principles, Patterns, and Practices* (2002). Each principle addresses a specific way that code becomes hard to change:
 
-- **Single Responsibility** — Each class has one reason to change. `LoginScreenViewModel` manages login UI state. `DefaultUserRepository` manages user data access. Neither does both.
-- **Open/Closed** — Behaviour is extended through protocols, not modification. Adding a new `AuthClient` implementation requires no changes to `DefaultUserRepository`.
-- **Liskov Substitution** — `FakeAuthClient` is a drop-in replacement for any real `AuthClient`. ViewModels accept any `UserLoginUseCase`, not a concrete class.
-- **Interface Segregation** — Navigation protocols are small and feature-scoped. `HomeNavigation` only exposes navigation methods relevant to the Home feature.
-- **Dependency Inversion** — High-level modules (`DefaultUserRepository`) depend on abstractions (`AuthClient`, `UserSession`), not on concretions.
+- **Single Responsibility** — Each class has one reason to change. `LoginScreenViewModel` manages login UI state. `DefaultUserRepository` manages user data access. When requirements change, you know exactly which file to open — and which files are safe to leave closed. Mixing concerns means a UI change requires reading infrastructure code to understand what's safe to touch.
 
-### Repository Pattern
+- **Open/Closed** — Behaviour is extended through protocols, not modification. Adding a new `AuthClient` implementation requires no changes to `DefaultUserRepository`. If `DefaultUserRepository` constructed `FakeAuthClient` directly, every new auth backend would require modifying tested, working code.
 
-> *"A Repository mediates between the domain and data mapping layers, acting like an in-memory collection of domain objects."*
-> — Martin Fowler, *Patterns of Enterprise Application Architecture* (2002), Chapter 10
+- **Liskov Substitution** — `FakeAuthClient` is a drop-in replacement for any real `AuthClient`. ViewModels accept any `UserLoginUseCase`, not a concrete class. Violations of this principle mean that "replacing" a component actually requires auditing all of its callers.
 
-Repository protocols are defined in the domain layer. Implementations live in the data layer. The domain never knows how data is fetched or stored.
+- **Interface Segregation** — Navigation protocols are small and feature-scoped. `HomeNavigation` only exposes navigation relevant to the Home feature. Fat interfaces force implementations to depend on methods they don't use, creating unnecessary coupling between unrelated features.
+
+- **Dependency Inversion** — High-level modules (`DefaultUserRepository`) depend on abstractions (`AuthClient`, `UserSession`), not concretions. This is what makes the entire testing strategy possible — every concrete dependency can be swapped for a test double at the protocol boundary.
 
 ### Separation of Concerns
 
 > *"Gather together the things that change for the same reasons. Separate things that change for different reasons."*
 > — Robert C. Martin, *Clean Architecture* (2017), Chapter 7
 
-Each module has a single axis of change. UI modules change when screens change. Domain modules change when business rules change. Data modules change when external systems change. These reasons are independent.
+UI changes for design reasons. Business rules change for product reasons. Data access changes for infrastructure reasons. When these are co-located, a design change requires a code archaeologist to determine which parts are safe to touch and which parts carry business logic that must not break.
+
+Each module in this project has a single axis of change. A new screen design touches only `*UI` modules. A new business rule touches only the domain. A new backend touches only the data layer.
+
+### Repository Pattern
+
+> *"A Repository mediates between the domain and data mapping layers, acting like an in-memory collection of domain objects."*
+> — Martin Fowler, *Patterns of Enterprise Application Architecture* (2002), Chapter 10
+
+**Why this matters:** Without a repository abstraction, use cases call data access code directly. The moment a use case imports `URLSession` or a database framework, it can no longer be tested without that infrastructure being present. The repository protocol defines *what* the domain needs from data access. The implementation defines *how* it is satisfied. The domain never knows the difference.
 
 ---
 
@@ -62,6 +81,8 @@ Each module has a single axis of change. UI modules change when screens change. 
     ├── Navigation/           # Navigator and Destination
     └── Main/                 # App entry point and tab screen
 ```
+
+Each feature is a separate Swift Package. This is not just organisation — it is enforcement. The Swift compiler guarantees that `HomeUI` cannot import `LoginUI` unless that dependency is declared explicitly. Architectural boundaries that rely only on convention erode over time. Module boundaries that rely on the compiler do not.
 
 ---
 
@@ -93,12 +114,14 @@ Each module has a single axis of change. UI modules change when screens change. 
 
 The domain layer contains pure business logic with **zero dependencies** on external frameworks, UI, or data sources. It can be compiled, tested, and reasoned about in isolation.
 
+**Why isolate the domain?** The domain is the most valuable and most stable part of the application. Business rules change for business reasons — not because SwiftUI released a new API or the backend switched from REST to GraphQL. Keeping the domain free of framework dependencies means it survives technology changes intact. Martin calls this the *Stable Dependencies Principle*: depend in the direction of stability.
+
 ### Entities
 
 > *"An object primarily defined by its identity is called an Entity."*
 > — Eric Evans, *Domain-Driven Design* (2003), Chapter 5
 
-Entities are the core business objects. They are framework-independent and carry no persistence or UI concerns.
+Entities are the core business objects. They are framework-independent and carry no persistence or UI concerns. A `User` is a `User` regardless of how it was fetched, how it is displayed, or where it is stored.
 
 **[`User/Sources/Domain/Model/User.swift`](User/Sources/Domain/Model/User.swift)**
 ```swift
@@ -113,7 +136,9 @@ public struct User: Equatable, Sendable {
 > *"Use cases contain application-specific business rules... They orchestrate the flow of data to and from the entities."*
 > — Robert C. Martin, *Clean Architecture* (2017), Chapter 16
 
-Each use case protocol represents one specific business operation. Protocols allow the presentation layer to depend on the operation's contract, not on any implementation detail.
+Each use case protocol represents one specific business operation. Each has a name that describes what the application does — `UserLoginUseCase`, `ObserveUserIsLoggedInUseCase` — making the business capabilities of the system discoverable by reading the domain alone.
+
+**Why use cases?** Without them, business logic leaks into ViewModels, repositories, and — eventually — views. The result is that "where does login actually happen?" has no clear answer. Use cases give business operations a home. They can be tested without UI, without a network, and without understanding the rest of the system.
 
 **[`User/Sources/Domain/UseCases/UserLoginUseCase.swift`](User/Sources/Domain/UseCases/UserLoginUseCase.swift)**
 ```swift
@@ -128,7 +153,7 @@ public protocol UserLoginUseCase {
 
 ### Repository Contracts
 
-Repository protocols are defined here in the domain layer — not in the data layer. This is the inversion of control that the Dependency Rule requires.
+Repository protocols are defined here in the domain layer — not in the data layer. This is the Dependency Inversion Principle applied directly: the domain defines the interface it needs, and the data layer satisfies it. The domain is not a client of the data layer; the data layer is a plugin to the domain.
 
 **[`User/Sources/Domain/Repository/UserRepository.swift`](User/Sources/Domain/Repository/UserRepository.swift)**
 ```swift
@@ -148,9 +173,11 @@ public protocol UserRepository {
 
 The data layer implements domain contracts and handles all external data concerns — network, session, persistence. It depends on the domain layer but the domain layer has no knowledge of it.
 
+**Why a separate data layer?** Infrastructure details are volatile. APIs change. Authentication mechanisms are replaced. Caching strategies evolve. Isolating these details behind the repository contract means none of those changes propagate inward to the domain or outward to the UI. The rest of the application continues to function against the same contract regardless of what changes underneath it.
+
 ### Repository Implementation
 
-`DefaultUserRepository` coordinates between data sources, maps errors to domain types, and satisfies the `UserRepository` contract.
+`DefaultUserRepository` coordinates between data sources, maps errors to domain types, and satisfies the `UserRepository` contract. Error mapping at the boundary is deliberate — domain error types must not carry infrastructure-specific codes, because the domain should not know that authentication even goes over a network.
 
 **[`User/Sources/Data/DefaultUserRepository.swift`](User/Sources/Data/DefaultUserRepository.swift)**
 ```swift
@@ -171,11 +198,9 @@ public final class DefaultUserRepository: UserRepository {
 }
 ```
 
-Error mapping at the boundary ensures domain types never leak infrastructure-specific error codes.
-
 ### Data Sources
 
-Data sources are also protocol-driven, keeping the repository testable independently of the network or session implementation.
+Data sources are also protocol-driven. `DefaultUserRepository` is tested by injecting a fake `AuthClient` and a fake `UserSession` — no network required, no simulator required.
 
 **[`User/Sources/Data/Auth/AuthClient.swift`](User/Sources/Data/Auth/AuthClient.swift)**
 ```swift
@@ -196,13 +221,15 @@ public protocol UserSession: AnyObject {
 }
 ```
 
-`FakeAuthClient` is the default implementation — an `actor` that simulates authentication without a real backend. Swap it for any `AuthClient` conformance to connect to a real API.
+`FakeAuthClient` is the default implementation — an `actor` that simulates authentication without a real backend. Swap it for any `AuthClient` conformance to connect to a real API without touching a single line of domain or presentation code.
 
 ---
 
 ## Presentation Layer
 
 The presentation layer uses MVVM. Views are passive and display state. ViewModels hold `@Published` state and delegate business operations to use cases. Neither has any knowledge of repositories or data sources.
+
+**Why MVVM?** SwiftUI views are value types recreated frequently by the framework. Business logic placed in a view gets destroyed with it. ViewModels are reference types that survive view recreation. More importantly: views cannot be unit tested. ViewModels can. Keeping logic in ViewModels and views purely declarative means presentation behaviour can be verified without rendering a single pixel.
 
 ### Feature Module Structure
 
@@ -219,7 +246,7 @@ FeatureUI/
 
 ### ViewModels
 
-ViewModels are `@MainActor ObservableObject` classes. They receive use case protocols through initialiser injection — never concrete implementations.
+ViewModels are `@MainActor ObservableObject` classes. They receive use case protocols through initialiser injection — never concrete implementations. A `LoginScreenViewModel` test does not need a network stack, a session, or an auth service. It needs an object that satisfies `UserLoginUseCase`.
 
 **[`LoginUI/Sources/UI/LoginScreen/LoginScreenViewModel.swift`](LoginUI/Sources/UI/LoginScreen/LoginScreenViewModel.swift)**
 ```swift
@@ -238,7 +265,7 @@ public final class LoginScreenViewModel: ObservableObject {
 
 ### Views
 
-Views bind to `@Published` properties and delegate all actions to the ViewModel.
+Views bind to `@Published` properties and delegate all actions to the ViewModel. A view has no `if/else` business logic, no network calls, and no navigation decisions. It answers one question: given this state, what should be on screen?
 
 **[`LoginUI/Sources/UI/LoginScreen/LoginScreenView.swift`](LoginUI/Sources/UI/LoginScreen/LoginScreenView.swift)**
 ```swift
@@ -250,7 +277,9 @@ public struct LoginScreenView: View {
 
 ### Feature DI Containers
 
-Each feature module exposes a DI container that constructs its view hierarchy. Containers that require navigation receive a navigation protocol. Containers that require domain operations receive a domain DI container.
+Each feature module exposes a DI container that constructs its view hierarchy. The container accepts its dependencies through its initialiser — navigation protocols for UI features, domain DI containers for features with business operations.
+
+**Why per-feature DI containers?** A monolithic injector that constructs every view in the app conflates the wiring of unrelated features. Per-feature containers mean each feature is responsible for constructing its own objects. The application-level `Injector` assembles the containers; the containers assemble the views.
 
 **[`LoginUI/Sources/DI/LoginUIDI.swift`](LoginUI/Sources/DI/LoginUIDI.swift)**
 ```swift
@@ -277,11 +306,10 @@ The application layer is the composition root — the single place where all con
 
 > *"In application architecture, a Composition Root is a unique location in an application where modules are composed together."*
 > — Mark Seemann & Steven van Deursen, *Dependency Injection: Principles, Practices, and Patterns* (2019)
->
-> *"The composition root is the only place in an application where you should use a DI container."*
-> — Martin Fowler, [Inversion of Control Containers and the Dependency Injection Pattern](https://martinfowler.com/articles/injection.html) (2004)
 
-The application layer is intentionally not unit tested — it contains no logic, only wiring.
+**Why a composition root?** If each class constructs its own dependencies, there is no single place in the codebase that represents how the application is wired. Bugs that arise from incorrect wiring are invisible until runtime, and fixing them requires searching across the entire codebase. The composition root makes the dependency graph explicit, visible, and located in one file. It is the only place in the application that is aware of all concrete types simultaneously.
+
+The application layer is intentionally not unit tested — it contains no logic, only wiring. Testing the wiring is what integration and UI tests are for.
 
 ### Dependency Injection Container
 
@@ -305,7 +333,7 @@ final class Injector {
 }
 ```
 
-Tab views are instantiated once at startup and held by `Injector`. This ensures SwiftUI state — scroll position, `@State` variables, in-flight async tasks — is preserved when switching between tabs.
+Tab views are instantiated once at startup and held by `Injector`. If `TabScreen` called `homeUIDI.mainView()` on each render, SwiftUI would create a new view identity on every tab switch, destroying all `@State`, scroll positions, and in-flight async tasks. Holding the instances in `Injector` gives them stable identity across the lifetime of the app.
 
 ### Domain DI Container
 
@@ -351,9 +379,13 @@ struct Main: App {
 
 Navigation is decoupled through three collaborating components: feature navigation protocols, a central `Navigator`, and a `Destination` enum.
 
+**Why decouple navigation?** The naive approach is to give each ViewModel a reference to a `Navigator` and have it call `navigator.push(...)` directly. This means every `*UI` feature package must import the application target to access `Navigator` — a feature module depending on the composition root, which completely inverts the dependency direction. Features would know about the application that hosts them, rather than the application knowing about features.
+
+Navigation protocols invert this. Each feature defines what navigation capabilities it needs. The application satisfies those capabilities. Features remain ignorant of how or where they are hosted.
+
 ### Feature Navigation Protocols
 
-Each feature defines the navigation it requires as a protocol in its own module. Features have no knowledge of the `Navigator` or any other feature.
+Each feature defines the navigation it requires as a protocol in its own module. `HomeUI` knows it can open a home detail and a wishlist detail. It does not know that those destinations exist in separate packages, that navigation is managed by a `NavigationStack`, or that there is a `Navigator` at all.
 
 **[`HomeUI/Sources/Navigation/HomeNavigation.swift`](HomeUI/Sources/Navigation/HomeNavigation.swift)**
 ```swift
@@ -381,7 +413,7 @@ public protocol CartNavigation: AnyObject {
 
 ### Navigator
 
-`Navigator` manages tab selection and per-tab `NavigationPath`s. It conforms to all feature navigation protocols via an extension in `Destination.swift`, keeping conformance alongside the `Destination` type that it depends on.
+`Navigator` manages tab selection and per-tab `NavigationPath`s. It conforms to all feature navigation protocols — but this conformance is declared in `Destination.swift`, co-located with the `Destination` type it depends on to do so, rather than scattered across the codebase.
 
 **[`iPhone/Navigation/Navigator.swift`](iPhone/Navigation/Navigator.swift)**
 ```swift
@@ -399,7 +431,7 @@ final class Navigator: ObservableObject {
 
 ### Destination Enum
 
-`Destination` is a `Hashable` enum centralising all route types. Its `makeView()` method delegates view construction to the appropriate UIDI container. `Navigator`'s conformance to all feature navigation protocols is declared here, co-located with the `Destination` type.
+`Destination` is a `Hashable` enum that centralises all route types. Its `makeView()` method delegates view construction to the appropriate UIDI container, keeping view creation inside the DI layer where it belongs.
 
 **[`iPhone/Navigation/Destination.swift`](iPhone/Navigation/Destination.swift)**
 ```swift
@@ -438,13 +470,13 @@ extension Navigator: HomeNavigation, WishlistNavigation, CartNavigation {
 
 ## Testing Strategy
 
-Each layer is independently testable:
+Each layer is independently testable because every dependency is a protocol:
 
-- **Domain** — Test use cases with mock `UserRepository` implementations. No frameworks required.
+- **Domain** — Test use cases with mock `UserRepository` implementations. No frameworks, no simulator, no network.
 - **Data** — Test `DefaultUserRepository` with mock `AuthClient` and `UserSession` implementations.
 - **Presentation** — Test ViewModels with mock use case implementations.
 
-Protocol-based design at every layer means mocking requires only a conforming struct or class — no third-party mocking libraries needed.
+**Why does this matter?** Tests that require a simulator run slowly and fail for infrastructure reasons unrelated to the logic being tested. Tests that depend on a real network are non-deterministic. Protocol-based design means every layer can be tested with fast, deterministic, in-process unit tests. No third-party mocking libraries are needed — a conforming struct is sufficient.
 
 See test files in each module's `Tests/` directory.
 
@@ -462,6 +494,8 @@ iPhone (App)
 ├── WishlistUIDI ──▶  WishlistUI
 └── CartUIDI     ──▶  CartUI
 ```
+
+No feature module depends on another feature module. No domain module depends on a UI or data module. These constraints are enforced by the compiler through Swift Package Manager, not by convention.
 
 ---
 
