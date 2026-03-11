@@ -28,7 +28,12 @@ struct Main: App {
                 case .login:
                     Injector.shared.loginUIDI.loginView()
                 case .main:
-                    TabScreen(navigator: Injector.shared.navigator)
+                    TabScreen(
+                        navigator: Injector.shared.navigator,
+                        homeView: Injector.shared.homeView,
+                        wishlistView: Injector.shared.wishlistView,
+                        cartView: Injector.shared.cartView
+                    )
                 }
             }
         }

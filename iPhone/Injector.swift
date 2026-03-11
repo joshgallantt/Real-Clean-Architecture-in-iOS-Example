@@ -28,10 +28,15 @@ final class Injector {
     let wishlistUIDI: WishlistUIDI
     let cartUIDI: CartUIDI
 
+    // MARK: - Views (created once to maintain state)
+    let homeView: AnyView
+    let wishlistView: AnyView
+    let cartView: AnyView
+
     private init() {
         // MARK: Navigation
         navigator = Navigator()
-        
+
         // MARK: User Component DI
         userDI = UserDI()
 
@@ -40,5 +45,10 @@ final class Injector {
         homeUIDI = HomeUIDI(navigation: navigator)
         wishlistUIDI = WishlistUIDI(navigation: navigator)
         cartUIDI = CartUIDI(navigation: navigator)
+
+        // MARK: Create views once to maintain state across tab switches
+        homeView = AnyView(homeUIDI.mainView())
+        wishlistView = AnyView(wishlistUIDI.mainView())
+        cartView = AnyView(cartUIDI.mainView())
     }
 }
