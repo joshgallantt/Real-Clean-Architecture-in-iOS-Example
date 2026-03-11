@@ -21,81 +21,32 @@ final class Navigator: ObservableObject {
     @Published var wishlistPath = NavigationPath()
     @Published var cartPath = NavigationPath()
 
-    // Type-erased factory registry
-    private var factories: [ObjectIdentifier: (Any) -> AnyView] = [:]
-    
-    init() {
-        // Register destinations
-        registerDestinations(Destination.self) { destination in
-            destination.makeView()
-        }
-    }
-
-    // MARK: - Register a Destination
-    public func buildView<Route: Hashable>(
-        factory: @escaping (Route) -> some View
-    ) {
-        let key = ObjectIdentifier(Route.self)
-        factories[key] = { any in
-            guard let route = any as? Route else { return AnyView(EmptyView()) }
-            return AnyView(factory(route))
-        }
-    }
-    
-    // Register destinations that have a makeView() method
-    public func registerDestinations<Route: Hashable>(
-        _ routeType: Route.Type,
-        makeView: @escaping (Route) -> some View
-    ) {
-        buildView { (route: Route) -> AnyView in
-            AnyView(makeView(route))
-        }
-    }
-
-    // MARK: - Lookup a Destinations
-    func view(for route: Any) -> AnyView? {
-        let key = ObjectIdentifier(type(of: route))
-        return factories[key]?(route)
-    }
+    init() {}
 
     // MARK: - NavigationPath controls
-    
-    func resetPath(for tab: Tabs) {
-        switch tab {
-        case .home:
-            homePath = NavigationPath()
-        case .wishlist:
-            wishlistPath = NavigationPath()
-        case .cart:
-            cartPath = NavigationPath()
-        }
-    }
 
-    func push(_ route: any Hashable, tab: Tabs? = nil) {
+    func push(_ destination: Destination, tab: Tabs? = nil) {
         let destinationTab = tab ?? selectedTab
         if destinationTab != selectedTab {
-            resetPath(for: destinationTab)
+            switch destinationTab {
+            case .home: homePath = NavigationPath()
+            case .wishlist: wishlistPath = NavigationPath()
+            case .cart: cartPath = NavigationPath()
+            }
             selectedTab = destinationTab
         }
-        let anyRoute = AnyHashable(route)
         switch destinationTab {
-        case .home:
-            homePath.append(anyRoute)
-        case .wishlist:
-            wishlistPath.append(anyRoute)
-        case .cart:
-            cartPath.append(anyRoute)
+        case .home: homePath.append(destination)
+        case .wishlist: wishlistPath.append(destination)
+        case .cart: cartPath.append(destination)
         }
     }
 
     func pop() {
         switch selectedTab {
-        case .home:
-            homePath.removeLast()
-        case .wishlist:
-            wishlistPath.removeLast()
-        case .cart:
-            cartPath.removeLast()
+        case .home: homePath.removeLast()
+        case .wishlist: wishlistPath.removeLast()
+        case .cart: cartPath.removeLast()
         }
     }
 }

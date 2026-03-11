@@ -12,33 +12,36 @@ import CartUIDI
 
 struct TabScreen: View {
     @ObservedObject var navigator: Navigator
-    
+    let homeView: AnyView
+    let wishlistView: AnyView
+    let cartView: AnyView
+
     var body: some View {
         TabView(selection: $navigator.selectedTab) {
             Tab("Home", systemImage: "house", value: Navigator.Tabs.home) {
                 NavigationStack(path: $navigator.homePath) {
-                    Injector.shared.homeUIDI.mainView()
+                    homeView
                         .navigationTitle("Home")
-                        .navigationDestination(for: AnyHashable.self) { route in
-                            navigator.view(for: route.base) ?? AnyView(EmptyView())
+                        .navigationDestination(for: Destination.self) { destination in
+                            destination.makeView()
                         }
                 }
             }
             Tab("Wishlist", systemImage: "heart.fill", value: Navigator.Tabs.wishlist) {
                 NavigationStack(path: $navigator.wishlistPath) {
-                    Injector.shared.wishlistUIDI.mainView()
+                    wishlistView
                         .navigationTitle("Wishlist")
-                        .navigationDestination(for: AnyHashable.self) { route in
-                            navigator.view(for: route.base) ?? AnyView(EmptyView())
+                        .navigationDestination(for: Destination.self) { destination in
+                            destination.makeView()
                         }
                 }
             }
             Tab("Cart", systemImage: "cart.fill", value: Navigator.Tabs.cart) {
                 NavigationStack(path: $navigator.cartPath) {
-                    Injector.shared.cartUIDI.mainView()
+                    cartView
                         .navigationTitle("Cart")
-                        .navigationDestination(for: AnyHashable.self) { route in
-                            navigator.view(for: route.base) ?? AnyView(EmptyView())
+                        .navigationDestination(for: Destination.self) { destination in
+                            destination.makeView()
                         }
                 }
             }
