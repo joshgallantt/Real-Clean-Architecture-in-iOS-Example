@@ -16,7 +16,7 @@ public final class WishlistScreenViewModel: ObservableObject {
         // Any non-navigation side effects, e.g. analytics or state mutation
     }
 
-    func didSelectGoToCart(id: UUID) {
+    func didSelectGoToBag(id: UUID) {
         // Any business logic for this action
     }
 }

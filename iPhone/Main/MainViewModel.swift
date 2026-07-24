@@ -2,33 +2,55 @@
 //  MainViewModel.swift
 //  CleanArchitecture
 //
-//  Created by Josh Gallant on 22/12/2025.
+//  Created by Josh Gallant on 24/07/2026.
 //
 
-import SwiftUI
-import User
 import Combine
+import Foundation
+import Session
 
 @MainActor
 final class MainViewModel: ObservableObject {
-    
-    enum path: Hashable {
-        case login, main
+    enum Phase: Hashable {
+        case splash
+        case welcome
+        case onboarding
+        case main
     }
-    
-    @Published var path: MainViewModel.path = .login
-    private var cancellable: AnyCancellable?
-    private let observeUserLoggedIn: ObserveUserIsLoggedInUseCase
+
+    @Published private(set) var phase: Phase = .splash
+
+    private let getSession: GetSessionUseCase
+    private let observeSession: ObserveSessionUseCase
+    private var cancellables = Set<AnyCancellable>()
+
+    private let splashDuration: Duration = .seconds(1.2)
 
     init(
-        observeUserLoggedIn: ObserveUserIsLoggedInUseCase,
+        getSession: GetSessionUseCase,
+        observeSession: ObserveSessionUseCase
     ) {
-        self.observeUserLoggedIn = observeUserLoggedIn
-        self.path = .main
-//        cancellable = observeUserLoggedIn.execute()
-//            .receive(on: DispatchQueue.main)
-//            .sink { [weak self] loggedIn in
-//                self?.path = loggedIn ? .main : .login
-//            }
+        self.getSession = getSession
+        self.observeSession = observeSession
+    }
+
+    func onAppear() async {
+        if cancellables.isEmpty {
+            observeSession.execute()
+                .sink { [weak self] session in
+                    guard let self, session.isLoggedIn else { return }
+                    self.phase = .main
+                }
+                .store(in: &cancellables)
+        }
+
+        guard phase == .splash else { return }
+        try? await Task.sleep(for: splashDuration)
+        guard phase == .splash else { return }
+        phase = getSession.execute().isLoggedIn ? .main : .welcome
+    }
+
+    func continueAsGuest() {
+        phase = .main
     }
 }

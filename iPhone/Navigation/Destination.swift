@@ -7,47 +7,52 @@
 
 import Foundation
 import SwiftUI
+import Product
 import HomeUI
-import HomeUIDI
+import SearchUI
+import SearchUIDI
 import WishlistUI
-import WishlistUIDI
-import CartUI
-import CartUIDI
+import BagUI
+import AccountUI
 
 
 public enum Destination: Hashable {
-    case homeDetail(id: UUID)
-    case wishlistDetail(id: UUID)
-    case cartDetail(id: UUID)
-    
+    case searchResults(query: String)
+    case categoryResults(category: CategorySlug)
+
     @ViewBuilder
     func makeView() -> some View {
         switch self {
-        case .homeDetail(let id):
-            Injector.shared.homeUIDI.detailView(id: id)
-        case .wishlistDetail(let id):
-            Injector.shared.wishlistUIDI.detailView(id: id)
-        case .cartDetail(let id):
-            Injector.shared.cartUIDI.detailView(id: id)
+        case .searchResults(let query):
+            Injector.shared.searchUIDI.searchResultsView(query: query)
+        case .categoryResults(let category):
+            Injector.shared.searchUIDI.categoryResultsView(category: category)
         }
     }
 }
 
 extension Navigator:
     HomeNavigation,
+    SearchNavigation,
     WishlistNavigation,
-    CartNavigation
+    BagNavigation,
+    AccountNavigation
 {
-    func openHomeDetail(id: UUID) {
-        push(Destination.homeDetail(id: id))
+
+
+    func openSearchResults(query: String) {
+        push(Destination.searchResults(query: query), tab: nil)
     }
-    
-        
-    func openWishlistDetail(id: UUID) {
-        push(Destination.wishlistDetail(id: id))
+
+    func openCategoryResults(category: CategorySlug) {
+        push(Destination.categoryResults(category: category), tab: nil)
     }
-        
-    func openCartDetail(id: UUID) {
-        push(Destination.cartDetail(id: id))
+
+    func openLogin() {
+        isPresentingLogin = true
+    }
+
+    func dismissLogin() {
+        isPresentingLogin = false
     }
 }

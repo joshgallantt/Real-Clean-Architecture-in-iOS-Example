@@ -1,23 +1,28 @@
-//
-//  HomeScreenViewModel.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 15/07/2025.
-//
-
 import Combine
 import Foundation
+import Product
 
+@MainActor
 public final class HomeScreenViewModel: ObservableObject {
+    @Published private(set) var products: [Product] = []
+    @Published private(set) var isLoading = false
 
-    public init() {}
-    
-    func didSelectHomeDetail(id: UUID) {
-        // Business logic if any
+    private let getProducts: GetProductsUseCase
+
+    public init(getProducts: GetProductsUseCase) {
+        self.getProducts = getProducts
     }
 
-    func didSelectGoToWishlist(id: UUID) {
-        // Business logic if any
+    func onAppear() async {
+        guard products.isEmpty else { return }
+        isLoading = true
+        defer { isLoading = false }
+        if case .success(let value) = await getProducts.execute(matching: .all(page: 0, pageSize: 30)) {
+            products = value
+        }
+    }
+
+    func didSelect(_ product: Product) {
+        // Any non-navigation side effects, e.g. analytics
     }
 }
-

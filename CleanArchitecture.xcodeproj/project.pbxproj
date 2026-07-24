@@ -7,11 +7,20 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		1418DDB92E3E542300191417 /* CartUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDB82E3E542300191417 /* CartUIDI */; };
+		1418DDB92E3E542300191417 /* BagUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDB82E3E542300191417 /* BagUIDI */; };
 		1418DDBB2E3E542300191417 /* HomeUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBA2E3E542300191417 /* HomeUIDI */; };
 		1418DDBD2E3E542300191417 /* LoginUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBC2E3E542300191417 /* LoginUIDI */; };
-		1418DDBF2E3E542300191417 /* UserDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBE2E3E542300191417 /* UserDI */; };
+		1418DDBF2E3E542300191417 /* SessionDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBE2E3E542300191417 /* SessionDI */; };
 		1418DDC12E3E542300191417 /* WishlistUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDC02E3E542300191417 /* WishlistUIDI */; };
+		2A7AD030AB0C5D47D98AE192 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = 905C6EC5E3B21525CBD02EF9 /* Networking */; };
+		5563A1BBC34EADA9E5BF613B /* SearchData in Frameworks */ = {isa = PBXBuildFile; productRef = 17E6FCA71FC7E5B3FCF60C12 /* SearchData */; };
+		6D54B0B012238C4772C7879F /* AccountUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = EDD9F67AA3E61BAD6139E5A7 /* AccountUIDI */; };
+		9D7079D16B1262239E3D4564 /* SearchUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 9A079E2873908107AF3834BC /* SearchUIDI */; };
+		BE81553773C1F601F3F14A6F /* ProductDI in Frameworks */ = {isa = PBXBuildFile; productRef = 91547A9FAB7827290BA768A3 /* ProductDI */; };
+		C8D4AC912BD3E7E1CE4D20C3 /* SearchDI in Frameworks */ = {isa = PBXBuildFile; productRef = F120951C767491840AE8B42D /* SearchDI */; };
+		CA6CC2CC18052FD3033712E3 /* SessionData in Frameworks */ = {isa = PBXBuildFile; productRef = 06C2BFF1093558BB589FD94A /* SessionData */; };
+		F6BF47BD61ECFE742F92A22E /* ProductData in Frameworks */ = {isa = PBXBuildFile; productRef = 2C7A05B997C425E0F320291D /* ProductData */; };
+		FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000200000000000000A2 /* OnboardingUIDI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -48,6 +57,11 @@
 			path = Component;
 			sourceTree = "<group>";
 		};
+		31A26CEA486B92EE7335392A /* Library */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Library;
+			sourceTree = "<group>";
+		};
 		457FDC33EFC0F3BE9DAEC6B6 /* UI */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = UI;
@@ -62,9 +76,18 @@
 			files = (
 				1418DDBB2E3E542300191417 /* HomeUIDI in Frameworks */,
 				1418DDC12E3E542300191417 /* WishlistUIDI in Frameworks */,
-				1418DDB92E3E542300191417 /* CartUIDI in Frameworks */,
-				1418DDBF2E3E542300191417 /* UserDI in Frameworks */,
+				1418DDB92E3E542300191417 /* BagUIDI in Frameworks */,
+				1418DDBF2E3E542300191417 /* SessionDI in Frameworks */,
 				1418DDBD2E3E542300191417 /* LoginUIDI in Frameworks */,
+				BE81553773C1F601F3F14A6F /* ProductDI in Frameworks */,
+				9D7079D16B1262239E3D4564 /* SearchUIDI in Frameworks */,
+				6D54B0B012238C4772C7879F /* AccountUIDI in Frameworks */,
+				C8D4AC912BD3E7E1CE4D20C3 /* SearchDI in Frameworks */,
+				2A7AD030AB0C5D47D98AE192 /* Networking in Frameworks */,
+				CA6CC2CC18052FD3033712E3 /* SessionData in Frameworks */,
+				F6BF47BD61ECFE742F92A22E /* ProductData in Frameworks */,
+				5563A1BBC34EADA9E5BF613B /* SearchData in Frameworks */,
+				FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -90,6 +113,7 @@
 			children = (
 				1FC89AB1CC3D2995BE6DE363 /* Component */,
 				457FDC33EFC0F3BE9DAEC6B6 /* UI */,
+				31A26CEA486B92EE7335392A /* Library */,
 				1418DD6F2E3E53DC00191417 /* iPhone */,
 				1485C9A92E29746D0006933B /* Products */,
 			);
@@ -125,11 +149,20 @@
 			);
 			name = iPhone;
 			packageProductDependencies = (
-				1418DDB82E3E542300191417 /* CartUIDI */,
+				1418DDB82E3E542300191417 /* BagUIDI */,
 				1418DDBA2E3E542300191417 /* HomeUIDI */,
 				1418DDBC2E3E542300191417 /* LoginUIDI */,
-				1418DDBE2E3E542300191417 /* UserDI */,
+				1418DDBE2E3E542300191417 /* SessionDI */,
 				1418DDC02E3E542300191417 /* WishlistUIDI */,
+				91547A9FAB7827290BA768A3 /* ProductDI */,
+				9A079E2873908107AF3834BC /* SearchUIDI */,
+				EDD9F67AA3E61BAD6139E5A7 /* AccountUIDI */,
+				F120951C767491840AE8B42D /* SearchDI */,
+				905C6EC5E3B21525CBD02EF9 /* Networking */,
+				06C2BFF1093558BB589FD94A /* SessionData */,
+				2C7A05B997C425E0F320291D /* ProductData */,
+				17E6FCA71FC7E5B3FCF60C12 /* SearchData */,
+				FADE000200000000000000A2 /* OnboardingUIDI */,
 			);
 			productName = iPhone;
 			productReference = 1418DD6E2E3E53DC00191417 /* iPhone.app */;
@@ -279,29 +312,6 @@
 			targetProxy = 1418DD852E3E53DE00191417 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
-
-/* Begin XCLocalSwiftPackageReference section */
-		3D5E88E47E7DC20BEAD6BBC0 /* XCLocalSwiftPackageReference "Component/User" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = Component/User;
-		};
-		D1D79B5F0EF3615CAADFABA0 /* XCLocalSwiftPackageReference "UI/HomeUI" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = UI/HomeUI;
-		};
-		3FD7B96A8B93ACD063C9157B /* XCLocalSwiftPackageReference "UI/WishlistUI" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = UI/WishlistUI;
-		};
-		A16D1462DE358801E4D2BE98 /* XCLocalSwiftPackageReference "UI/CartUI" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = UI/CartUI;
-		};
-		3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/LoginUI" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = UI/LoginUI;
-		};
-/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCBuildConfiguration section */
 		1418DD8D2E3E53DE00191417 /* Debug */ = {
@@ -628,11 +638,63 @@
 		};
 /* End XCConfigurationList section */
 
+/* Begin XCLocalSwiftPackageReference section */
+		0FAA662CC2D6046E9F887900 /* XCLocalSwiftPackageReference "Library/Networking" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Library/Networking;
+		};
+		3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/LoginUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/LoginUI;
+		};
+		3D5E88E47E7DC20BEAD6BBC0 /* XCLocalSwiftPackageReference "Component/Session" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/Session;
+		};
+		3FD7B96A8B93ACD063C9157B /* XCLocalSwiftPackageReference "UI/WishlistUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/WishlistUI;
+		};
+		7361E6683DED41458D693D2E /* XCLocalSwiftPackageReference "Component/Product" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/Product;
+		};
+		8D80DA7DCD10C50973849D66 /* XCLocalSwiftPackageReference "Component/Search" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/Search;
+		};
+		A16D1462DE358801E4D2BE98 /* XCLocalSwiftPackageReference "UI/BagUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/BagUI;
+		};
+		A4BEB5340B5948D49132C5A1 /* XCLocalSwiftPackageReference "UI/AccountUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/AccountUI;
+		};
+		AE4238F360E27CEF2C732155 /* XCLocalSwiftPackageReference "UI/SearchUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/SearchUI;
+		};
+		D1D79B5F0EF3615CAADFABA0 /* XCLocalSwiftPackageReference "UI/HomeUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/HomeUI;
+		};
+		FADE000200000000000000B1 /* XCLocalSwiftPackageReference "UI/OnboardingUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/OnboardingUI;
+		};
+/* End XCLocalSwiftPackageReference section */
+
 /* Begin XCSwiftPackageProductDependency section */
-		1418DDB82E3E542300191417 /* CartUIDI */ = {
+		06C2BFF1093558BB589FD94A /* SessionData */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = A16D1462DE358801E4D2BE98 /* XCLocalSwiftPackageReference "UI/CartUI" */;
-			productName = CartUIDI;
+			package = 3D5E88E47E7DC20BEAD6BBC0 /* XCLocalSwiftPackageReference "Component/Session" */;
+			productName = SessionData;
+		};
+		1418DDB82E3E542300191417 /* BagUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A16D1462DE358801E4D2BE98 /* XCLocalSwiftPackageReference "UI/BagUI" */;
+			productName = BagUIDI;
 		};
 		1418DDBA2E3E542300191417 /* HomeUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -644,15 +706,55 @@
 			package = 3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/LoginUI" */;
 			productName = LoginUIDI;
 		};
-		1418DDBE2E3E542300191417 /* UserDI */ = {
+		1418DDBE2E3E542300191417 /* SessionDI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 3D5E88E47E7DC20BEAD6BBC0 /* XCLocalSwiftPackageReference "Component/User" */;
-			productName = UserDI;
+			package = 3D5E88E47E7DC20BEAD6BBC0 /* XCLocalSwiftPackageReference "Component/Session" */;
+			productName = SessionDI;
 		};
 		1418DDC02E3E542300191417 /* WishlistUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 3FD7B96A8B93ACD063C9157B /* XCLocalSwiftPackageReference "UI/WishlistUI" */;
 			productName = WishlistUIDI;
+		};
+		17E6FCA71FC7E5B3FCF60C12 /* SearchData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8D80DA7DCD10C50973849D66 /* XCLocalSwiftPackageReference "Component/Search" */;
+			productName = SearchData;
+		};
+		2C7A05B997C425E0F320291D /* ProductData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7361E6683DED41458D693D2E /* XCLocalSwiftPackageReference "Component/Product" */;
+			productName = ProductData;
+		};
+		905C6EC5E3B21525CBD02EF9 /* Networking */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 0FAA662CC2D6046E9F887900 /* XCLocalSwiftPackageReference "Library/Networking" */;
+			productName = Networking;
+		};
+		91547A9FAB7827290BA768A3 /* ProductDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 7361E6683DED41458D693D2E /* XCLocalSwiftPackageReference "Component/Product" */;
+			productName = ProductDI;
+		};
+		9A079E2873908107AF3834BC /* SearchUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = AE4238F360E27CEF2C732155 /* XCLocalSwiftPackageReference "UI/SearchUI" */;
+			productName = SearchUIDI;
+		};
+		EDD9F67AA3E61BAD6139E5A7 /* AccountUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = A4BEB5340B5948D49132C5A1 /* XCLocalSwiftPackageReference "UI/AccountUI" */;
+			productName = AccountUIDI;
+		};
+		F120951C767491840AE8B42D /* SearchDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 8D80DA7DCD10C50973849D66 /* XCLocalSwiftPackageReference "Component/Search" */;
+			productName = SearchDI;
+		};
+		FADE000200000000000000A2 /* OnboardingUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE000200000000000000B1 /* XCLocalSwiftPackageReference "UI/OnboardingUI" */;
+			productName = OnboardingUIDI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

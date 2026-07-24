@@ -22,12 +22,10 @@ public struct WishlistScreenView: View {
             Button("Open Wishlist Detail") {
                 let id = UUID()
                 viewModel.didSelectWishlistItem(id: id)
-                navigation.openWishlistDetail(id: id)
             }
-            Button("Go to Cart Detail") {
+            Button("Go to Bag Detail") {
                 let id = UUID()
-                viewModel.didSelectGoToCart(id: id)
-                navigation.openCartDetail(id: id)
+                viewModel.didSelectGoToBag(id: id)
             }
         }
     }

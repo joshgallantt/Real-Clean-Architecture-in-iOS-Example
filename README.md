@@ -69,24 +69,34 @@ Each module in this project has a single axis of change. A new screen design tou
 
 ```
 ├── Component/
-│   └── User/                # Domain & Data layer (Swift Package)
-│       ├── Domain/          # Entities, use cases, repository contracts
-│       ├── Data/            # Repository implementations, data sources
-│       └── DI/              # Dependency injection for User module
+│   ├── User/                 # Identity, session, and preferences (Swift Package)
+│   │   ├── Domain/           # Entities, use cases, repository contracts
+│   │   ├── Data/             # Repository implementations, local + remote data sources
+│   │   └── DI/                # Dependency injection for User module
+│   └── Product/               # Product catalog (Swift Package)
+│       ├── Domain/           # Entities, use cases, repository contracts
+│       ├── Data/               # DummyJSON-backed repository implementation
+│       └── DI/                  # Dependency injection for Product module
 ├── UI/
-│   ├── LoginUI/              # Login feature (Swift Package)
-│   ├── HomeUI/               # Home feature (Swift Package)
-│   ├── WishlistUI/           # Wishlist feature (Swift Package)
-│   └── CartUI/               # Cart feature (Swift Package)
-└── iPhone/                  # Application layer — composition root
-    ├── Injector.swift        # Wires all dependencies together
-    ├── Navigation/           # Navigator and Destination
-    └── Main/                 # App entry point and tab screen
+│   ├── LoginUI/               # Login feature (Swift Package)
+│   ├── HomeUI/                # Product catalog feature (Swift Package)
+│   ├── SearchUI/              # Product search feature (Swift Package)
+│   ├── WishlistUI/            # Wishlist feature (Swift Package)
+│   ├── BagUI/                 # Bag (cart) feature (Swift Package)
+│   └── AccountUI/             # Account: profile, log in/out, preferences (Swift Package)
+├── Library/
+│   └── Networking/            # Shared HTTP client, no domain dependencies (Swift Package)
+└── iPhone/                   # Application layer — composition root
+    ├── Injector.swift         # Wires all dependencies together
+    ├── Navigation/            # Navigator and Destination
+    └── Main/                  # App entry point and tab screen
 ```
 
 Each feature is a separate Swift Package. This is not just organisation — it is enforcement. The Swift compiler guarantees that `HomeUI` cannot import `LoginUI` unless that dependency is declared explicitly. Architectural boundaries that rely only on convention erode over time. Module boundaries that rely on the compiler do not.
 
-Packages are grouped by role — `Component/` for domain+data, `UI/` for presentation — so the folder tree reads as architecture, not an alphabetical list.
+Packages are grouped by role — `Component/` for domain+data, `UI/` for presentation, `Library/` for shared infrastructure with no domain dependencies — so the folder tree reads as architecture, not an alphabetical list.
+
+The app has five tabs: **Home** and **Search** browse the product catalog (backed by the real [DummyJSON](https://dummyjson.com) API), **Bag** and **Wishlist** are UI-only feature skeletons, and **Account** shows the signed-in profile or a guest state with a way to log in. The app supports guest use — there is no forced login gate; `Account` is simply where authentication happens.
 
 ---
 
@@ -130,8 +140,23 @@ Entities are the core business objects. They are framework-independent and carry
 **[`Component/User/Sources/Domain/Model/User.swift`](Component/User/Sources/Domain/Model/User.swift)**
 ```swift
 public struct User: Equatable, Sendable {
-    public let id: UUID
+    public let id: Int
     public let username: String
+    public let email: String
+    public let firstName: String
+    public let lastName: String
+}
+```
+
+**[`Component/Product/Sources/Domain/Model/Product.swift`](Component/Product/Sources/Domain/Model/Product.swift)**
+```swift
+public struct Product: Equatable, Sendable, Identifiable {
+    public let id: Int
+    public let title: String
+    public let description: String
+    public let category: String
+    public let price: Double
+    // ...discountPercentage, rating, stock, brand, thumbnail, images
 }
 ```
 
@@ -154,6 +179,10 @@ public protocol UserLoginUseCase {
 
 - `UserIsLoggedInUseCase` — synchronous check of current login state
 - `ObserveUserIsLoggedInUseCase` — reactive stream of login state changes
+- `GetCurrentUserUseCase` — returns the signed-in `User`, or `nil` for a guest
+- `UserLogoutUseCase` — clears the session
+- `GetUserPreferencesUseCase` / `SaveUserPreferencesUseCase` — read/write app preferences, guest-safe
+- `GetProductsUseCase` / `SearchProductsUseCase` / `GetProductUseCase` (in `Component/Product`) — product catalog operations
 
 ### Repository Contracts
 
@@ -165,9 +194,23 @@ public protocol UserRepository {
     @MainActor
     var loggedInPublisher: AnyPublisher<Bool, Never> { get }
     @MainActor
+    var currentUser: User? { get }
+    @MainActor
     func login(username: String, password: String) async -> Result<Void, LoginError>
     @MainActor
     func logout() async
+}
+```
+
+**Why does `UserPreferencesRepository` live in `Component/User` and not its own component?** The app supports guest use, so preferences must work with no `User` at all — the natural instinct is to make preferences fully independent of identity. But the *storage strategy* here is identity-aware: preferences always write to a local, guest-safe store, and additionally sync to the backend only when a session exists. That coordination — "write locally always, write remotely only if logged in" — is a concern that belongs next to the thing that knows about sessions. Splitting it into a separate component would either duplicate that session-awareness or force the two components to depend on each other. `UserPreferencesRepository` is a distinct protocol from `UserRepository` (Interface Segregation still applies within the module), but it lives in the same package because both repositories are coordinated by the same `UserSession`.
+
+**[`Component/User/Sources/Domain/Repository/UserPreferencesRepository.swift`](Component/User/Sources/Domain/Repository/UserPreferencesRepository.swift)**
+```swift
+public protocol UserPreferencesRepository {
+    @MainActor
+    func getPreferences() async -> UserPreferences
+    @MainActor
+    func savePreferences(_ preferences: UserPreferences) async
 }
 ```
 
@@ -225,7 +268,24 @@ public protocol UserSession: AnyObject {
 }
 ```
 
-`FakeAuthClient` is the default implementation — an `actor` that simulates authentication without a real backend. Swap it for any `AuthClient` conformance to connect to a real API without touching a single line of domain or presentation code.
+`DummyJSONAuthClient` is the default implementation — it calls the real [DummyJSON](https://dummyjson.com) `/auth/login` endpoint via `Networking`. `FakeAuthClient` still ships alongside it as an in-memory `actor` for tests and previews. Swap either for any `AuthClient` conformance without touching a single line of domain or presentation code — this is the Liskov Substitution Principle made concrete, and it is also how a real backend gets connected: no domain or presentation code changes, only the concrete type passed into `UserDI`'s initialiser.
+
+### Guest-Safe Preferences: Local + Remote
+
+`DefaultUserPreferencesRepository` coordinates two data sources with different guarantees: a `UserPreferencesLocalStore` (UserDefaults-backed, always available) and a `UserPreferencesRemoteStore` (DummyJSON-backed, requires a session). Reads always come from local storage — guests get the same preferences experience as signed-in users. Writes go to local storage unconditionally, then best-effort sync to the remote store only if `UserSession.user` is non-nil.
+
+**[`Component/User/Sources/Data/Preferences/DefaultUserPreferencesRepository.swift`](Component/User/Sources/Data/Preferences/DefaultUserPreferencesRepository.swift)**
+```swift
+public func savePreferences(_ preferences: UserPreferences) async {
+    localStore.setBool(preferences.notificationsEnabled, forKey: notificationsKey)
+    guard let user = session.user else { return }   // guest: local-only, no error
+    try? await remoteStore.syncPreferences(.init(notificationsEnabled: preferences.notificationsEnabled), userID: user.id)
+}
+```
+
+### Shared Networking
+
+`Library/Networking` is a dependency-free Swift Package providing `HTTPClient`, a small protocol (`get`/`post`/`patch`) with a `URLSessionHTTPClient` default implementation. It lives under `Library/` — not `Component/` — because it carries no domain knowledge at all; both `Component/User` and `Component/Product` depend on it independently, and it would exist unchanged in a completely different app.
 
 ---
 
@@ -299,10 +359,14 @@ public struct LoginUIDI {
 ```swift
 public struct HomeUIDI {
     private let navigation: HomeNavigation
-    public func mainView() -> some View { /* creates HomeScreenView */ }
-    public func detailView(id: UUID) -> some View { /* creates detail view */ }
+    private let getProducts: GetProductsUseCase
+    private let getProduct: GetProductUseCase
+    public func mainView() -> some View { /* creates HomeScreenView, lists products */ }
+    public func detailView(id: Int) -> some View { /* creates detail view for a product id */ }
 }
 ```
+
+`HomeUI` and `SearchUI` both depend on `Component/Product`'s domain product (`import Product`), never on `ProductData` or `ProductDI` — the same UI-may-depend-on-domain rule `LoginUI` follows for `User`.
 
 ---
 
@@ -326,16 +390,22 @@ final class Injector {
     static let shared = Injector()
 
     let userDI: UserDI
+    let productDI: ProductDI
     let navigator: Navigator
     let loginUIDI: LoginUIDI
     let homeUIDI: HomeUIDI
+    let searchUIDI: SearchUIDI
     let wishlistUIDI: WishlistUIDI
-    let cartUIDI: CartUIDI
+    let bagUIDI: BagUIDI
+    let accountUIDI: AccountUIDI
 
     // Tab views created once to preserve SwiftUI state across tab switches
     let homeView: AnyView
+    let searchView: AnyView
     let wishlistView: AnyView
-    let cartView: AnyView
+    let bagView: AnyView
+    let accountView: AnyView
+    let loginView: AnyView
 }
 ```
 
@@ -347,33 +417,35 @@ Tab views are instantiated once at startup and held by `Injector`. If `TabScreen
 ```swift
 public struct UserDI {
     public let userLoginUseCase: UserLoginUseCase
+    public let userLogoutUseCase: UserLogoutUseCase
     public let userIsLoggedInUseCase: UserIsLoggedInUseCase
     public let observeUserIsLoggedInUseCase: ObserveUserIsLoggedInUseCase
-    // Constructs session, authClient, repository, and all use cases internally
+    public let getCurrentUserUseCase: GetCurrentUserUseCase
+    public let getUserPreferencesUseCase: GetUserPreferencesUseCase
+    public let saveUserPreferencesUseCase: SaveUserPreferencesUseCase
+    // Constructs session, authClient, local/remote preference stores, repositories, and all use cases internally
 }
 ```
 
 ### App Entry Point
 
+There is no forced login gate. `Main` always shows `TabScreen`; a guest can use Home, Search, Bag, and Wishlist immediately, and signs in from the Account tab, which presents `LoginUI` as a sheet.
+
 **[`iPhone/Main/Main.swift`](iPhone/Main/Main.swift)**
 ```swift
 @main
 struct Main: App {
-    @StateObject private var viewModel = MainViewModel(
-        observeUserLoggedIn: Injector.shared.userDI.observeUserIsLoggedInUseCase
-    )
-
     var body: some Scene {
         WindowGroup {
-            switch viewModel.path {
-            case .login: Injector.shared.loginUIDI.loginView()
-            case .main:  TabScreen(
-                             navigator: Injector.shared.navigator,
-                             homeView: Injector.shared.homeView,
-                             wishlistView: Injector.shared.wishlistView,
-                             cartView: Injector.shared.cartView
-                         )
-            }
+            TabScreen(
+                navigator: Injector.shared.navigator,
+                homeView: Injector.shared.homeView,
+                searchView: Injector.shared.searchView,
+                wishlistView: Injector.shared.wishlistView,
+                bagView: Injector.shared.bagView,
+                accountView: Injector.shared.accountView,
+                loginView: Injector.shared.loginView
+            )
         }
     }
 }
@@ -391,13 +463,19 @@ Navigation protocols invert this. Each feature defines what navigation capabilit
 
 ### Feature Navigation Protocols
 
-Each feature defines the navigation it requires as a protocol in its own module. `HomeUI` knows it can open a home detail and a wishlist detail. It does not know that those destinations exist in separate packages, that navigation is managed by a `NavigationStack`, or that there is a `Navigator` at all.
+Each feature defines the navigation it requires as a protocol in its own module. `HomeUI` knows it can open a home detail. It does not know that navigation is managed by a `NavigationStack`, or that there is a `Navigator` at all. `Home` and `Search` route on `Int` product ids since they're backed by the real product catalog; `Wishlist` and `Bag` stay on placeholder `UUID` ids since they remain UI-only skeletons.
 
 **[`UI/HomeUI/Sources/Navigation/HomeNavigation.swift`](UI/HomeUI/Sources/Navigation/HomeNavigation.swift)**
 ```swift
 public protocol HomeNavigation: AnyObject {
-    func openHomeDetail(id: UUID)
-    func openWishlistDetail(id: UUID)
+    func openHomeDetail(id: Int)
+}
+```
+
+**[`UI/SearchUI/Sources/Navigation/SearchNavigation.swift`](UI/SearchUI/Sources/Navigation/SearchNavigation.swift)**
+```swift
+public protocol SearchNavigation: AnyObject {
+    func openSearchDetail(id: Int)
 }
 ```
 
@@ -405,17 +483,26 @@ public protocol HomeNavigation: AnyObject {
 ```swift
 public protocol WishlistNavigation: AnyObject {
     func openWishlistDetail(id: UUID)
-    func openCartDetail(id: UUID)
+    func openBagDetail(id: UUID)
 }
 ```
 
-**[`UI/CartUI/Sources/Navigation/CartNavigation.swift`](UI/CartUI/Sources/Navigation/CartNavigation.swift)**
+**[`UI/BagUI/Sources/Navigation/BagNavigation.swift`](UI/BagUI/Sources/Navigation/BagNavigation.swift)**
 ```swift
-public protocol CartNavigation: AnyObject {
-    func openCartDetail(id: UUID)
-    func openHomeDetail(id: UUID)
+public protocol BagNavigation: AnyObject {
+    func openBagDetail(id: UUID)
 }
 ```
+
+**[`UI/AccountUI/Sources/Navigation/AccountNavigation.swift`](UI/AccountUI/Sources/Navigation/AccountNavigation.swift)**
+```swift
+public protocol AccountNavigation: AnyObject {
+    func openLogin()
+    func dismissLogin()
+}
+```
+
+`AccountNavigation` doesn't push a `Destination` at all — logging in is presented modally, not pushed onto a tab's stack. `Navigator.isPresentingLogin` backs a `.sheet` at the `TabScreen` level, and `AccountScreenViewModel` calls `dismissLogin()` once it observes the session becoming authenticated.
 
 ### Navigator
 
@@ -425,15 +512,21 @@ public protocol CartNavigation: AnyObject {
 ```swift
 @MainActor
 final class Navigator: ObservableObject {
+    enum Tabs: Hashable { case home, search, bag, wishlist, account }
+
     @Published var selectedTab: Tabs = .home
     @Published var homePath = NavigationPath()
+    @Published var searchPath = NavigationPath()
+    @Published var bagPath = NavigationPath()
     @Published var wishlistPath = NavigationPath()
-    @Published var cartPath = NavigationPath()
+    @Published var isPresentingLogin = false
 
     func push(_ destination: Destination, tab: Tabs? = nil) { ... }
     func pop() { ... }
 }
 ```
+
+`Account` has no `NavigationPath` of its own — it's a single screen with no push destinations, so it's excluded from the `push`/`pop` switch entirely rather than carrying dead cases.
 
 ### Destination Enum
 
@@ -442,23 +535,28 @@ final class Navigator: ObservableObject {
 **[`iPhone/Navigation/Destination.swift`](iPhone/Navigation/Destination.swift)**
 ```swift
 public enum Destination: Hashable {
-    case homeDetail(id: UUID)
+    case homeDetail(id: Int)
+    case searchDetail(id: Int)
     case wishlistDetail(id: UUID)
-    case cartDetail(id: UUID)
+    case bagDetail(id: UUID)
 
     func makeView() -> some View {
         switch self {
         case .homeDetail(let id):     Injector.shared.homeUIDI.detailView(id: id)
+        case .searchDetail(let id):   Injector.shared.searchUIDI.detailView(id: id)
         case .wishlistDetail(let id): Injector.shared.wishlistUIDI.detailView(id: id)
-        case .cartDetail(let id):     Injector.shared.cartUIDI.detailView(id: id)
+        case .bagDetail(let id):      Injector.shared.bagUIDI.detailView(id: id)
         }
     }
 }
 
-extension Navigator: HomeNavigation, WishlistNavigation, CartNavigation {
-    func openHomeDetail(id: UUID)     { push(.homeDetail(id: id)) }
+extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNavigation, AccountNavigation {
+    func openHomeDetail(id: Int)      { push(.homeDetail(id: id)) }
+    func openSearchDetail(id: Int)    { push(.searchDetail(id: id)) }
     func openWishlistDetail(id: UUID) { push(.wishlistDetail(id: id)) }
-    func openCartDetail(id: UUID)     { push(.cartDetail(id: id)) }
+    func openBagDetail(id: UUID)      { push(.bagDetail(id: id)) }
+    func openLogin()                  { isPresentingLogin = true }
+    func dismissLogin()               { isPresentingLogin = false }
 }
 ```
 
@@ -492,16 +590,19 @@ See test files in each module's `Tests/` directory.
 
 ```
 iPhone (App)
-├── UserDI  ──▶  User (Domain)
-│           ──▶  UserData  ──▶  User (Domain)
-├── LoginUIDI  ──▶  LoginUI
-│              ──▶  UserDI
-├── HomeUIDI     ──▶  HomeUI
+├── UserDI     ──▶  User (Domain)
+│              ──▶  UserData  ──▶  User (Domain), Networking
+├── ProductDI  ──▶  Product (Domain)
+│              ──▶  ProductData  ──▶  Product (Domain), Networking
+├── LoginUIDI    ──▶  LoginUI  ──▶  User (Domain)
+├── HomeUIDI     ──▶  HomeUI   ──▶  Product (Domain)
+├── SearchUIDI   ──▶  SearchUI ──▶  Product (Domain)
 ├── WishlistUIDI ──▶  WishlistUI
-└── CartUIDI     ──▶  CartUI
+├── BagUIDI      ──▶  BagUI
+└── AccountUIDI  ──▶  AccountUI ──▶  User (Domain)
 ```
 
-No feature module depends on another feature module. No domain module depends on a UI or data module. These constraints are enforced by the compiler through Swift Package Manager, not by convention.
+No feature module depends on another feature module. No domain module depends on a UI or data module. `Networking` is the one package with no dependents pointing at it from Domain — it's shared infrastructure, sitting under `Library/` rather than `Component/`, and both `User` and `Product`'s data layers depend on it independently rather than on each other. These constraints are enforced by the compiler through Swift Package Manager, not by convention.
 
 ---
 
@@ -520,7 +621,9 @@ No feature module depends on another feature module. No domain module depends on
 
 1. Open `CleanArchitecture.xcodeproj` in Xcode
 2. Build and run the `iPhone` scheme
-3. Explore the code following the layer structure above
+3. Home and Search work immediately as a guest, against the real [DummyJSON](https://dummyjson.com) product catalog
+4. To sign in from the Account tab, use any of [DummyJSON's demo accounts](https://dummyjson.com/users) — e.g. username `emilys`, password `emilyspass`
+5. Explore the code following the layer structure above
 
 ## License
 
