@@ -27,7 +27,7 @@ let package = Package(
             ],
             path: "Sources",
             exclude: ["DI"],
-            sources: ["UI", "Navigation"]
+            sources: ["UI"]
         ),
         .target(
             name: "AccountUIDI",

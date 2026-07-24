@@ -5,11 +5,11 @@ import Session
 @MainActor
 public final class AccountScreenViewModel: ObservableObject {
     @Published private(set) var session: Session = .guest
+    @Published var isPresentingLogin = false
 
     private let getSession: GetSessionUseCase
     private let observeSession: ObserveSessionUseCase
     private let logoutUseCase: LogoutUseCase
-    private let navigation: AccountNavigation
     private var cancellables = Set<AnyCancellable>()
 
     var currentUser: User? { session.user }
@@ -17,13 +17,11 @@ public final class AccountScreenViewModel: ObservableObject {
     public init(
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
-        logoutUseCase: LogoutUseCase,
-        navigation: AccountNavigation
+        logoutUseCase: LogoutUseCase
     ) {
         self.getSession = getSession
         self.observeSession = observeSession
         self.logoutUseCase = logoutUseCase
-        self.navigation = navigation
     }
 
     func onAppear() {
@@ -35,14 +33,14 @@ public final class AccountScreenViewModel: ObservableObject {
                 guard let self else { return }
                 self.session = session
                 if session.isLoggedIn {
-                    self.navigation.dismissLogin()
+                    self.isPresentingLogin = false
                 }
             }
             .store(in: &cancellables)
     }
 
     func didTapLogIn() {
-        navigation.openLogin()
+        isPresentingLogin = true
     }
 
     func didTapLogOut() async {

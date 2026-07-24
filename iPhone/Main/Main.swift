@@ -35,8 +35,7 @@ struct Main: App {
                         searchView: Injector.shared.searchView,
                         wishlistView: Injector.shared.wishlistView,
                         bagView: Injector.shared.bagView,
-                        accountView: Injector.shared.accountView,
-                        loginView: Injector.shared.loginView
+                        accountView: Injector.shared.accountView
                     )
                 }
             }
