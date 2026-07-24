@@ -3,21 +3,21 @@ import AccountUI
 import Session
 
 public struct AccountUIDI {
-    private let navigation: AccountNavigation
     private let getSession: GetSessionUseCase
     private let observeSession: ObserveSessionUseCase
     private let logoutUseCase: LogoutUseCase
+    private let makeLoginView: () -> AnyView
 
     public init(
-        navigation: AccountNavigation,
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
-        logoutUseCase: LogoutUseCase
+        logoutUseCase: LogoutUseCase,
+        makeLoginView: @escaping () -> AnyView
     ) {
-        self.navigation = navigation
         self.getSession = getSession
         self.observeSession = observeSession
         self.logoutUseCase = logoutUseCase
+        self.makeLoginView = makeLoginView
     }
 
     @MainActor
@@ -26,9 +26,9 @@ public struct AccountUIDI {
             viewModel: AccountScreenViewModel(
                 getSession: getSession,
                 observeSession: observeSession,
-                logoutUseCase: logoutUseCase,
-                navigation: navigation
-            )
+                logoutUseCase: logoutUseCase
+            ),
+            loginView: makeLoginView
         )
     }
 }

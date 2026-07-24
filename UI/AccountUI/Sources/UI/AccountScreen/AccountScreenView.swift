@@ -2,9 +2,14 @@ import SwiftUI
 
 public struct AccountScreenView: View {
     @ObservedObject var viewModel: AccountScreenViewModel
+    private let loginView: () -> AnyView
 
-    public init(viewModel: AccountScreenViewModel) {
+    public init(
+        viewModel: AccountScreenViewModel,
+        loginView: @escaping () -> AnyView
+    ) {
         self.viewModel = viewModel
+        self.loginView = loginView
     }
 
     public var body: some View {
@@ -28,6 +33,9 @@ public struct AccountScreenView: View {
         }
         .onAppear {
             viewModel.onAppear()
+        }
+        .sheet(isPresented: $viewModel.isPresentingLogin) {
+            loginView()
         }
     }
 }

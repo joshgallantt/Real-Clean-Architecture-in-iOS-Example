@@ -21,7 +21,6 @@ final class Navigator: ObservableObject {
     @Published var searchPath = NavigationPath()
     @Published var bagPath = NavigationPath()
     @Published var wishlistPath = NavigationPath()
-    @Published var isPresentingLogin = false
 
     init() {}
 

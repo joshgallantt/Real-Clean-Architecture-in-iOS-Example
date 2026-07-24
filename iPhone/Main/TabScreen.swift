@@ -19,7 +19,6 @@ struct TabScreen: View {
     let wishlistView: AnyView
     let bagView: AnyView
     let accountView: AnyView
-    let loginView: AnyView
 
     var body: some View {
         TabView(selection: $navigator.selectedTab) {
@@ -65,9 +64,6 @@ struct TabScreen: View {
                         .navigationTitle("Account")
                 }
             }
-        }
-        .sheet(isPresented: $navigator.isPresentingLogin) {
-            loginView
         }
     }
 }

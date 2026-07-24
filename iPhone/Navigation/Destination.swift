@@ -13,7 +13,6 @@ import SearchUI
 import SearchUIDI
 import WishlistUI
 import BagUI
-import AccountUI
 
 
 public enum Destination: Hashable {
@@ -35,24 +34,13 @@ extension Navigator:
     HomeNavigation,
     SearchNavigation,
     WishlistNavigation,
-    BagNavigation,
-    AccountNavigation
+    BagNavigation
 {
-
-
     func openSearchResults(query: String) {
         push(Destination.searchResults(query: query), tab: nil)
     }
 
     func openCategoryResults(category: CategorySlug) {
         push(Destination.categoryResults(category: category), tab: nil)
-    }
-
-    func openLogin() {
-        isPresentingLogin = true
-    }
-
-    func dismissLogin() {
-        isPresentingLogin = false
     }
 }

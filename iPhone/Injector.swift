@@ -48,7 +48,6 @@ final class Injector {
     let wishlistView: AnyView
     let bagView: AnyView
     let accountView: AnyView
-    let loginView: AnyView
 
     private init() {
         // MARK: Navigation
@@ -67,7 +66,8 @@ final class Injector {
 
         // MARK: UI Features
         onboardingUIDI = OnboardingUIDI()
-        loginUIDI = LoginUIDI(loginUseCase: sessionDI.loginUseCase)
+        let loginDI = LoginUIDI(loginUseCase: sessionDI.loginUseCase)
+        loginUIDI = loginDI
         homeUIDI = HomeUIDI(
             navigation: navigator,
             getProducts: productDI.getProductsUseCase
@@ -83,10 +83,10 @@ final class Injector {
         wishlistUIDI = WishlistUIDI(navigation: navigator)
         bagUIDI = BagUIDI(navigation: navigator)
         accountUIDI = AccountUIDI(
-            navigation: navigator,
             getSession: sessionDI.getSessionUseCase,
             observeSession: sessionDI.observeSessionUseCase,
-            logoutUseCase: sessionDI.logoutUseCase
+            logoutUseCase: sessionDI.logoutUseCase,
+            makeLoginView: { AnyView(loginDI.loginView()) }
         )
 
         // MARK: Create views once to maintain state across tab switches
@@ -95,7 +95,6 @@ final class Injector {
         wishlistView = AnyView(wishlistUIDI.mainView())
         bagView = AnyView(bagUIDI.mainView())
         accountView = AnyView(accountUIDI.mainView())
-        loginView = AnyView(loginUIDI.loginView())
     }
 
     // MARK: - Root
