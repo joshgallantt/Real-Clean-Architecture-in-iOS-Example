@@ -18,17 +18,25 @@ let package = Package(
             targets: ["HomeUIDI"]
         )
     ],
+    dependencies: [
+        .package(path: "../../Component/Product")
+    ],
     targets: [
         .target(
             name: "HomeUI",
-            dependencies: [],
+            dependencies: [
+                .product(name: "Product", package: "Product")
+            ],
             path: "Sources",
             exclude: ["DI"],
             sources: ["UI", "Navigation"]
         ),
         .target(
             name: "HomeUIDI",
-            dependencies: ["HomeUI"],
+            dependencies: [
+                "HomeUI",
+                .product(name: "Product", package: "Product")
+            ],
             path: "Sources/DI"
         ),
         .testTarget(

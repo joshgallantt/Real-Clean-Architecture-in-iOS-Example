@@ -7,19 +7,19 @@
 
 import Foundation
 import Combine
-import User
+import Session
 
 @MainActor
 public final class LoginScreenViewModel: ObservableObject {
-    private let userLogin: UserLoginUseCase
+    private let loginUseCase: LoginUseCase
 
     @Published var username: String = ""
     @Published var password: String = ""
     @Published var isLoading: Bool = false
     @Published var error: String?
 
-    public init(userLogin: UserLoginUseCase) {
-        self.userLogin = userLogin
+    public init(loginUseCase: LoginUseCase) {
+        self.loginUseCase = loginUseCase
     }
 
     func login() async {
@@ -27,7 +27,7 @@ public final class LoginScreenViewModel: ObservableObject {
         defer { isLoading = false }
         error = nil
 
-        let result = await userLogin.execute(username: username, password: password)
+        let result = await loginUseCase.execute(username: username, password: password)
         switch result {
         case .success:
             break

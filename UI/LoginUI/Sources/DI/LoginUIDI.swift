@@ -7,22 +7,30 @@
 
 import SwiftUI
 import LoginUI
-import User
+import Session
 
 public struct LoginUIDI {
-    private let userLogin: UserLoginUseCase
+    private let loginUseCase: LoginUseCase
 
-    public init(userLogin: UserLoginUseCase) {
-        self.userLogin = userLogin
+    public init(loginUseCase: LoginUseCase) {
+        self.loginUseCase = loginUseCase
     }
 
     @MainActor
     public func makeLoginScreenViewModel() -> LoginScreenViewModel {
-        LoginScreenViewModel(userLogin: userLogin)
+        LoginScreenViewModel(loginUseCase: loginUseCase)
     }
     
     @MainActor
     public func loginView() -> some View {
         LoginScreenView(viewModel: makeLoginScreenViewModel())
+    }
+
+    @MainActor
+    public func welcomeView(onContinueAsGuest: @escaping () -> Void) -> some View {
+        WelcomeScreenView(
+            viewModel: WelcomeScreenViewModel(onContinueAsGuest: onContinueAsGuest),
+            loginView: { AnyView(LoginScreenView(viewModel: self.makeLoginScreenViewModel())) }
+        )
     }
 }

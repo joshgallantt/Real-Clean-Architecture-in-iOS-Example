@@ -23,9 +23,4 @@ public struct WishlistUIDI {
             navigation: navigation
         )
     }
-    
-    @MainActor
-    public func detailView(id: UUID) -> some View {
-        WishlistDetailScreenView(id: id, navigation: navigation)
-    }
 }
