@@ -35,17 +35,22 @@
 		1418DD6E2E3E53DC00191417 /* iPhone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iPhone.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		1418DD7A2E3E53DE00191417 /* iPhoneTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iPhoneTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		1418DD842E3E53DE00191417 /* iPhoneUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = iPhoneUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		144CCA472E2BABC100899DD3 /* CartUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = CartUI; sourceTree = "<group>"; };
-		144CCA482E2BABC100899DD3 /* HomeUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = HomeUI; sourceTree = "<group>"; };
-		144CCA492E2BABC100899DD3 /* LoginUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = LoginUI; sourceTree = "<group>"; };
-		144CCA4A2E2BABC100899DD3 /* User */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = User; sourceTree = "<group>"; };
-		144CCA4B2E2BABC100899DD3 /* WishlistUI */ = {isa = PBXFileReference; lastKnownFileType = wrapper; path = WishlistUI; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
 		1418DD6F2E3E53DC00191417 /* iPhone */ = {
 			isa = PBXFileSystemSynchronizedRootGroup;
 			path = iPhone;
+			sourceTree = "<group>";
+		};
+		1FC89AB1CC3D2995BE6DE363 /* Component */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = Component;
+			sourceTree = "<group>";
+		};
+		457FDC33EFC0F3BE9DAEC6B6 /* UI */ = {
+			isa = PBXFileSystemSynchronizedRootGroup;
+			path = UI;
 			sourceTree = "<group>";
 		};
 /* End PBXFileSystemSynchronizedRootGroup section */
@@ -83,11 +88,8 @@
 		1485C99F2E29746D0006933B = {
 			isa = PBXGroup;
 			children = (
-				144CCA472E2BABC100899DD3 /* CartUI */,
-				144CCA482E2BABC100899DD3 /* HomeUI */,
-				144CCA492E2BABC100899DD3 /* LoginUI */,
-				144CCA4A2E2BABC100899DD3 /* User */,
-				144CCA4B2E2BABC100899DD3 /* WishlistUI */,
+				1FC89AB1CC3D2995BE6DE363 /* Component */,
+				457FDC33EFC0F3BE9DAEC6B6 /* UI */,
 				1418DD6F2E3E53DC00191417 /* iPhone */,
 				1485C9A92E29746D0006933B /* Products */,
 			);
@@ -277,6 +279,29 @@
 			targetProxy = 1418DD852E3E53DE00191417 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
+
+/* Begin XCLocalSwiftPackageReference section */
+		3D5E88E47E7DC20BEAD6BBC0 /* XCLocalSwiftPackageReference "Component/User" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/User;
+		};
+		D1D79B5F0EF3615CAADFABA0 /* XCLocalSwiftPackageReference "UI/HomeUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/HomeUI;
+		};
+		3FD7B96A8B93ACD063C9157B /* XCLocalSwiftPackageReference "UI/WishlistUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/WishlistUI;
+		};
+		A16D1462DE358801E4D2BE98 /* XCLocalSwiftPackageReference "UI/CartUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/CartUI;
+		};
+		3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/LoginUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/LoginUI;
+		};
+/* End XCLocalSwiftPackageReference section */
 
 /* Begin XCBuildConfiguration section */
 		1418DD8D2E3E53DE00191417 /* Debug */ = {
@@ -606,22 +631,27 @@
 /* Begin XCSwiftPackageProductDependency section */
 		1418DDB82E3E542300191417 /* CartUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = A16D1462DE358801E4D2BE98 /* XCLocalSwiftPackageReference "UI/CartUI" */;
 			productName = CartUIDI;
 		};
 		1418DDBA2E3E542300191417 /* HomeUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = D1D79B5F0EF3615CAADFABA0 /* XCLocalSwiftPackageReference "UI/HomeUI" */;
 			productName = HomeUIDI;
 		};
 		1418DDBC2E3E542300191417 /* LoginUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/LoginUI" */;
 			productName = LoginUIDI;
 		};
 		1418DDBE2E3E542300191417 /* UserDI */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 3D5E88E47E7DC20BEAD6BBC0 /* XCLocalSwiftPackageReference "Component/User" */;
 			productName = UserDI;
 		};
 		1418DDC02E3E542300191417 /* WishlistUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
+			package = 3FD7B96A8B93ACD063C9157B /* XCLocalSwiftPackageReference "UI/WishlistUI" */;
 			productName = WishlistUIDI;
 		};
 /* End XCSwiftPackageProductDependency section */
