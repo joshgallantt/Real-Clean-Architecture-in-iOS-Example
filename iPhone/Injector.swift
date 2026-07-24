@@ -41,7 +41,7 @@ final class Injector {
         userDI = UserDI()
 
         // MARK: UI Features
-        loginUIDI = LoginUIDI(userDI: userDI)
+        loginUIDI = LoginUIDI(userLogin: userDI.userLoginUseCase)
         homeUIDI = HomeUIDI(navigation: navigator)
         wishlistUIDI = WishlistUIDI(navigation: navigator)
         cartUIDI = CartUIDI(navigation: navigator)

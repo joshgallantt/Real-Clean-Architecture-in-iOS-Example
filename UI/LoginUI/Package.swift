@@ -13,7 +13,7 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../User")
+        .package(path: "../../Component/User")
     ],
     targets: [
         .target(
@@ -27,7 +27,7 @@ let package = Package(
             name: "LoginUIDI",
             dependencies: [
                 "LoginUI",
-                .product(name: "UserDI", package: "User")
+                .product(name: "User", package: "User")
             ],
             path: "Sources/DI"
         ),

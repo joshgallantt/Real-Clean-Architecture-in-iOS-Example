@@ -68,14 +68,16 @@ Each module in this project has a single axis of change. A new screen design tou
 ## Project Structure
 
 ```
-├── User/                    # Domain & Data layer (Swift Package)
-│   ├── Domain/              # Entities, use cases, repository contracts
-│   ├── Data/                # Repository implementations, data sources
-│   └── DI/                  # Dependency injection for User module
-├── LoginUI/                 # Login feature (Swift Package)
-├── HomeUI/                  # Home feature (Swift Package)
-├── WishlistUI/              # Wishlist feature (Swift Package)
-├── CartUI/                  # Cart feature (Swift Package)
+├── Component/
+│   └── User/                # Domain & Data layer (Swift Package)
+│       ├── Domain/          # Entities, use cases, repository contracts
+│       ├── Data/            # Repository implementations, data sources
+│       └── DI/              # Dependency injection for User module
+├── UI/
+│   ├── LoginUI/              # Login feature (Swift Package)
+│   ├── HomeUI/               # Home feature (Swift Package)
+│   ├── WishlistUI/           # Wishlist feature (Swift Package)
+│   └── CartUI/               # Cart feature (Swift Package)
 └── iPhone/                  # Application layer — composition root
     ├── Injector.swift        # Wires all dependencies together
     ├── Navigation/           # Navigator and Destination
@@ -83,6 +85,8 @@ Each module in this project has a single axis of change. A new screen design tou
 ```
 
 Each feature is a separate Swift Package. This is not just organisation — it is enforcement. The Swift compiler guarantees that `HomeUI` cannot import `LoginUI` unless that dependency is declared explicitly. Architectural boundaries that rely only on convention erode over time. Module boundaries that rely on the compiler do not.
+
+Packages are grouped by role — `Component/` for domain+data, `UI/` for presentation — so the folder tree reads as architecture, not an alphabetical list.
 
 ---
 
@@ -123,7 +127,7 @@ The domain layer contains pure business logic with **zero dependencies** on exte
 
 Entities are the core business objects. They are framework-independent and carry no persistence or UI concerns. A `User` is a `User` regardless of how it was fetched, how it is displayed, or where it is stored.
 
-**[`User/Sources/Domain/Model/User.swift`](User/Sources/Domain/Model/User.swift)**
+**[`Component/User/Sources/Domain/Model/User.swift`](Component/User/Sources/Domain/Model/User.swift)**
 ```swift
 public struct User: Equatable, Sendable {
     public let id: UUID
@@ -140,7 +144,7 @@ Each use case protocol represents one specific business operation. Each has a na
 
 **Why use cases?** Without them, business logic leaks into ViewModels, repositories, and — eventually — views. The result is that "where does login actually happen?" has no clear answer. Use cases give business operations a home. They can be tested without UI, without a network, and without understanding the rest of the system.
 
-**[`User/Sources/Domain/UseCases/UserLoginUseCase.swift`](User/Sources/Domain/UseCases/UserLoginUseCase.swift)**
+**[`Component/User/Sources/Domain/UseCases/UserLoginUseCase.swift`](Component/User/Sources/Domain/UseCases/UserLoginUseCase.swift)**
 ```swift
 public protocol UserLoginUseCase {
     @MainActor
@@ -155,7 +159,7 @@ public protocol UserLoginUseCase {
 
 Repository protocols are defined here in the domain layer — not in the data layer. This is the Dependency Inversion Principle applied directly: the domain defines the interface it needs, and the data layer satisfies it. The domain is not a client of the data layer; the data layer is a plugin to the domain.
 
-**[`User/Sources/Domain/Repository/UserRepository.swift`](User/Sources/Domain/Repository/UserRepository.swift)**
+**[`Component/User/Sources/Domain/Repository/UserRepository.swift`](Component/User/Sources/Domain/Repository/UserRepository.swift)**
 ```swift
 public protocol UserRepository {
     @MainActor
@@ -179,7 +183,7 @@ The data layer implements domain contracts and handles all external data concern
 
 `DefaultUserRepository` coordinates between data sources, maps errors to domain types, and satisfies the `UserRepository` contract. Error mapping at the boundary is deliberate — domain error types must not carry infrastructure-specific codes, because the domain should not know that authentication even goes over a network.
 
-**[`User/Sources/Data/DefaultUserRepository.swift`](User/Sources/Data/DefaultUserRepository.swift)**
+**[`Component/User/Sources/Data/DefaultUserRepository.swift`](Component/User/Sources/Data/DefaultUserRepository.swift)**
 ```swift
 public final class DefaultUserRepository: UserRepository {
     private let session: UserSession
@@ -202,7 +206,7 @@ public final class DefaultUserRepository: UserRepository {
 
 Data sources are also protocol-driven. `DefaultUserRepository` is tested by injecting a fake `AuthClient` and a fake `UserSession` — no network required, no simulator required.
 
-**[`User/Sources/Data/Auth/AuthClient.swift`](User/Sources/Data/Auth/AuthClient.swift)**
+**[`Component/User/Sources/Data/Auth/AuthClient.swift`](Component/User/Sources/Data/Auth/AuthClient.swift)**
 ```swift
 public protocol AuthClient: Sendable {
     func login(username: String, password: String) async -> Result<(User, AuthToken), AuthClientError>
@@ -210,7 +214,7 @@ public protocol AuthClient: Sendable {
 }
 ```
 
-**[`User/Sources/Data/Session/UserSession.swift`](User/Sources/Data/Session/UserSession.swift)**
+**[`Component/User/Sources/Data/Session/UserSession.swift`](Component/User/Sources/Data/Session/UserSession.swift)**
 ```swift
 @MainActor
 public protocol UserSession: AnyObject {
@@ -248,7 +252,7 @@ FeatureUI/
 
 ViewModels are `@MainActor ObservableObject` classes. They receive use case protocols through initialiser injection — never concrete implementations. A `LoginScreenViewModel` test does not need a network stack, a session, or an auth service. It needs an object that satisfies `UserLoginUseCase`.
 
-**[`LoginUI/Sources/UI/LoginScreen/LoginScreenViewModel.swift`](LoginUI/Sources/UI/LoginScreen/LoginScreenViewModel.swift)**
+**[`UI/LoginUI/Sources/UI/LoginScreen/LoginScreenViewModel.swift`](UI/LoginUI/Sources/UI/LoginScreen/LoginScreenViewModel.swift)**
 ```swift
 @MainActor
 public final class LoginScreenViewModel: ObservableObject {
@@ -267,7 +271,7 @@ public final class LoginScreenViewModel: ObservableObject {
 
 Views bind to `@Published` properties and delegate all actions to the ViewModel. A view has no `if/else` business logic, no network calls, and no navigation decisions. It answers one question: given this state, what should be on screen?
 
-**[`LoginUI/Sources/UI/LoginScreen/LoginScreenView.swift`](LoginUI/Sources/UI/LoginScreen/LoginScreenView.swift)**
+**[`UI/LoginUI/Sources/UI/LoginScreen/LoginScreenView.swift`](UI/LoginUI/Sources/UI/LoginScreen/LoginScreenView.swift)**
 ```swift
 public struct LoginScreenView: View {
     @ObservedObject var viewModel: LoginScreenViewModel
@@ -281,15 +285,17 @@ Each feature module exposes a DI container that constructs its view hierarchy. T
 
 **Why per-feature DI containers?** A monolithic injector that constructs every view in the app conflates the wiring of unrelated features. Per-feature containers mean each feature is responsible for constructing its own objects. The application-level `Injector` assembles the containers; the containers assemble the views.
 
-**[`LoginUI/Sources/DI/LoginUIDI.swift`](LoginUI/Sources/DI/LoginUIDI.swift)**
+**[`UI/LoginUI/Sources/DI/LoginUIDI.swift`](UI/LoginUI/Sources/DI/LoginUIDI.swift)**
 ```swift
 public struct LoginUIDI {
-    private let userDI: UserDI
+    private let userLogin: UserLoginUseCase
     public func loginView() -> some View { /* creates LoginScreenView with ViewModel */ }
 }
 ```
 
-**[`HomeUI/Sources/DI/HomeUIDI.swift`](HomeUI/Sources/DI/HomeUIDI.swift)**
+**Why a single use case, not the whole `UserDI` container?** This is the Interface Segregation Principle applied to dependency injection. `LoginUIDI` needs exactly one capability — logging a user in. Injecting the full `UserDI` container would give it visibility into `userIsLoggedInUseCase` and `observeUserIsLoggedInUseCase` too, dependencies it never calls. Fowler's dependency injection writing warns against this same shape under the name Service Locator: injecting a container that *can* resolve anything, rather than the one collaborator actually needed, blurs the boundary the DDD layering is meant to enforce. Only the application-layer `Injector` — the composition root — is allowed to hold a whole `UserDI`.
+
+**[`UI/HomeUI/Sources/DI/HomeUIDI.swift`](UI/HomeUI/Sources/DI/HomeUIDI.swift)**
 ```swift
 public struct HomeUIDI {
     private let navigation: HomeNavigation
@@ -337,7 +343,7 @@ Tab views are instantiated once at startup and held by `Injector`. If `TabScreen
 
 ### Domain DI Container
 
-**[`User/Sources/DI/UserDI.swift`](User/Sources/DI/UserDI.swift)**
+**[`Component/User/Sources/DI/UserDI.swift`](Component/User/Sources/DI/UserDI.swift)**
 ```swift
 public struct UserDI {
     public let userLoginUseCase: UserLoginUseCase
@@ -387,7 +393,7 @@ Navigation protocols invert this. Each feature defines what navigation capabilit
 
 Each feature defines the navigation it requires as a protocol in its own module. `HomeUI` knows it can open a home detail and a wishlist detail. It does not know that those destinations exist in separate packages, that navigation is managed by a `NavigationStack`, or that there is a `Navigator` at all.
 
-**[`HomeUI/Sources/Navigation/HomeNavigation.swift`](HomeUI/Sources/Navigation/HomeNavigation.swift)**
+**[`UI/HomeUI/Sources/Navigation/HomeNavigation.swift`](UI/HomeUI/Sources/Navigation/HomeNavigation.swift)**
 ```swift
 public protocol HomeNavigation: AnyObject {
     func openHomeDetail(id: UUID)
@@ -395,7 +401,7 @@ public protocol HomeNavigation: AnyObject {
 }
 ```
 
-**[`WishlistUI/Sources/Navigation/WishlistNavigation.swift`](WishlistUI/Sources/Navigation/WishlistNavigation.swift)**
+**[`UI/WishlistUI/Sources/Navigation/WishlistNavigation.swift`](UI/WishlistUI/Sources/Navigation/WishlistNavigation.swift)**
 ```swift
 public protocol WishlistNavigation: AnyObject {
     func openWishlistDetail(id: UUID)
@@ -403,7 +409,7 @@ public protocol WishlistNavigation: AnyObject {
 }
 ```
 
-**[`CartUI/Sources/Navigation/CartNavigation.swift`](CartUI/Sources/Navigation/CartNavigation.swift)**
+**[`UI/CartUI/Sources/Navigation/CartNavigation.swift`](UI/CartUI/Sources/Navigation/CartNavigation.swift)**
 ```swift
 public protocol CartNavigation: AnyObject {
     func openCartDetail(id: UUID)
