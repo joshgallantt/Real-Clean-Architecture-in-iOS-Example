@@ -7,20 +7,20 @@ public struct WishlistButtonView: View {
     @State private var bounce = false
 
     private let productId: Int
-    private let isInWishlistUseCase: IsInWishlistUseCase
-    private let addToWishlistUseCase: AddToWishlistUseCase
-    private let removeFromWishlistUseCase: RemoveFromWishlistUseCase
+    private let productIsWishlisted: ProductIsWishlistedUseCase
+    private let addProductToWishlist: AddProductToWishlistUseCase
+    private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
 
     public init(
         productId: Int,
-        isInWishlistUseCase: IsInWishlistUseCase,
-        addToWishlistUseCase: AddToWishlistUseCase,
-        removeFromWishlistUseCase: RemoveFromWishlistUseCase
+        productIsWishlisted: ProductIsWishlistedUseCase,
+        addProductToWishlist: AddProductToWishlistUseCase,
+        removeProductFromWishlist: RemoveProductFromWishlistUseCase
     ) {
         self.productId = productId
-        self.isInWishlistUseCase = isInWishlistUseCase
-        self.addToWishlistUseCase = addToWishlistUseCase
-        self.removeFromWishlistUseCase = removeFromWishlistUseCase
+        self.productIsWishlisted = productIsWishlisted
+        self.addProductToWishlist = addProductToWishlist
+        self.removeProductFromWishlist = removeProductFromWishlist
     }
 
     public var body: some View {
@@ -35,8 +35,7 @@ public struct WishlistButtonView: View {
         .buttonStyle(.plain)
         .contentShape(Circle())
         .onReceive(
-            isInWishlistUseCase
-                .execute(productId: productId)
+            productIsWishlisted(productId: productId)
                 .receive(on: DispatchQueue.main)
         ) { value in
             isInWishlist = value
@@ -46,9 +45,9 @@ public struct WishlistButtonView: View {
     private func toggle() {
         bounce.toggle()
         if isInWishlist {
-            removeFromWishlistUseCase.execute(productId: productId)
+            removeProductFromWishlist(productId: productId)
         } else {
-            addToWishlistUseCase.execute(productId: productId)
+            addProductToWishlist(productId: productId)
         }
     }
 }

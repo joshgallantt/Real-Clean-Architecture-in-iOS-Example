@@ -7,9 +7,9 @@ public struct WishlistDI {
     private let repository: WishlistRepository
 
     public let observeWishlistUseCase: ObserveWishlistUseCase
-    public let isInWishlistUseCase: IsInWishlistUseCase
-    public let addToWishlistUseCase: AddToWishlistUseCase
-    public let removeFromWishlistUseCase: RemoveFromWishlistUseCase
+    public let productIsWishlistedUseCase: ProductIsWishlistedUseCase
+    public let addProductToWishlistUseCase: AddProductToWishlistUseCase
+    public let removeProductFromWishlistUseCase: RemoveProductFromWishlistUseCase
 
     @MainActor
     public init(
@@ -25,8 +25,8 @@ public struct WishlistDI {
         self.repository = repository
 
         self.observeWishlistUseCase = DefaultObserveWishlistUseCase(repository: repository)
-        self.isInWishlistUseCase = DefaultIsInWishlistUseCase(repository: repository)
-        self.addToWishlistUseCase = DefaultAddToWishlistUseCase(repository: repository)
-        self.removeFromWishlistUseCase = DefaultRemoveFromWishlistUseCase(repository: repository)
+        self.productIsWishlistedUseCase = DefaultProductIsWishlistedUseCase(repository: repository)
+        self.addProductToWishlistUseCase = DefaultAddProductToWishlistUseCase(repository: repository)
+        self.removeProductFromWishlistUseCase = DefaultRemoveProductFromWishlistUseCase(repository: repository)
     }
 }

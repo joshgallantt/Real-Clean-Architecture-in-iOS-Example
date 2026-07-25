@@ -1,5 +1,5 @@
 public protocol LogoutUseCase: Sendable {
-    func execute() async
+    func callAsFunction() async
 }
 
 public struct DefaultLogoutUseCase: LogoutUseCase {
@@ -9,7 +9,7 @@ public struct DefaultLogoutUseCase: LogoutUseCase {
         self.sessionRepository = sessionRepository
     }
 
-    public func execute() async {
+    public func callAsFunction() async {
         await sessionRepository.logout()
     }
 }

@@ -16,11 +16,11 @@ public final class DefaultWishlistRepository: WishlistRepository {
         observeSession: ObserveSessionUseCase
     ) {
         self.store = store
-        let key = Self.userKey(for: getSession.execute())
+        let key = Self.userKey(for: getSession())
         self.userKey = key
         self.subject = CurrentValueSubject(store.getItems(forUserKey: key))
 
-        observeSession.execute()
+        observeSession()
             .sink { [weak self] session in
                 self?.switchUser(to: Self.userKey(for: session))
             }

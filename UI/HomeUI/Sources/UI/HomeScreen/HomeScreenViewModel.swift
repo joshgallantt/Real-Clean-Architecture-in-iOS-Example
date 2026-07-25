@@ -17,7 +17,7 @@ public final class HomeScreenViewModel: ObservableObject {
         guard products.isEmpty else { return }
         isLoading = true
         defer { isLoading = false }
-        if case .success(let value) = await getProducts.execute(matching: .all(page: 0, pageSize: 30)) {
+        if case .success(let value) = await getProducts(matching: .all(page: 0, pageSize: 30)) {
             products = value
         }
     }

@@ -25,10 +25,10 @@ public final class AccountScreenViewModel: ObservableObject {
     }
 
     func onAppear() {
-        session = getSession.execute()
+        session = getSession()
 
         guard cancellables.isEmpty else { return }
-        observeSession.execute()
+        observeSession()
             .sink { [weak self] session in
                 guard let self else { return }
                 self.session = session
@@ -44,6 +44,6 @@ public final class AccountScreenViewModel: ObservableObject {
     }
 
     func didTapLogOut() async {
-        await logoutUseCase.execute()
+        await logoutUseCase()
     }
 }

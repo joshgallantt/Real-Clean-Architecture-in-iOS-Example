@@ -1,5 +1,5 @@
 public protocol GetCategoriesUseCase: Sendable {
-    func execute() async -> Result<[ProductCategory], ProductError>
+    func callAsFunction() async -> Result<[ProductCategory], ProductError>
 }
 
 public struct DefaultGetCategoriesUseCase: GetCategoriesUseCase {
@@ -9,7 +9,7 @@ public struct DefaultGetCategoriesUseCase: GetCategoriesUseCase {
         self.productRepository = productRepository
     }
 
-    public func execute() async -> Result<[ProductCategory], ProductError> {
+    public func callAsFunction() async -> Result<[ProductCategory], ProductError> {
         await productRepository.getCategories()
     }
 }

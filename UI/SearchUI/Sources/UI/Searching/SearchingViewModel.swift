@@ -24,7 +24,7 @@ public final class SearchingViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        history = await getSearchHistory.execute()
+        history = await getSearchHistory()
     }
 
     func queryChanged(_ query: String) {
@@ -43,7 +43,7 @@ public final class SearchingViewModel: ObservableObject {
             isSuggesting = true
             defer { isSuggesting = false }
 
-            if case .success(let products) = await getProducts.execute(matching: .search(trimmed, page: 0, pageSize: 10)) {
+            if case .success(let products) = await getProducts(matching: .search(trimmed, page: 0, pageSize: 10)) {
                 guard !Task.isCancelled else { return }
                 suggestions = products
             }
@@ -52,7 +52,7 @@ public final class SearchingViewModel: ObservableObject {
 
     func clearHistory() {
         Task {
-            await clearSearchHistory.execute()
+            await clearSearchHistory()
             history = []
         }
     }

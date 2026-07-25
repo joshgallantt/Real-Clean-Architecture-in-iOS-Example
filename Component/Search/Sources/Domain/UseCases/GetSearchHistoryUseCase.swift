@@ -1,5 +1,5 @@
 public protocol GetSearchHistoryUseCase: Sendable {
-    func execute() async -> [String]
+    func callAsFunction() async -> [String]
 }
 
 public struct DefaultGetSearchHistoryUseCase: GetSearchHistoryUseCase {
@@ -9,7 +9,7 @@ public struct DefaultGetSearchHistoryUseCase: GetSearchHistoryUseCase {
         self.searchHistoryRepository = searchHistoryRepository
     }
 
-    public func execute() async -> [String] {
+    public func callAsFunction() async -> [String] {
         await searchHistoryRepository.getRecentSearches()
     }
 }

@@ -20,7 +20,7 @@ public final class ProductDetailsViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        switch await getProduct.execute(id: id) {
+        switch await getProduct(id: id) {
         case .success(let value):
             product = value
             loadFailed = false

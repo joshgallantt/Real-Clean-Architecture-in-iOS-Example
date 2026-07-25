@@ -15,7 +15,7 @@ public final class SearchTabScreenViewModel: ObservableObject {
 
     func onAppear() async {
         guard categories.isEmpty else { return }
-        if case .success(let value) = await getCategories.execute() {
+        if case .success(let value) = await getCategories() {
             categories = value
         }
     }
