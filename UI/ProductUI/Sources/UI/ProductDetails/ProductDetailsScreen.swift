@@ -1,0 +1,76 @@
+import SwiftUI
+import Product
+
+public struct ProductDetailsScreen: View {
+    @ObservedObject var viewModel: ProductDetailsViewModel
+
+    public init(viewModel: ProductDetailsViewModel) {
+        self.viewModel = viewModel
+    }
+
+    public var body: some View {
+        ScrollView {
+            if let product = viewModel.product {
+                content(for: product)
+            }
+        }
+        .overlay {
+            if viewModel.isLoading {
+                ProgressView()
+            } else if viewModel.loadFailed {
+                ContentUnavailableView(
+                    "Product Unavailable",
+                    systemImage: "exclamationmark.triangle",
+                    description: Text("This product couldn't be loaded.")
+                )
+            }
+        }
+        .navigationTitle(viewModel.product?.title ?? "")
+        .navigationBarTitleDisplayMode(.inline)
+        .task {
+            await viewModel.onAppear()
+        }
+    }
+
+    @ViewBuilder
+    private func content(for product: Product) -> some View {
+        VStack(alignment: .leading, spacing: 16) {
+            AsyncImage(url: URL(string: product.thumbnail)) { image in
+                image
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+            } placeholder: {
+                ProgressView()
+            }
+            .frame(maxWidth: .infinity)
+            .frame(height: 280)
+            .background(Color(uiColor: .secondarySystemBackground))
+            .clipShape(RoundedRectangle(cornerRadius: 16))
+
+            VStack(alignment: .leading, spacing: 4) {
+                Text(product.brand)
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Text(product.title)
+                    .font(.title2.bold())
+            }
+
+            HStack(spacing: 16) {
+                Text(product.price, format: .currency(code: "USD"))
+                    .font(.title3.weight(.semibold))
+                Label(String(format: "%.1f", product.rating), systemImage: "star.fill")
+                    .font(.subheadline)
+                    .foregroundStyle(.secondary)
+                Spacer()
+                Text(product.stock > 0 ? "In stock" : "Out of stock")
+                    .font(.caption.weight(.medium))
+                    .foregroundStyle(product.stock > 0 ? .green : .red)
+            }
+
+            Text(product.description)
+                .font(.body)
+                .foregroundStyle(.secondary)
+        }
+        .padding()
+    }
+}

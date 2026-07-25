@@ -8,4 +8,5 @@
 import Foundation
 
 public protocol WishlistNavigation: AnyObject {
+    func openProductDetails(id: Int)
 }

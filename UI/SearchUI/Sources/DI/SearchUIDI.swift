@@ -10,6 +10,7 @@ public struct SearchUIDI {
     private let getSearchHistory: GetSearchHistoryUseCase
     private let recordSearch: RecordSearchUseCase
     private let clearSearchHistory: ClearSearchHistoryUseCase
+    private let makeWishlistButton: (Int) -> AnyView
 
     public init(
         navigation: SearchNavigation,
@@ -17,7 +18,8 @@ public struct SearchUIDI {
         getCategories: GetCategoriesUseCase,
         getSearchHistory: GetSearchHistoryUseCase,
         recordSearch: RecordSearchUseCase,
-        clearSearchHistory: ClearSearchHistoryUseCase
+        clearSearchHistory: ClearSearchHistoryUseCase,
+        makeWishlistButton: @escaping (Int) -> AnyView
     ) {
         self.navigation = navigation
         self.getProducts = getProducts
@@ -25,6 +27,7 @@ public struct SearchUIDI {
         self.getSearchHistory = getSearchHistory
         self.recordSearch = recordSearch
         self.clearSearchHistory = clearSearchHistory
+        self.makeWishlistButton = makeWishlistButton
     }
 
     @MainActor
@@ -44,7 +47,8 @@ public struct SearchUIDI {
     public func searchResultsView(query: String) -> some View {
         SearchResultsView(
             viewModel: SearchResultsViewModel(query: query, getProducts: getProducts, recordSearch: recordSearch),
-            navigation: navigation
+            navigation: navigation,
+            wishlistButton: makeWishlistButton
         )
     }
 
@@ -52,7 +56,8 @@ public struct SearchUIDI {
     public func categoryResultsView(category: CategorySlug) -> some View {
         CategoryResultsView(
             viewModel: CategoryResultsViewModel(category: category, getProducts: getProducts),
-            navigation: navigation
+            navigation: navigation,
+            wishlistButton: makeWishlistButton
         )
     }
 }

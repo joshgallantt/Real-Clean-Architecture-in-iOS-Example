@@ -1,28 +1,34 @@
 import SwiftUI
-import Product
+import ProductUI
 
 public struct CategoryResultsView: View {
     @ObservedObject var viewModel: CategoryResultsViewModel
     let navigation: SearchNavigation
+    let wishlistButton: (Int) -> AnyView
 
-    public init(viewModel: CategoryResultsViewModel, navigation: SearchNavigation) {
+    public init(
+        viewModel: CategoryResultsViewModel,
+        navigation: SearchNavigation,
+        wishlistButton: @escaping (Int) -> AnyView
+    ) {
         self.viewModel = viewModel
         self.navigation = navigation
+        self.wishlistButton = wishlistButton
     }
 
     public var body: some View {
-        List(viewModel.results) { product in
-            Button {
+        ProductGridListView(
+            products: viewModel.results,
+            isLoadingMore: viewModel.isLoadingMore,
+            onSelect: { product in
                 viewModel.didSelect(product)
-            } label: {
-                VStack(alignment: .leading) {
-                    Text(product.title).font(.headline)
-                    Text(product.price, format: .currency(code: "USD"))
-                        .font(.subheadline)
-                        .foregroundStyle(.secondary)
-                }
-            }
-        }
+                navigation.openProductDetails(id: product.id)
+            },
+            onReachEnd: {
+                Task { await viewModel.loadMore() }
+            },
+            accessory: { product in wishlistButton(product.id) }
+        )
         .overlay {
             if viewModel.isLoading && viewModel.results.isEmpty {
                 ProgressView()

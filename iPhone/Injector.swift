@@ -13,12 +13,14 @@ import BagUIDI
 import AccountUIDI
 import LoginUIDI
 import OnboardingUIDI
+import ProductUIDI
 import SessionDI
 import SessionData
 import ProductDI
 import ProductData
 import SearchDI
 import SearchData
+import WishlistDI
 import Networking
 
 @MainActor
@@ -29,6 +31,7 @@ final class Injector {
     let sessionDI: SessionDI
     let productDI: ProductDI
     let searchDI: SearchDI
+    let wishlistDI: WishlistDI
 
     // MARK: - Feature Navigation
     let navigator: Navigator
@@ -36,6 +39,7 @@ final class Injector {
     // MARK: - UIDI Properties
     let onboardingUIDI: OnboardingUIDI
     let loginUIDI: LoginUIDI
+    let productUIDI: ProductUIDI
     let homeUIDI: HomeUIDI
     let searchUIDI: SearchUIDI
     let wishlistUIDI: WishlistUIDI
@@ -63,11 +67,25 @@ final class Injector {
             store: UserDefaultsSearchHistoryStore(defaults: .standard),
             getSession: sessionDI.getSessionUseCase
         )
+        wishlistDI = WishlistDI(
+            getSession: sessionDI.getSessionUseCase,
+            observeSession: sessionDI.observeSessionUseCase
+        )
 
         // MARK: UI Features
         onboardingUIDI = OnboardingUIDI()
         let loginDI = LoginUIDI(loginUseCase: sessionDI.loginUseCase)
         loginUIDI = loginDI
+        productUIDI = ProductUIDI(getProduct: productDI.getProductUseCase)
+        let wishlistUI = WishlistUIDI(
+            navigation: navigator,
+            observeWishlist: wishlistDI.observeWishlistUseCase,
+            isInWishlist: wishlistDI.isInWishlistUseCase,
+            addToWishlist: wishlistDI.addToWishlistUseCase,
+            removeFromWishlist: wishlistDI.removeFromWishlistUseCase,
+            getProduct: productDI.getProductUseCase
+        )
+        wishlistUIDI = wishlistUI
         homeUIDI = HomeUIDI(
             navigation: navigator,
             getProducts: productDI.getProductsUseCase
@@ -78,9 +96,9 @@ final class Injector {
             getCategories: productDI.getCategoriesUseCase,
             getSearchHistory: searchDI.getSearchHistoryUseCase,
             recordSearch: searchDI.recordSearchUseCase,
-            clearSearchHistory: searchDI.clearSearchHistoryUseCase
+            clearSearchHistory: searchDI.clearSearchHistoryUseCase,
+            makeWishlistButton: { id in AnyView(wishlistUI.button(productId: id)) }
         )
-        wishlistUIDI = WishlistUIDI(navigation: navigator)
         bagUIDI = BagUIDI(navigation: navigator)
         accountUIDI = AccountUIDI(
             getSession: sessionDI.getSessionUseCase,

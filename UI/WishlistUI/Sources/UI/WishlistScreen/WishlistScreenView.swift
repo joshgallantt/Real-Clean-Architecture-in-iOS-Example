@@ -1,32 +1,40 @@
-//
-//  WishlistScreenView.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 14/07/2025.
-//
-
 import SwiftUI
+import ProductUI
 
 public struct WishlistScreenView: View {
     @ObservedObject var viewModel: WishlistScreenViewModel
     let navigation: WishlistNavigation
-    
-    public init(viewModel: WishlistScreenViewModel, navigation: WishlistNavigation) {
+    let wishlistButton: (Int) -> AnyView
+
+    public init(
+        viewModel: WishlistScreenViewModel,
+        navigation: WishlistNavigation,
+        wishlistButton: @escaping (Int) -> AnyView
+    ) {
         self.viewModel = viewModel
         self.navigation = navigation
+        self.wishlistButton = wishlistButton
     }
 
     public var body: some View {
-        VStack {
-            Text("Wishlist Screen")
-            Button("Open Wishlist Detail") {
-                let id = UUID()
-                viewModel.didSelectWishlistItem(id: id)
+        ProductGridListView(
+            products: viewModel.products,
+            isLoadingMore: false,
+            onSelect: { navigation.openProductDetails(id: $0.id) },
+            onReachEnd: {},
+            accessory: { product in wishlistButton(product.id) }
+        )
+        .overlay {
+            if viewModel.products.isEmpty && !viewModel.isLoading {
+                ContentUnavailableView(
+                    "No Saved Items",
+                    systemImage: "heart",
+                    description: Text("Tap the heart on a product to save it here.")
+                )
             }
-            Button("Go to Bag Detail") {
-                let id = UUID()
-                viewModel.didSelectGoToBag(id: id)
-            }
+        }
+        .onAppear {
+            viewModel.onAppear()
         }
     }
 }
