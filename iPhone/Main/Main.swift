@@ -10,10 +10,19 @@ import SwiftUI
 import LoginUIDI
 import OnboardingUIDI
 
+private enum AuthSheet: String, Identifiable {
+    case chooser
+    case logIn
+    case createAccount
+
+    var id: String { rawValue }
+}
+
 @main
 struct Main: App {
     @StateObject private var viewModel = Injector.shared.makeMainViewModel()
-    @StateObject private var authGate = Injector.shared.authGate
+    @StateObject private var authPresenter = Injector.shared.authPresenter
+    @State private var authSheet: AuthSheet?
 
     var body: some Scene {
         WindowGroup {
@@ -39,12 +48,37 @@ struct Main: App {
                         bagView: Injector.shared.bagView,
                         accountView: Injector.shared.accountView
                     )
-                    .sheet(isPresented: $authGate.isPresentingAuth, onDismiss: {
-                        authGate.cancelAuthentication()
-                    }) {
-                        Injector.shared.loginUIDI.loginView(
-                            onAuthenticated: { authGate.completeAuthentication() }
-                        )
+                    .onChange(of: authPresenter.isPresentingAuth) { _, isPresenting in
+                        authSheet = isPresenting ? .chooser : nil
+                    }
+                    .sheet(item: $authSheet, onDismiss: {
+                        if authSheet == nil {
+                            authPresenter.isPresentingAuth = false
+                            authPresenter.cancelAuthentication()
+                        }
+                    }) { sheet in
+                        switch sheet {
+                        case .chooser:
+                            Injector.shared.loginUIDI.loginOrCreateAccountView(
+                                message: "Wishlist Requires an Account",
+                                onSelectLogIn: { authSheet = .logIn },
+                                onSelectCreateAccount: { authSheet = .createAccount }
+                            )
+                        case .logIn:
+                            Injector.shared.loginUIDI.loginView(
+                                onAuthenticated: {
+                                    authSheet = nil
+                                    authPresenter.completeAuthentication()
+                                }
+                            )
+                        case .createAccount:
+                            Injector.shared.loginUIDI.createAccountView(
+                                onAuthenticated: {
+                                    authSheet = nil
+                                    authPresenter.completeAuthentication()
+                                }
+                            )
+                        }
                     }
                 }
             }

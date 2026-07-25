@@ -25,7 +25,7 @@ import WishlistDI
 import Networking
 
 @MainActor
-struct Injector {
+final class Injector {
     static let shared = Injector()
 
     // MARK: - Components
@@ -36,7 +36,7 @@ struct Injector {
 
     // MARK: - Feature Navigation
     let navigator: Navigator
-    let authGate: DefaultAuthGate
+    let authPresenter: DefaultAuthPresenter
     let snackbarPresenter: SnackbarPresenter
 
     // MARK: - UIDI Properties
@@ -72,19 +72,20 @@ struct Injector {
         )
         wishlistDI = WishlistDI(
             getSession: sessionDI.getSessionUseCase,
-            observeSession: sessionDI.observeSessionUseCase
+            observeSession: sessionDI.observeSessionUseCase,
+            requireAuthentication: sessionDI.requireAuthenticationUseCase
         )
 
-        // MARK: Auth gate
-        let authGate = DefaultAuthGate(getSession: sessionDI.getSessionUseCase)
-        self.authGate = authGate
+        // MARK: Auth presenter
+        let authPresenter = DefaultAuthPresenter(requireAuthenticationUseCase: sessionDI.requireAuthenticationUseCase)
+        self.authPresenter = authPresenter
 
         // MARK: Snackbars
         let snackbarPresenter = SnackbarPresenter()
         self.snackbarPresenter = snackbarPresenter
 
         // MARK: Navigation
-        navigator = Navigator(authGate: authGate)
+        navigator = Navigator(authPresenting: authPresenter)
 
         // MARK: UI Features
         onboardingUIDI = OnboardingUIDI()
@@ -102,7 +103,7 @@ struct Injector {
             removeProductFromWishlist: wishlistDI.removeProductFromWishlistUseCase,
             getProduct: productDI.getProductUseCase,
             observeSession: sessionDI.observeSessionUseCase,
-            authGate: authGate,
+            authPresenting: authPresenter,
             snackbar: snackbarPresenter
         )
         wishlistUIDI = wishlistUI
@@ -125,7 +126,8 @@ struct Injector {
             getSession: sessionDI.getSessionUseCase,
             observeSession: sessionDI.observeSessionUseCase,
             logoutUseCase: sessionDI.logoutUseCase,
-            authGate: authGate
+            loginView: { onAuthenticated in AnyView(loginDI.loginView(onAuthenticated: onAuthenticated)) },
+            createAccountView: { onAuthenticated in AnyView(loginDI.createAccountView(onAuthenticated: onAuthenticated)) }
         )
 
         // MARK: Create views once to maintain state across tab switches

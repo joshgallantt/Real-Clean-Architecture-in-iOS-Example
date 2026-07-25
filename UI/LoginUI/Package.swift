@@ -8,6 +8,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "LoginUI",
+            targets: ["LoginUI"]
+        ),
+        .library(
             name: "LoginUIDI",
             targets: ["LoginUIDI"]
         )
@@ -21,7 +25,9 @@ let package = Package(
             dependencies: [
                 .product(name: "Session", package: "Session")
             ],
-            path: "Sources/UI"
+            path: "Sources",
+            exclude: ["DI"],
+            sources: ["UI", "Navigation"]
         ),
         .target(
             name: "LoginUIDI",

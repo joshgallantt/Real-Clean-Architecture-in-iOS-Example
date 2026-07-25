@@ -22,7 +22,7 @@ let package = Package(
         .package(path: "../../Component/Session"),
         .package(path: "../ProductUI"),
         .package(path: "../SnackbarUI"),
-        .package(path: "../../Library/AuthGate")
+        .package(path: "../LoginUI")
     ],
     targets: [
         .target(
@@ -33,7 +33,7 @@ let package = Package(
                 .product(name: "Session", package: "Session"),
                 .product(name: "ProductUI", package: "ProductUI"),
                 .product(name: "SnackbarUI", package: "SnackbarUI"),
-                .product(name: "AuthGate", package: "AuthGate")
+                .product(name: "LoginUI", package: "LoginUI")
             ],
             path: "Sources",
             exclude: ["DI"],
@@ -47,7 +47,7 @@ let package = Package(
                 .product(name: "Product", package: "Product"),
                 .product(name: "Session", package: "Session"),
                 .product(name: "SnackbarUI", package: "SnackbarUI"),
-                .product(name: "AuthGate", package: "AuthGate")
+                .product(name: "LoginUI", package: "LoginUI")
             ],
             path: "Sources/DI"
         ),

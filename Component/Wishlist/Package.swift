@@ -26,7 +26,9 @@ let package = Package(
     targets: [
         .target(
             name: "Wishlist",
-            dependencies: [],
+            dependencies: [
+                .product(name: "Session", package: "Session")
+            ],
             path: "Sources",
             exclude: ["DI", "Data"],
             sources: ["Domain"]

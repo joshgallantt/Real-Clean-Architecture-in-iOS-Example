@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 import Wishlist
-import AuthGate
+import LoginUI
 import SnackbarUI
 
 @MainActor
@@ -11,7 +11,7 @@ public final class WishlistButtonViewModel: ObservableObject {
     private let productId: Int
     private let addProductToWishlist: AddProductToWishlistUseCase
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
-    private let authGate: AuthGate
+    private let authPresenting: AuthPresenting
     private let snackbar: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
 
@@ -20,13 +20,13 @@ public final class WishlistButtonViewModel: ObservableObject {
         productIsWishlisted: ProductIsWishlistedUseCase,
         addProductToWishlist: AddProductToWishlistUseCase,
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
-        authGate: AuthGate,
+        authPresenting: AuthPresenting,
         snackbar: SnackbarPresenting
     ) {
         self.productId = productId
         self.addProductToWishlist = addProductToWishlist
         self.removeProductFromWishlist = removeProductFromWishlist
-        self.authGate = authGate
+        self.authPresenting = authPresenting
         self.snackbar = snackbar
 
         productIsWishlisted(productId: productId)
@@ -37,32 +37,70 @@ public final class WishlistButtonViewModel: ObservableObject {
     }
 
     func didTap() {
-        // Capture dependencies, not self: a queued auth action or snackbar undo must
-        // not keep a discarded grid cell's view model alive.
+        Task { [weak self] in
+            guard let self else { return }
+            if self.isInWishlist {
+                await self.remove()
+            } else {
+                await self.add()
+            }
+        }
+    }
+
+    // Capture dependencies, not self: the snackbar undo closures escape this call
+    // and must not keep a discarded grid cell's view model alive.
+
+    private func add() async {
         let add = addProductToWishlist
         let remove = removeProductFromWishlist
         let snackbar = snackbar
         let productId = productId
 
-        if isInWishlist {
-            remove(productId: productId)
+        switch await add(productId: productId) {
+        case .success:
+            snackbar.show(Snackbar(
+                title: "Added to Wishlist",
+                message: "Find it any time in your wishlist.",
+                icon: "heart.fill",
+                action: .undo { Task { await remove(productId: productId) } }
+            ))
+        case .failure(.unauthenticated):
+            guard await authPresenting.requireAuthentication() else { return }
+            await self.add()
+        case .failure(.network):
+            snackbar.show(Snackbar(
+                title: "Couldn't Add to Wishlist",
+                message: "Check your connection and try again.",
+                icon: "wifi.slash",
+                action: .retry { [weak self] in Task { await self?.add() } }
+            ))
+        }
+    }
+
+    private func remove() async {
+        let add = addProductToWishlist
+        let remove = removeProductFromWishlist
+        let snackbar = snackbar
+        let productId = productId
+
+        switch await remove(productId: productId) {
+        case .success:
             snackbar.show(Snackbar(
                 title: "Removed from Wishlist",
                 message: "This item is no longer saved.",
                 icon: "heart.slash",
-                action: .undo { add(productId: productId) }
+                action: .undo { Task { await add(productId: productId) } }
             ))
-        } else {
-            // For a guest this presents the auth flow and adds once they authenticate.
-            authGate.requireAuthentication {
-                add(productId: productId)
-                snackbar.show(Snackbar(
-                    title: "Added to Wishlist",
-                    message: "Find it any time in your wishlist.",
-                    icon: "heart.fill",
-                    action: .undo { remove(productId: productId) }
-                ))
-            }
+        case .failure(.unauthenticated):
+            guard await authPresenting.requireAuthentication() else { return }
+            await self.remove()
+        case .failure(.network):
+            snackbar.show(Snackbar(
+                title: "Couldn't Remove Item",
+                message: "Check your connection and try again.",
+                icon: "wifi.slash",
+                action: .retry { [weak self] in Task { await self?.remove() } }
+            ))
         }
     }
 }
