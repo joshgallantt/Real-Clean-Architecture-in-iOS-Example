@@ -2,7 +2,7 @@ import Foundation
 import Session
 
 @MainActor
-public final class CreateAccountScreenViewModel: ObservableObject {
+public final class CreateAccountSheetViewModel: ObservableObject {
     private let createAccountUseCase: CreateAccountUseCase
     private let onAuthenticated: () -> Void
 

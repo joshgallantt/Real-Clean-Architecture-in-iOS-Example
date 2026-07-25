@@ -8,26 +8,43 @@
 import SwiftUI
 import LoginUI
 import Session
+import SheetUI
 
 public struct LoginUIDI {
     private let loginUseCase: LoginUseCase
     private let createAccountUseCase: CreateAccountUseCase
 
+    /// One shared instance for the whole app — attach `.sheetHost(_:)` wherever makes
+    /// sense to present from (it doesn't have to be the app root).
+    public let sheetCoordinator: SheetCoordinator
+
+    /// One shared instance for the whole app — inject this wherever a feature needs to
+    /// gate an action on authentication.
+    public let authSheetCoordinator: AuthSheetCoordinator
+
+    @MainActor
     public init(
         loginUseCase: LoginUseCase,
-        createAccountUseCase: CreateAccountUseCase
+        createAccountUseCase: CreateAccountUseCase,
+        requireAuthenticationUseCase: RequireAuthenticationUseCase
     ) {
         self.loginUseCase = loginUseCase
         self.createAccountUseCase = createAccountUseCase
+        let sheetCoordinator = SheetCoordinator()
+        self.sheetCoordinator = sheetCoordinator
+        self.authSheetCoordinator = AuthSheetCoordinator(
+            sheetPresenting: sheetCoordinator,
+            requireAuthenticationUseCase: requireAuthenticationUseCase,
+            loginUseCase: loginUseCase,
+            createAccountUseCase: createAccountUseCase
+        )
     }
 
     @MainActor
     public func loginView(onAuthenticated: @escaping () -> Void) -> some View {
-        NavigationStack {
-            LoginScreenView(
-                viewModel: LoginScreenViewModel(loginUseCase: loginUseCase, onAuthenticated: onAuthenticated)
-            )
-        }
+        LoginSheetView(
+            viewModel: LoginSheetViewModel(loginUseCase: loginUseCase, onAuthenticated: onAuthenticated)
+        )
     }
 
     @MainActor
@@ -45,11 +62,9 @@ public struct LoginUIDI {
 
     @MainActor
     public func createAccountView(onAuthenticated: @escaping () -> Void) -> some View {
-        NavigationStack {
-            CreateAccountScreenView(
-                viewModel: CreateAccountScreenViewModel(createAccountUseCase: createAccountUseCase, onAuthenticated: onAuthenticated)
-            )
-        }
+        CreateAccountSheetView(
+            viewModel: CreateAccountSheetViewModel(createAccountUseCase: createAccountUseCase, onAuthenticated: onAuthenticated)
+        )
     }
 
     @MainActor

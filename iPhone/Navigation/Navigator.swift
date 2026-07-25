@@ -23,9 +23,9 @@ final class Navigator: ObservableObject {
     @Published var bagPath = NavigationPath()
     @Published var wishlistPath = NavigationPath()
 
-    private let authPresenting: AuthPresenting
+    private let authPresenting: AuthSheetCoordinator
 
-    init(authPresenting: AuthPresenting) {
+    init(authPresenting: AuthSheetCoordinator) {
         self.authPresenting = authPresenting
     }
 

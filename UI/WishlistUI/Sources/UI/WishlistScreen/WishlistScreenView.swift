@@ -6,13 +6,13 @@ public struct WishlistScreenView: View {
     @ObservedObject var viewModel: WishlistScreenViewModel
     let navigation: WishlistNavigation
     let wishlistButton: (Int) -> AnyView
-    let authPresenting: AuthPresenting
+    let authPresenting: AuthSheetCoordinator
 
     public init(
         viewModel: WishlistScreenViewModel,
         navigation: WishlistNavigation,
         wishlistButton: @escaping (Int) -> AnyView,
-        authPresenting: AuthPresenting
+        authPresenting: AuthSheetCoordinator
     ) {
         self.viewModel = viewModel
         self.navigation = navigation

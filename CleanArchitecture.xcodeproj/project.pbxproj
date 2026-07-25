@@ -25,6 +25,7 @@
 		FADE000400000000000000A1 /* WishlistDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000400000000000000A2 /* WishlistDI */; };
 		FADE000500000000000000A1 /* LoginUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000500000000000000A2 /* LoginUI */; };
 		FADE000600000000000000A1 /* SnackbarUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000600000000000000A2 /* SnackbarUI */; };
+		FADE000700000000000000A1 /* SheetUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000700000000000000A2 /* SheetUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -96,6 +97,7 @@
 				FADE000400000000000000A1 /* WishlistDI in Frameworks */,
 				FADE000500000000000000A1 /* LoginUI in Frameworks */,
 				FADE000600000000000000A1 /* SnackbarUI in Frameworks */,
+				FADE000700000000000000A1 /* SheetUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -175,6 +177,7 @@
 				FADE000400000000000000A2 /* WishlistDI */,
 				FADE000500000000000000A2 /* LoginUI */,
 				FADE000600000000000000A2 /* SnackbarUI */,
+				FADE000700000000000000A2 /* SheetUI */,
 			);
 			productName = iPhone;
 			productReference = 1418DD6E2E3E53DC00191417 /* iPhone.app */;
@@ -707,6 +710,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = UI/SnackbarUI;
 		};
+		FADE000700000000000000B1 /* XCLocalSwiftPackageReference "UI/SheetUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/SheetUI;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -799,6 +806,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FADE000600000000000000B1 /* XCLocalSwiftPackageReference "UI/SnackbarUI" */;
 			productName = SnackbarUI;
+		};
+		FADE000700000000000000A2 /* SheetUI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE000700000000000000B1 /* XCLocalSwiftPackageReference "UI/SheetUI" */;
+			productName = SheetUI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
