@@ -9,14 +9,11 @@ import SwiftUI
 
 public struct LoginScreenView: View {
     @StateObject private var viewModel: LoginScreenViewModel
-    private let createAccountView: () -> AnyView
 
     public init(
-        viewModel: @autoclosure @escaping () -> LoginScreenViewModel,
-        createAccountView: @escaping () -> AnyView
+        viewModel: @autoclosure @escaping () -> LoginScreenViewModel
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel())
-        self.createAccountView = createAccountView
     }
 
     public var body: some View {
@@ -39,14 +36,6 @@ public struct LoginScreenView: View {
             if let error = viewModel.error {
                 Text(error).foregroundColor(.red)
             }
-
-            NavigationLink {
-                createAccountView()
-            } label: {
-                Text("Don't have an account? Create Account")
-                    .font(.footnote)
-            }
-            .padding(.top, 8)
         }
         .padding()
         .navigationTitle("Log In")

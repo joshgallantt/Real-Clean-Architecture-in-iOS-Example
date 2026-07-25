@@ -1,3 +1,4 @@
+import Combine
 import Foundation
 import Wishlist
 import WishlistData
@@ -15,18 +16,23 @@ public struct WishlistDI {
     public init(
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
+        requireAuthentication: RequireAuthenticationUseCase,
         store: WishlistStore = UserDefaultsWishlistStore(defaults: .standard)
     ) {
         let repository = DefaultWishlistRepository(
             store: store,
-            getSession: getSession,
-            observeSession: observeSession
+            userKey: Self.userKey(for: getSession()),
+            userKeyPublisher: observeSession().map(Self.userKey(for:)).eraseToAnyPublisher()
         )
         self.repository = repository
 
         self.observeWishlistUseCase = DefaultObserveWishlistUseCase(repository: repository)
         self.productIsWishlistedUseCase = DefaultProductIsWishlistedUseCase(repository: repository)
-        self.addProductToWishlistUseCase = DefaultAddProductToWishlistUseCase(repository: repository)
-        self.removeProductFromWishlistUseCase = DefaultRemoveProductFromWishlistUseCase(repository: repository)
+        self.addProductToWishlistUseCase = DefaultAddProductToWishlistUseCase(repository: repository, requireAuthentication: requireAuthentication)
+        self.removeProductFromWishlistUseCase = DefaultRemoveProductFromWishlistUseCase(repository: repository, requireAuthentication: requireAuthentication)
+    }
+
+    private static func userKey(for session: Session) -> String {
+        session.user.map { String($0.id) } ?? "guest"
     }
 }

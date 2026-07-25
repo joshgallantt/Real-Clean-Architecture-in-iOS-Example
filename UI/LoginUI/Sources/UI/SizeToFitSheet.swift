@@ -1,27 +1,25 @@
 import SwiftUI
 
-private struct SheetContentHeightKey: PreferenceKey {
-    static let defaultValue: CGFloat = 0
-    static func reduce(value: inout CGFloat, nextValue: () -> CGFloat) {
-        value = max(value, nextValue())
-    }
-}
-
-/// Sizes the sheet to the natural height of its content rather than the full screen.
-/// Only works for content that doesn't itself expand to fill available space (e.g. a
-/// VStack, not a Form/List).
+/// Sizes a sheet on iPhone to the natural height of its content. iOS has no built-in
+/// "shrink to content" detent for compact-width sheets — `presentationSizing(.fitted)`
+/// has no effect on iPhone (it's iPad/Mac only), so the content's ideal height is
+/// measured and applied as a fixed `.height` presentation detent instead.
 struct SizeToFitSheetModifier: ViewModifier {
-    @State private var contentHeight: CGFloat = 0
+    @State private var contentHeight: CGFloat?
 
     func body(content: Content) -> some View {
         content
-            .background(
-                GeometryReader { proxy in
-                    Color.clear.preference(key: SheetContentHeightKey.self, value: proxy.size.height)
-                }
-            )
-            .onPreferenceChange(SheetContentHeightKey.self) { contentHeight = $0 }
-            .presentationDetents([.height(contentHeight)])
+            // The measurement must not react to the keyboard's safe-area inset, or the
+            // detent would change while a field is focused, resigning first responder
+            // and dismissing the keyboard.
+            .ignoresSafeArea(.keyboard)
+            .fixedSize(horizontal: false, vertical: true)
+            .onGeometryChange(for: CGFloat.self) { proxy in
+                proxy.size.height
+            } action: { newHeight in
+                contentHeight = newHeight
+            }
+            .presentationDetents(contentHeight.map { [.height($0)] } ?? [.medium])
             .presentationDragIndicator(.visible)
     }
 }

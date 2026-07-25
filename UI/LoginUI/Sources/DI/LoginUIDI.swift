@@ -25,17 +25,31 @@ public struct LoginUIDI {
     public func loginView(onAuthenticated: @escaping () -> Void) -> some View {
         NavigationStack {
             LoginScreenView(
-                viewModel: LoginScreenViewModel(loginUseCase: loginUseCase, onAuthenticated: onAuthenticated),
-                createAccountView: { AnyView(self.createAccountView(onAuthenticated: onAuthenticated)) }
+                viewModel: LoginScreenViewModel(loginUseCase: loginUseCase, onAuthenticated: onAuthenticated)
             )
         }
     }
 
     @MainActor
-    public func createAccountView(onAuthenticated: @escaping () -> Void) -> some View {
-        CreateAccountScreenView(
-            viewModel: CreateAccountScreenViewModel(createAccountUseCase: createAccountUseCase, onAuthenticated: onAuthenticated)
+    public func loginOrCreateAccountView(
+        message: String,
+        onSelectLogIn: @escaping () -> Void,
+        onSelectCreateAccount: @escaping () -> Void
+    ) -> some View {
+        LoginOrCreateAccountSheetView(
+            message: message,
+            onSelectLogIn: onSelectLogIn,
+            onSelectCreateAccount: onSelectCreateAccount
         )
+    }
+
+    @MainActor
+    public func createAccountView(onAuthenticated: @escaping () -> Void) -> some View {
+        NavigationStack {
+            CreateAccountScreenView(
+                viewModel: CreateAccountScreenViewModel(createAccountUseCase: createAccountUseCase, onAuthenticated: onAuthenticated)
+            )
+        }
     }
 
     @MainActor
@@ -43,7 +57,7 @@ public struct LoginUIDI {
         WelcomeScreenView(
             viewModel: WelcomeScreenViewModel(onContinueAsGuest: onContinueAsGuest),
             loginView: { onAuthenticated in AnyView(self.loginView(onAuthenticated: onAuthenticated)) },
-            createAccountView: { onAuthenticated in AnyView(NavigationStack { self.createAccountView(onAuthenticated: onAuthenticated) }) }
+            createAccountView: { onAuthenticated in AnyView(self.createAccountView(onAuthenticated: onAuthenticated)) }
         )
     }
 }

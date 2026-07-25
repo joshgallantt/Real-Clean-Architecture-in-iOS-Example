@@ -1,7 +1,6 @@
 import Combine
 import Foundation
 import Wishlist
-import Session
 
 @MainActor
 public final class DefaultWishlistRepository: WishlistRepository {
@@ -12,17 +11,16 @@ public final class DefaultWishlistRepository: WishlistRepository {
 
     public init(
         store: WishlistStore,
-        getSession: GetSessionUseCase,
-        observeSession: ObserveSessionUseCase
+        userKey: String,
+        userKeyPublisher: AnyPublisher<String, Never>
     ) {
         self.store = store
-        let key = Self.userKey(for: getSession())
-        self.userKey = key
-        self.subject = CurrentValueSubject(store.getItems(forUserKey: key))
+        self.userKey = userKey
+        self.subject = CurrentValueSubject(store.getItems(forUserKey: userKey))
 
-        observeSession()
-            .sink { [weak self] session in
-                self?.switchUser(to: Self.userKey(for: session))
+        userKeyPublisher
+            .sink { [weak self] key in
+                self?.switchUser(to: key)
             }
             .store(in: &cancellables)
     }
@@ -64,9 +62,5 @@ public final class DefaultWishlistRepository: WishlistRepository {
         guard key != userKey else { return }
         userKey = key
         subject.value = store.getItems(forUserKey: key)
-    }
-
-    private static func userKey(for session: Session) -> String {
-        session.user.map { String($0.id) } ?? "guest"
     }
 }

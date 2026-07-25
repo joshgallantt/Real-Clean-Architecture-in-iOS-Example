@@ -9,7 +9,7 @@
 import SwiftUI
 import Combine
 import Foundation
-import AuthGate
+import LoginUI
 
 @MainActor
 final class Navigator: ObservableObject {
@@ -23,10 +23,10 @@ final class Navigator: ObservableObject {
     @Published var bagPath = NavigationPath()
     @Published var wishlistPath = NavigationPath()
 
-    private let authGate: AuthGate
+    private let authPresenting: AuthPresenting
 
-    init(authGate: AuthGate) {
-        self.authGate = authGate
+    init(authPresenting: AuthPresenting) {
+        self.authPresenting = authPresenting
     }
 
     // MARK: - Single entry point for all navigation (taps, deep links)
@@ -35,8 +35,9 @@ final class Navigator: ObservableObject {
     /// destination declares `requiresAuthentication`.
     func open(_ destination: Destination, tab: Tabs? = nil) {
         if destination.requiresAuthentication {
-            authGate.requireAuthentication { [weak self] in
-                self?.push(destination, tab: tab)
+            Task { [weak self] in
+                guard let self, await self.authPresenting.requireAuthentication() else { return }
+                self.push(destination, tab: tab)
             }
         } else {
             push(destination, tab: tab)

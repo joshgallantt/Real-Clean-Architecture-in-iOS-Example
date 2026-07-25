@@ -1,16 +1,20 @@
 import SwiftUI
-import AuthGate
 
 public struct AccountScreenView: View {
     @ObservedObject var viewModel: AccountScreenViewModel
-    private let authGate: AuthGate
+    @State private var isPresentingLogin = false
+    @State private var isPresentingCreateAccount = false
+    private let loginView: (@escaping () -> Void) -> AnyView
+    private let createAccountView: (@escaping () -> Void) -> AnyView
 
     public init(
         viewModel: AccountScreenViewModel,
-        authGate: AuthGate
+        loginView: @escaping (@escaping () -> Void) -> AnyView,
+        createAccountView: @escaping (@escaping () -> Void) -> AnyView
     ) {
         self.viewModel = viewModel
-        self.authGate = authGate
+        self.loginView = loginView
+        self.createAccountView = createAccountView
     }
 
     public var body: some View {
@@ -26,13 +30,22 @@ public struct AccountScreenView: View {
                     Text("You're browsing as a guest.")
                         .foregroundStyle(.secondary)
                     Button("Log In") {
-                        authGate.requireAuthentication {}
+                        isPresentingLogin = true
+                    }
+                    Button("Create Account") {
+                        isPresentingCreateAccount = true
                     }
                 }
             }
         }
         .onAppear {
             viewModel.onAppear()
+        }
+        .sheet(isPresented: $isPresentingLogin) {
+            loginView { isPresentingLogin = false }
+        }
+        .sheet(isPresented: $isPresentingCreateAccount) {
+            createAccountView { isPresentingCreateAccount = false }
         }
     }
 }

@@ -9,7 +9,7 @@ import SwiftUI
 import Wishlist
 import Product
 import Session
-import AuthGate
+import LoginUI
 import SnackbarUI
 import WishlistUI
 
@@ -21,7 +21,7 @@ public struct WishlistUIDI {
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
     private let getProduct: GetProductUseCase
     private let observeSession: ObserveSessionUseCase
-    private let authGate: AuthGate
+    private let authPresenting: AuthPresenting
     private let snackbar: SnackbarPresenting
 
     public init(
@@ -32,7 +32,7 @@ public struct WishlistUIDI {
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
         getProduct: GetProductUseCase,
         observeSession: ObserveSessionUseCase,
-        authGate: AuthGate,
+        authPresenting: AuthPresenting,
         snackbar: SnackbarPresenting
     ) {
         self.navigation = navigation
@@ -42,7 +42,7 @@ public struct WishlistUIDI {
         self.removeProductFromWishlist = removeProductFromWishlist
         self.getProduct = getProduct
         self.observeSession = observeSession
-        self.authGate = authGate
+        self.authPresenting = authPresenting
         self.snackbar = snackbar
     }
 
@@ -54,7 +54,7 @@ public struct WishlistUIDI {
                 productIsWishlisted: self.productIsWishlisted,
                 addProductToWishlist: self.addProductToWishlist,
                 removeProductFromWishlist: self.removeProductFromWishlist,
-                authGate: self.authGate,
+                authPresenting: self.authPresenting,
                 snackbar: self.snackbar
             )
         )
@@ -70,7 +70,7 @@ public struct WishlistUIDI {
             ),
             navigation: navigation,
             wishlistButton: { productId in AnyView(button(productId: productId)) },
-            authGate: authGate
+            authPresenting: authPresenting
         )
     }
 }
