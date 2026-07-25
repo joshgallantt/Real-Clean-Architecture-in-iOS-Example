@@ -9,7 +9,7 @@ import Combine
 import Foundation
 import Session
 
-public final class DefaultSessionRepository: SessionRepository {
+public struct DefaultSessionRepository: SessionRepository {
     private let sessionStore: SessionStore
     private let authClient: AuthClient
 
