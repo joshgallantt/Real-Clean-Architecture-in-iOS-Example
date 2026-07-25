@@ -10,12 +10,29 @@ let package = Package(
         .library(
             name: "SheetUI",
             targets: ["SheetUI"]
+        ),
+        .library(
+            name: "SheetUIDI",
+            targets: ["SheetUIDI"]
         )
     ],
     targets: [
         .target(
             name: "SheetUI",
-            dependencies: []
-        )
+            dependencies: [],
+            path: "Sources/SheetUI"
+        ),
+        .target(
+            name: "SheetUIDI",
+            dependencies: ["SheetUI"],
+            path: "Sources",
+            exclude: ["SheetUI"],
+            sources: ["SheetUIHost", "SheetUIDI"]
+        ),
+        .testTarget(
+            name: "SheetUIHostTests",
+            dependencies: ["SheetUIDI"],
+            path: "Tests/SheetUIHostTests"
+        ),
     ]
 )

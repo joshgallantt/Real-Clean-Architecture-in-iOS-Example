@@ -1,8 +1,7 @@
 import Combine
 import Foundation
-import SwiftUI
 import Wishlist
-import LoginUI
+import AuthUI
 import SnackbarUI
 
 @MainActor
@@ -12,9 +11,8 @@ public final class WishlistButtonViewModel: ObservableObject {
     private let productId: Int
     private let addProductToWishlist: AddProductToWishlistUseCase
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
-    private let authPresenting: AuthSheetCoordinator
-    private let authGate: (@escaping () -> Void, @escaping () -> Void) -> AnyView
-    private let snackbar: SnackbarPresenting
+    private let authPresenter: AuthPresenting
+    private let snackbarPresenter: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
 
     public init(
@@ -22,16 +20,14 @@ public final class WishlistButtonViewModel: ObservableObject {
         productIsWishlisted: ProductIsWishlistedUseCase,
         addProductToWishlist: AddProductToWishlistUseCase,
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
-        authPresenting: AuthSheetCoordinator,
-        authGate: @escaping (@escaping () -> Void, @escaping () -> Void) -> AnyView,
-        snackbar: SnackbarPresenting
+        authPresenter: AuthPresenting,
+        snackbarPresenter: SnackbarPresenting
     ) {
         self.productId = productId
         self.addProductToWishlist = addProductToWishlist
         self.removeProductFromWishlist = removeProductFromWishlist
-        self.authPresenting = authPresenting
-        self.authGate = authGate
-        self.snackbar = snackbar
+        self.authPresenter = authPresenter
+        self.snackbarPresenter = snackbarPresenter
 
         productIsWishlisted(productId: productId)
             .sink { [weak self] value in
@@ -57,22 +53,28 @@ public final class WishlistButtonViewModel: ObservableObject {
     private func add() async {
         let add = addProductToWishlist
         let remove = removeProductFromWishlist
-        let snackbar = snackbar
+        let snackbarPresenter = snackbarPresenter
         let productId = productId
 
         switch await add(productId: productId) {
         case .success:
-            snackbar.show(Snackbar(
+            snackbarPresenter.show(Snackbar(
                 title: "Added to Wishlist",
                 message: "Find it any time in your wishlist.",
                 icon: "heart.fill",
                 action: .undo { Task { await remove(productId: productId) } }
             ))
         case .failure(.unauthenticated):
-            guard await authPresenting.requireAuthentication(gate: authGate) else { return }
+            guard await authPresenter.show(AuthenticationPrompt(
+                title: "Save to Your Wishlist",
+                message: "Log in or create an account to build your wishlist.",
+                icon: "heart.fill"
+            )) else {
+                return
+            }
             await self.add()
         case .failure(.network):
-            snackbar.show(Snackbar(
+            snackbarPresenter.show(Snackbar(
                 title: "Couldn't Add to Wishlist",
                 message: "Check your connection and try again.",
                 icon: "wifi.slash",
@@ -84,22 +86,28 @@ public final class WishlistButtonViewModel: ObservableObject {
     private func remove() async {
         let add = addProductToWishlist
         let remove = removeProductFromWishlist
-        let snackbar = snackbar
+        let snackbarPresenter = snackbarPresenter
         let productId = productId
 
         switch await remove(productId: productId) {
         case .success:
-            snackbar.show(Snackbar(
+            snackbarPresenter.show(Snackbar(
                 title: "Removed from Wishlist",
                 message: "This item is no longer saved.",
                 icon: "heart.slash",
                 action: .undo { Task { await add(productId: productId) } }
             ))
         case .failure(.unauthenticated):
-            guard await authPresenting.requireAuthentication(gate: authGate) else { return }
+            guard await authPresenter.show(AuthenticationPrompt(
+                title: "Update Your Wishlist",
+                message: "Log in or create an account to manage your wishlist.",
+                icon: "heart.slash"
+            )) else {
+                return
+            }
             await self.remove()
         case .failure(.network):
-            snackbar.show(Snackbar(
+            snackbarPresenter.show(Snackbar(
                 title: "Couldn't Remove Item",
                 message: "Check your connection and try again.",
                 icon: "wifi.slash",

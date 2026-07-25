@@ -19,7 +19,8 @@ let package = Package(
     dependencies: [
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Search"),
-        .package(path: "../ProductUI")
+        .package(path: "../ProductUI"),
+        .package(path: "../WishlistUI")
     ],
     targets: [
         .target(
@@ -38,7 +39,8 @@ let package = Package(
             dependencies: [
                 "SearchUI",
                 .product(name: "Product", package: "Product"),
-                .product(name: "Search", package: "Search")
+                .product(name: "Search", package: "Search"),
+                .product(name: "WishlistUIDI", package: "WishlistUI")
             ],
             path: "Sources/DI"
         ),

@@ -78,7 +78,7 @@ Each module in this project has a single axis of change. A new screen design tou
 │       ├── Data/               # DummyJSON-backed repository implementation
 │       └── DI/                  # Dependency injection for Product module
 ├── UI/
-│   ├── LoginUI/               # Login feature (Swift Package)
+│   ├── AuthUI/                # Log in / create account feature (Swift Package)
 │   ├── HomeUI/                # Product catalog feature (Swift Package)
 │   ├── SearchUI/              # Product search feature (Swift Package)
 │   ├── WishlistUI/            # Wishlist feature (Swift Package)
@@ -92,7 +92,7 @@ Each module in this project has a single axis of change. A new screen design tou
     └── Main/                  # App entry point and tab screen
 ```
 
-Each feature is a separate Swift Package. This is not just organisation — it is enforcement. The Swift compiler guarantees that `HomeUI` cannot import `LoginUI` unless that dependency is declared explicitly. Architectural boundaries that rely only on convention erode over time. Module boundaries that rely on the compiler do not.
+Each feature is a separate Swift Package. This is not just organisation — it is enforcement. The Swift compiler guarantees that `HomeUI` cannot import `AuthUI` unless that dependency is declared explicitly. Architectural boundaries that rely only on convention erode over time. Module boundaries that rely on the compiler do not.
 
 Packages are grouped by role — `Component/` for domain+data, `UI/` for presentation, `Library/` for shared infrastructure with no domain dependencies — so the folder tree reads as architecture, not an alphabetical list.
 
@@ -312,7 +312,7 @@ FeatureUI/
 
 ViewModels are `@MainActor ObservableObject` classes. They receive use case protocols through initialiser injection — never concrete implementations. A `LoginScreenViewModel` test does not need a network stack, a session, or an auth service. It needs an object that satisfies `UserLoginUseCase`.
 
-**[`UI/LoginUI/Sources/UI/LoginScreen/LoginScreenViewModel.swift`](UI/LoginUI/Sources/UI/LoginScreen/LoginScreenViewModel.swift)**
+**[`UI/AuthUI/Sources/UI/LoginScreen/LoginScreenViewModel.swift`](UI/AuthUI/Sources/UI/LoginScreen/LoginScreenViewModel.swift)**
 ```swift
 @MainActor
 public final class LoginScreenViewModel: ObservableObject {
@@ -331,7 +331,7 @@ public final class LoginScreenViewModel: ObservableObject {
 
 Views bind to `@Published` properties and delegate all actions to the ViewModel. A view has no `if/else` business logic, no network calls, and no navigation decisions. It answers one question: given this state, what should be on screen?
 
-**[`UI/LoginUI/Sources/UI/LoginScreen/LoginScreenView.swift`](UI/LoginUI/Sources/UI/LoginScreen/LoginScreenView.swift)**
+**[`UI/AuthUI/Sources/UI/LoginScreen/LoginScreenView.swift`](UI/AuthUI/Sources/UI/LoginScreen/LoginScreenView.swift)**
 ```swift
 public struct LoginScreenView: View {
     @ObservedObject var viewModel: LoginScreenViewModel
@@ -345,15 +345,15 @@ Each feature module exposes a DI container that constructs its view hierarchy. T
 
 **Why per-feature DI containers?** A monolithic injector that constructs every view in the app conflates the wiring of unrelated features. Per-feature containers mean each feature is responsible for constructing its own objects. The application-level `Injector` assembles the containers; the containers assemble the views.
 
-**[`UI/LoginUI/Sources/DI/LoginUIDI.swift`](UI/LoginUI/Sources/DI/LoginUIDI.swift)**
+**[`UI/AuthUI/Sources/DI/AuthUIDI.swift`](UI/AuthUI/Sources/DI/AuthUIDI.swift)**
 ```swift
-public struct LoginUIDI {
+public struct AuthUIDI {
     private let userLogin: UserLoginUseCase
     public func loginView() -> some View { /* creates LoginScreenView with ViewModel */ }
 }
 ```
 
-**Why a single use case, not the whole `UserDI` container?** This is the Interface Segregation Principle applied to dependency injection. `LoginUIDI` needs exactly one capability — logging a user in. Injecting the full `UserDI` container would give it visibility into `userIsLoggedInUseCase` and `observeUserIsLoggedInUseCase` too, dependencies it never calls. Fowler's dependency injection writing warns against this same shape under the name Service Locator: injecting a container that *can* resolve anything, rather than the one collaborator actually needed, blurs the boundary the DDD layering is meant to enforce. Only the application-layer `Injector` — the composition root — is allowed to hold a whole `UserDI`.
+**Why a single use case, not the whole `UserDI` container?** This is the Interface Segregation Principle applied to dependency injection. `AuthUIDI` needs exactly one capability — logging a user in. Injecting the full `UserDI` container would give it visibility into `userIsLoggedInUseCase` and `observeUserIsLoggedInUseCase` too, dependencies it never calls. Fowler's dependency injection writing warns against this same shape under the name Service Locator: injecting a container that *can* resolve anything, rather than the one collaborator actually needed, blurs the boundary the DDD layering is meant to enforce. Only the application-layer `Injector` — the composition root — is allowed to hold a whole `UserDI`.
 
 **[`UI/HomeUI/Sources/DI/HomeUIDI.swift`](UI/HomeUI/Sources/DI/HomeUIDI.swift)**
 ```swift
@@ -366,7 +366,7 @@ public struct HomeUIDI {
 }
 ```
 
-`HomeUI` and `SearchUI` both depend on `Component/Product`'s domain product (`import Product`), never on `ProductData` or `ProductDI` — the same UI-may-depend-on-domain rule `LoginUI` follows for `User`.
+`HomeUI` and `SearchUI` both depend on `Component/Product`'s domain product (`import Product`), never on `ProductData` or `ProductDI` — the same UI-may-depend-on-domain rule `AuthUI` follows for `User`.
 
 ---
 
@@ -392,7 +392,7 @@ final class Injector {
     let userDI: UserDI
     let productDI: ProductDI
     let navigator: Navigator
-    let loginUIDI: LoginUIDI
+    let authUIDI: AuthUIDI
     let homeUIDI: HomeUIDI
     let searchUIDI: SearchUIDI
     let wishlistUIDI: WishlistUIDI
@@ -429,7 +429,7 @@ public struct UserDI {
 
 ### App Entry Point
 
-There is no forced login gate. `Main` always shows `TabScreen`; a guest can use Home, Search, Bag, and Wishlist immediately, and signs in from the Account tab, which presents `LoginUI` as a sheet.
+There is no forced login gate. `Main` always shows `TabScreen`; a guest can use Home, Search, Bag, and Wishlist immediately, and signs in from the Account tab, which presents `AuthUI` as a sheet.
 
 **[`iPhone/Main/Main.swift`](iPhone/Main/Main.swift)**
 ```swift
@@ -594,7 +594,7 @@ iPhone (App)
 │              ──▶  UserData  ──▶  User (Domain), Networking
 ├── ProductDI  ──▶  Product (Domain)
 │              ──▶  ProductData  ──▶  Product (Domain), Networking
-├── LoginUIDI    ──▶  LoginUI  ──▶  User (Domain)
+├── AuthUIDI     ──▶  AuthUI   ──▶  User (Domain)
 ├── HomeUIDI     ──▶  HomeUI   ──▶  Product (Domain)
 ├── SearchUIDI   ──▶  SearchUI ──▶  Product (Domain)
 ├── WishlistUIDI ──▶  WishlistUI

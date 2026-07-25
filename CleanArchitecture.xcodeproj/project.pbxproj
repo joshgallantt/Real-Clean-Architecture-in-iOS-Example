@@ -9,7 +9,7 @@
 /* Begin PBXBuildFile section */
 		1418DDB92E3E542300191417 /* BagUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDB82E3E542300191417 /* BagUIDI */; };
 		1418DDBB2E3E542300191417 /* HomeUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBA2E3E542300191417 /* HomeUIDI */; };
-		1418DDBD2E3E542300191417 /* LoginUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBC2E3E542300191417 /* LoginUIDI */; };
+		1418DDBD2E3E542300191417 /* AuthUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBC2E3E542300191417 /* AuthUIDI */; };
 		1418DDBF2E3E542300191417 /* SessionDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBE2E3E542300191417 /* SessionDI */; };
 		1418DDC12E3E542300191417 /* WishlistUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDC02E3E542300191417 /* WishlistUIDI */; };
 		2A7AD030AB0C5D47D98AE192 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = 905C6EC5E3B21525CBD02EF9 /* Networking */; };
@@ -23,9 +23,11 @@
 		FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000200000000000000A2 /* OnboardingUIDI */; };
 		FADE000300000000000000A1 /* ProductUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000300000000000000A2 /* ProductUIDI */; };
 		FADE000400000000000000A1 /* WishlistDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000400000000000000A2 /* WishlistDI */; };
-		FADE000500000000000000A1 /* LoginUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000500000000000000A2 /* LoginUI */; };
-		FADE000600000000000000A1 /* SnackbarUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000600000000000000A2 /* SnackbarUI */; };
-		FADE000700000000000000A1 /* SheetUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000700000000000000A2 /* SheetUI */; };
+		FADE000500000000000000A1 /* AuthUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000500000000000000A2 /* AuthUI */; };
+		FADE000600000000000000A1 /* SnackbarUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000600000000000000A2 /* SnackbarUIDI */; };
+		FADE000700000000000000A1 /* SheetUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000700000000000000A2 /* SheetUIDI */; };
+		FADE000800000000000000A1 /* SnackbarUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000800000000000000A2 /* SnackbarUI */; };
+		FADE000900000000000000A1 /* SheetUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000900000000000000A2 /* SheetUI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -83,7 +85,7 @@
 				1418DDC12E3E542300191417 /* WishlistUIDI in Frameworks */,
 				1418DDB92E3E542300191417 /* BagUIDI in Frameworks */,
 				1418DDBF2E3E542300191417 /* SessionDI in Frameworks */,
-				1418DDBD2E3E542300191417 /* LoginUIDI in Frameworks */,
+				1418DDBD2E3E542300191417 /* AuthUIDI in Frameworks */,
 				BE81553773C1F601F3F14A6F /* ProductDI in Frameworks */,
 				9D7079D16B1262239E3D4564 /* SearchUIDI in Frameworks */,
 				6D54B0B012238C4772C7879F /* AccountUIDI in Frameworks */,
@@ -95,9 +97,11 @@
 				FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */,
 				FADE000300000000000000A1 /* ProductUIDI in Frameworks */,
 				FADE000400000000000000A1 /* WishlistDI in Frameworks */,
-				FADE000500000000000000A1 /* LoginUI in Frameworks */,
-				FADE000600000000000000A1 /* SnackbarUI in Frameworks */,
-				FADE000700000000000000A1 /* SheetUI in Frameworks */,
+				FADE000500000000000000A1 /* AuthUI in Frameworks */,
+				FADE000600000000000000A1 /* SnackbarUIDI in Frameworks */,
+				FADE000700000000000000A1 /* SheetUIDI in Frameworks */,
+				FADE000800000000000000A1 /* SnackbarUI in Frameworks */,
+				FADE000900000000000000A1 /* SheetUI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -161,7 +165,7 @@
 			packageProductDependencies = (
 				1418DDB82E3E542300191417 /* BagUIDI */,
 				1418DDBA2E3E542300191417 /* HomeUIDI */,
-				1418DDBC2E3E542300191417 /* LoginUIDI */,
+				1418DDBC2E3E542300191417 /* AuthUIDI */,
 				1418DDBE2E3E542300191417 /* SessionDI */,
 				1418DDC02E3E542300191417 /* WishlistUIDI */,
 				91547A9FAB7827290BA768A3 /* ProductDI */,
@@ -175,9 +179,11 @@
 				FADE000200000000000000A2 /* OnboardingUIDI */,
 				FADE000300000000000000A2 /* ProductUIDI */,
 				FADE000400000000000000A2 /* WishlistDI */,
-				FADE000500000000000000A2 /* LoginUI */,
-				FADE000600000000000000A2 /* SnackbarUI */,
-				FADE000700000000000000A2 /* SheetUI */,
+				FADE000500000000000000A2 /* AuthUI */,
+				FADE000600000000000000A2 /* SnackbarUIDI */,
+				FADE000700000000000000A2 /* SheetUIDI */,
+				FADE000800000000000000A2 /* SnackbarUI */,
+				FADE000900000000000000A2 /* SheetUI */,
 			);
 			productName = iPhone;
 			productReference = 1418DD6E2E3E53DC00191417 /* iPhone.app */;
@@ -658,9 +664,9 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Library/Networking;
 		};
-		3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/LoginUI" */ = {
+		3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/AuthUI" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = UI/LoginUI;
+			relativePath = UI/AuthUI;
 		};
 		3D5E88E47E7DC20BEAD6BBC0 /* XCLocalSwiftPackageReference "Component/Session" */ = {
 			isa = XCLocalSwiftPackageReference;
@@ -732,10 +738,10 @@
 			package = D1D79B5F0EF3615CAADFABA0 /* XCLocalSwiftPackageReference "UI/HomeUI" */;
 			productName = HomeUIDI;
 		};
-		1418DDBC2E3E542300191417 /* LoginUIDI */ = {
+		1418DDBC2E3E542300191417 /* AuthUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/LoginUI" */;
-			productName = LoginUIDI;
+			package = 3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/AuthUI" */;
+			productName = AuthUIDI;
 		};
 		1418DDBE2E3E542300191417 /* SessionDI */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -797,17 +803,27 @@
 			package = FADE000400000000000000B1 /* XCLocalSwiftPackageReference "Component/Wishlist" */;
 			productName = WishlistDI;
 		};
-		FADE000500000000000000A2 /* LoginUI */ = {
+		FADE000500000000000000A2 /* AuthUI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/LoginUI" */;
-			productName = LoginUI;
+			package = 3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/AuthUI" */;
+			productName = AuthUI;
 		};
-		FADE000600000000000000A2 /* SnackbarUI */ = {
+		FADE000600000000000000A2 /* SnackbarUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE000600000000000000B1 /* XCLocalSwiftPackageReference "UI/SnackbarUI" */;
+			productName = SnackbarUIDI;
+		};
+		FADE000700000000000000A2 /* SheetUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE000700000000000000B1 /* XCLocalSwiftPackageReference "UI/SheetUI" */;
+			productName = SheetUIDI;
+		};
+		FADE000800000000000000A2 /* SnackbarUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = FADE000600000000000000B1 /* XCLocalSwiftPackageReference "UI/SnackbarUI" */;
 			productName = SnackbarUI;
 		};
-		FADE000700000000000000A2 /* SheetUI */ = {
+		FADE000900000000000000A2 /* SheetUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = FADE000700000000000000B1 /* XCLocalSwiftPackageReference "UI/SheetUI" */;
 			productName = SheetUI;

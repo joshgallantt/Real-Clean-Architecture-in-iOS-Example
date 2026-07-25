@@ -10,18 +10,34 @@ let package = Package(
         .library(
             name: "SnackbarUI",
             targets: ["SnackbarUI"]
+        ),
+        .library(
+            name: "SnackbarUIDI",
+            targets: ["SnackbarUIDI"]
         )
     ],
     targets: [
         .target(
             name: "SnackbarUI",
             dependencies: [],
-            path: "Sources"
+            path: "Sources/SnackbarUI"
+        ),
+        .target(
+            name: "SnackbarUIDI",
+            dependencies: ["SnackbarUI"],
+            path: "Sources",
+            exclude: ["SnackbarUI"],
+            sources: ["SnackbarUIHost", "SnackbarUIDI"]
         ),
         .testTarget(
             name: "SnackbarUITests",
             dependencies: ["SnackbarUI"],
             path: "Tests/SnackbarUITests"
+        ),
+        .testTarget(
+            name: "SnackbarUIHostTests",
+            dependencies: ["SnackbarUIDI"],
+            path: "Tests/SnackbarUIHostTests"
         ),
     ]
 )

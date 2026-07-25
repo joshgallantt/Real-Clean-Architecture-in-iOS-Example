@@ -2,19 +2,17 @@ import SwiftUI
 
 public struct AccountScreenView: View {
     @ObservedObject var viewModel: AccountScreenViewModel
-    @State private var isPresentingLogin = false
-    @State private var isPresentingCreateAccount = false
-    private let loginView: (@escaping () -> Void) -> AnyView
-    private let createAccountView: (@escaping () -> Void) -> AnyView
+    private let loginButton: AnyView
+    private let createAccountButton: AnyView
 
     public init(
         viewModel: AccountScreenViewModel,
-        loginView: @escaping (@escaping () -> Void) -> AnyView,
-        createAccountView: @escaping (@escaping () -> Void) -> AnyView
+        loginButton: AnyView,
+        createAccountButton: AnyView
     ) {
         self.viewModel = viewModel
-        self.loginView = loginView
-        self.createAccountView = createAccountView
+        self.loginButton = loginButton
+        self.createAccountButton = createAccountButton
     }
 
     public var body: some View {
@@ -29,23 +27,13 @@ public struct AccountScreenView: View {
                 } else {
                     Text("You're browsing as a guest.")
                         .foregroundStyle(.secondary)
-                    Button("Log In") {
-                        isPresentingLogin = true
-                    }
-                    Button("Create Account") {
-                        isPresentingCreateAccount = true
-                    }
+                    loginButton
+                    createAccountButton
                 }
             }
         }
         .onAppear {
             viewModel.onAppear()
-        }
-        .sheet(isPresented: $isPresentingLogin) {
-            loginView { isPresentingLogin = false }
-        }
-        .sheet(isPresented: $isPresentingCreateAccount) {
-            createAccountView { isPresentingCreateAccount = false }
         }
     }
 }

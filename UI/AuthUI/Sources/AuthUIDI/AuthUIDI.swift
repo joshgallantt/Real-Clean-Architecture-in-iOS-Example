@@ -1,0 +1,71 @@
+//
+//  AuthUIDI.swift
+//  CleanArchitecture
+//
+//  Created by Josh Gallant on 14/07/2025.
+//
+
+import SwiftUI
+import AuthUI
+import Session
+import SheetUI
+
+public struct AuthUIDI {
+    /// One shared presenter for the whole app — inject this wherever a feature needs to hold
+    /// an action back until the user is authenticated.
+    public let presenter: AuthPresenter
+
+    @MainActor
+    public init(
+        loginUseCase: LoginUseCase,
+        createAccountUseCase: CreateAccountUseCase,
+        userIsLoggedInUseCase: UserIsLoggedInUseCase,
+        sheetPresenting: SheetPresenting
+    ) {
+        self.presenter = AuthPresenter(
+            sheetPresenting: sheetPresenting,
+            userIsLoggedIn: userIsLoggedInUseCase,
+            loginUseCase: loginUseCase,
+            createAccountUseCase: createAccountUseCase
+        )
+    }
+
+    /// A self-contained "Log In" button: tapping it presents the Log In sheet directly and
+    /// resolves on its own. Callers don't need to hold any state or pass a completion
+    /// closure — the screen usually just reacts to the resulting session change instead.
+    @MainActor
+    public func loginButtonView(title: String = "Log In") -> some View {
+        Button {
+            Task { await presenter.logIn() }
+        } label: {
+            Text(title).frame(maxWidth: .infinity)
+        }
+    }
+
+    /// A self-contained "Create Account" button — see `loginButtonView(title:)`.
+    @MainActor
+    public func createAccountButtonView(title: String = "Create Account") -> some View {
+        Button {
+            Task { await presenter.createAccount() }
+        } label: {
+            Text(title).frame(maxWidth: .infinity)
+        }
+    }
+
+    @MainActor
+    public func welcomeView(onContinueAsGuest: @escaping () -> Void) -> some View {
+        WelcomeScreenView(
+            viewModel: WelcomeScreenViewModel(onContinueAsGuest: onContinueAsGuest),
+            loginButton: AnyView(
+                loginButtonView()
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+            ),
+            createAccountButton: AnyView(
+                createAccountButtonView()
+                    .buttonStyle(.bordered)
+                    .controlSize(.large)
+            )
+        )
+    }
+}

@@ -8,17 +8,17 @@ public protocol AddProductToWishlistUseCase: Sendable {
 
 public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
     private let repository: WishlistRepository
-    private let requireAuthentication: RequireAuthenticationUseCase
+    private let userIsLoggedIn: UserIsLoggedInUseCase
 
-    public init(repository: WishlistRepository, requireAuthentication: RequireAuthenticationUseCase) {
+    public init(repository: WishlistRepository, userIsLoggedIn: UserIsLoggedInUseCase) {
         self.repository = repository
-        self.requireAuthentication = requireAuthentication
+        self.userIsLoggedIn = userIsLoggedIn
     }
 
     @MainActor
     @discardableResult
     public func callAsFunction(productId: Int) async -> Result<Void, WishlistError> {
-        guard await requireAuthentication() else {
+        guard await userIsLoggedIn() else {
             return .failure(.unauthenticated)
         }
         repository.add(productId: productId)

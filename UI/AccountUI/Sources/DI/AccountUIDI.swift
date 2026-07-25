@@ -1,26 +1,24 @@
 import SwiftUI
 import AccountUI
 import Session
+import AuthUIDI
 
 public struct AccountUIDI {
     private let getSession: GetSessionUseCase
     private let observeSession: ObserveSessionUseCase
     private let logoutUseCase: LogoutUseCase
-    private let loginView: (@escaping () -> Void) -> AnyView
-    private let createAccountView: (@escaping () -> Void) -> AnyView
+    private let authUIDI: AuthUIDI
 
     public init(
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
         logoutUseCase: LogoutUseCase,
-        loginView: @escaping (@escaping () -> Void) -> AnyView,
-        createAccountView: @escaping (@escaping () -> Void) -> AnyView
+        authUIDI: AuthUIDI
     ) {
         self.getSession = getSession
         self.observeSession = observeSession
         self.logoutUseCase = logoutUseCase
-        self.loginView = loginView
-        self.createAccountView = createAccountView
+        self.authUIDI = authUIDI
     }
 
     @MainActor
@@ -31,8 +29,8 @@ public struct AccountUIDI {
                 observeSession: observeSession,
                 logoutUseCase: logoutUseCase
             ),
-            loginView: loginView,
-            createAccountView: createAccountView
+            loginButton: AnyView(authUIDI.loginButtonView()),
+            createAccountButton: AnyView(authUIDI.createAccountButtonView())
         )
     }
 }

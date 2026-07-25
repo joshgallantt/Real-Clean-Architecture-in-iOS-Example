@@ -2,6 +2,7 @@ import SwiftUI
 import SearchUI
 import Product
 import Search
+import WishlistUIDI
 
 public struct SearchUIDI {
     private let navigation: SearchNavigation
@@ -10,7 +11,7 @@ public struct SearchUIDI {
     private let getSearchHistory: GetSearchHistoryUseCase
     private let recordSearch: RecordSearchUseCase
     private let clearSearchHistory: ClearSearchHistoryUseCase
-    private let makeWishlistButton: (Int) -> AnyView
+    private let wishlistUIDI: WishlistUIDI
 
     public init(
         navigation: SearchNavigation,
@@ -19,7 +20,7 @@ public struct SearchUIDI {
         getSearchHistory: GetSearchHistoryUseCase,
         recordSearch: RecordSearchUseCase,
         clearSearchHistory: ClearSearchHistoryUseCase,
-        makeWishlistButton: @escaping (Int) -> AnyView
+        wishlistUIDI: WishlistUIDI
     ) {
         self.navigation = navigation
         self.getProducts = getProducts
@@ -27,7 +28,7 @@ public struct SearchUIDI {
         self.getSearchHistory = getSearchHistory
         self.recordSearch = recordSearch
         self.clearSearchHistory = clearSearchHistory
-        self.makeWishlistButton = makeWishlistButton
+        self.wishlistUIDI = wishlistUIDI
     }
 
     @MainActor
@@ -48,7 +49,7 @@ public struct SearchUIDI {
         SearchResultsView(
             viewModel: SearchResultsViewModel(query: query, getProducts: getProducts, recordSearch: recordSearch),
             navigation: navigation,
-            wishlistButton: makeWishlistButton
+            wishlistButton: { id in AnyView(wishlistUIDI.button(productId: id)) }
         )
     }
 
@@ -57,7 +58,7 @@ public struct SearchUIDI {
         CategoryResultsView(
             viewModel: CategoryResultsViewModel(category: category, getProducts: getProducts),
             navigation: navigation,
-            wishlistButton: makeWishlistButton
+            wishlistButton: { id in AnyView(wishlistUIDI.button(productId: id)) }
         )
     }
 }
