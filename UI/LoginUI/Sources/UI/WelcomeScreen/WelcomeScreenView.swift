@@ -3,13 +3,16 @@ import SwiftUI
 public struct WelcomeScreenView: View {
     @ObservedObject var viewModel: WelcomeScreenViewModel
     private let loginView: () -> AnyView
+    private let createAccountView: () -> AnyView
 
     public init(
         viewModel: WelcomeScreenViewModel,
-        loginView: @escaping () -> AnyView
+        loginView: @escaping () -> AnyView,
+        createAccountView: @escaping () -> AnyView
     ) {
         self.viewModel = viewModel
         self.loginView = loginView
+        self.createAccountView = createAccountView
     }
 
     public var body: some View {
@@ -31,7 +34,7 @@ public struct WelcomeScreenView: View {
 
             Spacer()
 
-            VStack(spacing: 12) {
+            VStack(spacing: 16) {
                 Button {
                     viewModel.didTapLogIn()
                 } label: {
@@ -42,19 +45,31 @@ public struct WelcomeScreenView: View {
                 .controlSize(.large)
 
                 Button {
-                    viewModel.didContinueAsGuest()
+                    viewModel.didTapCreateAccount()
                 } label: {
-                    Text("Continue as Guest")
+                    Text("Create Account")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
                 .controlSize(.large)
+
+                Button {
+                    viewModel.didContinueAsGuest()
+                } label: {
+                    Text("Continue as Guest")
+                        .fontWeight(.bold)
+                }
+                .buttonStyle(.plain)
+                .padding(.top, 4)
             }
         }
         .padding(.horizontal, 32)
         .padding(.bottom, 32)
         .sheet(isPresented: $viewModel.isPresentingLogin) {
             loginView()
+        }
+        .sheet(isPresented: $viewModel.isPresentingCreateAccount) {
+            createAccountView()
         }
     }
 }

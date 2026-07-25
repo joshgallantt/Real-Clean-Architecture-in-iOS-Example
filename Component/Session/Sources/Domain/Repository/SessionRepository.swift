@@ -15,7 +15,14 @@ public protocol SessionRepository: Sendable {
     @MainActor
     var currentSession: Session { get }
 
-    func login(username: String, password: String) async -> Result<Void, LoginError>
+    func login(email: String, password: String) async -> Result<Void, LoginError>
+
+    func createAccount(
+        firstName: String,
+        lastName: String,
+        email: String,
+        password: String
+    ) async -> Result<Void, CreateAccountError>
 
     func logout() async
 }

@@ -9,14 +9,21 @@ import SwiftUI
 
 public struct LoginScreenView: View {
     @ObservedObject var viewModel: LoginScreenViewModel
+    private let createAccountView: () -> AnyView
 
-    public init(viewModel: LoginScreenViewModel) {
+    public init(
+        viewModel: LoginScreenViewModel,
+        createAccountView: @escaping () -> AnyView
+    ) {
         self.viewModel = viewModel
+        self.createAccountView = createAccountView
     }
 
     public var body: some View {
         VStack(spacing: 20) {
-            TextField("Username", text: $viewModel.username)
+            TextField("Email", text: $viewModel.email)
+                .textContentType(.emailAddress)
+                .keyboardType(.emailAddress)
                 .textInputAutocapitalization(.never)
                 .autocorrectionDisabled(true)
             SecureField("Password", text: $viewModel.password)
@@ -32,7 +39,17 @@ public struct LoginScreenView: View {
             if let error = viewModel.error {
                 Text(error).foregroundColor(.red)
             }
+
+            NavigationLink {
+                createAccountView()
+            } label: {
+                Text("Don't have an account? Create Account")
+                    .font(.footnote)
+            }
+            .padding(.top, 8)
         }
         .padding()
+        .navigationTitle("Log In")
+        .navigationBarTitleDisplayMode(.inline)
     }
 }

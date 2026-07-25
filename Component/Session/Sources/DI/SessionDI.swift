@@ -19,6 +19,7 @@ public struct SessionDI {
 
     // MARK: - Use Cases
     public let loginUseCase: LoginUseCase
+    public let createAccountUseCase: CreateAccountUseCase
     public let logoutUseCase: LogoutUseCase
     public let getSessionUseCase: GetSessionUseCase
     public let observeSessionUseCase: ObserveSessionUseCase
@@ -37,6 +38,7 @@ public struct SessionDI {
         self.sessionRepository = repository
 
         self.loginUseCase = DefaultLoginUseCase(sessionRepository: repository)
+        self.createAccountUseCase = DefaultCreateAccountUseCase(sessionRepository: repository)
         self.logoutUseCase = DefaultLogoutUseCase(sessionRepository: repository)
         self.getSessionUseCase = DefaultGetSessionUseCase(sessionRepository: repository)
         self.observeSessionUseCase = DefaultObserveSessionUseCase(sessionRepository: repository)

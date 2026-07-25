@@ -60,7 +60,10 @@ final class Injector {
         // MARK: Component DI
         sessionDI = SessionDI(
             sessionStore: DefaultSessionStore(),
-            authClient: DummyJSONAuthClient(httpClient: URLSessionHTTPClient(session: .shared), tokenLifetime: 30 * 60)
+            authClient: FakeAuthClient(
+                userStore: UserDefaultsUserStore(defaults: .standard),
+                tokenLifetime: 60 * 60 * 24 * 7
+            )
         )
         productDI = ProductDI(client: DummyJSONProductClient(httpClient: URLSessionHTTPClient(session: .shared)))
         searchDI = SearchDI(
@@ -74,7 +77,10 @@ final class Injector {
 
         // MARK: UI Features
         onboardingUIDI = OnboardingUIDI()
-        let loginDI = LoginUIDI(loginUseCase: sessionDI.loginUseCase)
+        let loginDI = LoginUIDI(
+            loginUseCase: sessionDI.loginUseCase,
+            createAccountUseCase: sessionDI.createAccountUseCase
+        )
         loginUIDI = loginDI
         productUIDI = ProductUIDI(getProduct: productDI.getProductUseCase)
         let wishlistUI = WishlistUIDI(

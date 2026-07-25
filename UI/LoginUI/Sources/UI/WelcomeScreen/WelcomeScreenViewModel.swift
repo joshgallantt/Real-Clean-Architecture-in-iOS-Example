@@ -3,6 +3,7 @@ import Foundation
 @MainActor
 public final class WelcomeScreenViewModel: ObservableObject {
     @Published var isPresentingLogin = false
+    @Published var isPresentingCreateAccount = false
 
     private let onContinueAsGuest: () -> Void
 
@@ -12,6 +13,10 @@ public final class WelcomeScreenViewModel: ObservableObject {
 
     func didTapLogIn() {
         isPresentingLogin = true
+    }
+
+    func didTapCreateAccount() {
+        isPresentingCreateAccount = true
     }
 
     func didContinueAsGuest() {
