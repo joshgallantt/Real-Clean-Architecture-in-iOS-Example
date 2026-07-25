@@ -8,14 +8,14 @@
 import SwiftUI
 
 public struct LoginScreenView: View {
-    @ObservedObject var viewModel: LoginScreenViewModel
+    @StateObject private var viewModel: LoginScreenViewModel
     private let createAccountView: () -> AnyView
 
     public init(
-        viewModel: LoginScreenViewModel,
+        viewModel: @autoclosure @escaping () -> LoginScreenViewModel,
         createAccountView: @escaping () -> AnyView
     ) {
-        self.viewModel = viewModel
+        self._viewModel = StateObject(wrappedValue: viewModel())
         self.createAccountView = createAccountView
     }
 

@@ -2,16 +2,16 @@ import SwiftUI
 import ProductUI
 
 public struct SearchResultsView: View {
-    @ObservedObject var viewModel: SearchResultsViewModel
+    @StateObject private var viewModel: SearchResultsViewModel
     let navigation: SearchNavigation
     let wishlistButton: (Int) -> AnyView
 
     public init(
-        viewModel: SearchResultsViewModel,
+        viewModel: @autoclosure @escaping () -> SearchResultsViewModel,
         navigation: SearchNavigation,
         wishlistButton: @escaping (Int) -> AnyView
     ) {
-        self.viewModel = viewModel
+        self._viewModel = StateObject(wrappedValue: viewModel())
         self.navigation = navigation
         self.wishlistButton = wishlistButton
     }

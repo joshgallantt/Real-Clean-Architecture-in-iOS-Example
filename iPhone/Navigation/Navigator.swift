@@ -45,10 +45,10 @@ final class Navigator: ObservableObject {
 
     func pop() {
         switch selectedTab {
-        case .home: homePath.removeLast()
-        case .search: searchPath.removeLast()
-        case .bag: bagPath.removeLast()
-        case .wishlist: wishlistPath.removeLast()
+        case .home: if !homePath.isEmpty { homePath.removeLast() }
+        case .search: if !searchPath.isEmpty { searchPath.removeLast() }
+        case .bag: if !bagPath.isEmpty { bagPath.removeLast() }
+        case .wishlist: if !wishlistPath.isEmpty { wishlistPath.removeLast() }
         case .account: break
         }
     }

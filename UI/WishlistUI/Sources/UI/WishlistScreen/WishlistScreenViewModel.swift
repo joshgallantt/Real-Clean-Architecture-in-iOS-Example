@@ -15,6 +15,7 @@ public final class WishlistScreenViewModel: ObservableObject {
     private let observeSession: ObserveSessionUseCase
     private var cancellables = Set<AnyCancellable>()
     private var cache: [Int: Product] = [:]
+    private var refreshTask: Task<Void, Never>?
 
     public init(
         observeWishlist: ObserveWishlistUseCase,
@@ -37,7 +38,12 @@ public final class WishlistScreenViewModel: ObservableObject {
 
         observeWishlist()
             .sink { [weak self] items in
-                Task { await self?.refresh(items) }
+                // Serialise refreshes: a new emission supersedes any in-flight one,
+                // so a slow fetch can never clobber newer state.
+                self?.refreshTask?.cancel()
+                self?.refreshTask = Task { [weak self] in
+                    await self?.refresh(items)
+                }
             }
             .store(in: &cancellables)
     }
@@ -47,12 +53,17 @@ public final class WishlistScreenViewModel: ObservableObject {
         if !missing.isEmpty {
             isLoading = true
             for item in missing {
+                guard !Task.isCancelled else {
+                    isLoading = false
+                    return
+                }
                 if case .success(let product) = await getProduct(id: item.id) {
                     cache[item.id] = product
                 }
             }
             isLoading = false
         }
+        guard !Task.isCancelled else { return }
         products = items.compactMap { cache[$0.id] }
     }
 }
