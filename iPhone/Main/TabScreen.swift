@@ -11,9 +11,11 @@ import SearchUIDI
 import WishlistUIDI
 import BagUIDI
 import AccountUIDI
+import SnackbarUI
 
 struct TabScreen: View {
     @ObservedObject var navigator: Navigator
+    let snackbarPresenter: SnackbarPresenter
     let homeView: AnyView
     let searchView: AnyView
     let wishlistView: AnyView
@@ -65,5 +67,6 @@ struct TabScreen: View {
                 }
             }
         }
+        .snackbarHost(snackbarPresenter)
     }
 }

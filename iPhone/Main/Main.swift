@@ -32,6 +32,7 @@ struct Main: App {
                 case .main:
                     TabScreen(
                         navigator: Injector.shared.navigator,
+                        snackbarPresenter: Injector.shared.snackbarPresenter,
                         homeView: Injector.shared.homeView,
                         searchView: Injector.shared.searchView,
                         wishlistView: Injector.shared.wishlistView,
