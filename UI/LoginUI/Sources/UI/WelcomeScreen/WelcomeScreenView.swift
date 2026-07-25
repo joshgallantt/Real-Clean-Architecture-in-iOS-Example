@@ -1,16 +1,16 @@
 import SwiftUI
 
 public struct WelcomeScreenView: View {
-    @ObservedObject var viewModel: WelcomeScreenViewModel
+    @StateObject private var viewModel: WelcomeScreenViewModel
     private let loginView: (@escaping () -> Void) -> AnyView
     private let createAccountView: (@escaping () -> Void) -> AnyView
 
     public init(
-        viewModel: WelcomeScreenViewModel,
+        viewModel: @autoclosure @escaping () -> WelcomeScreenViewModel,
         loginView: @escaping (@escaping () -> Void) -> AnyView,
         createAccountView: @escaping (@escaping () -> Void) -> AnyView
     ) {
-        self.viewModel = viewModel
+        self._viewModel = StateObject(wrappedValue: viewModel())
         self.loginView = loginView
         self.createAccountView = createAccountView
     }

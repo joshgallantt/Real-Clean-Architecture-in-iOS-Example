@@ -1,10 +1,10 @@
 import SwiftUI
 
 public struct CreateAccountScreenView: View {
-    @ObservedObject var viewModel: CreateAccountScreenViewModel
+    @StateObject private var viewModel: CreateAccountScreenViewModel
 
-    public init(viewModel: CreateAccountScreenViewModel) {
-        self.viewModel = viewModel
+    public init(viewModel: @autoclosure @escaping () -> CreateAccountScreenViewModel) {
+        self._viewModel = StateObject(wrappedValue: viewModel())
     }
 
     public var body: some View {

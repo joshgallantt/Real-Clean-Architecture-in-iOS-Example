@@ -22,7 +22,7 @@ public protocol SessionStore: AnyObject, Sendable {
 @MainActor
 public final class DefaultSessionStore: SessionStore {
     public private(set) var authToken: AuthToken?
-    private var expiryTimer: DispatchSourceTimer?
+    private var expiryTask: Task<Void, Never>?
     private let sessionSubject: CurrentValueSubject<Session, Never>
     private let defaults: UserDefaults
     private let storageKey = "session.current"
@@ -64,7 +64,7 @@ public final class DefaultSessionStore: SessionStore {
         self.authToken = nil
         sessionSubject.send(.guest)
         defaults.removeObject(forKey: storageKey)
-        cancelExpiryTimer()
+        cancelExpiryTask()
     }
 
     private func saveSnapshot(user: User, token: AuthToken) {
@@ -96,23 +96,21 @@ public final class DefaultSessionStore: SessionStore {
     }
 
     private func scheduleExpiry(for token: AuthToken) {
-        cancelExpiryTimer()
+        cancelExpiryTask()
         let interval = token.expiresAt.timeIntervalSinceNow
         guard interval > 0 else {
             clear()
             return
         }
-        let timer = DispatchSource.makeTimerSource(queue: .main)
-        timer.schedule(deadline: .now() + interval)
-        timer.setEventHandler { [weak self] in
+        expiryTask = Task { [weak self] in
+            try? await Task.sleep(for: .seconds(interval))
+            guard !Task.isCancelled else { return }
             self?.clear()
         }
-        timer.resume()
-        expiryTimer = timer
     }
 
-    private func cancelExpiryTimer() {
-        expiryTimer?.cancel()
-        expiryTimer = nil
+    private func cancelExpiryTask() {
+        expiryTask?.cancel()
+        expiryTask = nil
     }
 }

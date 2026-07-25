@@ -45,11 +45,13 @@ public struct WishlistUIDI {
     @MainActor
     public func button(productId: Int) -> some View {
         WishlistButtonView(
-            productId: productId,
-            productIsWishlisted: productIsWishlisted,
-            addProductToWishlist: addProductToWishlist,
-            removeProductFromWishlist: removeProductFromWishlist,
-            authGate: authGate
+            viewModel: WishlistButtonViewModel(
+                productId: productId,
+                productIsWishlisted: self.productIsWishlisted,
+                addProductToWishlist: self.addProductToWishlist,
+                removeProductFromWishlist: self.removeProductFromWishlist,
+                authGate: self.authGate
+            )
         )
     }
 

@@ -16,19 +16,22 @@ import AuthGate
 final class DefaultAuthGate: ObservableObject, AuthGate {
     @Published var isPresentingAuth = false
 
-    private var pendingAction: (() -> Void)?
+    // A queue, not a single slot: a guest can trigger more than one gated action
+    // (e.g. wishlisting two different products) before the auth sheet is resolved,
+    // and none of those requests should be silently dropped.
+    private var pendingActions: [() -> Void] = []
     private let getSession: GetSessionUseCase
 
     init(getSession: GetSessionUseCase) {
         self.getSession = getSession
     }
 
-    /// Runs `action` immediately when authenticated, otherwise defers it behind the auth flow.
+    /// Runs `action` immediately when authenticated, otherwise queues it behind the auth flow.
     func requireAuthentication(_ action: @escaping () -> Void) {
         if getSession().isLoggedIn {
             action()
         } else {
-            pendingAction = action
+            pendingActions.append(action)
             isPresentingAuth = true
         }
     }
@@ -36,13 +39,13 @@ final class DefaultAuthGate: ObservableObject, AuthGate {
     /// Called by the auth flow on a successful login / create account.
     func completeAuthentication() {
         isPresentingAuth = false
-        let action = pendingAction
-        pendingAction = nil
-        action?()
+        let actions = pendingActions
+        pendingActions = []
+        actions.forEach { $0() }
     }
 
     /// Called when the auth flow is dismissed without authenticating.
     func cancelAuthentication() {
-        pendingAction = nil
+        pendingActions = []
     }
 }

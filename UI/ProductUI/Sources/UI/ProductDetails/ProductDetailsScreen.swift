@@ -2,10 +2,10 @@ import SwiftUI
 import Product
 
 public struct ProductDetailsScreen: View {
-    @ObservedObject var viewModel: ProductDetailsViewModel
+    @StateObject private var viewModel: ProductDetailsViewModel
 
-    public init(viewModel: ProductDetailsViewModel) {
-        self.viewModel = viewModel
+    public init(viewModel: @autoclosure @escaping () -> ProductDetailsViewModel) {
+        self._viewModel = StateObject(wrappedValue: viewModel())
     }
 
     public var body: some View {
