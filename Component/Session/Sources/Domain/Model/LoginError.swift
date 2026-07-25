@@ -9,7 +9,7 @@ import Foundation
 
 public enum LoginError: Error {
     case invalidCredentials
-    case usernameIsEmpty
+    case emailIsEmpty
     case passwordIsEmpty
     case unknown
 }

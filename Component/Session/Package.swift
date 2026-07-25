@@ -22,9 +22,6 @@ let package = Package(
             targets: ["SessionDI"]
         )
     ],
-    dependencies: [
-        .package(path: "../../Library/Networking")
-    ],
     targets: [
         .target(
             name: "Session",
@@ -36,8 +33,7 @@ let package = Package(
         .target(
             name: "SessionData",
             dependencies: [
-                "Session",
-                .product(name: "Networking", package: "Networking")
+                "Session"
             ],
             path: "Sources",
             exclude: ["Domain", "DI"],

@@ -17,7 +17,6 @@ public struct AccountScreenView: View {
             Section("Account") {
                 if let user = viewModel.currentUser {
                     LabeledContent("Name", value: "\(user.firstName) \(user.lastName)")
-                    LabeledContent("Username", value: user.username)
                     LabeledContent("Email", value: user.email)
                     Button("Log Out", role: .destructive) {
                         Task { await viewModel.didTapLogOut() }

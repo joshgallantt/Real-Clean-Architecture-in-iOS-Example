@@ -26,14 +26,44 @@ public final class DefaultSessionRepository: SessionRepository {
         self.authClient = authClient
     }
 
-    public func login(username: String, password: String) async -> Result<Void, LoginError> {
-        let result = await authClient.login(username: username, password: password)
+    public func login(email: String, password: String) async -> Result<Void, LoginError> {
+        let result = await authClient.login(email: email, password: password)
         switch result {
         case let .success((user, token)):
             await sessionStore.setUser(user, token: token)
             return .success(())
         case .failure(let error):
             return .failure(mapAuthClientErrorToLoginError(error))
+        }
+    }
+
+    public func createAccount(
+        firstName: String,
+        lastName: String,
+        email: String,
+        password: String
+    ) async -> Result<Void, CreateAccountError> {
+        let result = await authClient.createAccount(
+            firstName: firstName,
+            lastName: lastName,
+            email: email,
+            password: password
+        )
+        switch result {
+        case let .success((user, token)):
+            await sessionStore.setUser(user, token: token)
+            return .success(())
+        case .failure(let error):
+            return .failure(mapAuthClientErrorToCreateAccountError(error))
+        }
+    }
+
+    private func mapAuthClientErrorToCreateAccountError(_ error: AuthClientError) -> CreateAccountError {
+        switch error {
+        case .emailAlreadyInUse:
+            return .emailAlreadyInUse
+        case .invalidCredentials, .networkFailure, .unknown:
+            return .unknown
         }
     }
 
@@ -46,7 +76,7 @@ public final class DefaultSessionRepository: SessionRepository {
         switch error {
         case .invalidCredentials:
             return .invalidCredentials
-        case .networkFailure, .unknown:
+        case .emailAlreadyInUse, .networkFailure, .unknown:
             return .unknown
         }
     }

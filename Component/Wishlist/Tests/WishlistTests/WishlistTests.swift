@@ -36,7 +36,7 @@ final class WishlistTests: XCTestCase {
     }
 
     private static func user(id: Int) -> User {
-        User(id: id, username: "u\(id)", email: "", firstName: "", lastName: "")
+        User(id: id, email: "u\(id)@example.com", firstName: "", lastName: "")
     }
 }
 
