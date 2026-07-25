@@ -1,23 +1,24 @@
 import SwiftUI
 import AccountUI
 import Session
+import AuthGate
 
 public struct AccountUIDI {
     private let getSession: GetSessionUseCase
     private let observeSession: ObserveSessionUseCase
     private let logoutUseCase: LogoutUseCase
-    private let makeLoginView: () -> AnyView
+    private let authGate: AuthGate
 
     public init(
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
         logoutUseCase: LogoutUseCase,
-        makeLoginView: @escaping () -> AnyView
+        authGate: AuthGate
     ) {
         self.getSession = getSession
         self.observeSession = observeSession
         self.logoutUseCase = logoutUseCase
-        self.makeLoginView = makeLoginView
+        self.authGate = authGate
     }
 
     @MainActor
@@ -28,7 +29,7 @@ public struct AccountUIDI {
                 observeSession: observeSession,
                 logoutUseCase: logoutUseCase
             ),
-            loginView: makeLoginView
+            authGate: authGate
         )
     }
 }

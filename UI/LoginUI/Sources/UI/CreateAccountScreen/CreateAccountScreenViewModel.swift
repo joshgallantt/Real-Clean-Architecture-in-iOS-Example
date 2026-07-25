@@ -4,6 +4,7 @@ import Session
 @MainActor
 public final class CreateAccountScreenViewModel: ObservableObject {
     private let createAccountUseCase: CreateAccountUseCase
+    private let onAuthenticated: () -> Void
 
     @Published var firstName: String = ""
     @Published var lastName: String = ""
@@ -12,8 +13,9 @@ public final class CreateAccountScreenViewModel: ObservableObject {
     @Published var isLoading: Bool = false
     @Published var error: String?
 
-    public init(createAccountUseCase: CreateAccountUseCase) {
+    public init(createAccountUseCase: CreateAccountUseCase, onAuthenticated: @escaping () -> Void) {
         self.createAccountUseCase = createAccountUseCase
+        self.onAuthenticated = onAuthenticated
     }
 
     func createAccount() async {
@@ -27,7 +29,10 @@ public final class CreateAccountScreenViewModel: ObservableObject {
             email: email,
             password: password
         )
-        if case .failure(let createAccountError) = result {
+        switch result {
+        case .success:
+            onAuthenticated()
+        case .failure(let createAccountError):
             self.error = message(for: createAccountError)
         }
     }

@@ -23,6 +23,7 @@
 		FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000200000000000000A2 /* OnboardingUIDI */; };
 		FADE000300000000000000A1 /* ProductUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000300000000000000A2 /* ProductUIDI */; };
 		FADE000400000000000000A1 /* WishlistDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000400000000000000A2 /* WishlistDI */; };
+		FADE000500000000000000A1 /* AuthGate in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000500000000000000A2 /* AuthGate */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -92,6 +93,7 @@
 				FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */,
 				FADE000300000000000000A1 /* ProductUIDI in Frameworks */,
 				FADE000400000000000000A1 /* WishlistDI in Frameworks */,
+				FADE000500000000000000A1 /* AuthGate in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -169,6 +171,7 @@
 				FADE000200000000000000A2 /* OnboardingUIDI */,
 				FADE000300000000000000A2 /* ProductUIDI */,
 				FADE000400000000000000A2 /* WishlistDI */,
+				FADE000500000000000000A2 /* AuthGate */,
 			);
 			productName = iPhone;
 			productReference = 1418DD6E2E3E53DC00191417 /* iPhone.app */;
@@ -697,6 +700,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Component/Wishlist;
 		};
+		FADE000500000000000000B1 /* XCLocalSwiftPackageReference "Library/AuthGate" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Library/AuthGate;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -779,6 +786,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FADE000400000000000000B1 /* XCLocalSwiftPackageReference "Component/Wishlist" */;
 			productName = WishlistDI;
+		};
+		FADE000500000000000000A2 /* AuthGate */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE000500000000000000B1 /* XCLocalSwiftPackageReference "Library/AuthGate" */;
+			productName = AuthGate;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

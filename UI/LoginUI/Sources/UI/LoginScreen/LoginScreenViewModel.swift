@@ -12,14 +12,16 @@ import Session
 @MainActor
 public final class LoginScreenViewModel: ObservableObject {
     private let loginUseCase: LoginUseCase
+    private let onAuthenticated: () -> Void
 
     @Published var email: String = ""
     @Published var password: String = ""
     @Published var isLoading: Bool = false
     @Published var error: String?
 
-    public init(loginUseCase: LoginUseCase) {
+    public init(loginUseCase: LoginUseCase, onAuthenticated: @escaping () -> Void) {
         self.loginUseCase = loginUseCase
+        self.onAuthenticated = onAuthenticated
     }
 
     func login() async {
@@ -30,7 +32,7 @@ public final class LoginScreenViewModel: ObservableObject {
         let result = await loginUseCase(email: email, password: password)
         switch result {
         case .success:
-            break
+            onAuthenticated()
         case .failure(let loginError):
             self.error = mapLoginErrorToMessage(loginError)
         }
