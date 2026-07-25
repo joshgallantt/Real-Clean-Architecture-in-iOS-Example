@@ -8,49 +8,58 @@ struct CreateAccountSheetView: View {
     }
 
     var body: some View {
-        ZStack(alignment: .topTrailing) {
-            VStack(spacing: 24) {
-                AuthSheetHeader(
-                    icon: "bag.fill",
-                    title: "Create Account",
-                    subtitle: "Join to save your bag and wishlist across devices."
-                )
+        Group {
+            if let greeting = viewModel.successGreeting {
+                AuthSuccessView(title: "Account Created", message: greeting)
+                    .transition(.opacity)
+            } else {
+                form
+                    .transition(.opacity)
+            }
+        }
+        .padding(24)
+        .animation(.easeInOut(duration: 0.25), value: viewModel.successGreeting)
+        .authSheetPresentation(height: 580)
+    }
 
-                VStack(spacing: 12) {
-                    HStack(spacing: 12) {
-                        AuthField(icon: "person.fill") {
-                            TextField("First name", text: $viewModel.firstName)
-                                .textContentType(.givenName)
-                        }
-                        AuthField(icon: "person.fill") {
-                            TextField("Last name", text: $viewModel.lastName)
-                                .textContentType(.familyName)
-                        }
+    private var form: some View {
+        VStack(spacing: 24) {
+            AuthSheetHeader(
+                icon: "bag.fill",
+                title: "Create Account",
+                subtitle: "Join to save your bag and wishlist across devices."
+            )
+
+            VStack(spacing: 12) {
+                HStack(spacing: 12) {
+                    AuthField(icon: "person.fill") {
+                        TextField("First name", text: $viewModel.firstName)
+                            .textContentType(.givenName)
                     }
-                    AuthField(icon: "envelope.fill") {
-                        TextField("Email", text: $viewModel.email)
-                            .textContentType(.username)
-                            .keyboardType(.emailAddress)
-                            .textInputAutocapitalization(.never)
-                            .autocorrectionDisabled(true)
-                    }
-                    AuthField(icon: "lock.fill") {
-                        SecureField("Password", text: $viewModel.password)
-                            .textContentType(.newPassword)
-                    }
-                    if let error = viewModel.error {
-                        AuthErrorBanner(message: error)
+                    AuthField(icon: "person.fill") {
+                        TextField("Last name", text: $viewModel.lastName)
+                            .textContentType(.familyName)
                     }
                 }
-
-                AuthPrimaryButton(title: "Create Account", isLoading: viewModel.isLoading) {
-                    Task { await viewModel.createAccount() }
+                AuthField(icon: "envelope.fill") {
+                    TextField("Email", text: $viewModel.email)
+                        .textContentType(.username)
+                        .keyboardType(.emailAddress)
+                        .textInputAutocapitalization(.never)
+                        .autocorrectionDisabled(true)
+                }
+                AuthField(icon: "lock.fill") {
+                    SecureField("Password", text: $viewModel.password)
+                        .textContentType(.newPassword)
+                }
+                if let error = viewModel.error {
+                    AuthErrorBanner(message: error)
                 }
             }
-            .padding(24)
 
-            AuthSheetCloseButton()
+            AuthPrimaryButton(title: "Create Account", isLoading: viewModel.isLoading) {
+                Task { await viewModel.createAccount() }
+            }
         }
-        .authSheetPresentation(height: 580)
     }
 }

@@ -4,6 +4,7 @@ import Session
 @MainActor
 final class CreateAccountSheetViewModel: ObservableObject {
     private let createAccountUseCase: CreateAccountUseCase
+    private let getSession: GetSessionUseCase
     private let onAuthenticated: () -> Void
 
     @Published var firstName: String = ""
@@ -12,9 +13,15 @@ final class CreateAccountSheetViewModel: ObservableObject {
     @Published var password: String = ""
     @Published var isLoading: Bool = false
     @Published var error: String?
+    @Published private(set) var successGreeting: String?
 
-    init(createAccountUseCase: CreateAccountUseCase, onAuthenticated: @escaping () -> Void) {
+    init(
+        createAccountUseCase: CreateAccountUseCase,
+        getSession: GetSessionUseCase,
+        onAuthenticated: @escaping () -> Void
+    ) {
         self.createAccountUseCase = createAccountUseCase
+        self.getSession = getSession
         self.onAuthenticated = onAuthenticated
     }
 
@@ -31,6 +38,7 @@ final class CreateAccountSheetViewModel: ObservableObject {
         )
         switch result {
         case .success:
+            successGreeting = AuthGreeting.welcome(getSession().user?.firstName)
             onAuthenticated()
         case .failure(let failure):
             error = failure.userMessage

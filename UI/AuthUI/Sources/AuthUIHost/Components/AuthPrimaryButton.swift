@@ -8,6 +8,7 @@ struct AuthPrimaryButton: View {
     var body: some View {
         Button(action: action) {
             ZStack {
+                // Held in place, invisible, so the button keeps its size while it works.
                 Text(title)
                     .fontWeight(.semibold)
                     .opacity(isLoading ? 0 : 1)
@@ -19,7 +20,9 @@ struct AuthPrimaryButton: View {
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent)
+        .tint(isLoading ? Color(.systemGray3) : .accentColor)
         .controlSize(.large)
         .disabled(isLoading)
+        .animation(.easeInOut(duration: 0.15), value: isLoading)
     }
 }

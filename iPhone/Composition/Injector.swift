@@ -91,6 +91,7 @@ final class Injector {
             loginUseCase: sessionDI.loginUseCase,
             createAccountUseCase: sessionDI.createAccountUseCase,
             userIsLoggedInUseCase: sessionDI.userIsLoggedInUseCase,
+            getSessionUseCase: sessionDI.getSessionUseCase,
             sheetPresenting: sheetDI.presenter
         )
         authUIDI = authDI
@@ -145,9 +146,6 @@ final class Injector {
 
     @MainActor
     func makeMainViewModel() -> MainViewModel {
-        MainViewModel(
-            getSession: sessionDI.getSessionUseCase,
-            observeSession: sessionDI.observeSessionUseCase
-        )
+        MainViewModel(getSession: sessionDI.getSessionUseCase)
     }
 }

@@ -20,49 +20,68 @@ public struct AuthUIDI {
         loginUseCase: LoginUseCase,
         createAccountUseCase: CreateAccountUseCase,
         userIsLoggedInUseCase: UserIsLoggedInUseCase,
+        getSessionUseCase: GetSessionUseCase,
         sheetPresenting: SheetPresenting
     ) {
         self.presenter = AuthPresenter(
             sheetPresenting: sheetPresenting,
             userIsLoggedIn: userIsLoggedInUseCase,
             loginUseCase: loginUseCase,
-            createAccountUseCase: createAccountUseCase
+            createAccountUseCase: createAccountUseCase,
+            getSession: getSessionUseCase
         )
     }
 
     /// A self-contained "Log In" button: tapping it presents the Log In sheet directly and
-    /// resolves on its own. Callers don't need to hold any state or pass a completion
-    /// closure — the screen usually just reacts to the resulting session change instead.
+    /// resolves on its own. Most callers need no completion closure — the screen just reacts
+    /// to the resulting session change. `onAuthenticated` is for the ones that can't, because
+    /// what they do next has to wait for the sheet to be gone; it fires once it is.
     @MainActor
-    public func loginButtonView(title: String = "Log In") -> some View {
+    public func loginButtonView(
+        title: String = "Log In",
+        onAuthenticated: @escaping () -> Void = {}
+    ) -> some View {
         Button {
-            Task { await presenter.logIn() }
+            Task {
+                if await presenter.logIn() { onAuthenticated() }
+            }
         } label: {
             Text(title).frame(maxWidth: .infinity)
         }
     }
 
-    /// A self-contained "Create Account" button — see `loginButtonView(title:)`.
+    /// A self-contained "Create Account" button — see `loginButtonView(title:onAuthenticated:)`.
     @MainActor
-    public func createAccountButtonView(title: String = "Create Account") -> some View {
+    public func createAccountButtonView(
+        title: String = "Create Account",
+        onAuthenticated: @escaping () -> Void = {}
+    ) -> some View {
         Button {
-            Task { await presenter.createAccount() }
+            Task {
+                if await presenter.createAccount() { onAuthenticated() }
+            }
         } label: {
             Text(title).frame(maxWidth: .infinity)
         }
     }
 
+    /// - Parameter onAuthenticated: fires once the flow's sheet has left the screen, not the
+    ///   moment the session changes — this screen is underneath that sheet, so replacing it
+    ///   any earlier pulls the ground out from under the confirmation the user is reading.
     @MainActor
-    public func welcomeView(onContinueAsGuest: @escaping () -> Void) -> some View {
+    public func welcomeView(
+        onContinueAsGuest: @escaping () -> Void,
+        onAuthenticated: @escaping () -> Void
+    ) -> some View {
         WelcomeScreenView(
             viewModel: WelcomeScreenViewModel(onContinueAsGuest: onContinueAsGuest),
             loginButton: AnyView(
-                loginButtonView()
+                loginButtonView(onAuthenticated: onAuthenticated)
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
             ),
             createAccountButton: AnyView(
-                createAccountButtonView()
+                createAccountButtonView(onAuthenticated: onAuthenticated)
                     .buttonStyle(.bordered)
                     .controlSize(.large)
             )
