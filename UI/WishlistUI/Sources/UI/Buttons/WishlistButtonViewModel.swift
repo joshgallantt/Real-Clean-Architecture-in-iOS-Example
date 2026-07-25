@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import SwiftUI
 import Wishlist
 import LoginUI
 import SnackbarUI
@@ -11,7 +12,8 @@ public final class WishlistButtonViewModel: ObservableObject {
     private let productId: Int
     private let addProductToWishlist: AddProductToWishlistUseCase
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
-    private let authPresenting: AuthPresenting
+    private let authPresenting: AuthSheetCoordinator
+    private let authGate: (@escaping () -> Void, @escaping () -> Void) -> AnyView
     private let snackbar: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
 
@@ -20,13 +22,15 @@ public final class WishlistButtonViewModel: ObservableObject {
         productIsWishlisted: ProductIsWishlistedUseCase,
         addProductToWishlist: AddProductToWishlistUseCase,
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
-        authPresenting: AuthPresenting,
+        authPresenting: AuthSheetCoordinator,
+        authGate: @escaping (@escaping () -> Void, @escaping () -> Void) -> AnyView,
         snackbar: SnackbarPresenting
     ) {
         self.productId = productId
         self.addProductToWishlist = addProductToWishlist
         self.removeProductFromWishlist = removeProductFromWishlist
         self.authPresenting = authPresenting
+        self.authGate = authGate
         self.snackbar = snackbar
 
         productIsWishlisted(productId: productId)
@@ -65,7 +69,7 @@ public final class WishlistButtonViewModel: ObservableObject {
                 action: .undo { Task { await remove(productId: productId) } }
             ))
         case .failure(.unauthenticated):
-            guard await authPresenting.requireAuthentication() else { return }
+            guard await authPresenting.requireAuthentication(gate: authGate) else { return }
             await self.add()
         case .failure(.network):
             snackbar.show(Snackbar(
@@ -92,7 +96,7 @@ public final class WishlistButtonViewModel: ObservableObject {
                 action: .undo { Task { await add(productId: productId) } }
             ))
         case .failure(.unauthenticated):
-            guard await authPresenting.requireAuthentication() else { return }
+            guard await authPresenting.requireAuthentication(gate: authGate) else { return }
             await self.remove()
         case .failure(.network):
             snackbar.show(Snackbar(

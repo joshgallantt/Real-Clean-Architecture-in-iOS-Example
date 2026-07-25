@@ -16,25 +16,18 @@ public struct LoginOrCreateAccountSheetView: View {
     }
 
     public var body: some View {
-        VStack(spacing: 16) {
-            Text(message)
-                .font(.headline)
-                .multilineTextAlignment(.center)
+        VStack(spacing: 28) {
+            AuthSheetHeader(
+                icon: "lock.shield.fill",
+                title: "Account Required",
+                subtitle: message
+            )
 
-            Button(action: onSelectLogIn) {
-                Text("Log In")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.borderedProminent)
-            .controlSize(.large)
-
-            Button(action: onSelectCreateAccount) {
-                Text("Create Account")
-                    .frame(maxWidth: .infinity)
-            }
-            .buttonStyle(.bordered)
-            .controlSize(.large)
+            AuthActionButtons(onSelectLogIn: onSelectLogIn, onSelectCreateAccount: onSelectCreateAccount)
         }
-        .padding()
+        .padding(24)
+        .presentationDetents([.height(380)])
+        .presentationDragIndicator(.visible)
+        .presentationCornerRadius(28)
     }
 }

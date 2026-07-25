@@ -17,13 +17,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../../Component/Session")
+        .package(path: "../../Component/Session"),
+        .package(path: "../SheetUI")
     ],
     targets: [
         .target(
             name: "LoginUI",
             dependencies: [
-                .product(name: "Session", package: "Session")
+                .product(name: "Session", package: "Session"),
+                .product(name: "SheetUI", package: "SheetUI")
             ],
             path: "Sources",
             exclude: ["DI"],
@@ -33,7 +35,8 @@ let package = Package(
             name: "LoginUIDI",
             dependencies: [
                 "LoginUI",
-                .product(name: "Session", package: "Session")
+                .product(name: "Session", package: "Session"),
+                .product(name: "SheetUI", package: "SheetUI")
             ],
             path: "Sources/DI"
         ),

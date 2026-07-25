@@ -36,7 +36,6 @@ final class Injector {
 
     // MARK: - Feature Navigation
     let navigator: Navigator
-    let authPresenter: DefaultAuthPresenter
     let snackbarPresenter: SnackbarPresenter
 
     // MARK: - UIDI Properties
@@ -76,24 +75,22 @@ final class Injector {
             requireAuthentication: sessionDI.requireAuthenticationUseCase
         )
 
-        // MARK: Auth presenter
-        let authPresenter = DefaultAuthPresenter(requireAuthenticationUseCase: sessionDI.requireAuthenticationUseCase)
-        self.authPresenter = authPresenter
-
         // MARK: Snackbars
         let snackbarPresenter = SnackbarPresenter()
         self.snackbarPresenter = snackbarPresenter
-
-        // MARK: Navigation
-        navigator = Navigator(authPresenting: authPresenter)
 
         // MARK: UI Features
         onboardingUIDI = OnboardingUIDI()
         let loginDI = LoginUIDI(
             loginUseCase: sessionDI.loginUseCase,
-            createAccountUseCase: sessionDI.createAccountUseCase
+            createAccountUseCase: sessionDI.createAccountUseCase,
+            requireAuthenticationUseCase: sessionDI.requireAuthenticationUseCase
         )
         loginUIDI = loginDI
+
+        // MARK: Navigation
+        navigator = Navigator(authPresenting: loginDI.authSheetCoordinator)
+
         productUIDI = ProductUIDI(getProduct: productDI.getProductUseCase)
         let wishlistUI = WishlistUIDI(
             navigation: navigator,
@@ -103,7 +100,7 @@ final class Injector {
             removeProductFromWishlist: wishlistDI.removeProductFromWishlistUseCase,
             getProduct: productDI.getProductUseCase,
             observeSession: sessionDI.observeSessionUseCase,
-            authPresenting: authPresenter,
+            authPresenting: loginDI.authSheetCoordinator,
             snackbar: snackbarPresenter
         )
         wishlistUIDI = wishlistUI

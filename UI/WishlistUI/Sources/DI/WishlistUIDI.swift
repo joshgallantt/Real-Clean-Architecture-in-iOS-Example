@@ -21,7 +21,7 @@ public struct WishlistUIDI {
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
     private let getProduct: GetProductUseCase
     private let observeSession: ObserveSessionUseCase
-    private let authPresenting: AuthPresenting
+    private let authPresenting: AuthSheetCoordinator
     private let snackbar: SnackbarPresenting
 
     public init(
@@ -32,7 +32,7 @@ public struct WishlistUIDI {
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
         getProduct: GetProductUseCase,
         observeSession: ObserveSessionUseCase,
-        authPresenting: AuthPresenting,
+        authPresenting: AuthSheetCoordinator,
         snackbar: SnackbarPresenting
     ) {
         self.navigation = navigation
@@ -55,9 +55,22 @@ public struct WishlistUIDI {
                 addProductToWishlist: self.addProductToWishlist,
                 removeProductFromWishlist: self.removeProductFromWishlist,
                 authPresenting: self.authPresenting,
+                authGate: Self.wishlistAuthGate,
                 snackbar: self.snackbar
             )
         )
+    }
+
+    @MainActor
+    private static func wishlistAuthGate(
+        onSelectLogIn: @escaping () -> Void,
+        onSelectCreateAccount: @escaping () -> Void
+    ) -> AnyView {
+        AnyView(LoginOrCreateAccountSheetView(
+            message: "Wishlist Requires an Account",
+            onSelectLogIn: onSelectLogIn,
+            onSelectCreateAccount: onSelectCreateAccount
+        ))
     }
 
     @MainActor

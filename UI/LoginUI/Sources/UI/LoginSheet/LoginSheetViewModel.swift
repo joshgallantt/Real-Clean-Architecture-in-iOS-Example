@@ -1,5 +1,5 @@
 //
-//  LoginScreenViewModel.swift
+//  LoginSheetViewModel.swift
 //  CleanArchitecture
 //
 //  Created by Josh Gallant on 18/07/2025.
@@ -10,7 +10,7 @@ import Combine
 import Session
 
 @MainActor
-public final class LoginScreenViewModel: ObservableObject {
+public final class LoginSheetViewModel: ObservableObject {
     private let loginUseCase: LoginUseCase
     private let onAuthenticated: () -> Void
 

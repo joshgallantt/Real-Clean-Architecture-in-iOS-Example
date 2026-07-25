@@ -38,8 +38,8 @@ final class MainViewModel: ObservableObject {
         if cancellables.isEmpty {
             observeSession()
                 .sink { [weak self] session in
-                    guard let self, session.isLoggedIn else { return }
-                    self.phase = .main
+                    guard let self, session.isLoggedIn, self.phase != .main else { return }
+                    self.transitionToMain()
                 }
                 .store(in: &cancellables)
         }
@@ -52,5 +52,17 @@ final class MainViewModel: ObservableObject {
 
     func continueAsGuest() {
         phase = .main
+    }
+
+    private func transitionToMain() {
+        Task {
+            if phase == .welcome {
+                // Login/create-account is presented as a sheet on the Welcome screen —
+                // let its dismiss animation finish before the whole screen (and sheet)
+                // is torn out of the hierarchy, or dismiss gets cut short mid-animation.
+                try? await Task.sleep(for: .milliseconds(400))
+            }
+            phase = .main
+        }
     }
 }
