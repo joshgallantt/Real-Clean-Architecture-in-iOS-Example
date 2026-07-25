@@ -21,6 +21,15 @@ public enum Destination: Hashable {
     case categoryResults(category: CategorySlug)
     case productDetails(id: Int)
 
+    /// Navigation policy: destinations that require an authenticated session.
+    /// `Navigator.open` routes these through the auth gate before pushing.
+    var requiresAuthentication: Bool {
+        switch self {
+        case .searchResults, .categoryResults, .productDetails:
+            return false
+        }
+    }
+
     @ViewBuilder
     func makeView() -> some View {
         switch self {
@@ -41,14 +50,14 @@ extension Navigator:
     BagNavigation
 {
     func openSearchResults(query: String) {
-        push(Destination.searchResults(query: query), tab: nil)
+        open(.searchResults(query: query))
     }
 
     func openCategoryResults(category: CategorySlug) {
-        push(Destination.categoryResults(category: category), tab: nil)
+        open(.categoryResults(category: category))
     }
 
     func openProductDetails(id: Int) {
-        push(Destination.productDetails(id: id), tab: nil)
+        open(.productDetails(id: id))
     }
 }

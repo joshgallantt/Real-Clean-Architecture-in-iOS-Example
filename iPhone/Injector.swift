@@ -35,6 +35,7 @@ final class Injector {
 
     // MARK: - Feature Navigation
     let navigator: Navigator
+    let authGate: DefaultAuthGate
 
     // MARK: - UIDI Properties
     let onboardingUIDI: OnboardingUIDI
@@ -54,9 +55,6 @@ final class Injector {
     let accountView: AnyView
 
     private init() {
-        // MARK: Navigation
-        navigator = Navigator()
-
         // MARK: Component DI
         sessionDI = SessionDI(
             sessionStore: DefaultSessionStore(),
@@ -75,6 +73,13 @@ final class Injector {
             observeSession: sessionDI.observeSessionUseCase
         )
 
+        // MARK: Auth gate
+        let authGate = DefaultAuthGate(getSession: sessionDI.getSessionUseCase)
+        self.authGate = authGate
+
+        // MARK: Navigation
+        navigator = Navigator(authGate: authGate)
+
         // MARK: UI Features
         onboardingUIDI = OnboardingUIDI()
         let loginDI = LoginUIDI(
@@ -89,7 +94,9 @@ final class Injector {
             productIsWishlisted: wishlistDI.productIsWishlistedUseCase,
             addProductToWishlist: wishlistDI.addProductToWishlistUseCase,
             removeProductFromWishlist: wishlistDI.removeProductFromWishlistUseCase,
-            getProduct: productDI.getProductUseCase
+            getProduct: productDI.getProductUseCase,
+            observeSession: sessionDI.observeSessionUseCase,
+            authGate: authGate
         )
         wishlistUIDI = wishlistUI
         homeUIDI = HomeUIDI(
@@ -110,7 +117,7 @@ final class Injector {
             getSession: sessionDI.getSessionUseCase,
             observeSession: sessionDI.observeSessionUseCase,
             logoutUseCase: sessionDI.logoutUseCase,
-            makeLoginView: { AnyView(loginDI.loginView()) }
+            authGate: authGate
         )
 
         // MARK: Create views once to maintain state across tab switches

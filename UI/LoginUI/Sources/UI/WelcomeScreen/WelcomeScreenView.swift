@@ -2,13 +2,13 @@ import SwiftUI
 
 public struct WelcomeScreenView: View {
     @ObservedObject var viewModel: WelcomeScreenViewModel
-    private let loginView: () -> AnyView
-    private let createAccountView: () -> AnyView
+    private let loginView: (@escaping () -> Void) -> AnyView
+    private let createAccountView: (@escaping () -> Void) -> AnyView
 
     public init(
         viewModel: WelcomeScreenViewModel,
-        loginView: @escaping () -> AnyView,
-        createAccountView: @escaping () -> AnyView
+        loginView: @escaping (@escaping () -> Void) -> AnyView,
+        createAccountView: @escaping (@escaping () -> Void) -> AnyView
     ) {
         self.viewModel = viewModel
         self.loginView = loginView
@@ -66,10 +66,10 @@ public struct WelcomeScreenView: View {
         .padding(.horizontal, 32)
         .padding(.bottom, 32)
         .sheet(isPresented: $viewModel.isPresentingLogin) {
-            loginView()
+            loginView { viewModel.isPresentingLogin = false }
         }
         .sheet(isPresented: $viewModel.isPresentingCreateAccount) {
-            createAccountView()
+            createAccountView { viewModel.isPresentingCreateAccount = false }
         }
     }
 }

@@ -9,6 +9,7 @@
 import SwiftUI
 import Combine
 import Foundation
+import AuthGate
 
 @MainActor
 final class Navigator: ObservableObject {
@@ -22,11 +23,39 @@ final class Navigator: ObservableObject {
     @Published var bagPath = NavigationPath()
     @Published var wishlistPath = NavigationPath()
 
-    init() {}
+    private let authGate: AuthGate
+
+    init(authGate: AuthGate) {
+        self.authGate = authGate
+    }
+
+    // MARK: - Single entry point for all navigation (taps, deep links)
+
+    /// Navigates to `destination`, first routing through the auth gate when the
+    /// destination declares `requiresAuthentication`.
+    func open(_ destination: Destination, tab: Tabs? = nil) {
+        if destination.requiresAuthentication {
+            authGate.requireAuthentication { [weak self] in
+                self?.push(destination, tab: tab)
+            }
+        } else {
+            push(destination, tab: tab)
+        }
+    }
+
+    func pop() {
+        switch selectedTab {
+        case .home: homePath.removeLast()
+        case .search: searchPath.removeLast()
+        case .bag: bagPath.removeLast()
+        case .wishlist: wishlistPath.removeLast()
+        case .account: break
+        }
+    }
 
     // MARK: - NavigationPath controls
 
-    func push(_ destination: Destination, tab: Tabs?) {
+    private func push(_ destination: Destination, tab: Tabs?) {
         let destinationTab = tab ?? selectedTab
         if destinationTab != selectedTab {
             switch destinationTab {
@@ -43,16 +72,6 @@ final class Navigator: ObservableObject {
         case .search: searchPath.append(destination)
         case .bag: bagPath.append(destination)
         case .wishlist: wishlistPath.append(destination)
-        case .account: break
-        }
-    }
-
-    func pop() {
-        switch selectedTab {
-        case .home: homePath.removeLast()
-        case .search: searchPath.removeLast()
-        case .bag: bagPath.removeLast()
-        case .wishlist: wishlistPath.removeLast()
         case .account: break
         }
     }

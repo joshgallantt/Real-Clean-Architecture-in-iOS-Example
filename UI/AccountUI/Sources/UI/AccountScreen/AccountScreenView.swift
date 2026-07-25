@@ -1,15 +1,16 @@
 import SwiftUI
+import AuthGate
 
 public struct AccountScreenView: View {
     @ObservedObject var viewModel: AccountScreenViewModel
-    private let loginView: () -> AnyView
+    private let authGate: AuthGate
 
     public init(
         viewModel: AccountScreenViewModel,
-        loginView: @escaping () -> AnyView
+        authGate: AuthGate
     ) {
         self.viewModel = viewModel
-        self.loginView = loginView
+        self.authGate = authGate
     }
 
     public var body: some View {
@@ -25,16 +26,13 @@ public struct AccountScreenView: View {
                     Text("You're browsing as a guest.")
                         .foregroundStyle(.secondary)
                     Button("Log In") {
-                        viewModel.didTapLogIn()
+                        authGate.requireAuthentication {}
                     }
                 }
             }
         }
         .onAppear {
             viewModel.onAppear()
-        }
-        .sheet(isPresented: $viewModel.isPresentingLogin) {
-            loginView()
         }
     }
 }

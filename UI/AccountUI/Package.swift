@@ -17,13 +17,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../../Component/Session")
+        .package(path: "../../Component/Session"),
+        .package(path: "../../Library/AuthGate")
     ],
     targets: [
         .target(
             name: "AccountUI",
             dependencies: [
-                .product(name: "Session", package: "Session")
+                .product(name: "Session", package: "Session"),
+                .product(name: "AuthGate", package: "AuthGate")
             ],
             path: "Sources",
             exclude: ["DI"],
@@ -33,7 +35,8 @@ let package = Package(
             name: "AccountUIDI",
             dependencies: [
                 "AccountUI",
-                .product(name: "Session", package: "Session")
+                .product(name: "Session", package: "Session"),
+                .product(name: "AuthGate", package: "AuthGate")
             ],
             path: "Sources/DI"
         ),

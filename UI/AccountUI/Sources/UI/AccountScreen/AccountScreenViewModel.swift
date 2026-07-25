@@ -5,7 +5,6 @@ import Session
 @MainActor
 public final class AccountScreenViewModel: ObservableObject {
     @Published private(set) var session: Session = .guest
-    @Published var isPresentingLogin = false
 
     private let getSession: GetSessionUseCase
     private let observeSession: ObserveSessionUseCase
@@ -30,17 +29,9 @@ public final class AccountScreenViewModel: ObservableObject {
         guard cancellables.isEmpty else { return }
         observeSession()
             .sink { [weak self] session in
-                guard let self else { return }
-                self.session = session
-                if session.isLoggedIn {
-                    self.isPresentingLogin = false
-                }
+                self?.session = session
             }
             .store(in: &cancellables)
-    }
-
-    func didTapLogIn() {
-        isPresentingLogin = true
     }
 
     func didTapLogOut() async {

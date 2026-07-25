@@ -22,36 +22,28 @@ public struct LoginUIDI {
     }
 
     @MainActor
-    public func makeLoginScreenViewModel() -> LoginScreenViewModel {
-        LoginScreenViewModel(loginUseCase: loginUseCase)
-    }
-
-    @MainActor
-    public func makeCreateAccountScreenViewModel() -> CreateAccountScreenViewModel {
-        CreateAccountScreenViewModel(createAccountUseCase: createAccountUseCase)
-    }
-
-    @MainActor
-    public func createAccountView() -> some View {
-        CreateAccountScreenView(viewModel: makeCreateAccountScreenViewModel())
-    }
-
-    @MainActor
-    public func loginView() -> some View {
+    public func loginView(onAuthenticated: @escaping () -> Void) -> some View {
         NavigationStack {
             LoginScreenView(
-                viewModel: makeLoginScreenViewModel(),
-                createAccountView: { AnyView(self.createAccountView()) }
+                viewModel: LoginScreenViewModel(loginUseCase: loginUseCase, onAuthenticated: onAuthenticated),
+                createAccountView: { AnyView(self.createAccountView(onAuthenticated: onAuthenticated)) }
             )
         }
+    }
+
+    @MainActor
+    public func createAccountView(onAuthenticated: @escaping () -> Void) -> some View {
+        CreateAccountScreenView(
+            viewModel: CreateAccountScreenViewModel(createAccountUseCase: createAccountUseCase, onAuthenticated: onAuthenticated)
+        )
     }
 
     @MainActor
     public func welcomeView(onContinueAsGuest: @escaping () -> Void) -> some View {
         WelcomeScreenView(
             viewModel: WelcomeScreenViewModel(onContinueAsGuest: onContinueAsGuest),
-            loginView: { AnyView(self.loginView()) },
-            createAccountView: { AnyView(NavigationStack { self.createAccountView() }) }
+            loginView: { onAuthenticated in AnyView(self.loginView(onAuthenticated: onAuthenticated)) },
+            createAccountView: { onAuthenticated in AnyView(NavigationStack { self.createAccountView(onAuthenticated: onAuthenticated) }) }
         )
     }
 }

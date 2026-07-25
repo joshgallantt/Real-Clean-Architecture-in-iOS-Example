@@ -13,6 +13,7 @@ import OnboardingUIDI
 @main
 struct Main: App {
     @StateObject private var viewModel = Injector.shared.makeMainViewModel()
+    @StateObject private var authGate = Injector.shared.authGate
 
     var body: some Scene {
         WindowGroup {
@@ -37,6 +38,13 @@ struct Main: App {
                         bagView: Injector.shared.bagView,
                         accountView: Injector.shared.accountView
                     )
+                    .sheet(isPresented: $authGate.isPresentingAuth, onDismiss: {
+                        authGate.cancelAuthentication()
+                    }) {
+                        Injector.shared.loginUIDI.loginView(
+                            onAuthenticated: { authGate.completeAuthentication() }
+                        )
+                    }
                 }
             }
             .animation(.easeInOut, value: viewModel.phase)

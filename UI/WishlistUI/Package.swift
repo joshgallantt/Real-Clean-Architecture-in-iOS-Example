@@ -19,7 +19,9 @@ let package = Package(
     dependencies: [
         .package(path: "../../Component/Wishlist"),
         .package(path: "../../Component/Product"),
-        .package(path: "../ProductUI")
+        .package(path: "../../Component/Session"),
+        .package(path: "../ProductUI"),
+        .package(path: "../../Library/AuthGate")
     ],
     targets: [
         .target(
@@ -27,7 +29,9 @@ let package = Package(
             dependencies: [
                 .product(name: "Wishlist", package: "Wishlist"),
                 .product(name: "Product", package: "Product"),
-                .product(name: "ProductUI", package: "ProductUI")
+                .product(name: "Session", package: "Session"),
+                .product(name: "ProductUI", package: "ProductUI"),
+                .product(name: "AuthGate", package: "AuthGate")
             ],
             path: "Sources",
             exclude: ["DI"],
@@ -38,7 +42,9 @@ let package = Package(
             dependencies: [
                 "WishlistUI",
                 .product(name: "Wishlist", package: "Wishlist"),
-                .product(name: "Product", package: "Product")
+                .product(name: "Product", package: "Product"),
+                .product(name: "Session", package: "Session"),
+                .product(name: "AuthGate", package: "AuthGate")
             ],
             path: "Sources/DI"
         ),
