@@ -21,6 +21,7 @@ let package = Package(
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Session"),
         .package(path: "../ProductUI"),
+        .package(path: "../SnackbarUI"),
         .package(path: "../../Library/AuthGate")
     ],
     targets: [
@@ -31,6 +32,7 @@ let package = Package(
                 .product(name: "Product", package: "Product"),
                 .product(name: "Session", package: "Session"),
                 .product(name: "ProductUI", package: "ProductUI"),
+                .product(name: "SnackbarUI", package: "SnackbarUI"),
                 .product(name: "AuthGate", package: "AuthGate")
             ],
             path: "Sources",
@@ -44,6 +46,7 @@ let package = Package(
                 .product(name: "Wishlist", package: "Wishlist"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Session", package: "Session"),
+                .product(name: "SnackbarUI", package: "SnackbarUI"),
                 .product(name: "AuthGate", package: "AuthGate")
             ],
             path: "Sources/DI"

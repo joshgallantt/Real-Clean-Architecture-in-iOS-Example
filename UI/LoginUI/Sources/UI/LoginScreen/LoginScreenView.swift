@@ -51,5 +51,6 @@ public struct LoginScreenView: View {
         .padding()
         .navigationTitle("Log In")
         .navigationBarTitleDisplayMode(.inline)
+        .sizeToFitSheet()
     }
 }

@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import Product
+import SnackbarUI
 
 @MainActor
 public final class HomeScreenViewModel: ObservableObject {
@@ -8,17 +9,34 @@ public final class HomeScreenViewModel: ObservableObject {
     @Published private(set) var isLoading = false
 
     private let getProducts: GetProductsUseCase
+    private let snackbar: SnackbarPresenting
 
-    public init(getProducts: GetProductsUseCase) {
+    public init(getProducts: GetProductsUseCase, snackbar: SnackbarPresenting) {
         self.getProducts = getProducts
+        self.snackbar = snackbar
     }
 
     func onAppear() async {
         guard products.isEmpty else { return }
+        await load()
+    }
+
+    private func load() async {
         isLoading = true
         defer { isLoading = false }
-        if case .success(let value) = await getProducts(matching: .all(page: 0, pageSize: 30)) {
+
+        switch await getProducts(matching: .all(page: 0, pageSize: 30)) {
+        case .success(let value):
             products = value
+        case .failure:
+            snackbar.show(Snackbar(
+                title: "Couldn't Load Products",
+                message: "Check your connection and try again.",
+                icon: "wifi.exclamationmark",
+                action: .retry { [weak self] in
+                    Task { await self?.load() }
+                }
+            ))
         }
     }
 

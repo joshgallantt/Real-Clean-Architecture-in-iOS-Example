@@ -10,6 +10,7 @@ import Wishlist
 import Product
 import Session
 import AuthGate
+import SnackbarUI
 import WishlistUI
 
 public struct WishlistUIDI {
@@ -21,6 +22,7 @@ public struct WishlistUIDI {
     private let getProduct: GetProductUseCase
     private let observeSession: ObserveSessionUseCase
     private let authGate: AuthGate
+    private let snackbar: SnackbarPresenting
 
     public init(
         navigation: WishlistNavigation,
@@ -30,7 +32,8 @@ public struct WishlistUIDI {
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
         getProduct: GetProductUseCase,
         observeSession: ObserveSessionUseCase,
-        authGate: AuthGate
+        authGate: AuthGate,
+        snackbar: SnackbarPresenting
     ) {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
@@ -40,6 +43,7 @@ public struct WishlistUIDI {
         self.getProduct = getProduct
         self.observeSession = observeSession
         self.authGate = authGate
+        self.snackbar = snackbar
     }
 
     @MainActor
@@ -50,7 +54,8 @@ public struct WishlistUIDI {
                 productIsWishlisted: self.productIsWishlisted,
                 addProductToWishlist: self.addProductToWishlist,
                 removeProductFromWishlist: self.removeProductFromWishlist,
-                authGate: self.authGate
+                authGate: self.authGate,
+                snackbar: self.snackbar
             )
         )
     }

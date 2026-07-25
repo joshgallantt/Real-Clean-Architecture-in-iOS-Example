@@ -19,13 +19,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../../Component/Product")
+        .package(path: "../../Component/Product"),
+        .package(path: "../SnackbarUI")
     ],
     targets: [
         .target(
             name: "HomeUI",
             dependencies: [
-                .product(name: "Product", package: "Product")
+                .product(name: "Product", package: "Product"),
+                .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
             path: "Sources",
             exclude: ["DI"],
@@ -35,7 +37,8 @@ let package = Package(
             name: "HomeUIDI",
             dependencies: [
                 "HomeUI",
-                .product(name: "Product", package: "Product")
+                .product(name: "Product", package: "Product"),
+                .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
             path: "Sources/DI"
         ),

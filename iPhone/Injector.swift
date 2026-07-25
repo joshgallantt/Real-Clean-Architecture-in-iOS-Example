@@ -14,6 +14,7 @@ import AccountUIDI
 import LoginUIDI
 import OnboardingUIDI
 import ProductUIDI
+import SnackbarUI
 import SessionDI
 import SessionData
 import ProductDI
@@ -36,6 +37,7 @@ final class Injector {
     // MARK: - Feature Navigation
     let navigator: Navigator
     let authGate: DefaultAuthGate
+    let snackbarPresenter: SnackbarPresenter
 
     // MARK: - UIDI Properties
     let onboardingUIDI: OnboardingUIDI
@@ -77,6 +79,10 @@ final class Injector {
         let authGate = DefaultAuthGate(getSession: sessionDI.getSessionUseCase)
         self.authGate = authGate
 
+        // MARK: Snackbars
+        let snackbarPresenter = SnackbarPresenter()
+        self.snackbarPresenter = snackbarPresenter
+
         // MARK: Navigation
         navigator = Navigator(authGate: authGate)
 
@@ -96,12 +102,14 @@ final class Injector {
             removeProductFromWishlist: wishlistDI.removeProductFromWishlistUseCase,
             getProduct: productDI.getProductUseCase,
             observeSession: sessionDI.observeSessionUseCase,
-            authGate: authGate
+            authGate: authGate,
+            snackbar: snackbarPresenter
         )
         wishlistUIDI = wishlistUI
         homeUIDI = HomeUIDI(
             navigation: navigator,
-            getProducts: productDI.getProductsUseCase
+            getProducts: productDI.getProductsUseCase,
+            snackbar: snackbarPresenter
         )
         searchUIDI = SearchUIDI(
             navigation: navigator,

@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import Wishlist
 import AuthGate
+import SnackbarUI
 
 @MainActor
 public final class WishlistButtonViewModel: ObservableObject {
@@ -11,6 +12,7 @@ public final class WishlistButtonViewModel: ObservableObject {
     private let addProductToWishlist: AddProductToWishlistUseCase
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
     private let authGate: AuthGate
+    private let snackbar: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
 
     public init(
@@ -18,12 +20,14 @@ public final class WishlistButtonViewModel: ObservableObject {
         productIsWishlisted: ProductIsWishlistedUseCase,
         addProductToWishlist: AddProductToWishlistUseCase,
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
-        authGate: AuthGate
+        authGate: AuthGate,
+        snackbar: SnackbarPresenting
     ) {
         self.productId = productId
         self.addProductToWishlist = addProductToWishlist
         self.removeProductFromWishlist = removeProductFromWishlist
         self.authGate = authGate
+        self.snackbar = snackbar
 
         productIsWishlisted(productId: productId)
             .sink { [weak self] value in
@@ -33,12 +37,31 @@ public final class WishlistButtonViewModel: ObservableObject {
     }
 
     func didTap() {
+        // Capture dependencies, not self: a queued auth action or snackbar undo must
+        // not keep a discarded grid cell's view model alive.
+        let add = addProductToWishlist
+        let remove = removeProductFromWishlist
+        let snackbar = snackbar
+        let productId = productId
+
         if isInWishlist {
-            removeProductFromWishlist(productId: productId)
+            remove(productId: productId)
+            snackbar.show(Snackbar(
+                title: "Removed from Wishlist",
+                message: "This item is no longer saved.",
+                icon: "heart.slash",
+                action: .undo { add(productId: productId) }
+            ))
         } else {
             // For a guest this presents the auth flow and adds once they authenticate.
-            authGate.requireAuthentication { [addProductToWishlist, productId] in
-                addProductToWishlist(productId: productId)
+            authGate.requireAuthentication {
+                add(productId: productId)
+                snackbar.show(Snackbar(
+                    title: "Added to Wishlist",
+                    message: "Find it any time in your wishlist.",
+                    icon: "heart.fill",
+                    action: .undo { remove(productId: productId) }
+                ))
             }
         }
     }
