@@ -18,14 +18,16 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../Component/Product"),
-        .package(path: "../../Component/Search")
+        .package(path: "../../Component/Search"),
+        .package(path: "../ProductUI")
     ],
     targets: [
         .target(
             name: "SearchUI",
             dependencies: [
                 .product(name: "Product", package: "Product"),
-                .product(name: "Search", package: "Search")
+                .product(name: "Search", package: "Search"),
+                .product(name: "ProductUI", package: "ProductUI")
             ],
             path: "Sources",
             exclude: ["DI"],

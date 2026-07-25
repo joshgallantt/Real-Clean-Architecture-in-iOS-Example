@@ -1,6 +1,4 @@
 // swift-tools-version: 6.2
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
 let package = Package(
@@ -18,17 +16,30 @@ let package = Package(
             targets: ["WishlistUIDI"]
         )
     ],
+    dependencies: [
+        .package(path: "../../Component/Wishlist"),
+        .package(path: "../../Component/Product"),
+        .package(path: "../ProductUI")
+    ],
     targets: [
         .target(
             name: "WishlistUI",
-            dependencies: [],
+            dependencies: [
+                .product(name: "Wishlist", package: "Wishlist"),
+                .product(name: "Product", package: "Product"),
+                .product(name: "ProductUI", package: "ProductUI")
+            ],
             path: "Sources",
             exclude: ["DI"],
             sources: ["UI", "Navigation"]
         ),
         .target(
             name: "WishlistUIDI",
-            dependencies: ["WishlistUI"],
+            dependencies: [
+                "WishlistUI",
+                .product(name: "Wishlist", package: "Wishlist"),
+                .product(name: "Product", package: "Product")
+            ],
             path: "Sources/DI"
         ),
         .testTarget(

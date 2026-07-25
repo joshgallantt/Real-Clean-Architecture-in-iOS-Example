@@ -13,11 +13,13 @@ import SearchUI
 import SearchUIDI
 import WishlistUI
 import BagUI
+import ProductUIDI
 
 
 public enum Destination: Hashable {
     case searchResults(query: String)
     case categoryResults(category: CategorySlug)
+    case productDetails(id: Int)
 
     @ViewBuilder
     func makeView() -> some View {
@@ -26,6 +28,8 @@ public enum Destination: Hashable {
             Injector.shared.searchUIDI.searchResultsView(query: query)
         case .categoryResults(let category):
             Injector.shared.searchUIDI.categoryResultsView(category: category)
+        case .productDetails(let id):
+            Injector.shared.productUIDI.detailView(id: id)
         }
     }
 }
@@ -42,5 +46,9 @@ extension Navigator:
 
     func openCategoryResults(category: CategorySlug) {
         push(Destination.categoryResults(category: category), tab: nil)
+    }
+
+    func openProductDetails(id: Int) {
+        push(Destination.productDetails(id: id), tab: nil)
     }
 }

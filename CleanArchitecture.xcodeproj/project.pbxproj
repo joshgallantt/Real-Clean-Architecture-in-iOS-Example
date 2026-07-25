@@ -21,6 +21,8 @@
 		CA6CC2CC18052FD3033712E3 /* SessionData in Frameworks */ = {isa = PBXBuildFile; productRef = 06C2BFF1093558BB589FD94A /* SessionData */; };
 		F6BF47BD61ECFE742F92A22E /* ProductData in Frameworks */ = {isa = PBXBuildFile; productRef = 2C7A05B997C425E0F320291D /* ProductData */; };
 		FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000200000000000000A2 /* OnboardingUIDI */; };
+		FADE000300000000000000A1 /* ProductUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000300000000000000A2 /* ProductUIDI */; };
+		FADE000400000000000000A1 /* WishlistDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000400000000000000A2 /* WishlistDI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -88,6 +90,8 @@
 				F6BF47BD61ECFE742F92A22E /* ProductData in Frameworks */,
 				5563A1BBC34EADA9E5BF613B /* SearchData in Frameworks */,
 				FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */,
+				FADE000300000000000000A1 /* ProductUIDI in Frameworks */,
+				FADE000400000000000000A1 /* WishlistDI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -163,6 +167,8 @@
 				2C7A05B997C425E0F320291D /* ProductData */,
 				17E6FCA71FC7E5B3FCF60C12 /* SearchData */,
 				FADE000200000000000000A2 /* OnboardingUIDI */,
+				FADE000300000000000000A2 /* ProductUIDI */,
+				FADE000400000000000000A2 /* WishlistDI */,
 			);
 			productName = iPhone;
 			productReference = 1418DD6E2E3E53DC00191417 /* iPhone.app */;
@@ -683,6 +689,14 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = UI/OnboardingUI;
 		};
+		FADE000300000000000000B1 /* XCLocalSwiftPackageReference "UI/ProductUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/ProductUI;
+		};
+		FADE000400000000000000B1 /* XCLocalSwiftPackageReference "Component/Wishlist" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/Wishlist;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -755,6 +769,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FADE000200000000000000B1 /* XCLocalSwiftPackageReference "UI/OnboardingUI" */;
 			productName = OnboardingUIDI;
+		};
+		FADE000300000000000000A2 /* ProductUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE000300000000000000B1 /* XCLocalSwiftPackageReference "UI/ProductUI" */;
+			productName = ProductUIDI;
+		};
+		FADE000400000000000000A2 /* WishlistDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE000400000000000000B1 /* XCLocalSwiftPackageReference "Component/Wishlist" */;
+			productName = WishlistDI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
