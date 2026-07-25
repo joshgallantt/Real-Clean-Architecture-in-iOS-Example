@@ -25,7 +25,7 @@ import WishlistDI
 import Networking
 
 @MainActor
-final class Injector {
+struct Injector {
     static let shared = Injector()
 
     // MARK: - Components
