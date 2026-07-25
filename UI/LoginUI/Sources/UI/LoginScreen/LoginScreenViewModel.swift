@@ -27,7 +27,7 @@ public final class LoginScreenViewModel: ObservableObject {
         defer { isLoading = false }
         error = nil
 
-        let result = await loginUseCase.execute(username: username, password: password)
+        let result = await loginUseCase(username: username, password: password)
         switch result {
         case .success:
             break

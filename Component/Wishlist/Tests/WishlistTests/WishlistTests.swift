@@ -61,10 +61,10 @@ private final class SessionHolder: @unchecked Sendable {
 
 private struct FakeGetSession: GetSessionUseCase {
     let holder: SessionHolder
-    @MainActor func execute() -> Session { holder.subject.value }
+    @MainActor func callAsFunction() -> Session { holder.subject.value }
 }
 
 private struct FakeObserveSession: ObserveSessionUseCase {
     let holder: SessionHolder
-    @MainActor func execute() -> AnyPublisher<Session, Never> { holder.subject.eraseToAnyPublisher() }
+    @MainActor func callAsFunction() -> AnyPublisher<Session, Never> { holder.subject.eraseToAnyPublisher() }
 }

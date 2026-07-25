@@ -1,9 +1,9 @@
-public protocol AddToWishlistUseCase: Sendable {
+public protocol AddProductToWishlistUseCase: Sendable {
     @MainActor
-    func execute(productId: Int)
+    func callAsFunction(productId: Int)
 }
 
-public struct DefaultAddToWishlistUseCase: AddToWishlistUseCase {
+public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
     private let repository: WishlistRepository
 
     public init(repository: WishlistRepository) {
@@ -11,7 +11,7 @@ public struct DefaultAddToWishlistUseCase: AddToWishlistUseCase {
     }
 
     @MainActor
-    public func execute(productId: Int) {
+    public func callAsFunction(productId: Int) {
         repository.add(productId: productId)
     }
 }

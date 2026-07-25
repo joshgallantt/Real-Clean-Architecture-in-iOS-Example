@@ -2,7 +2,7 @@ import Combine
 
 public protocol ObserveSessionUseCase: Sendable {
     @MainActor
-    func execute() -> AnyPublisher<Session, Never>
+    func callAsFunction() -> AnyPublisher<Session, Never>
 }
 
 public struct DefaultObserveSessionUseCase: ObserveSessionUseCase {
@@ -13,7 +13,7 @@ public struct DefaultObserveSessionUseCase: ObserveSessionUseCase {
     }
 
     @MainActor
-    public func execute() -> AnyPublisher<Session, Never> {
+    public func callAsFunction() -> AnyPublisher<Session, Never> {
         sessionRepository.sessionPublisher
     }
 }

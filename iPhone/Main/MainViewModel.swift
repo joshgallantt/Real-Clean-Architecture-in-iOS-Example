@@ -36,7 +36,7 @@ final class MainViewModel: ObservableObject {
 
     func onAppear() async {
         if cancellables.isEmpty {
-            observeSession.execute()
+            observeSession()
                 .sink { [weak self] session in
                     guard let self, session.isLoggedIn else { return }
                     self.phase = .main
@@ -47,7 +47,7 @@ final class MainViewModel: ObservableObject {
         guard phase == .splash else { return }
         try? await Task.sleep(for: splashDuration)
         guard phase == .splash else { return }
-        phase = getSession.execute().isLoggedIn ? .main : .welcome
+        phase = getSession().isLoggedIn ? .main : .welcome
     }
 
     func continueAsGuest() {

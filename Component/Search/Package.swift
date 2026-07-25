@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
     name: "Search",
     platforms: [
-        .iOS(.v18)
+        .iOS(.v26)
     ],
     products: [
         .library(

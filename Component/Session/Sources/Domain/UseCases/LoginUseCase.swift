@@ -6,7 +6,7 @@
 //
 
 public protocol LoginUseCase: Sendable {
-    func execute(username: String, password: String) async -> Result<Void, LoginError>
+    func callAsFunction(username: String, password: String) async -> Result<Void, LoginError>
 }
 
 public struct DefaultLoginUseCase: LoginUseCase {
@@ -16,7 +16,7 @@ public struct DefaultLoginUseCase: LoginUseCase {
         self.sessionRepository = sessionRepository
     }
 
-    public func execute(username: String, password: String) async -> Result<Void, LoginError> {
+    public func callAsFunction(username: String, password: String) async -> Result<Void, LoginError> {
         if username.isEmpty {
             return .failure(.usernameIsEmpty)
         }

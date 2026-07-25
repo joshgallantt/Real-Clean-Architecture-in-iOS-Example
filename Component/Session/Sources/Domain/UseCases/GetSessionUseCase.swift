@@ -1,6 +1,6 @@
 public protocol GetSessionUseCase: Sendable {
     @MainActor
-    func execute() -> Session
+    func callAsFunction() -> Session
 }
 
 public struct DefaultGetSessionUseCase: GetSessionUseCase {
@@ -11,7 +11,7 @@ public struct DefaultGetSessionUseCase: GetSessionUseCase {
     }
 
     @MainActor
-    public func execute() -> Session {
+    public func callAsFunction() -> Session {
         sessionRepository.currentSession
     }
 }

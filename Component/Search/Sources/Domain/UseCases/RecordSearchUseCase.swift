@@ -1,5 +1,5 @@
 public protocol RecordSearchUseCase: Sendable {
-    func execute(_ query: String) async
+    func callAsFunction(_ query: String) async
 }
 
 public struct DefaultRecordSearchUseCase: RecordSearchUseCase {
@@ -9,7 +9,7 @@ public struct DefaultRecordSearchUseCase: RecordSearchUseCase {
         self.searchHistoryRepository = searchHistoryRepository
     }
 
-    public func execute(_ query: String) async {
+    public func callAsFunction(_ query: String) async {
         await searchHistoryRepository.recordSearch(query)
     }
 }

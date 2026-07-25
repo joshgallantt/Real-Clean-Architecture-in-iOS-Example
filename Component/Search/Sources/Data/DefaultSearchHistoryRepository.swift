@@ -13,7 +13,7 @@ public struct DefaultSearchHistoryRepository: SearchHistoryRepository {
     }
 
     private func userKey() async -> String {
-        await getSession.execute().user.map { String($0.id) } ?? "guest"
+        await getSession().user.map { String($0.id) } ?? "guest"
     }
 
     public func getRecentSearches() async -> [String] {

@@ -27,7 +27,7 @@ public final class SearchResultsViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        await recordSearch.execute(query)
+        await recordSearch(query)
         await load(reset: true)
     }
 
@@ -42,7 +42,7 @@ public final class SearchResultsViewModel: ObservableObject {
     private func load(reset: Bool) async {
         let nextPage = reset ? 0 : page + 1
 
-        if case .success(let value) = await getProducts.execute(matching: .search(query, page: nextPage, pageSize: pageSize)) {
+        if case .success(let value) = await getProducts(matching: .search(query, page: nextPage, pageSize: pageSize)) {
             results = reset ? value : results + value
             page = nextPage
             hasMore = value.count == pageSize

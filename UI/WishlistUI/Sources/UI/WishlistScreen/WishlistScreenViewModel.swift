@@ -20,7 +20,7 @@ public final class WishlistScreenViewModel: ObservableObject {
 
     func onAppear() {
         guard cancellables.isEmpty else { return }
-        observeWishlist.execute()
+        observeWishlist()
             .sink { [weak self] items in
                 Task { await self?.refresh(items) }
             }
@@ -32,7 +32,7 @@ public final class WishlistScreenViewModel: ObservableObject {
         if !missing.isEmpty {
             isLoading = true
             for item in missing {
-                if case .success(let product) = await getProduct.execute(id: item.id) {
+                if case .success(let product) = await getProduct(id: item.id) {
                     cache[item.id] = product
                 }
             }

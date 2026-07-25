@@ -80,9 +80,9 @@ final class Injector {
         let wishlistUI = WishlistUIDI(
             navigation: navigator,
             observeWishlist: wishlistDI.observeWishlistUseCase,
-            isInWishlist: wishlistDI.isInWishlistUseCase,
-            addToWishlist: wishlistDI.addToWishlistUseCase,
-            removeFromWishlist: wishlistDI.removeFromWishlistUseCase,
+            productIsWishlisted: wishlistDI.productIsWishlistedUseCase,
+            addProductToWishlist: wishlistDI.addProductToWishlistUseCase,
+            removeProductFromWishlist: wishlistDI.removeProductFromWishlistUseCase,
             getProduct: productDI.getProductUseCase
         )
         wishlistUIDI = wishlistUI

@@ -1,5 +1,5 @@
 public protocol ClearSearchHistoryUseCase: Sendable {
-    func execute() async
+    func callAsFunction() async
 }
 
 public struct DefaultClearSearchHistoryUseCase: ClearSearchHistoryUseCase {
@@ -9,7 +9,7 @@ public struct DefaultClearSearchHistoryUseCase: ClearSearchHistoryUseCase {
         self.searchHistoryRepository = searchHistoryRepository
     }
 
-    public func execute() async {
+    public func callAsFunction() async {
         await searchHistoryRepository.clearRecentSearches()
     }
 }

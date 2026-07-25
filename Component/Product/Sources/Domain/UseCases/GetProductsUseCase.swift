@@ -1,5 +1,5 @@
 public protocol GetProductsUseCase: Sendable {
-    func execute(matching query: ProductQuery) async -> Result<[Product], ProductError>
+    func callAsFunction(matching query: ProductQuery) async -> Result<[Product], ProductError>
 }
 
 public struct DefaultGetProductsUseCase: GetProductsUseCase {
@@ -9,7 +9,7 @@ public struct DefaultGetProductsUseCase: GetProductsUseCase {
         self.productRepository = productRepository
     }
 
-    public func execute(matching query: ProductQuery) async -> Result<[Product], ProductError> {
+    public func callAsFunction(matching query: ProductQuery) async -> Result<[Product], ProductError> {
         await productRepository.getProducts(matching: query)
     }
 }

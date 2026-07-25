@@ -13,24 +13,24 @@ import WishlistUI
 public struct WishlistUIDI {
     private let navigation: WishlistNavigation
     private let observeWishlist: ObserveWishlistUseCase
-    private let isInWishlist: IsInWishlistUseCase
-    private let addToWishlist: AddToWishlistUseCase
-    private let removeFromWishlist: RemoveFromWishlistUseCase
+    private let productIsWishlisted: ProductIsWishlistedUseCase
+    private let addProductToWishlist: AddProductToWishlistUseCase
+    private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
     private let getProduct: GetProductUseCase
 
     public init(
         navigation: WishlistNavigation,
         observeWishlist: ObserveWishlistUseCase,
-        isInWishlist: IsInWishlistUseCase,
-        addToWishlist: AddToWishlistUseCase,
-        removeFromWishlist: RemoveFromWishlistUseCase,
+        productIsWishlisted: ProductIsWishlistedUseCase,
+        addProductToWishlist: AddProductToWishlistUseCase,
+        removeProductFromWishlist: RemoveProductFromWishlistUseCase,
         getProduct: GetProductUseCase
     ) {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
-        self.isInWishlist = isInWishlist
-        self.addToWishlist = addToWishlist
-        self.removeFromWishlist = removeFromWishlist
+        self.productIsWishlisted = productIsWishlisted
+        self.addProductToWishlist = addProductToWishlist
+        self.removeProductFromWishlist = removeProductFromWishlist
         self.getProduct = getProduct
     }
 
@@ -38,9 +38,9 @@ public struct WishlistUIDI {
     public func button(productId: Int) -> some View {
         WishlistButtonView(
             productId: productId,
-            isInWishlistUseCase: isInWishlist,
-            addToWishlistUseCase: addToWishlist,
-            removeFromWishlistUseCase: removeFromWishlist
+            productIsWishlisted: productIsWishlisted,
+            addProductToWishlist: addProductToWishlist,
+            removeProductFromWishlist: removeProductFromWishlist
         )
     }
 
