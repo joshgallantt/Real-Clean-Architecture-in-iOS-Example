@@ -21,29 +21,19 @@ final class MainViewModel: ObservableObject {
     @Published private(set) var phase: Phase = .splash
 
     private let getSession: GetSessionUseCase
-    private let observeSession: ObserveSessionUseCase
-    private var cancellables = Set<AnyCancellable>()
 
     private let splashDuration: Duration = .seconds(1.2)
 
-    init(
-        getSession: GetSessionUseCase,
-        observeSession: ObserveSessionUseCase
-    ) {
+    /// A beat between the authentication sheet leaving and the app changing underneath, so
+    /// the two read as one thing finishing and the next beginning rather than as a single
+    /// lurch.
+    private let settleAfterAuthentication: Duration = .milliseconds(300)
+
+    init(getSession: GetSessionUseCase) {
         self.getSession = getSession
-        self.observeSession = observeSession
     }
 
     func onAppear() async {
-        if cancellables.isEmpty {
-            observeSession()
-                .sink { [weak self] session in
-                    guard let self, session.isLoggedIn, self.phase != .main else { return }
-                    self.transitionToMain()
-                }
-                .store(in: &cancellables)
-        }
-
         guard phase == .splash else { return }
         try? await Task.sleep(for: splashDuration)
         guard phase == .splash else { return }
@@ -54,14 +44,12 @@ final class MainViewModel: ObservableObject {
         phase = .main
     }
 
-    private func transitionToMain() {
+    /// Called when the Welcome screen's authentication flow has finished *and* its sheet has
+    /// gone — not when the session changed, which happens a few seconds earlier while the
+    /// user is still reading the confirmation.
+    func authenticationFinished() {
         Task {
-            if phase == .welcome {
-                // Login/create-account is presented as a sheet on the Welcome screen —
-                // let its dismiss animation finish before the whole screen (and sheet)
-                // is torn out of the hierarchy, or dismiss gets cut short mid-animation.
-                try? await Task.sleep(for: .milliseconds(400))
-            }
+            try? await Task.sleep(for: settleAfterAuthentication)
             phase = .main
         }
     }

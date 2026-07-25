@@ -16,10 +16,13 @@ public struct Snackbar {
         self.action = action
     }
 
-    /// How long this snackbar earns on screen. An actionable one stays longer because the
-    /// user has to read it *and* decide, whereas a purely informational one only has to be
-    /// read. The rule belongs to the snackbar, not to whatever is displaying it.
+    /// How long this snackbar earns on screen. Both durations are budgeted from the moment
+    /// the user *notices* it, which is not the moment it appears — it arrives at the edge of
+    /// their attention while they are looking at whatever they just tapped. An actionable one
+    /// stays longer still, because the user has to read it, decide, and reach for it, whereas
+    /// a purely informational one only has to be read. The rule belongs to the snackbar, not
+    /// to whatever is displaying it.
     public var displayDuration: Duration {
-        action == nil ? .seconds(2) : .seconds(3.5)
+        action == nil ? .seconds(3) : .seconds(5)
     }
 }

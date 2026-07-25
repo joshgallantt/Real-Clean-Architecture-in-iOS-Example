@@ -24,7 +24,8 @@ struct Main: App {
                     SplashView()
                 case .welcome:
                     Injector.shared.authUIDI.welcomeView(
-                        onContinueAsGuest: { viewModel.continueAsGuest() }
+                        onContinueAsGuest: { viewModel.continueAsGuest() },
+                        onAuthenticated: { viewModel.authenticationFinished() }
                     )
                 case .onboarding:
                     Injector.shared.onboardingUIDI.onboardingView(
@@ -40,10 +41,13 @@ struct Main: App {
                         bagView: Injector.shared.bagView,
                         accountView: Injector.shared.accountView
                     )
-                    .sheetHost(Injector.shared.sheetUIDI.presenter)
                 }
             }
             .animation(.easeInOut, value: viewModel.phase)
+            // Hosted above the phase switch, not inside a branch: the authentication flow is
+            // reachable from Welcome as well as from the tabs, and a sheet that is up when
+            // the phase changes should outlive the screen that opened it.
+            .sheetHost(Injector.shared.sheetUIDI.presenter)
             .task {
                 await viewModel.onAppear()
             }
