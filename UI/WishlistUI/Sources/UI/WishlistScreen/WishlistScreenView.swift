@@ -1,23 +1,23 @@
 import SwiftUI
 import ProductUI
-import LoginUI
+import AuthUI
 
 public struct WishlistScreenView: View {
     @ObservedObject var viewModel: WishlistScreenViewModel
     let navigation: WishlistNavigation
     let wishlistButton: (Int) -> AnyView
-    let authPresenting: AuthSheetCoordinator
+    let authPresenter: AuthPresenting
 
     public init(
         viewModel: WishlistScreenViewModel,
         navigation: WishlistNavigation,
         wishlistButton: @escaping (Int) -> AnyView,
-        authPresenting: AuthSheetCoordinator
+        authPresenter: AuthPresenting
     ) {
         self.viewModel = viewModel
         self.navigation = navigation
         self.wishlistButton = wishlistButton
-        self.authPresenting = authPresenting
+        self.authPresenter = authPresenter
     }
 
     public var body: some View {
@@ -59,7 +59,13 @@ public struct WishlistScreenView: View {
             Text("Log in or create an account to build your wishlist.")
         } actions: {
             Button {
-                Task { await authPresenting.requireAuthentication() }
+                Task {
+                    await authPresenter.show(AuthenticationPrompt(
+                        title: "Save Your Favourites",
+                        message: "Log in or create an account to build your wishlist.",
+                        icon: "heart.fill"
+                    ))
+                }
             } label: {
                 Text("Log In or Create Account")
                     .frame(maxWidth: .infinity)

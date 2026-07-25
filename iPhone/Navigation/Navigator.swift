@@ -9,7 +9,7 @@
 import SwiftUI
 import Combine
 import Foundation
-import LoginUI
+import AuthUI
 
 @MainActor
 final class Navigator: ObservableObject {
@@ -23,10 +23,10 @@ final class Navigator: ObservableObject {
     @Published var bagPath = NavigationPath()
     @Published var wishlistPath = NavigationPath()
 
-    private let authPresenting: AuthSheetCoordinator
+    private let authPresenter: AuthPresenting
 
-    init(authPresenting: AuthSheetCoordinator) {
-        self.authPresenting = authPresenting
+    init(authPresenter: AuthPresenting) {
+        self.authPresenter = authPresenter
     }
 
     // MARK: - Single entry point for all navigation (taps, deep links)
@@ -36,7 +36,7 @@ final class Navigator: ObservableObject {
     func open(_ destination: Destination, tab: Tabs? = nil) {
         if destination.requiresAuthentication {
             Task { [weak self] in
-                guard let self, await self.authPresenting.requireAuthentication() else { return }
+                guard let self, await self.authPresenter.show(.default) else { return }
                 self.push(destination, tab: tab)
             }
         } else {

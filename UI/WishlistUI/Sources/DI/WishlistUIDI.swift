@@ -9,7 +9,7 @@ import SwiftUI
 import Wishlist
 import Product
 import Session
-import LoginUI
+import AuthUI
 import SnackbarUI
 import WishlistUI
 
@@ -21,8 +21,8 @@ public struct WishlistUIDI {
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
     private let getProduct: GetProductUseCase
     private let observeSession: ObserveSessionUseCase
-    private let authPresenting: AuthSheetCoordinator
-    private let snackbar: SnackbarPresenting
+    private let authPresenter: AuthPresenting
+    private let snackbarPresenter: SnackbarPresenting
 
     public init(
         navigation: WishlistNavigation,
@@ -32,8 +32,8 @@ public struct WishlistUIDI {
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
         getProduct: GetProductUseCase,
         observeSession: ObserveSessionUseCase,
-        authPresenting: AuthSheetCoordinator,
-        snackbar: SnackbarPresenting
+        authPresenter: AuthPresenting,
+        snackbarPresenter: SnackbarPresenting
     ) {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
@@ -42,8 +42,8 @@ public struct WishlistUIDI {
         self.removeProductFromWishlist = removeProductFromWishlist
         self.getProduct = getProduct
         self.observeSession = observeSession
-        self.authPresenting = authPresenting
-        self.snackbar = snackbar
+        self.authPresenter = authPresenter
+        self.snackbarPresenter = snackbarPresenter
     }
 
     @MainActor
@@ -54,23 +54,10 @@ public struct WishlistUIDI {
                 productIsWishlisted: self.productIsWishlisted,
                 addProductToWishlist: self.addProductToWishlist,
                 removeProductFromWishlist: self.removeProductFromWishlist,
-                authPresenting: self.authPresenting,
-                authGate: Self.wishlistAuthGate,
-                snackbar: self.snackbar
+                authPresenter: self.authPresenter,
+                snackbarPresenter: self.snackbarPresenter
             )
         )
-    }
-
-    @MainActor
-    private static func wishlistAuthGate(
-        onSelectLogIn: @escaping () -> Void,
-        onSelectCreateAccount: @escaping () -> Void
-    ) -> AnyView {
-        AnyView(LoginOrCreateAccountSheetView(
-            message: "Wishlist Requires an Account",
-            onSelectLogIn: onSelectLogIn,
-            onSelectCreateAccount: onSelectCreateAccount
-        ))
     }
 
     @MainActor
@@ -83,7 +70,7 @@ public struct WishlistUIDI {
             ),
             navigation: navigation,
             wishlistButton: { productId in AnyView(button(productId: productId)) },
-            authPresenting: authPresenting
+            authPresenter: authPresenter
         )
     }
 }

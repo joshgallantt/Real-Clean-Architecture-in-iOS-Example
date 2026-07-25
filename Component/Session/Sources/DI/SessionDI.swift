@@ -23,7 +23,7 @@ public struct SessionDI {
     public let logoutUseCase: LogoutUseCase
     public let getSessionUseCase: GetSessionUseCase
     public let observeSessionUseCase: ObserveSessionUseCase
-    public let requireAuthenticationUseCase: RequireAuthenticationUseCase
+    public let userIsLoggedInUseCase: UserIsLoggedInUseCase
 
     // MARK: - Initializer
 
@@ -43,6 +43,6 @@ public struct SessionDI {
         self.logoutUseCase = DefaultLogoutUseCase(sessionRepository: repository)
         self.getSessionUseCase = DefaultGetSessionUseCase(sessionRepository: repository)
         self.observeSessionUseCase = DefaultObserveSessionUseCase(sessionRepository: repository)
-        self.requireAuthenticationUseCase = DefaultRequireAuthenticationUseCase(getSession: getSessionUseCase)
+        self.userIsLoggedInUseCase = DefaultUserIsLoggedInUseCase(getSession: getSessionUseCase)
     }
 }

@@ -17,7 +17,8 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../../Component/Session")
+        .package(path: "../../Component/Session"),
+        .package(path: "../AuthUI")
     ],
     targets: [
         .target(
@@ -33,7 +34,8 @@ let package = Package(
             name: "AccountUIDI",
             dependencies: [
                 "AccountUI",
-                .product(name: "Session", package: "Session")
+                .product(name: "Session", package: "Session"),
+                .product(name: "AuthUIDI", package: "AuthUI")
             ],
             path: "Sources/DI"
         ),

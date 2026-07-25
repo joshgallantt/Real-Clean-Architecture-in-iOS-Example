@@ -7,9 +7,10 @@
 
 
 import SwiftUI
-import LoginUIDI
+import AuthUIDI
 import OnboardingUIDI
-import SheetUI
+import SheetUIDI
+import SnackbarUIDI
 
 @main
 struct Main: App {
@@ -22,7 +23,7 @@ struct Main: App {
                 case .splash:
                     SplashView()
                 case .welcome:
-                    Injector.shared.loginUIDI.welcomeView(
+                    Injector.shared.authUIDI.welcomeView(
                         onContinueAsGuest: { viewModel.continueAsGuest() }
                     )
                 case .onboarding:
@@ -32,14 +33,14 @@ struct Main: App {
                 case .main:
                     TabScreen(
                         navigator: Injector.shared.navigator,
-                        snackbarPresenter: Injector.shared.snackbarPresenter,
+                        snackbarPresenter: Injector.shared.snackbarUIDI.presenter,
                         homeView: Injector.shared.homeView,
                         searchView: Injector.shared.searchView,
                         wishlistView: Injector.shared.wishlistView,
                         bagView: Injector.shared.bagView,
                         accountView: Injector.shared.accountView
                     )
-                    .sheetHost(Injector.shared.loginUIDI.sheetCoordinator)
+                    .sheetHost(Injector.shared.sheetUIDI.presenter)
                 }
             }
             .animation(.easeInOut, value: viewModel.phase)

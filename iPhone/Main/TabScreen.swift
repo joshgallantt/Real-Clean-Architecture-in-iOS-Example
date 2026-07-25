@@ -11,7 +11,7 @@ import SearchUIDI
 import WishlistUIDI
 import BagUIDI
 import AccountUIDI
-import SnackbarUI
+import SnackbarUIDI
 
 struct TabScreen: View {
     @ObservedObject var navigator: Navigator
