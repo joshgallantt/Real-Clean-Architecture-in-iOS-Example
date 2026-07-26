@@ -3,9 +3,14 @@ import Product
 
 public struct ProductDetailsScreen: View {
     @StateObject private var viewModel: ProductDetailsViewModel
+    private let actionButton: AnyView
 
-    public init(viewModel: @autoclosure @escaping () -> ProductDetailsViewModel) {
+    public init(
+        viewModel: @autoclosure @escaping () -> ProductDetailsViewModel,
+        actionButton: AnyView = AnyView(EmptyView())
+    ) {
         self._viewModel = StateObject(wrappedValue: viewModel())
+        self.actionButton = actionButton
     }
 
     public var body: some View {
@@ -66,6 +71,8 @@ public struct ProductDetailsScreen: View {
                     .font(.caption.weight(.medium))
                     .foregroundStyle(product.stock > 0 ? .green : .red)
             }
+
+            actionButton
 
             Text(product.description)
                 .font(.body)

@@ -3,6 +3,7 @@ import SearchUI
 import Product
 import Search
 import WishlistUIDI
+import BagUIDI
 
 public struct SearchUIDI {
     private let navigation: SearchNavigation
@@ -12,6 +13,7 @@ public struct SearchUIDI {
     private let recordSearch: RecordSearchUseCase
     private let clearSearchHistory: ClearSearchHistoryUseCase
     private let wishlistUIDI: WishlistUIDI
+    private let bagUIDI: BagUIDI
 
     public init(
         navigation: SearchNavigation,
@@ -20,7 +22,8 @@ public struct SearchUIDI {
         getSearchHistory: GetSearchHistoryUseCase,
         recordSearch: RecordSearchUseCase,
         clearSearchHistory: ClearSearchHistoryUseCase,
-        wishlistUIDI: WishlistUIDI
+        wishlistUIDI: WishlistUIDI,
+        bagUIDI: BagUIDI
     ) {
         self.navigation = navigation
         self.getProducts = getProducts
@@ -29,6 +32,7 @@ public struct SearchUIDI {
         self.recordSearch = recordSearch
         self.clearSearchHistory = clearSearchHistory
         self.wishlistUIDI = wishlistUIDI
+        self.bagUIDI = bagUIDI
     }
 
     @MainActor
@@ -49,7 +53,8 @@ public struct SearchUIDI {
         SearchResultsView(
             viewModel: SearchResultsViewModel(query: query, getProducts: getProducts, recordSearch: recordSearch),
             navigation: navigation,
-            wishlistButton: { id in AnyView(wishlistUIDI.button(productId: id)) }
+            wishlistButton: { id in AnyView(wishlistUIDI.button(productId: id)) },
+            bagButton: { id in AnyView(bagUIDI.button(productId: id)) }
         )
     }
 
@@ -58,7 +63,8 @@ public struct SearchUIDI {
         CategoryResultsView(
             viewModel: CategoryResultsViewModel(category: category, getProducts: getProducts),
             navigation: navigation,
-            wishlistButton: { id in AnyView(wishlistUIDI.button(productId: id)) }
+            wishlistButton: { id in AnyView(wishlistUIDI.button(productId: id)) },
+            bagButton: { id in AnyView(bagUIDI.button(productId: id)) }
         )
     }
 }

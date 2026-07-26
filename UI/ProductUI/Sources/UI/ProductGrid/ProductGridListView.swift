@@ -7,6 +7,7 @@ public struct ProductGridListView: View {
     private let onSelect: (Product) -> Void
     private let onReachEnd: () -> Void
     private let accessory: (Product) -> AnyView
+    private let leadingAccessory: (Product) -> AnyView
 
     private let columns = [
         GridItem(.flexible(), spacing: 16, alignment: .top),
@@ -18,13 +19,15 @@ public struct ProductGridListView: View {
         isLoadingMore: Bool,
         onSelect: @escaping (Product) -> Void,
         onReachEnd: @escaping () -> Void,
-        accessory: @escaping (Product) -> AnyView = { _ in AnyView(EmptyView()) }
+        accessory: @escaping (Product) -> AnyView = { _ in AnyView(EmptyView()) },
+        leadingAccessory: @escaping (Product) -> AnyView = { _ in AnyView(EmptyView()) }
     ) {
         self.products = products
         self.isLoadingMore = isLoadingMore
         self.onSelect = onSelect
         self.onReachEnd = onReachEnd
         self.accessory = accessory
+        self.leadingAccessory = leadingAccessory
     }
 
     public var body: some View {
@@ -34,7 +37,11 @@ public struct ProductGridListView: View {
                     Button {
                         onSelect(product)
                     } label: {
-                        ProductCardView(product: product, accessory: { accessory(product) })
+                        ProductCardView(
+                            product: product,
+                            accessory: { accessory(product) },
+                            leadingAccessory: { leadingAccessory(product) }
+                        )
                     }
                     .buttonStyle(.plain)
                     .onAppear {
