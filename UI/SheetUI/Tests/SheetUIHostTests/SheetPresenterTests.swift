@@ -21,7 +21,7 @@ final class SheetPresenterTests: XCTestCase {
     func test_present_showsContent() {
         let sut = SheetPresenter()
 
-        sut.present(onDismiss: nil) { Text("hello") }
+        sut.present(onDismiss: nil, content: { Text("hello") })
 
         XCTAssertNotNil(sut.presentation)
     }
@@ -30,7 +30,7 @@ final class SheetPresenterTests: XCTestCase {
         let sut = SheetPresenter()
         var dismissed = false
 
-        sut.present(onDismiss: { dismissed = true }) { Text("hello") }
+        sut.present(onDismiss: { dismissed = true }, content: { Text("hello") })
         userDismissesSheet(on: sut)
 
         XCTAssertTrue(dismissed)
@@ -41,7 +41,7 @@ final class SheetPresenterTests: XCTestCase {
         let sut = SheetPresenter()
         var dismissed = false
 
-        sut.present(onDismiss: { dismissed = true }) { Text("hello") }
+        sut.present(onDismiss: { dismissed = true }, content: { Text("hello") })
         sut.dismiss()
         hostFinishesDismissing(on: sut)
 
@@ -53,8 +53,8 @@ final class SheetPresenterTests: XCTestCase {
         let sut = SheetPresenter()
         var firstDismissed = false
 
-        sut.present(onDismiss: { firstDismissed = true }) { Text("gate") }
-        sut.present(onDismiss: {}) { Text("login") }
+        sut.present(onDismiss: { firstDismissed = true }, content: { Text("gate") })
+        sut.present(onDismiss: {}, content: { Text("login") })
         hostFinishesDismissing(on: sut)
 
         XCTAssertFalse(firstDismissed, "Chaining to a new sheet must not resolve the sheet it replaced")
@@ -65,8 +65,8 @@ final class SheetPresenterTests: XCTestCase {
         let sut = SheetPresenter()
         var secondDismissed = false
 
-        sut.present(onDismiss: {}) { Text("gate") }
-        sut.present(onDismiss: { secondDismissed = true }) { Text("login") }
+        sut.present(onDismiss: {}, content: { Text("gate") })
+        sut.present(onDismiss: { secondDismissed = true }, content: { Text("login") })
         hostFinishesDismissing(on: sut)
 
         XCTAssertFalse(secondDismissed)
@@ -80,8 +80,8 @@ final class SheetPresenterTests: XCTestCase {
     func test_dismiss_dropsAQueuedSheet() {
         let sut = SheetPresenter()
 
-        sut.present(onDismiss: {}) { Text("gate") }
-        sut.present(onDismiss: {}) { Text("login") }
+        sut.present(onDismiss: {}, content: { Text("gate") })
+        sut.present(onDismiss: {}, content: { Text("login") })
         sut.dismiss()
         hostFinishesDismissing(on: sut)
 

@@ -46,6 +46,6 @@ let package = Package(
             name: "HomeUITests",
             dependencies: ["HomeUIDI"],
             path: "Tests/HomeUITests"
-        ),
+        )
     ]
 )

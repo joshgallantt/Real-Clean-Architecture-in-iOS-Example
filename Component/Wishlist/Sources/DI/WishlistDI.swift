@@ -28,8 +28,14 @@ public struct WishlistDI {
 
         self.observeWishlistUseCase = DefaultObserveWishlistUseCase(repository: repository)
         self.productIsWishlistedUseCase = DefaultProductIsWishlistedUseCase(repository: repository)
-        self.addProductToWishlistUseCase = DefaultAddProductToWishlistUseCase(repository: repository, userIsLoggedIn: userIsLoggedIn)
-        self.removeProductFromWishlistUseCase = DefaultRemoveProductFromWishlistUseCase(repository: repository, userIsLoggedIn: userIsLoggedIn)
+        self.addProductToWishlistUseCase = DefaultAddProductToWishlistUseCase(
+            repository: repository,
+            userIsLoggedIn: userIsLoggedIn
+        )
+        self.removeProductFromWishlistUseCase = DefaultRemoveProductFromWishlistUseCase(
+            repository: repository,
+            userIsLoggedIn: userIsLoggedIn
+        )
     }
 
     private static func userKey(for session: Session) -> String {

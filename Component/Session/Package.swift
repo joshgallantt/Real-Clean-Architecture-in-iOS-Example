@@ -48,6 +48,6 @@ let package = Package(
             name: "SessionTests",
             dependencies: ["SessionDI"],
             path: "Tests/SessionTests"
-        ),
+        )
     ]
 )

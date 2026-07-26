@@ -15,7 +15,6 @@ import WishlistUI
 import BagUI
 import ProductUIDI
 
-
 public enum Destination: Hashable {
     case searchResults(query: String)
     case categoryResults(category: CategorySlug)
@@ -52,12 +51,7 @@ public enum Destination: Hashable {
     }
 }
 
-extension Navigator:
-    HomeNavigation,
-    SearchNavigation,
-    WishlistNavigation,
-    BagNavigation
-{
+extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNavigation {
     func openSearchResults(query: String) {
         open(.searchResults(query: query))
     }

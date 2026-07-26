@@ -33,6 +33,6 @@ let package = Package(
             name: "SheetUIHostTests",
             dependencies: ["SheetUIDI"],
             path: "Tests/SheetUIHostTests"
-        ),
+        )
     ]
 )

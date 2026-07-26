@@ -84,16 +84,19 @@ public final class AuthPresenter: AuthPresenting {
         let createAccountUseCase = createAccountUseCase
         let getSession = getSession
 
-        sheetPresenting.present(onDismiss: { [weak self] in self?.sheetWasDismissedByUser() }) {
-            AuthSheetView(viewModel: AuthViewModel(
-                mode: mode,
-                prompt: prompt,
-                loginUseCase: loginUseCase,
-                createAccountUseCase: createAccountUseCase,
-                getSession: getSession,
-                onAuthenticated: { [weak self] in self?.authenticationSucceeded() }
-            ))
-        }
+        sheetPresenting.present(
+            onDismiss: { [weak self] in self?.sheetWasDismissedByUser() },
+            content: {
+                AuthSheetView(viewModel: AuthViewModel(
+                    mode: mode,
+                    prompt: prompt,
+                    loginUseCase: loginUseCase,
+                    createAccountUseCase: createAccountUseCase,
+                    getSession: getSession,
+                    onAuthenticated: { [weak self] in self?.authenticationSucceeded() }
+                ))
+            }
+        )
     }
 
     /// The sheet is showing its confirmation by now. Leave it up long enough to be read,

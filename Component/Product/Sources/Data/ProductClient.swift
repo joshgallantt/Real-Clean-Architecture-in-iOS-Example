@@ -20,7 +20,7 @@ public struct DummyJSONProductClient: ProductClient {
         let path: String
         var queryItems = [
             URLQueryItem(name: "limit", value: String(query.pageSize)),
-            URLQueryItem(name: "skip", value: String(query.page * query.pageSize)),
+            URLQueryItem(name: "skip", value: String(query.page * query.pageSize))
         ]
 
         if let category = query.category {

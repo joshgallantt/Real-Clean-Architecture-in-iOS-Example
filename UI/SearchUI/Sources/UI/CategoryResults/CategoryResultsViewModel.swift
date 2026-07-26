@@ -42,7 +42,8 @@ public final class CategoryResultsViewModel: ObservableObject {
     private func load(reset: Bool) async {
         let nextPage = reset ? 0 : page + 1
 
-        if case .success(let value) = await getProducts(matching: .category(category, page: nextPage, pageSize: pageSize)) {
+        let query = ProductQuery.category(category, page: nextPage, pageSize: pageSize)
+        if case .success(let value) = await getProducts(matching: query) {
             results = reset ? value : results + value
             page = nextPage
             hasMore = value.count == pageSize

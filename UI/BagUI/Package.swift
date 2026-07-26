@@ -50,6 +50,6 @@ let package = Package(
             name: "BagUITests",
             dependencies: ["BagUIDI"],
             path: "Tests/BagUITests"
-        ),
+        )
     ]
 )

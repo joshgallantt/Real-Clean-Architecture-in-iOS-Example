@@ -56,6 +56,6 @@ let package = Package(
             name: "WishlistTests",
             dependencies: ["WishlistDI"],
             path: "Tests/WishlistTests"
-        ),
+        )
     ]
 )

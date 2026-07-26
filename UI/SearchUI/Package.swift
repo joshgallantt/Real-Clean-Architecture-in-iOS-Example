@@ -50,6 +50,6 @@ let package = Package(
             name: "SearchUITests",
             dependencies: ["SearchUIDI"],
             path: "Tests/SearchUITests"
-        ),
+        )
     ]
 )

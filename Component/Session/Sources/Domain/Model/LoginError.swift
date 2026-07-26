@@ -13,4 +13,3 @@ public enum LoginError: Error {
     case passwordIsEmpty
     case unknown
 }
-
