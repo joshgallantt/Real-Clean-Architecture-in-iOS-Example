@@ -37,7 +37,10 @@ public struct SearchTabScreenView: View {
                         viewModel.query = query
                         commitSearch(query)
                     },
-                    onSelectSuggestion: { _ in }
+                    onSelectSuggestion: { product in
+                        isFocused = false
+                        navigation.openProductDetails(product: product)
+                    }
                 )
             } else {
                 CategoriesView(categories: viewModel.categories) { category in
@@ -48,6 +51,9 @@ public struct SearchTabScreenView: View {
         }
         .onChange(of: isFocused) {
             viewModel.isSearchActive = isFocused
+            if !isFocused {
+                viewModel.query = ""
+            }
         }
         .task {
             await viewModel.onAppear()
