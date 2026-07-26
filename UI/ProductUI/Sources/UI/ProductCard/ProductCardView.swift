@@ -4,13 +4,16 @@ import Product
 public struct ProductCardView: View {
     private let product: Product
     private let accessory: () -> AnyView
+    private let leadingAccessory: () -> AnyView
 
     public init(
         product: Product,
-        accessory: @escaping () -> AnyView = { AnyView(EmptyView()) }
+        accessory: @escaping () -> AnyView = { AnyView(EmptyView()) },
+        leadingAccessory: @escaping () -> AnyView = { AnyView(EmptyView()) }
     ) {
         self.product = product
         self.accessory = accessory
+        self.leadingAccessory = leadingAccessory
     }
 
     public var body: some View {
@@ -30,6 +33,10 @@ public struct ProductCardView: View {
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(alignment: .topTrailing) {
                     accessory()
+                        .padding(8)
+                }
+                .overlay(alignment: .topLeading) {
+                    leadingAccessory()
                         .padding(8)
                 }
 

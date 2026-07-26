@@ -20,7 +20,8 @@ let package = Package(
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Search"),
         .package(path: "../ProductUI"),
-        .package(path: "../WishlistUI")
+        .package(path: "../WishlistUI"),
+        .package(path: "../BagUI")
     ],
     targets: [
         .target(
@@ -40,7 +41,8 @@ let package = Package(
                 "SearchUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Search", package: "Search"),
-                .product(name: "WishlistUIDI", package: "WishlistUI")
+                .product(name: "WishlistUIDI", package: "WishlistUI"),
+                .product(name: "BagUIDI", package: "BagUI")
             ],
             path: "Sources/DI"
         ),

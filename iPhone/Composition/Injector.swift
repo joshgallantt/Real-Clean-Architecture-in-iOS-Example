@@ -23,6 +23,7 @@ import ProductData
 import SearchDI
 import SearchData
 import WishlistDI
+import BagDI
 import Networking
 
 @MainActor
@@ -34,6 +35,7 @@ final class Injector {
     let productDI: ProductDI
     let searchDI: SearchDI
     let wishlistDI: WishlistDI
+    let bagDI: BagDI
 
     // MARK: - Feature Navigation
     let navigator: Navigator
@@ -76,6 +78,10 @@ final class Injector {
             observeSession: sessionDI.observeSessionUseCase,
             userIsLoggedIn: sessionDI.userIsLoggedInUseCase
         )
+        bagDI = BagDI(
+            getSession: sessionDI.getSessionUseCase,
+            observeSession: sessionDI.observeSessionUseCase
+        )
 
         // MARK: Snackbars
         let snackbarDI = SnackbarUIDI()
@@ -99,7 +105,18 @@ final class Injector {
         // MARK: Navigation
         navigator = Navigator(authPresenter: authDI.presenter)
 
-        productUIDI = ProductUIDI(getProduct: productDI.getProductUseCase)
+        let bagUI = BagUIDI(
+            navigation: navigator,
+            observeBag: bagDI.observeBagUseCase,
+            bagItemQuantity: bagDI.bagItemQuantityUseCase,
+            addProductToBag: bagDI.addProductToBagUseCase,
+            removeProductFromBag: bagDI.removeProductFromBagUseCase,
+            updateBagItemQuantity: bagDI.updateBagItemQuantityUseCase,
+            getProductsByIds: productDI.getProductsByIdsUseCase,
+            snackbarPresenter: snackbarDI.presenter
+        )
+        bagUIDI = bagUI
+        productUIDI = ProductUIDI(getProduct: productDI.getProductUseCase, bagUIDI: bagUI)
         let wishlistUI = WishlistUIDI(
             navigation: navigator,
             observeWishlist: wishlistDI.observeWishlistUseCase,
@@ -109,7 +126,8 @@ final class Injector {
             getProductsByIds: productDI.getProductsByIdsUseCase,
             observeSession: sessionDI.observeSessionUseCase,
             authPresenter: authDI.presenter,
-            snackbarPresenter: snackbarDI.presenter
+            snackbarPresenter: snackbarDI.presenter,
+            bagUIDI: bagUI
         )
         wishlistUIDI = wishlistUI
         homeUIDI = HomeUIDI(
@@ -124,9 +142,9 @@ final class Injector {
             getSearchHistory: searchDI.getSearchHistoryUseCase,
             recordSearch: searchDI.recordSearchUseCase,
             clearSearchHistory: searchDI.clearSearchHistoryUseCase,
-            wishlistUIDI: wishlistUI
+            wishlistUIDI: wishlistUI,
+            bagUIDI: bagUI
         )
-        bagUIDI = BagUIDI(navigation: navigator)
         accountUIDI = AccountUIDI(
             getSession: sessionDI.getSessionUseCase,
             observeSession: sessionDI.observeSessionUseCase,

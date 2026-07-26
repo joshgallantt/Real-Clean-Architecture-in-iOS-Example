@@ -1,6 +1,4 @@
 // swift-tools-version: 6.2
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
 let package = Package(
@@ -18,17 +16,34 @@ let package = Package(
             targets: ["BagUIDI"]
         )
     ],
+    dependencies: [
+        .package(path: "../../Component/Bag"),
+        .package(path: "../../Component/Product"),
+        .package(path: "../../Component/Session"),
+        .package(path: "../SnackbarUI")
+    ],
     targets: [
         .target(
             name: "BagUI",
-            dependencies: [],
+            dependencies: [
+                .product(name: "Bag", package: "Bag"),
+                .product(name: "Product", package: "Product"),
+                .product(name: "Session", package: "Session"),
+                .product(name: "SnackbarUI", package: "SnackbarUI")
+            ],
             path: "Sources",
             exclude: ["DI"],
             sources: ["UI", "Navigation"]
         ),
         .target(
             name: "BagUIDI",
-            dependencies: ["BagUI"],
+            dependencies: [
+                "BagUI",
+                .product(name: "Bag", package: "Bag"),
+                .product(name: "Product", package: "Product"),
+                .product(name: "Session", package: "Session"),
+                .product(name: "SnackbarUI", package: "SnackbarUI")
+            ],
             path: "Sources/DI"
         ),
         .testTarget(

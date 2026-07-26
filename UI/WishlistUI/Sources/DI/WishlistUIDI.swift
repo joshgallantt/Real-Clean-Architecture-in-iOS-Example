@@ -12,6 +12,7 @@ import Session
 import AuthUI
 import SnackbarUI
 import WishlistUI
+import BagUIDI
 
 public struct WishlistUIDI {
     private let navigation: WishlistNavigation
@@ -23,6 +24,7 @@ public struct WishlistUIDI {
     private let observeSession: ObserveSessionUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
+    private let bagUIDI: BagUIDI
 
     public init(
         navigation: WishlistNavigation,
@@ -33,7 +35,8 @@ public struct WishlistUIDI {
         getProductsByIds: GetProductsByIdsUseCase,
         observeSession: ObserveSessionUseCase,
         authPresenter: AuthPresenting,
-        snackbarPresenter: SnackbarPresenting
+        snackbarPresenter: SnackbarPresenting,
+        bagUIDI: BagUIDI
     ) {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
@@ -44,6 +47,7 @@ public struct WishlistUIDI {
         self.observeSession = observeSession
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
+        self.bagUIDI = bagUIDI
     }
 
     @MainActor
@@ -71,6 +75,7 @@ public struct WishlistUIDI {
             ),
             navigation: navigation,
             wishlistButton: { productId in AnyView(button(productId: productId)) },
+            bagButton: { productId in AnyView(bagUIDI.button(productId: productId)) },
             authPresenter: authPresenter
         )
     }

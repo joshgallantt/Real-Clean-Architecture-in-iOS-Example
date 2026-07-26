@@ -6,17 +6,20 @@ public struct WishlistScreenView: View {
     @ObservedObject var viewModel: WishlistScreenViewModel
     let navigation: WishlistNavigation
     let wishlistButton: (Int) -> AnyView
+    let bagButton: (Int) -> AnyView
     let authPresenter: AuthPresenting
 
     public init(
         viewModel: WishlistScreenViewModel,
         navigation: WishlistNavigation,
         wishlistButton: @escaping (Int) -> AnyView,
+        bagButton: @escaping (Int) -> AnyView,
         authPresenter: AuthPresenting
     ) {
         self.viewModel = viewModel
         self.navigation = navigation
         self.wishlistButton = wishlistButton
+        self.bagButton = bagButton
         self.authPresenter = authPresenter
     }
 
@@ -39,7 +42,8 @@ public struct WishlistScreenView: View {
             isLoadingMore: viewModel.isLoadingMore,
             onSelect: { navigation.openProductDetails(id: $0.id) },
             onReachEnd: { viewModel.onReachEnd() },
-            accessory: { product in wishlistButton(product.id) }
+            accessory: { product in wishlistButton(product.id) },
+            leadingAccessory: { product in bagButton(product.id) }
         )
         .overlay {
             if viewModel.products.isEmpty && !viewModel.isLoading {

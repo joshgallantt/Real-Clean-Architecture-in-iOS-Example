@@ -17,7 +17,8 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../../Component/Product")
+        .package(path: "../../Component/Product"),
+        .package(path: "../BagUI")
     ],
     targets: [
         .target(
@@ -33,7 +34,8 @@ let package = Package(
             name: "ProductUIDI",
             dependencies: [
                 "ProductUI",
-                .product(name: "Product", package: "Product")
+                .product(name: "Product", package: "Product"),
+                .product(name: "BagUIDI", package: "BagUI")
             ],
             path: "Sources/DI"
         ),
