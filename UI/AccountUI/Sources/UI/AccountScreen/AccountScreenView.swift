@@ -3,16 +3,13 @@ import SwiftUI
 public struct AccountScreenView: View {
     @ObservedObject var viewModel: AccountScreenViewModel
     private let loginButton: AnyView
-    private let createAccountButton: AnyView
 
     public init(
         viewModel: AccountScreenViewModel,
-        loginButton: AnyView,
-        createAccountButton: AnyView
+        loginButton: AnyView
     ) {
         self.viewModel = viewModel
         self.loginButton = loginButton
-        self.createAccountButton = createAccountButton
     }
 
     public var body: some View {
@@ -28,7 +25,6 @@ public struct AccountScreenView: View {
                     Text("You're browsing as a guest.")
                         .foregroundStyle(.secondary)
                     loginButton
-                    createAccountButton
                 }
             }
         }

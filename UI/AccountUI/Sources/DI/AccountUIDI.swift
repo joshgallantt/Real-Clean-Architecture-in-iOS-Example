@@ -29,8 +29,11 @@ public struct AccountUIDI {
                 observeSession: observeSession,
                 logoutUseCase: logoutUseCase
             ),
-            loginButton: AnyView(authUIDI.loginButtonView()),
-            createAccountButton: AnyView(authUIDI.createAccountButtonView())
+            loginButton: AnyView(
+                authUIDI.loginButtonView()
+                    .buttonStyle(.borderedProminent)
+                    .controlSize(.large)
+            )
         )
     }
 }
