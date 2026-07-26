@@ -106,7 +106,7 @@ final class Injector {
             productIsWishlisted: wishlistDI.productIsWishlistedUseCase,
             addProductToWishlist: wishlistDI.addProductToWishlistUseCase,
             removeProductFromWishlist: wishlistDI.removeProductFromWishlistUseCase,
-            getProduct: productDI.getProductUseCase,
+            getProductsByIds: productDI.getProductsByIdsUseCase,
             observeSession: sessionDI.observeSessionUseCase,
             authPresenter: authDI.presenter,
             snackbarPresenter: snackbarDI.presenter

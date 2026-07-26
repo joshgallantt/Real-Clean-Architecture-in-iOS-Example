@@ -1,7 +1,7 @@
 import Foundation
 import Wishlist
 
-struct WishlistItemDTO: Codable {
+struct WishlistItemDTO: Codable, Sendable {
     let id: Int
     let dateAdded: Date
 

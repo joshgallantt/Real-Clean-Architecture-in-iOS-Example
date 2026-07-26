@@ -36,9 +36,9 @@ public struct WishlistScreenView: View {
     private var savedProducts: some View {
         ProductGridListView(
             products: viewModel.products,
-            isLoadingMore: false,
+            isLoadingMore: viewModel.isLoadingMore,
             onSelect: { navigation.openProductDetails(id: $0.id) },
-            onReachEnd: {},
+            onReachEnd: { viewModel.onReachEnd() },
             accessory: { product in wishlistButton(product.id) }
         )
         .overlay {
