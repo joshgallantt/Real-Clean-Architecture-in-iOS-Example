@@ -19,4 +19,12 @@ public struct ProductUIDI {
             actionButton: AnyView(bagUIDI.detailsButton(productId: id))
         )
     }
+
+    @MainActor
+    public func detailView(product: Product) -> some View {
+        ProductDetailsScreen(
+            viewModel: ProductDetailsViewModel(product: product),
+            actionButton: AnyView(bagUIDI.detailsButton(productId: product.id))
+        )
+    }
 }

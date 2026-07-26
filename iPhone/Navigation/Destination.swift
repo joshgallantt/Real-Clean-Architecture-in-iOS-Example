@@ -19,7 +19,14 @@ import ProductUIDI
 public enum Destination: Hashable {
     case searchResults(query: String)
     case categoryResults(category: CategorySlug)
-    case productDetails(id: Int)
+    case productDetails(ProductReference)
+
+    /// Either the bare id (fetched on appear) or an already-loaded model
+    /// (e.g. from a product grid, which skips the fetch entirely).
+    public enum ProductReference: Hashable {
+        case id(Int)
+        case product(Product)
+    }
 
     /// Navigation policy: destinations that require an authenticated session.
     /// `Navigator.open` routes these through the auth gate before pushing.
@@ -37,8 +44,10 @@ public enum Destination: Hashable {
             Injector.shared.searchUIDI.searchResultsView(query: query)
         case .categoryResults(let category):
             Injector.shared.searchUIDI.categoryResultsView(category: category)
-        case .productDetails(let id):
+        case .productDetails(.id(let id)):
             Injector.shared.productUIDI.detailView(id: id)
+        case .productDetails(.product(let product)):
+            Injector.shared.productUIDI.detailView(product: product)
         }
     }
 }
@@ -57,7 +66,7 @@ extension Navigator:
         open(.categoryResults(category: category))
     }
 
-    func openProductDetails(id: Int) {
-        open(.productDetails(id: id))
+    func openProductDetails(product: Product) {
+        open(.productDetails(.product(product)))
     }
 }

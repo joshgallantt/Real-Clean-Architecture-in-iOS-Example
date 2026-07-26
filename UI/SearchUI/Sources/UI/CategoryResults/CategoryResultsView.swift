@@ -25,7 +25,7 @@ public struct CategoryResultsView: View {
             isLoadingMore: viewModel.isLoadingMore,
             onSelect: { product in
                 viewModel.didSelect(product)
-                navigation.openProductDetails(id: product.id)
+                navigation.openProductDetails(product: product)
             },
             onReachEnd: {
                 Task { await viewModel.loadMore() }

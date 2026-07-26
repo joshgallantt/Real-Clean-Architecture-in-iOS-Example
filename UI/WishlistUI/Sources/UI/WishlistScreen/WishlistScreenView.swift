@@ -40,7 +40,7 @@ public struct WishlistScreenView: View {
         ProductGridListView(
             products: viewModel.products,
             isLoadingMore: viewModel.isLoadingMore,
-            onSelect: { navigation.openProductDetails(id: $0.id) },
+            onSelect: { navigation.openProductDetails(product: $0) },
             onReachEnd: { viewModel.onReachEnd() },
             accessory: { product in wishlistButton(product.id) },
             leadingAccessory: { product in bagButton(product.id) }
