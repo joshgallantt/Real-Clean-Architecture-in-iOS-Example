@@ -9,7 +9,7 @@ public final class BagButtonViewModel: ObservableObject {
 
     private let productId: Int
     private let addProductToBag: AddProductToBagUseCase
-    private let updateBagItemQuantity: UpdateBagItemQuantityUseCase
+    private let navigation: BagNavigation
     private let snackbarPresenter: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
 
@@ -17,12 +17,12 @@ public final class BagButtonViewModel: ObservableObject {
         productId: Int,
         bagItemQuantity: BagItemQuantityUseCase,
         addProductToBag: AddProductToBagUseCase,
-        updateBagItemQuantity: UpdateBagItemQuantityUseCase,
+        navigation: BagNavigation,
         snackbarPresenter: SnackbarPresenting
     ) {
         self.productId = productId
         self.addProductToBag = addProductToBag
-        self.updateBagItemQuantity = updateBagItemQuantity
+        self.navigation = navigation
         self.snackbarPresenter = snackbarPresenter
 
         bagItemQuantity(productId: productId)
@@ -38,15 +38,14 @@ public final class BagButtonViewModel: ObservableObject {
         }
     }
 
-    // Capture dependencies, not self: the snackbar undo closure escapes this call
+    // Capture dependencies, not self: the snackbar action closure escapes this call
     // and must not keep a discarded grid cell's view model alive.
 
     private func add() async {
         let addProductToBag = addProductToBag
-        let updateBagItemQuantity = updateBagItemQuantity
+        let navigation = navigation
         let snackbarPresenter = snackbarPresenter
         let productId = productId
-        let previousQuantity = quantity
 
         switch await addProductToBag(productId: productId) {
         case .success:
@@ -54,7 +53,7 @@ public final class BagButtonViewModel: ObservableObject {
                 title: "Added to Bag",
                 message: "View it any time in your bag.",
                 icon: "bag.fill",
-                action: .undo { Task { await updateBagItemQuantity(productId: productId, quantity: previousQuantity) } }
+                action: .view { navigation.switchToBagTab() }
             ))
         case .failure(.network):
             snackbarPresenter.show(Snackbar(

@@ -7,4 +7,5 @@ import Product
 
 public protocol BagNavigation: AnyObject {
     func openProductDetails(product: Product)
+    func switchToBagTab()
 }

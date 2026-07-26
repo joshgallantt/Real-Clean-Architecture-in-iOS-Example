@@ -69,4 +69,8 @@ extension Navigator:
     func openProductDetails(product: Product) {
         open(.productDetails(.product(product)))
     }
+
+    func switchToBagTab() {
+        selectedTab = .bag
+    }
 }

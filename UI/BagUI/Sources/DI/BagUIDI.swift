@@ -68,7 +68,7 @@ public struct BagUIDI {
             productId: productId,
             bagItemQuantity: bagItemQuantity,
             addProductToBag: addProductToBag,
-            updateBagItemQuantity: updateBagItemQuantity,
+            navigation: navigation,
             snackbarPresenter: snackbarPresenter
         )
     }
