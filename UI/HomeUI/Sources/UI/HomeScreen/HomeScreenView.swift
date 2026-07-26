@@ -14,6 +14,7 @@ public struct HomeScreenView: View {
         List(viewModel.products) { product in
             Button {
                 viewModel.didSelect(product)
+                navigation.openProductDetails(product: product)
             } label: {
                 HStack {
                     AsyncImage(url: URL(string: product.thumbnail)) { image in
