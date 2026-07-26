@@ -2,6 +2,7 @@ import SwiftUI
 
 struct AuthPrimaryButton: View {
     let title: String
+    let isEnabled: Bool
     let isLoading: Bool
     let action: () -> Void
 
@@ -22,7 +23,7 @@ struct AuthPrimaryButton: View {
         .buttonStyle(.borderedProminent)
         .tint(isLoading ? Color(.systemGray3) : .accentColor)
         .controlSize(.large)
-        .disabled(isLoading)
+        .disabled(isLoading || !isEnabled)
         .animation(.easeInOut(duration: 0.15), value: isLoading)
     }
 }

@@ -1,9 +1,11 @@
 import SwiftUI
 
 struct AuthSheetHeader: View {
-    let icon: String
-    let title: String
-    let subtitle: String
+    let header: AuthHeader
+
+    init(_ header: AuthHeader) {
+        self.header = header
+    }
 
     var body: some View {
         VStack(spacing: 12) {
@@ -11,15 +13,15 @@ struct AuthSheetHeader: View {
                 Circle()
                     .fill(.tint.opacity(0.15))
                     .frame(width: 64, height: 64)
-                Image(systemName: icon)
+                Image(systemName: header.icon)
                     .font(.system(size: 26, weight: .semibold))
                     .foregroundStyle(.tint)
             }
 
             VStack(spacing: 4) {
-                Text(title)
+                Text(header.title)
                     .font(.title2.bold())
-                Text(subtitle)
+                Text(header.subtitle)
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
