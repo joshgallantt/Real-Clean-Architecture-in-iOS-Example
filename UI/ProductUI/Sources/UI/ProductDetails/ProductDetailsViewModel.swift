@@ -8,15 +8,23 @@ public final class ProductDetailsViewModel: ObservableObject {
     @Published private(set) var loadFailed = false
 
     private let id: Int
-    private let getProduct: GetProductUseCase
+    private let getProduct: GetProductUseCase?
 
     public init(id: Int, getProduct: GetProductUseCase) {
         self.id = id
         self.getProduct = getProduct
     }
 
+    // Skips the fetch entirely: the caller already holds the full model (e.g.
+    // a product grid), so there's nothing to load.
+    public init(product: Product) {
+        self.id = product.id
+        self.product = product
+        self.getProduct = nil
+    }
+
     func onAppear() async {
-        guard product == nil else { return }
+        guard product == nil, let getProduct else { return }
         isLoading = true
         defer { isLoading = false }
 

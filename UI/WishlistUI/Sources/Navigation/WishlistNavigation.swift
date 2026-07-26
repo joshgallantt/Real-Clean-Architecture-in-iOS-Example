@@ -6,7 +6,8 @@
 //
 
 import Foundation
+import Product
 
 public protocol WishlistNavigation: AnyObject {
-    func openProductDetails(id: Int)
+    func openProductDetails(product: Product)
 }

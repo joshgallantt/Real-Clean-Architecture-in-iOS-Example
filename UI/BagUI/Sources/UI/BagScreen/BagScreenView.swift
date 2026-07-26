@@ -52,7 +52,7 @@ public struct BagScreenView: View {
     private func row(for product: Product) -> some View {
         HStack(spacing: 12) {
             Button {
-                navigation.openProductDetails(id: product.id)
+                navigation.openProductDetails(product: product)
             } label: {
                 HStack(spacing: 12) {
                     AsyncImage(url: URL(string: product.thumbnail)) { image in
