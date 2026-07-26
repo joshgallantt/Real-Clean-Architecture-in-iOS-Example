@@ -1,9 +1,5 @@
 import SwiftUI
 
-/// The confirmation every sheet in the flow ends on. Same shape as `AuthSheetHeader`, in
-/// green, so the sheet reads as the same surface resolving rather than a new one arriving.
-/// Centred in whatever height the sheet already has — resizing the detent to fit it would
-/// make the sheet lurch at the exact moment it should feel settled.
 struct AuthSuccessView: View {
     let title: String
     let message: String

@@ -7,9 +7,6 @@ import AuthUI
 /// everyone waiting on it once the user completes it or dismisses it. Built on the generic
 /// `SheetPresenting` primitive, so it knows nothing about *how* sheets get presented — only
 /// what this flow is.
-///
-/// The steps within the flow are the flow's own business, not this type's: it opens the
-/// sheet on one of them and hears back once, at the end.
 @MainActor
 public final class AuthPresenter: AuthPresenting {
     /// How the end of the flow is paced. The flow owns this, not the sheet: the sheet shows
@@ -33,7 +30,7 @@ public final class AuthPresenter: AuthPresenting {
     private let getSession: GetSessionUseCase
     private var waiting: [CheckedContinuation<Bool, Never>] = []
     private var didAuthenticate = false
-    private var confirmation: Task<Void, Never>?
+    private var confirmationTask: Task<Void, Never>?
 
     public init(
         sheetPresenting: SheetPresenting,
@@ -50,56 +47,50 @@ public final class AuthPresenter: AuthPresenting {
     }
 
     /// Opens on Log In, because that's the shorter road for the people most likely to be on
-    /// it, and creating an account is one tap from there. The prompt travels with it so the
-    /// ask still reads as part of whatever the user was doing.
+    /// it, and creating an account is one tap from there.
     @discardableResult
     public func show(_ prompt: AuthenticationPrompt) async -> Bool {
-        await authenticate(startingAt: .logIn, explaining: prompt)
+        await authenticate(mode: .logIn, prompt: prompt)
     }
 
     /// For a caller that already knows which form the user wants — a dedicated "Log In"
     /// button. No prompt: the button they just pressed is the explanation.
     @discardableResult
     func logIn() async -> Bool {
-        await authenticate(startingAt: .logIn, explaining: nil)
+        await authenticate(mode: .logIn, prompt: nil)
     }
 
     /// See `logIn()`.
     @discardableResult
     func createAccount() async -> Bool {
-        await authenticate(startingAt: .createAccount, explaining: nil)
+        await authenticate(mode: .createAccount, prompt: nil)
     }
 
-    private func authenticate(
-        startingAt step: AuthenticationStep,
-        explaining prompt: AuthenticationPrompt?
-    ) async -> Bool {
+    private func authenticate(mode: AuthMode, prompt: AuthenticationPrompt?) async -> Bool {
         if await userIsLoggedIn() {
             return true
         }
+        if !waiting.isEmpty {
+            return await withCheckedContinuation { waiting.append($0) }
+        }
         return await withCheckedContinuation { continuation in
             waiting.append(continuation)
-            present(step: step, prompt: prompt)
+            present(mode: mode, prompt: prompt)
         }
     }
 
-    private func present(step: AuthenticationStep, prompt: AuthenticationPrompt?) {
+    private func present(mode: AuthMode, prompt: AuthenticationPrompt?) {
         let loginUseCase = loginUseCase
         let createAccountUseCase = createAccountUseCase
         let getSession = getSession
 
         sheetPresenting.present(onDismiss: { [weak self] in self?.sheetWasDismissedByUser() }) {
-            AuthFlowView(viewModel: AuthFlowViewModel(
-                step: step,
+            AuthSheetView(viewModel: AuthViewModel(
+                mode: mode,
                 prompt: prompt,
-                logIn: LogInStepViewModel(
-                    loginUseCase: loginUseCase,
-                    getSession: getSession
-                ),
-                createAccount: CreateAccountStepViewModel(
-                    createAccountUseCase: createAccountUseCase,
-                    getSession: getSession
-                ),
+                loginUseCase: loginUseCase,
+                createAccountUseCase: createAccountUseCase,
+                getSession: getSession,
                 onAuthenticated: { [weak self] in self?.authenticationSucceeded() }
             ))
         }
@@ -109,7 +100,7 @@ public final class AuthPresenter: AuthPresenting {
     /// take it away, and only then let the waiting callers carry on.
     private func authenticationSucceeded() {
         didAuthenticate = true
-        confirmation = Task { [weak self] in
+        confirmationTask = Task { [weak self] in
             try? await Task.sleep(for: Timing.confirmation)
             guard let self, !Task.isCancelled else { return }
 
@@ -125,13 +116,13 @@ public final class AuthPresenter: AuthPresenting {
     /// to wait out. Swiping the confirmation away early only skips the rest of its turn —
     /// the user is authenticated either way.
     private func sheetWasDismissedByUser() {
-        confirmation?.cancel()
+        confirmationTask?.cancel()
         finish()
     }
 
     /// Everyone waiting gets the same answer — the flow authenticated the user or it didn't.
     private func finish() {
-        confirmation = nil
+        confirmationTask = nil
         let pending = waiting
         let outcome = didAuthenticate
         waiting = []
