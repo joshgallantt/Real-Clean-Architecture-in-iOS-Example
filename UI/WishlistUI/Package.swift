@@ -57,6 +57,6 @@ let package = Package(
             name: "WishlistUITests",
             dependencies: ["WishlistUIDI"],
             path: "Tests/WishlistUITests"
-        ),
+        )
     ]
 )

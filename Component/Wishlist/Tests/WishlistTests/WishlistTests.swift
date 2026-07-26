@@ -107,7 +107,7 @@ final class WishlistTests: XCTestCase {
         XCTAssertEqual(store.getItems(forUserKey: "guest").map(\.id), [9])
     }
 
-    func test_fileStore_migratesLegacyUserDefaultsWishlist() {
+    func test_fileStore_migratesLegacyUserDefaultsWishlist() throws {
         let suiteName = UUID().uuidString
         let defaults = UserDefaults(suiteName: suiteName)!
         defer { defaults.removePersistentDomain(forName: suiteName) }
@@ -117,7 +117,7 @@ final class WishlistTests: XCTestCase {
 
         let legacy = [WishlistItem(id: 4), WishlistItem(id: 5)]
         defaults.set(
-            try! JSONEncoder().encode(legacy.map(WishlistItemDTO.init(from:))),
+            try JSONEncoder().encode(legacy.map(WishlistItemDTO.init(from:))),
             forKey: "wishlist.42"
         )
 

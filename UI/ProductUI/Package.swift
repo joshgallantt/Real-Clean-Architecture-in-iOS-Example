@@ -43,6 +43,6 @@ let package = Package(
             name: "ProductUITests",
             dependencies: ["ProductUIDI"],
             path: "Tests/ProductUITests"
-        ),
+        )
     ]
 )

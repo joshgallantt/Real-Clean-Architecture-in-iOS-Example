@@ -1,6 +1,5 @@
 import Foundation
 
-
 public protocol UserStore: Sendable {
     func find(email: String) -> StoredUser?
     func save(_ user: StoredUser)

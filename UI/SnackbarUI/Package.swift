@@ -38,6 +38,6 @@ let package = Package(
             name: "SnackbarUIHostTests",
             dependencies: ["SnackbarUIDI"],
             path: "Tests/SnackbarUIHostTests"
-        ),
+        )
     ]
 )

@@ -50,6 +50,6 @@ let package = Package(
             name: "ProductTests",
             dependencies: ["ProductDI"],
             path: "Tests/ProductTests"
-        ),
+        )
     ]
 )

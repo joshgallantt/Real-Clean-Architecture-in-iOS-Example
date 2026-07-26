@@ -54,6 +54,6 @@ let package = Package(
             name: "SearchTests",
             dependencies: ["SearchDI"],
             path: "Tests/SearchTests"
-        ),
+        )
     ]
 )

@@ -5,7 +5,6 @@
 //  Created by Josh Gallant on 15/07/2025.
 //
 
-
 import SwiftUI
 import Combine
 import Foundation
@@ -56,6 +55,9 @@ final class Navigator: ObservableObject {
 
     // MARK: - NavigationPath controls
 
+    // Enumerates every tab twice (reset path, then append) by design; complexity tracks
+    // the tab count, not an actual branching problem.
+    // swiftlint:disable:next cyclomatic_complexity
     private func push(_ destination: Destination, tab: Tabs?) {
         let destinationTab = tab ?? selectedTab
         if destinationTab != selectedTab {

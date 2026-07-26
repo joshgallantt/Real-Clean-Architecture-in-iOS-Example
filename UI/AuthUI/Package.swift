@@ -36,6 +36,6 @@ let package = Package(
             path: "Sources",
             exclude: ["AuthUI"],
             sources: ["AuthUIHost", "AuthUIDI"]
-        ),
+        )
     ]
 )

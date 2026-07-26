@@ -59,6 +59,8 @@ final class Injector {
     let bagView: AnyView
     let accountView: AnyView
 
+    // Pure wiring for the whole app graph, so its length tracks feature count, not complexity.
+    // swiftlint:disable:next function_body_length
     private init() {
         // MARK: Component DI
         sessionDI = SessionDI(

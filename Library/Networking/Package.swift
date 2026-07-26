@@ -22,6 +22,6 @@ let package = Package(
             name: "NetworkingTests",
             dependencies: ["Networking"],
             path: "Tests/NetworkingTests"
-        ),
+        )
     ]
 )

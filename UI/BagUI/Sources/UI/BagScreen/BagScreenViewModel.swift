@@ -73,7 +73,7 @@ public final class BagScreenViewModel: ObservableObject {
                     message: "Check your connection and try again.",
                     icon: "wifi.slash",
                     action: .retry { [weak self] in
-                        Task { await self?.didChangeQuantity(productId: productId, quantity: quantity) }
+                        self?.didChangeQuantity(productId: productId, quantity: quantity)
                     }
                 ))
             }
@@ -91,7 +91,7 @@ public final class BagScreenViewModel: ObservableObject {
                     title: "Couldn't Remove Item",
                     message: "Check your connection and try again.",
                     icon: "wifi.slash",
-                    action: .retry { [weak self] in Task { await self?.didSwipeToDelete(productId: productId) } }
+                    action: .retry { [weak self] in self?.didSwipeToDelete(productId: productId) }
                 ))
             }
         }

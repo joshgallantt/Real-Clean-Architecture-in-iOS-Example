@@ -33,6 +33,6 @@ let package = Package(
             name: "OnboardingUITests",
             dependencies: ["OnboardingUIDI"],
             path: "Tests/OnboardingUITests"
-        ),
+        )
     ]
 )
