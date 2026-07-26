@@ -23,6 +23,6 @@ public struct Snackbar {
     /// a purely informational one only has to be read. The rule belongs to the snackbar, not
     /// to whatever is displaying it.
     public var displayDuration: Duration {
-        action == nil ? .seconds(3) : .seconds(5)
+        action == nil ? .seconds(3) : .seconds(3)
     }
 }
