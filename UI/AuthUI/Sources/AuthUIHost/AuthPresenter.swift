@@ -3,13 +3,16 @@ import Session
 import SheetUI
 import AuthUI
 
-/// Default `AuthPresenting` implementation: runs the flow as a chain of sheets and resolves
+/// Default `AuthPresenting` implementation: runs the flow as a single sheet and resolves
 /// everyone waiting on it once the user completes it or dismisses it. Built on the generic
 /// `SheetPresenting` primitive, so it knows nothing about *how* sheets get presented — only
 /// what this flow is.
+///
+/// The steps within the flow are the flow's own business, not this type's: it opens the
+/// sheet on one of them and hears back once, at the end.
 @MainActor
 public final class AuthPresenter: AuthPresenting {
-    /// How the end of the flow is paced. The flow owns this, not the sheets: the sheets show
+    /// How the end of the flow is paced. The flow owns this, not the sheet: the sheet shows
     /// the confirmation, the presenter decides how long it earns and when the screen is free
     /// again.
     private enum Timing {
@@ -46,73 +49,60 @@ public final class AuthPresenter: AuthPresenting {
         self.getSession = getSession
     }
 
+    /// Opens on Log In, because that's the shorter road for the people most likely to be on
+    /// it, and creating an account is one tap from there. The prompt travels with it so the
+    /// ask still reads as part of whatever the user was doing.
     @discardableResult
     public func show(_ prompt: AuthenticationPrompt) async -> Bool {
-        await authenticate(startingAt: .chooser(prompt))
+        await authenticate(startingAt: .logIn, explaining: prompt)
     }
 
-    /// Skips the chooser, for a caller that already knows which one the user wants — a
-    /// dedicated "Log In" button.
+    /// For a caller that already knows which form the user wants — a dedicated "Log In"
+    /// button. No prompt: the button they just pressed is the explanation.
     @discardableResult
     func logIn() async -> Bool {
-        await authenticate(startingAt: .logIn)
+        await authenticate(startingAt: .logIn, explaining: nil)
     }
 
-    /// Skips the chooser. See `logIn()`.
+    /// See `logIn()`.
     @discardableResult
     func createAccount() async -> Bool {
-        await authenticate(startingAt: .createAccount)
+        await authenticate(startingAt: .createAccount, explaining: nil)
     }
 
-    private func authenticate(startingAt step: AuthenticationStep) async -> Bool {
+    private func authenticate(
+        startingAt step: AuthenticationStep,
+        explaining prompt: AuthenticationPrompt?
+    ) async -> Bool {
         if await userIsLoggedIn() {
             return true
         }
         return await withCheckedContinuation { continuation in
             waiting.append(continuation)
-            present(step)
+            present(step: step, prompt: prompt)
         }
     }
 
-    private func present(_ step: AuthenticationStep) {
-        switch step {
-        case .chooser(let prompt):
-            presentSheet {
-                AuthenticationChooserSheetView(
-                    prompt: prompt,
-                    onSelectLogIn: { [weak self] in self?.present(.logIn) },
-                    onSelectCreateAccount: { [weak self] in self?.present(.createAccount) }
-                )
-            }
-        case .logIn:
-            let loginUseCase = loginUseCase
-            let getSession = getSession
-            presentSheet {
-                LoginSheetView(viewModel: LoginSheetViewModel(
+    private func present(step: AuthenticationStep, prompt: AuthenticationPrompt?) {
+        let loginUseCase = loginUseCase
+        let createAccountUseCase = createAccountUseCase
+        let getSession = getSession
+
+        sheetPresenting.present(onDismiss: { [weak self] in self?.sheetWasDismissedByUser() }) {
+            AuthFlowView(viewModel: AuthFlowViewModel(
+                step: step,
+                prompt: prompt,
+                logIn: LogInStepViewModel(
                     loginUseCase: loginUseCase,
-                    getSession: getSession,
-                    onAuthenticated: { [weak self] in self?.authenticationSucceeded() }
-                ))
-            }
-        case .createAccount:
-            let createAccountUseCase = createAccountUseCase
-            let getSession = getSession
-            presentSheet {
-                CreateAccountSheetView(viewModel: CreateAccountSheetViewModel(
+                    getSession: getSession
+                ),
+                createAccount: CreateAccountStepViewModel(
                     createAccountUseCase: createAccountUseCase,
-                    getSession: getSession,
-                    onAuthenticated: { [weak self] in self?.authenticationSucceeded() }
-                ))
-            }
+                    getSession: getSession
+                ),
+                onAuthenticated: { [weak self] in self?.authenticationSucceeded() }
+            ))
         }
-    }
-
-    /// Presenting over a sheet chains to it, so only the user ending the chain is an outcome.
-    private func presentSheet<Content: View>(@ViewBuilder _ sheet: () -> Content) {
-        sheetPresenting.present(
-            onDismiss: { [weak self] in self?.sheetWasDismissedByUser() },
-            content: sheet
-        )
     }
 
     /// The sheet is showing its confirmation by now. Leave it up long enough to be read,
