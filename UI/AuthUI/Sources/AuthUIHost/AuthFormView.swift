@@ -13,6 +13,7 @@ struct AuthFormView: View {
         ScrollView {
             VStack(spacing: 16) {
                 header
+                    .padding(.top, 24)
 
                 VStack(spacing: 10) {
                     if viewModel.mode == .createAccount {
@@ -75,6 +76,12 @@ struct AuthFormView: View {
         .scrollBounceBehavior(.basedOnSize)
         .scrollDismissesKeyboard(.interactively)
         .onTapGesture { focused = nil }
+        .onAppear { focusFirstField() }
+        .onChange(of: viewModel.mode) { focusFirstField() }
+    }
+
+    private func focusFirstField() {
+        focused = viewModel.mode == .createAccount ? .firstName : .email
     }
 
     private var header: some View {
