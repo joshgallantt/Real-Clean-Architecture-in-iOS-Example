@@ -17,7 +17,7 @@ public struct WishlistDI {
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
         userIsLoggedIn: UserIsLoggedInUseCase,
-        store: WishlistStore = UserDefaultsWishlistStore(defaults: .standard)
+        store: WishlistStore = FileWishlistStore()
     ) {
         let repository = DefaultWishlistRepository(
             store: store,

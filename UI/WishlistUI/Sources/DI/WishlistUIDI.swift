@@ -19,7 +19,7 @@ public struct WishlistUIDI {
     private let productIsWishlisted: ProductIsWishlistedUseCase
     private let addProductToWishlist: AddProductToWishlistUseCase
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
-    private let getProduct: GetProductUseCase
+    private let getProductsByIds: GetProductsByIdsUseCase
     private let observeSession: ObserveSessionUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
@@ -30,7 +30,7 @@ public struct WishlistUIDI {
         productIsWishlisted: ProductIsWishlistedUseCase,
         addProductToWishlist: AddProductToWishlistUseCase,
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
-        getProduct: GetProductUseCase,
+        getProductsByIds: GetProductsByIdsUseCase,
         observeSession: ObserveSessionUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting
@@ -40,7 +40,7 @@ public struct WishlistUIDI {
         self.productIsWishlisted = productIsWishlisted
         self.addProductToWishlist = addProductToWishlist
         self.removeProductFromWishlist = removeProductFromWishlist
-        self.getProduct = getProduct
+        self.getProductsByIds = getProductsByIds
         self.observeSession = observeSession
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
@@ -65,8 +65,9 @@ public struct WishlistUIDI {
         WishlistScreenView(
             viewModel: WishlistScreenViewModel(
                 observeWishlist: observeWishlist,
-                getProduct: getProduct,
-                observeSession: observeSession
+                getProductsByIds: getProductsByIds,
+                observeSession: observeSession,
+                snackbar: snackbarPresenter
             ),
             navigation: navigation,
             wishlistButton: { productId in AnyView(button(productId: productId)) },

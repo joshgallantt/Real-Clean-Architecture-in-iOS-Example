@@ -2,29 +2,39 @@ import Combine
 import Foundation
 import Product
 import Session
+import SnackbarUI
 import Wishlist
 
 @MainActor
 public final class WishlistScreenViewModel: ObservableObject {
     @Published private(set) var products: [Product] = []
     @Published private(set) var isLoading = false
+    @Published private(set) var isLoadingMore = false
     @Published private(set) var isAuthenticated = false
 
+    private let pageSize = 30
+
     private let observeWishlist: ObserveWishlistUseCase
-    private let getProduct: GetProductUseCase
+    private let getProductsByIds: GetProductsByIdsUseCase
     private let observeSession: ObserveSessionUseCase
+    private let snackbar: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
+    private var items: [WishlistItem] = []
     private var cache: [Int: Product] = [:]
-    private var refreshTask: Task<Void, Never>?
+    private var loadedCount: Int
+    private var hydrationTask: Task<Void, Never>?
 
     public init(
         observeWishlist: ObserveWishlistUseCase,
-        getProduct: GetProductUseCase,
-        observeSession: ObserveSessionUseCase
+        getProductsByIds: GetProductsByIdsUseCase,
+        observeSession: ObserveSessionUseCase,
+        snackbar: SnackbarPresenting
     ) {
         self.observeWishlist = observeWishlist
-        self.getProduct = getProduct
+        self.getProductsByIds = getProductsByIds
         self.observeSession = observeSession
+        self.snackbar = snackbar
+        self.loadedCount = pageSize
     }
 
     func onAppear() {
@@ -36,34 +46,73 @@ public final class WishlistScreenViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
+        // Ids are cheap to carry in full; only the visible window is ever hydrated
+        // into products, so the wishlist can hold thousands of entries.
         observeWishlist()
             .sink { [weak self] items in
-                // Serialise refreshes: a new emission supersedes any in-flight one,
-                // so a slow fetch can never clobber newer state.
-                self?.refreshTask?.cancel()
-                self?.refreshTask = Task { [weak self] in
-                    await self?.refresh(items)
-                }
+                self?.wishlistChanged(items)
             }
             .store(in: &cancellables)
     }
 
-    private func refresh(_ items: [WishlistItem]) async {
-        let missing = items.filter { cache[$0.id] == nil }
-        if !missing.isEmpty {
-            isLoading = true
-            for item in missing {
-                guard !Task.isCancelled else {
-                    isLoading = false
-                    return
-                }
-                if case .success(let product) = await getProduct(id: item.id) {
-                    cache[item.id] = product
-                }
-            }
+    func onReachEnd() {
+        guard loadedCount < items.count, !isLoading, !isLoadingMore else { return }
+        loadedCount += pageSize
+        hydrate(isPaging: true)
+    }
+
+    private func wishlistChanged(_ items: [WishlistItem]) {
+        self.items = items
+
+        let ids = Set(items.map(\.id))
+        cache = cache.filter { ids.contains($0.key) }
+
+        hydrate(isPaging: false)
+    }
+
+    private func hydrate(isPaging: Bool) {
+        // A newer window supersedes any in-flight one, so a slow fetch can never
+        // clobber newer state.
+        hydrationTask?.cancel()
+
+        let window = Array(items.prefix(loadedCount))
+        let missing = window.map(\.id).filter { cache[$0] == nil }
+
+        guard !missing.isEmpty else {
             isLoading = false
+            isLoadingMore = false
+            products = window.compactMap { cache[$0.id] }
+            return
         }
-        guard !Task.isCancelled else { return }
-        products = items.compactMap { cache[$0.id] }
+
+        if isPaging {
+            isLoadingMore = true
+        } else {
+            isLoading = true
+        }
+
+        hydrationTask = Task { [weak self] in
+            guard let self else { return }
+            let result = await self.getProductsByIds(ids: missing)
+            guard !Task.isCancelled else { return }
+
+            switch result {
+            case .success(let fetched):
+                for product in fetched {
+                    self.cache[product.id] = product
+                }
+            case .failure:
+                self.snackbar.show(Snackbar(
+                    title: "Couldn't Load Wishlist",
+                    message: "Check your connection and try again.",
+                    icon: "wifi.exclamationmark",
+                    action: .retry { [weak self] in self?.hydrate(isPaging: isPaging) }
+                ))
+            }
+
+            self.products = window.compactMap { self.cache[$0.id] }
+            self.isLoading = false
+            self.isLoadingMore = false
+        }
     }
 }
