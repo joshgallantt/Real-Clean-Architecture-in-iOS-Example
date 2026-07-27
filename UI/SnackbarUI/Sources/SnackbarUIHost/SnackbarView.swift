@@ -29,12 +29,16 @@ struct SnackbarView: View {
             .frame(maxWidth: .infinity, alignment: .leading)
 
             if let action = snackbar.action {
-                Button(action: onAction) {
-                    Text(action.label)
-                        .font(.system(size: 15, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-                .buttonStyle(.plain)
+                Text(action.label)
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(.white)
+                    .underline()
+                    .padding(.vertical, 10)
+                    .padding(.horizontal, 6)
+                    .contentShape(Rectangle())
+                    .onTapGesture {
+                        onAction()
+                    }
             }
         }
         .padding(.horizontal, 16)
