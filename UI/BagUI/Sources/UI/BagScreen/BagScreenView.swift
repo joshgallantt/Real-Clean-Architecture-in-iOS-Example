@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import Product
 
 public struct BagScreenView: View {
@@ -80,7 +81,10 @@ public struct BagScreenView: View {
             Stepper(
                 value: Binding(
                     get: { viewModel.quantities[product.id] ?? 1 },
-                    set: { viewModel.didChangeQuantity(productId: product.id, quantity: $0) }
+                    set: {
+                        UISelectionFeedbackGenerator().selectionChanged()
+                        viewModel.didChangeQuantity(productId: product.id, quantity: $0)
+                    }
                 ),
                 in: 1...99
             ) {
