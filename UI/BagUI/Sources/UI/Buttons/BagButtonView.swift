@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 public struct BagButtonView: View {
     @StateObject private var viewModel: BagButtonViewModel
@@ -9,6 +10,7 @@ public struct BagButtonView: View {
 
     public var body: some View {
         Button {
+            UIImpactFeedbackGenerator(style: .medium).impactOccurred()
             viewModel.didTap()
         } label: {
             ZStack(alignment: .topTrailing) {
