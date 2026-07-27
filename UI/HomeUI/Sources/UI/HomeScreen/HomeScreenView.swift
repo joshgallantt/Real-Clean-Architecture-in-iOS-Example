@@ -1,5 +1,6 @@
 import SwiftUI
 import Product
+import Kingfisher
 
 public struct HomeScreenView: View {
     @ObservedObject var viewModel: HomeScreenViewModel
@@ -17,12 +18,11 @@ public struct HomeScreenView: View {
                 navigation.openProductDetails(product: product)
             } label: {
                 HStack {
-                    AsyncImage(url: URL(string: product.thumbnail)) { image in
-                        image.resizable().aspectRatio(contentMode: .fit)
-                    } placeholder: {
-                        ProgressView()
-                    }
-                    .frame(width: 44, height: 44)
+                    KFImage(URL(string: product.thumbnail))
+                        .resizable()
+                        .placeholder { ProgressView() }
+                        .aspectRatio(contentMode: .fit)
+                        .frame(width: 44, height: 44)
 
                     VStack(alignment: .leading) {
                         Text(product.title).font(.headline)

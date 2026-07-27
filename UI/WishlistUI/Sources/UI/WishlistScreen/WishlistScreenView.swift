@@ -31,7 +31,7 @@ public struct WishlistScreenView: View {
                 guestPrompt
             }
         }
-        .onAppear {
+        .task {
             viewModel.onAppear()
         }
     }

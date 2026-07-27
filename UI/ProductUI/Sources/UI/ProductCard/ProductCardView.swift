@@ -1,5 +1,6 @@
 import SwiftUI
 import Product
+import Kingfisher
 
 public struct ProductCardView: View {
     private let product: Product
@@ -22,13 +23,10 @@ public struct ProductCardView: View {
                 .fill(Color(uiColor: .secondarySystemBackground))
                 .aspectRatio(3.0 / 4.0, contentMode: .fit)
                 .overlay {
-                    AsyncImage(url: URL(string: product.thumbnail)) { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        ProgressView()
-                    }
+                    KFImage(URL(string: product.thumbnail))
+                        .resizable()
+                        .placeholder { ProgressView() }
+                        .aspectRatio(contentMode: .fill)
                 }
                 .clipShape(RoundedRectangle(cornerRadius: 12))
                 .overlay(alignment: .topTrailing) {

@@ -19,13 +19,15 @@ let package = Package(
     dependencies: [
         .package(path: "../../Component/Product"),
         .package(path: "../BagUI"),
-        .package(path: "../SharedUI")
+        .package(path: "../SharedUI"),
+        .package(url: "https://github.com/onevcat/Kingfisher.git", from: "8.0.0")
     ],
     targets: [
         .target(
             name: "ProductUI",
             dependencies: [
-                .product(name: "Product", package: "Product")
+                .product(name: "Product", package: "Product"),
+                .product(name: "Kingfisher", package: "Kingfisher")
             ],
             path: "Sources",
             exclude: ["DI"],
