@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 
 public struct WishlistButtonView: View {
     @StateObject private var viewModel: WishlistButtonViewModel
@@ -9,6 +10,7 @@ public struct WishlistButtonView: View {
 
     public var body: some View {
         Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
             viewModel.didTap()
         } label: {
             Image(systemName: viewModel.isInWishlist ? "heart.fill" : "heart")
