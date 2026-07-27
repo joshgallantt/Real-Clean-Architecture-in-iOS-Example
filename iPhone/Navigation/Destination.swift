@@ -65,6 +65,7 @@ extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNa
     }
 
     func switchToBagTab() {
+        bagPath = NavigationPath()
         selectedTab = .bag
     }
 }
