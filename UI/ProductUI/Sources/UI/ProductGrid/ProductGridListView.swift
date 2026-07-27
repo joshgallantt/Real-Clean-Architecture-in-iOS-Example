@@ -1,5 +1,4 @@
 import SwiftUI
-import UIKit
 import Product
 
 public struct ProductGridListView: View {
@@ -36,7 +35,6 @@ public struct ProductGridListView: View {
             LazyVGrid(columns: columns, spacing: 16) {
                 ForEach(products) { product in
                     Button {
-                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         onSelect(product)
                     } label: {
                         ProductCardView(
