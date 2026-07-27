@@ -1,5 +1,6 @@
 import SwiftUI
 import Product
+import Kingfisher
 
 public struct ProductDetailsScreen: View {
     @StateObject private var viewModel: ProductDetailsViewModel
@@ -43,17 +44,14 @@ public struct ProductDetailsScreen: View {
     @ViewBuilder
     private func content(for product: Product) -> some View {
         VStack(alignment: .leading, spacing: 16) {
-            AsyncImage(url: URL(string: product.thumbnail)) { image in
-                image
-                    .resizable()
-                    .aspectRatio(contentMode: .fit)
-            } placeholder: {
-                ProgressView()
-            }
-            .frame(maxWidth: .infinity)
-            .frame(height: 280)
-            .background(Color(uiColor: .secondarySystemBackground))
-            .clipShape(RoundedRectangle(cornerRadius: 16))
+            KFImage(URL(string: product.thumbnail))
+                .resizable()
+                .placeholder { ProgressView() }
+                .aspectRatio(contentMode: .fit)
+                .frame(maxWidth: .infinity)
+                .frame(height: 280)
+                .background(Color(uiColor: .secondarySystemBackground))
+                .clipShape(RoundedRectangle(cornerRadius: 16))
 
             HStack(alignment: .top) {
                 VStack(alignment: .leading, spacing: 4) {

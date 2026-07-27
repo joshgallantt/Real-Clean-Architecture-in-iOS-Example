@@ -1,6 +1,7 @@
 import SwiftUI
 import UIKit
 import Product
+import Kingfisher
 
 public struct BagScreenView: View {
     @ObservedObject var viewModel: BagScreenViewModel
@@ -56,13 +57,12 @@ public struct BagScreenView: View {
                 navigation.openProductDetails(product: product)
             } label: {
                 HStack(spacing: 12) {
-                    AsyncImage(url: URL(string: product.thumbnail)) { image in
-                        image.resizable().aspectRatio(contentMode: .fill)
-                    } placeholder: {
-                        ProgressView()
-                    }
-                    .frame(width: 56, height: 56)
-                    .clipShape(RoundedRectangle(cornerRadius: 8))
+                    KFImage(URL(string: product.thumbnail))
+                        .resizable()
+                        .placeholder { ProgressView() }
+                        .aspectRatio(contentMode: .fill)
+                        .frame(width: 56, height: 56)
+                        .clipShape(RoundedRectangle(cornerRadius: 8))
 
                     VStack(alignment: .leading, spacing: 4) {
                         Text(product.title)
