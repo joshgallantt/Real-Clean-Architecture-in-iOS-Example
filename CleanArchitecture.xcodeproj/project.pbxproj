@@ -28,6 +28,7 @@
 		FADE000700000000000000A1 /* SheetUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000700000000000000A2 /* SheetUIDI */; };
 		FADE000800000000000000A1 /* SnackbarUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000800000000000000A2 /* SnackbarUI */; };
 		FADE000900000000000000A1 /* SheetUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000900000000000000A2 /* SheetUI */; };
+		FADE001100000000000000A1 /* SharedUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE001100000000000000A2 /* SharedUIDI */; };
 		FADE001000000000000000A1 /* BagDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE001000000000000000A2 /* BagDI */; };
 /* End PBXBuildFile section */
 
@@ -104,6 +105,7 @@
 				FADE000800000000000000A1 /* SnackbarUI in Frameworks */,
 				FADE000900000000000000A1 /* SheetUI in Frameworks */,
 				FADE001000000000000000A1 /* BagDI in Frameworks */,
+				FADE001100000000000000A1 /* SharedUIDI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -187,6 +189,7 @@
 				FADE000800000000000000A2 /* SnackbarUI */,
 				FADE000900000000000000A2 /* SheetUI */,
 				FADE001000000000000000A2 /* BagDI */,
+				FADE001100000000000000A2 /* SharedUIDI */,
 			);
 			productName = iPhone;
 			productReference = 1418DD6E2E3E53DC00191417 /* iPhone.app */;
@@ -715,10 +718,6 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Component/Wishlist;
 		};
-		FADE001000000000000000B1 /* XCLocalSwiftPackageReference "Component/Bag" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = Component/Bag;
-		};
 		FADE000600000000000000B1 /* XCLocalSwiftPackageReference "UI/SnackbarUI" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = UI/SnackbarUI;
@@ -726,6 +725,14 @@
 		FADE000700000000000000B1 /* XCLocalSwiftPackageReference "UI/SheetUI" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = UI/SheetUI;
+		};
+		FADE001000000000000000B1 /* XCLocalSwiftPackageReference "Component/Bag" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/Bag;
+		};
+		FADE001100000000000000B1 /* XCLocalSwiftPackageReference "UI/SharedUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/SharedUI;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -810,11 +817,6 @@
 			package = FADE000400000000000000B1 /* XCLocalSwiftPackageReference "Component/Wishlist" */;
 			productName = WishlistDI;
 		};
-		FADE001000000000000000A2 /* BagDI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = FADE001000000000000000B1 /* XCLocalSwiftPackageReference "Component/Bag" */;
-			productName = BagDI;
-		};
 		FADE000500000000000000A2 /* AuthUI */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/AuthUI" */;
@@ -839,6 +841,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FADE000700000000000000B1 /* XCLocalSwiftPackageReference "UI/SheetUI" */;
 			productName = SheetUI;
+		};
+		FADE001000000000000000A2 /* BagDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE001000000000000000B1 /* XCLocalSwiftPackageReference "Component/Bag" */;
+			productName = BagDI;
+		};
+		FADE001100000000000000A2 /* SharedUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE001100000000000000B1 /* XCLocalSwiftPackageReference "UI/SharedUI" */;
+			productName = SharedUIDI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

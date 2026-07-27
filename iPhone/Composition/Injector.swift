@@ -10,6 +10,7 @@ import HomeUIDI
 import SearchUIDI
 import WishlistUIDI
 import BagUIDI
+import SharedUIDI
 import AccountUIDI
 import AuthUIDI
 import OnboardingUIDI
@@ -118,20 +119,29 @@ final class Injector {
             snackbarPresenter: snackbarDI.presenter
         )
         bagUIDI = bagUI
-        productUIDI = ProductUIDI(getProduct: productDI.getProductUseCase, bagUIDI: bagUI)
-        let wishlistUI = WishlistUIDI(
-            navigation: navigator,
-            observeWishlist: wishlistDI.observeWishlistUseCase,
+        let sharedUI = SharedUIDI(
             productIsWishlisted: wishlistDI.productIsWishlistedUseCase,
             addProductToWishlist: wishlistDI.addProductToWishlistUseCase,
             removeProductFromWishlist: wishlistDI.removeProductFromWishlistUseCase,
+            authPresenter: authDI.presenter,
+            snackbarPresenter: snackbarDI.presenter
+        )
+        let wishlistUI = WishlistUIDI(
+            navigation: navigator,
+            observeWishlist: wishlistDI.observeWishlistUseCase,
             getProductsByIds: productDI.getProductsByIdsUseCase,
             observeSession: sessionDI.observeSessionUseCase,
             authPresenter: authDI.presenter,
             snackbarPresenter: snackbarDI.presenter,
-            bagUIDI: bagUI
+            bagUIDI: bagUI,
+            sharedUIDI: sharedUI
         )
         wishlistUIDI = wishlistUI
+        productUIDI = ProductUIDI(
+            getProduct: productDI.getProductUseCase,
+            bagUIDI: bagUI,
+            sharedUIDI: sharedUI
+        )
         homeUIDI = HomeUIDI(
             navigation: navigator,
             getProducts: productDI.getProductsUseCase,
