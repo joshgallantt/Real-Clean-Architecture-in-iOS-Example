@@ -1,4 +1,5 @@
 import SwiftUI
+import UIKit
 import SnackbarUI
 
 struct SnackbarView: View {
@@ -37,6 +38,7 @@ struct SnackbarView: View {
                     .padding(.horizontal, 6)
                     .contentShape(Rectangle())
                     .onTapGesture {
+                        UIImpactFeedbackGenerator(style: .light).impactOccurred()
                         onAction()
                     }
             }
