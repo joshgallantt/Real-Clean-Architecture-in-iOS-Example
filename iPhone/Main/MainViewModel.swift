@@ -27,7 +27,7 @@ final class MainViewModel: ObservableObject {
     /// A beat between the authentication sheet leaving and the app changing underneath, so
     /// the two read as one thing finishing and the next beginning rather than as a single
     /// lurch.
-    private let settleAfterAuthentication: Duration = .milliseconds(300)
+    private let settleAfterAuthentication: Duration = .milliseconds(500)
 
     init(getSession: GetSessionUseCase) {
         self.getSession = getSession
