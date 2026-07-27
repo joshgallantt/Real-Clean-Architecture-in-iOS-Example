@@ -4,13 +4,16 @@ import Product
 public struct ProductDetailsScreen: View {
     @StateObject private var viewModel: ProductDetailsViewModel
     private let actionButton: AnyView
+    private let wishlistButton: AnyView
 
     public init(
         viewModel: @autoclosure @escaping () -> ProductDetailsViewModel,
-        actionButton: AnyView = AnyView(EmptyView())
+        actionButton: AnyView = AnyView(EmptyView()),
+        wishlistButton: AnyView = AnyView(EmptyView())
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel())
         self.actionButton = actionButton
+        self.wishlistButton = wishlistButton
     }
 
     public var body: some View {
@@ -52,12 +55,16 @@ public struct ProductDetailsScreen: View {
             .background(Color(uiColor: .secondarySystemBackground))
             .clipShape(RoundedRectangle(cornerRadius: 16))
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(product.brand)
-                    .font(.subheadline)
-                    .foregroundStyle(.secondary)
-                Text(product.title)
-                    .font(.title2.bold())
+            HStack(alignment: .top) {
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(product.brand)
+                        .font(.subheadline)
+                        .foregroundStyle(.secondary)
+                    Text(product.title)
+                        .font(.title2.bold())
+                }
+                Spacer()
+                wishlistButton
             }
 
             HStack(spacing: 16) {

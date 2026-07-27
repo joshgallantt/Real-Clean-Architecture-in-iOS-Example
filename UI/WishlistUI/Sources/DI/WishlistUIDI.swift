@@ -13,55 +13,41 @@ import AuthUI
 import SnackbarUI
 import WishlistUI
 import BagUIDI
+import SharedUIDI
 
 public struct WishlistUIDI {
     private let navigation: WishlistNavigation
     private let observeWishlist: ObserveWishlistUseCase
-    private let productIsWishlisted: ProductIsWishlistedUseCase
-    private let addProductToWishlist: AddProductToWishlistUseCase
-    private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
     private let getProductsByIds: GetProductsByIdsUseCase
     private let observeSession: ObserveSessionUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private let bagUIDI: BagUIDI
+    private let sharedUIDI: SharedUIDI
 
     public init(
         navigation: WishlistNavigation,
         observeWishlist: ObserveWishlistUseCase,
-        productIsWishlisted: ProductIsWishlistedUseCase,
-        addProductToWishlist: AddProductToWishlistUseCase,
-        removeProductFromWishlist: RemoveProductFromWishlistUseCase,
         getProductsByIds: GetProductsByIdsUseCase,
         observeSession: ObserveSessionUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
-        bagUIDI: BagUIDI
+        bagUIDI: BagUIDI,
+        sharedUIDI: SharedUIDI
     ) {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
-        self.productIsWishlisted = productIsWishlisted
-        self.addProductToWishlist = addProductToWishlist
-        self.removeProductFromWishlist = removeProductFromWishlist
         self.getProductsByIds = getProductsByIds
         self.observeSession = observeSession
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
         self.bagUIDI = bagUIDI
+        self.sharedUIDI = sharedUIDI
     }
 
     @MainActor
     public func button(productId: Int) -> some View {
-        WishlistButtonView(
-            viewModel: WishlistButtonViewModel(
-                productId: productId,
-                productIsWishlisted: self.productIsWishlisted,
-                addProductToWishlist: self.addProductToWishlist,
-                removeProductFromWishlist: self.removeProductFromWishlist,
-                authPresenter: self.authPresenter,
-                snackbarPresenter: self.snackbarPresenter
-            )
-        )
+        sharedUIDI.wishlistButton(productId: productId)
     }
 
     @MainActor
