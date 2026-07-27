@@ -42,10 +42,6 @@ struct Main: App {
                     )
                 }
             }
-            .animation(.easeInOut, value: viewModel.phase)
-            // Hosted above the phase switch, not inside a branch: the authentication flow is
-            // reachable from Welcome as well as from the tabs, and a sheet that is up when
-            // the phase changes should outlive the screen that opened it.
             .sheetHost(Injector.shared.sheetUIDI.presenter)
             .task {
                 await viewModel.onAppear()
