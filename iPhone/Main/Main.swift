@@ -26,6 +26,9 @@ struct Main: App {
                         onContinueAsGuest: { viewModel.continueAsGuest() },
                         onAuthenticated: { viewModel.authenticationFinished() }
                     )
+                    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .top)
+                    .padding(.top, 160)
+                    .ignoresSafeArea(edges: .top)
                 case .onboarding:
                     Injector.shared.onboardingUIDI.onboardingView(
                         onFinish: { viewModel.continueAsGuest() }
