@@ -2,22 +2,13 @@ import SwiftUI
 
 public struct WelcomeScreenView: View {
     @StateObject private var viewModel: WelcomeScreenViewModel
-    private let loginButton: AnyView
-    private let createAccountButton: AnyView
 
-    public init(
-        viewModel: @autoclosure @escaping () -> WelcomeScreenViewModel,
-        loginButton: AnyView,
-        createAccountButton: AnyView
-    ) {
+    public init(viewModel: @autoclosure @escaping () -> WelcomeScreenViewModel) {
         self._viewModel = StateObject(wrappedValue: viewModel())
-        self.loginButton = loginButton
-        self.createAccountButton = createAccountButton
     }
 
     public var body: some View {
         VStack(spacing: 24) {
-            Spacer()
 
             Image(systemName: "bag.fill")
                 .font(.system(size: 72))
@@ -32,11 +23,23 @@ public struct WelcomeScreenView: View {
                     .multilineTextAlignment(.center)
             }
 
-            Spacer()
 
             VStack(spacing: 16) {
-                loginButton
-                createAccountButton
+                Button {
+                    viewModel.didTapLogIn()
+                } label: {
+                    Text("Log In").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.borderedProminent)
+                .controlSize(.large)
+
+                Button {
+                    viewModel.didTapCreateAccount()
+                } label: {
+                    Text("Create Account").frame(maxWidth: .infinity)
+                }
+                .buttonStyle(.bordered)
+                .controlSize(.large)
 
                 Button {
                     viewModel.didContinueAsGuest()

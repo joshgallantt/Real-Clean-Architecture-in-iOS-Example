@@ -74,16 +74,10 @@ public struct AuthUIDI {
         onAuthenticated: @escaping () -> Void
     ) -> some View {
         WelcomeScreenView(
-            viewModel: WelcomeScreenViewModel(onContinueAsGuest: onContinueAsGuest),
-            loginButton: AnyView(
-                loginButtonView(onAuthenticated: onAuthenticated)
-                    .buttonStyle(.borderedProminent)
-                    .controlSize(.large)
-            ),
-            createAccountButton: AnyView(
-                createAccountButtonView(onAuthenticated: onAuthenticated)
-                    .buttonStyle(.bordered)
-                    .controlSize(.large)
+            viewModel: WelcomeScreenViewModel(
+                presenter: presenter,
+                onContinueAsGuest: onContinueAsGuest,
+                onAuthenticated: onAuthenticated
             )
         )
     }
