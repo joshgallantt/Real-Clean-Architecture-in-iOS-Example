@@ -3,7 +3,7 @@ import Product
 
 @MainActor
 public final class CategoryResultsViewModel: ObservableObject {
-    let category: CategorySlug
+    let category: CategorySlug?
     @Published private(set) var results: [Product] = []
     @Published private(set) var isLoading = false
     @Published private(set) var isLoadingMore = false
@@ -14,13 +14,14 @@ public final class CategoryResultsViewModel: ObservableObject {
     private var page = 0
     private var hasMore = true
 
-    public init(category: CategorySlug, getProducts: GetProductsUseCase) {
+    public init(category: CategorySlug?, getProducts: GetProductsUseCase) {
         self.category = category
         self.getProducts = getProducts
     }
 
     var displayName: String {
-        category.value.replacingOccurrences(of: "-", with: " ").capitalized
+        guard let category else { return "All Products" }
+        return category.value.replacingOccurrences(of: "-", with: " ").capitalized
     }
 
     func onAppear() async {
@@ -42,7 +43,8 @@ public final class CategoryResultsViewModel: ObservableObject {
     private func load(reset: Bool) async {
         let nextPage = reset ? 0 : page + 1
 
-        let query = ProductQuery.category(category, page: nextPage, pageSize: pageSize)
+        let query = category.map { ProductQuery.category($0, page: nextPage, pageSize: pageSize) }
+            ?? ProductQuery.all(page: nextPage, pageSize: pageSize)
         if case .success(let value) = await getProducts(matching: query) {
             results = reset ? value : results + value
             page = nextPage

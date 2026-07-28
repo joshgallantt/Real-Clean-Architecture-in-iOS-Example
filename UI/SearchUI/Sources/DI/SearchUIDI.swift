@@ -59,7 +59,7 @@ public struct SearchUIDI {
     }
 
     @MainActor
-    public func categoryResultsView(category: CategorySlug) -> some View {
+    public func categoryResultsView(category: CategorySlug?) -> some View {
         CategoryResultsView(
             viewModel: CategoryResultsViewModel(category: category, getProducts: getProducts),
             navigation: navigation,
