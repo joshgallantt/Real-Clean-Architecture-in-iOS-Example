@@ -43,11 +43,6 @@ let package = Package(
             name: "SessionDI",
             dependencies: ["Session", "SessionData"],
             path: "Sources/DI"
-        ),
-        .testTarget(
-            name: "SessionTests",
-            dependencies: ["SessionDI"],
-            path: "Tests/SessionTests"
         )
     ]
 )

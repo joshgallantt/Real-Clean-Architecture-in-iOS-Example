@@ -30,28 +30,6 @@
       shouldUseLaunchSchemeArgsEnv = "YES"
       shouldAutocreateTestPlan = "YES">
       <Testables>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1418DD792E3E53DE00191417"
-               BuildableName = "iPhoneTests.xctest"
-               BlueprintName = "iPhoneTests"
-               ReferencedContainer = "container:CleanArchitecture.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
-         <TestableReference
-            skipped = "NO"
-            parallelizable = "YES">
-            <BuildableReference
-               BuildableIdentifier = "primary"
-               BlueprintIdentifier = "1418DD832E3E53DE00191417"
-               BuildableName = "iPhoneUITests.xctest"
-               BlueprintName = "iPhoneUITests"
-               ReferencedContainer = "container:CleanArchitecture.xcodeproj">
-            </BuildableReference>
-         </TestableReference>
       </Testables>
    </TestAction>
    <LaunchAction

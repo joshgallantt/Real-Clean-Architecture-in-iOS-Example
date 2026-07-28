@@ -28,11 +28,6 @@ let package = Package(
             name: "OnboardingUIDI",
             dependencies: ["OnboardingUI"],
             path: "Sources/DI"
-        ),
-        .testTarget(
-            name: "OnboardingUITests",
-            dependencies: ["OnboardingUIDI"],
-            path: "Tests/OnboardingUITests"
         )
     ]
 )

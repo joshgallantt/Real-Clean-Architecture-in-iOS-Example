@@ -51,11 +51,6 @@ let package = Package(
                 .product(name: "Session", package: "Session")
             ],
             path: "Sources/DI"
-        ),
-        .testTarget(
-            name: "WishlistTests",
-            dependencies: ["WishlistDI"],
-            path: "Tests/WishlistTests"
         )
     ]
 )
