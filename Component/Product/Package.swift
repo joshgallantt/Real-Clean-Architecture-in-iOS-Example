@@ -45,6 +45,11 @@ let package = Package(
             name: "ProductDI",
             dependencies: ["Product", "ProductData"],
             path: "Sources/DI"
+        ),
+        .testTarget(
+            name: "ProductAcceptanceTests",
+            dependencies: ["ProductDI", "ProductData"],
+            path: "Tests/ProductAcceptanceTests"
         )
     ]
 )

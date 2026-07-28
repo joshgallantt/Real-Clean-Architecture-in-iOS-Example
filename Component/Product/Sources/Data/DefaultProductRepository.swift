@@ -1,8 +1,7 @@
+import Networking
 import Product
 
 public struct DefaultProductRepository: ProductRepository {
-    private static let maxConcurrentFetches = 6
-
     private let client: ProductClient
 
     public init(client: ProductClient) {
@@ -14,40 +13,45 @@ public struct DefaultProductRepository: ProductRepository {
             let dtos = try await client.fetchProducts(query: query)
             return .success(dtos.map { $0.toDomain() })
         } catch {
-            return .failure(.networkFailure)
+            return .failure(Self.productError(from: error))
         }
     }
 
-    // Fans out over a bounded window rather than awaiting each id in turn, so a
-    // page of ids costs a few round trips instead of one per item. Ids that 404
-    // are dropped; only a wholly failed batch surfaces as an error.
+    // The catalog has no endpoint for a set of ids, so each one is fetched on its own.
+    // A product that 404s has been delisted since its id was stored and is simply gone;
+    // any other failure means the set could not be assembled, and a short list would be
+    // indistinguishable from the shopper having chosen fewer things.
     public func getProducts(ids: [Int]) async -> Result<[Product], ProductError> {
         guard !ids.isEmpty else { return .success([]) }
 
         let client = self.client
-        let fetched = await withTaskGroup(of: (Int, Product?).self) { group in
-            var iterator = ids.makeIterator()
-            var results: [Int: Product] = [:]
-
-            for _ in 0..<Self.maxConcurrentFetches {
-                guard let id = iterator.next() else { break }
-                group.addTask { (id, try? await client.fetchProduct(id: id).toDomain()) }
-            }
-
-            while let (id, product) = await group.next() {
-                if let product {
-                    results[id] = product
-                }
-                if let next = iterator.next() {
-                    group.addTask { (next, try? await client.fetchProduct(id: next).toDomain()) }
+        let fetched = await withTaskGroup(of: (Int, Result<Product, ProductError>).self) { group in
+            for id in ids {
+                group.addTask {
+                    do {
+                        return (id, .success(try await client.fetchProduct(id: id).toDomain()))
+                    } catch {
+                        return (id, .failure(Self.productError(from: error)))
+                    }
                 }
             }
 
+            var results: [Int: Result<Product, ProductError>] = [:]
+            for await (id, result) in group {
+                results[id] = result
+            }
             return results
         }
 
-        guard !fetched.isEmpty else { return .failure(.networkFailure) }
-        return .success(ids.compactMap { fetched[$0] })
+        for id in ids {
+            guard case .failure(let error) = fetched[id], error != .notFound else { continue }
+            return .failure(error)
+        }
+
+        return .success(ids.compactMap { id in
+            guard case .success(let product) = fetched[id] else { return nil }
+            return product
+        })
     }
 
     public func getProduct(id: Int) async -> Result<Product, ProductError> {
@@ -55,7 +59,7 @@ public struct DefaultProductRepository: ProductRepository {
             let dto = try await client.fetchProduct(id: id)
             return .success(dto.toDomain())
         } catch {
-            return .failure(.networkFailure)
+            return .failure(Self.productError(from: error))
         }
     }
 
@@ -64,7 +68,15 @@ public struct DefaultProductRepository: ProductRepository {
             let dtos = try await client.fetchCategories()
             return .success(dtos.map { $0.toDomain() })
         } catch {
-            return .failure(.networkFailure)
+            return .failure(Self.productError(from: error))
         }
+    }
+
+    // The one place the transport's vocabulary becomes the domain's. Only a 404 tells
+    // us a product is genuinely gone; a timeout, a 500 and an unreadable payload are
+    // all the same thing to a shopper — the app could not get what it asked for.
+    private static func productError(from error: Error) -> ProductError {
+        guard case .server(404) = error as? HTTPClientError else { return .networkFailure }
+        return .notFound
     }
 }
