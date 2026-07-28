@@ -23,13 +23,16 @@ public struct DummyJSONProductClient: ProductClient {
             URLQueryItem(name: "skip", value: String(query.page * query.pageSize))
         ]
 
-        if let category = query.category {
-            path = "products/category/\(category.value)"
-        } else if let searchText = query.searchText {
-            path = "products/search"
-            queryItems.append(URLQueryItem(name: "q", value: searchText))
-        } else {
+        // DummyJSON exposes no "all products" category, so `.all` is served by the
+        // unfiltered collection. That gap is this client's problem, not the domain's.
+        switch query.filter {
+        case .all:
             path = "products"
+        case .search(let text):
+            path = "products/search"
+            queryItems.append(URLQueryItem(name: "q", value: text))
+        case .category(let category):
+            path = "products/category/\(category.id.rawValue)"
         }
 
         var components = URLComponents(url: baseURL.appendingPathComponent(path), resolvingAgainstBaseURL: false)!

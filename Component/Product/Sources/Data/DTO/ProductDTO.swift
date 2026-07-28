@@ -18,7 +18,7 @@ public struct ProductDTO: Decodable {
             id: id,
             title: title,
             description: description,
-            category: CategorySlug(value: category),
+            category: CategoryID(rawValue: category),
             price: price,
             discountPercentage: discountPercentage,
             rating: rating,

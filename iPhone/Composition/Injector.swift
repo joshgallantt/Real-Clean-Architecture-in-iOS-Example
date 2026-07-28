@@ -154,6 +154,7 @@ final class Injector {
             getSearchHistory: searchDI.getSearchHistoryUseCase,
             recordSearch: searchDI.recordSearchUseCase,
             clearSearchHistory: searchDI.clearSearchHistoryUseCase,
+            snackbarPresenter: snackbarDI.presenter,
             wishlistUIDI: wishlistUI,
             bagUIDI: bagUI
         )

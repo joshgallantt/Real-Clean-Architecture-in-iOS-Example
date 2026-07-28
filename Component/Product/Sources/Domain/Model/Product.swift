@@ -4,7 +4,7 @@ public struct Product: Equatable, Hashable, Sendable, Identifiable {
     public let id: Int
     public let title: String
     public let description: String
-    public let category: CategorySlug
+    public let category: CategoryID
     public let price: Double
     public let discountPercentage: Double
     public let rating: Double
@@ -17,7 +17,7 @@ public struct Product: Equatable, Hashable, Sendable, Identifiable {
         id: Int,
         title: String,
         description: String,
-        category: CategorySlug,
+        category: CategoryID,
         price: Double,
         discountPercentage: Double,
         rating: Double,

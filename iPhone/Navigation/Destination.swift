@@ -16,8 +16,7 @@ import BagUI
 import ProductUIDI
 
 public enum Destination: Hashable {
-    case searchResults(query: String)
-    case categoryResults(category: CategorySlug?)
+    case catalog(CatalogFilter)
     case productDetails(ProductReference)
 
     /// Either the bare id (fetched on appear) or an already-loaded model
@@ -31,7 +30,7 @@ public enum Destination: Hashable {
     /// `Navigator.open` routes these through the auth gate before pushing.
     var requiresAuthentication: Bool {
         switch self {
-        case .searchResults, .categoryResults, .productDetails:
+        case .catalog, .productDetails:
             return false
         }
     }
@@ -39,10 +38,8 @@ public enum Destination: Hashable {
     @ViewBuilder
     func makeView() -> some View {
         switch self {
-        case .searchResults(let query):
-            Injector.shared.searchUIDI.searchResultsView(query: query)
-        case .categoryResults(let category):
-            Injector.shared.searchUIDI.categoryResultsView(category: category)
+        case .catalog(let filter):
+            Injector.shared.searchUIDI.catalogResultsView(filter: filter)
         case .productDetails(.id(let id)):
             Injector.shared.productUIDI.detailView(id: id)
         case .productDetails(.product(let product)):
@@ -52,12 +49,8 @@ public enum Destination: Hashable {
 }
 
 extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNavigation {
-    func openSearchResults(query: String) {
-        open(.searchResults(query: query))
-    }
-
-    func openCategoryResults(category: CategorySlug?) {
-        open(.categoryResults(category: category))
+    func openCatalog(filter: CatalogFilter) {
+        open(.catalog(filter))
     }
 
     func openProductDetails(product: Product) {
