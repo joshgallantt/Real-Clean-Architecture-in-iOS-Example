@@ -45,10 +45,10 @@ public struct SearchTabScreenView: View {
             } else {
                 CategoriesView(
                     categories: viewModel.categories,
-                    onSelectAll: { navigation.openCategoryResults(category: nil) },
+                    onSelectAll: { navigation.openCatalog(filter: .all) },
                     onSelect: { category in
                         viewModel.didSelectCategory(category)
-                        navigation.openCategoryResults(category: category.slug)
+                        navigation.openCatalog(filter: .category(category))
                     }
                 )
             }
@@ -68,6 +68,7 @@ public struct SearchTabScreenView: View {
         let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
         guard !trimmed.isEmpty else { return }
         isFocused = false
-        navigation.openSearchResults(query: trimmed)
+        viewModel.didSubmitSearch(trimmed)
+        navigation.openCatalog(filter: .search(trimmed))
     }
 }

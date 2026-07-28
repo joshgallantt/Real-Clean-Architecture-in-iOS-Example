@@ -1,11 +1,9 @@
 public struct ProductCategory: Equatable, Hashable, Sendable, Identifiable {
-    public let slug: CategorySlug
+    public let id: CategoryID
     public let name: String
 
-    public var id: CategorySlug { slug }
-
-    public init(slug: CategorySlug, name: String) {
-        self.slug = slug
+    public init(id: CategoryID, name: String) {
+        self.id = id
         self.name = name
     }
 }

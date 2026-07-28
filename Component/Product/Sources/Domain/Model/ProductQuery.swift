@@ -1,25 +1,23 @@
 public struct ProductQuery: Equatable, Sendable {
-    public let searchText: String?
-    public let category: CategorySlug?
+    public let filter: CatalogFilter
     public let page: Int
     public let pageSize: Int
 
-    public init(searchText: String?, category: CategorySlug?, page: Int, pageSize: Int) {
-        self.searchText = searchText
-        self.category = category
+    public init(filter: CatalogFilter, page: Int, pageSize: Int) {
+        self.filter = filter
         self.page = page
         self.pageSize = pageSize
     }
 
     public static func all(page: Int, pageSize: Int) -> ProductQuery {
-        ProductQuery(searchText: nil, category: nil, page: page, pageSize: pageSize)
+        ProductQuery(filter: .all, page: page, pageSize: pageSize)
     }
 
     public static func search(_ text: String, page: Int, pageSize: Int) -> ProductQuery {
-        ProductQuery(searchText: text, category: nil, page: page, pageSize: pageSize)
+        ProductQuery(filter: .search(text), page: page, pageSize: pageSize)
     }
 
-    public static func category(_ slug: CategorySlug, page: Int, pageSize: Int) -> ProductQuery {
-        ProductQuery(searchText: nil, category: slug, page: page, pageSize: pageSize)
+    public static func category(_ category: ProductCategory, page: Int, pageSize: Int) -> ProductQuery {
+        ProductQuery(filter: .category(category), page: page, pageSize: pageSize)
     }
 }

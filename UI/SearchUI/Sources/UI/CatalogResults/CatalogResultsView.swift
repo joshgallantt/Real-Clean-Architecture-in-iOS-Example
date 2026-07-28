@@ -1,14 +1,14 @@
 import SwiftUI
 import ProductUI
 
-public struct CategoryResultsView: View {
-    @StateObject private var viewModel: CategoryResultsViewModel
+public struct CatalogResultsView: View {
+    @StateObject private var viewModel: CatalogResultsViewModel
     let navigation: SearchNavigation
     let wishlistButton: (Int) -> AnyView
     let bagButton: (Int) -> AnyView
 
     public init(
-        viewModel: @autoclosure @escaping () -> CategoryResultsViewModel,
+        viewModel: @autoclosure @escaping () -> CatalogResultsViewModel,
         navigation: SearchNavigation,
         wishlistButton: @escaping (Int) -> AnyView,
         bagButton: @escaping (Int) -> AnyView
@@ -36,9 +36,11 @@ public struct CategoryResultsView: View {
         .overlay {
             if viewModel.isLoading && viewModel.results.isEmpty {
                 ProgressView()
+            } else if !viewModel.isLoading, viewModel.results.isEmpty, let text = viewModel.emptySearchText {
+                ContentUnavailableView.search(text: text)
             }
         }
-        .navigationTitle(viewModel.displayName)
+        .navigationTitle(viewModel.title)
         .task {
             await viewModel.onAppear()
         }

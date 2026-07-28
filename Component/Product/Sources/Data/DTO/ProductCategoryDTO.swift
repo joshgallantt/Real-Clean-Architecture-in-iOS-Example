@@ -5,6 +5,6 @@ public struct ProductCategoryDTO: Decodable {
     let name: String
 
     func toDomain() -> ProductCategory {
-        ProductCategory(slug: CategorySlug(value: slug), name: name)
+        ProductCategory(id: CategoryID(rawValue: slug), name: name)
     }
 }
