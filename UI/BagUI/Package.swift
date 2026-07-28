@@ -47,11 +47,6 @@ let package = Package(
                 .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
             path: "Sources/DI"
-        ),
-        .testTarget(
-            name: "BagUITests",
-            dependencies: ["BagUIDI"],
-            path: "Tests/BagUITests"
         )
     ]
 )

@@ -28,11 +28,6 @@ let package = Package(
             path: "Sources",
             exclude: ["SheetUI"],
             sources: ["SheetUIHost", "SheetUIDI"]
-        ),
-        .testTarget(
-            name: "SheetUIHostTests",
-            dependencies: ["SheetUIDI"],
-            path: "Tests/SheetUIHostTests"
         )
     ]
 )

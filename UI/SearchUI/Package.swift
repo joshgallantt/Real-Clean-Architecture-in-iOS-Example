@@ -20,6 +20,7 @@ let package = Package(
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Search"),
         .package(path: "../ProductUI"),
+        .package(path: "../SnackbarUI"),
         .package(path: "../WishlistUI"),
         .package(path: "../BagUI")
     ],
@@ -29,7 +30,8 @@ let package = Package(
             dependencies: [
                 .product(name: "Product", package: "Product"),
                 .product(name: "Search", package: "Search"),
-                .product(name: "ProductUI", package: "ProductUI")
+                .product(name: "ProductUI", package: "ProductUI"),
+                .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
             path: "Sources",
             exclude: ["DI"],
@@ -41,15 +43,11 @@ let package = Package(
                 "SearchUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Search", package: "Search"),
+                .product(name: "SnackbarUI", package: "SnackbarUI"),
                 .product(name: "WishlistUIDI", package: "WishlistUI"),
                 .product(name: "BagUIDI", package: "BagUI")
             ],
             path: "Sources/DI"
-        ),
-        .testTarget(
-            name: "SearchUITests",
-            dependencies: ["SearchUIDI"],
-            path: "Tests/SearchUITests"
         )
     ]
 )

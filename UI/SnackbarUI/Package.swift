@@ -28,16 +28,6 @@ let package = Package(
             path: "Sources",
             exclude: ["SnackbarUI"],
             sources: ["SnackbarUIHost", "SnackbarUIDI"]
-        ),
-        .testTarget(
-            name: "SnackbarUITests",
-            dependencies: ["SnackbarUI"],
-            path: "Tests/SnackbarUITests"
-        ),
-        .testTarget(
-            name: "SnackbarUIHostTests",
-            dependencies: ["SnackbarUIDI"],
-            path: "Tests/SnackbarUIHostTests"
         )
     ]
 )

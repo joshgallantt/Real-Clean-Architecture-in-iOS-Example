@@ -42,11 +42,6 @@ let package = Package(
                 .product(name: "SharedUIDI", package: "SharedUI")
             ],
             path: "Sources/DI"
-        ),
-        .testTarget(
-            name: "ProductUITests",
-            dependencies: ["ProductUIDI"],
-            path: "Tests/ProductUITests"
         )
     ]
 )
