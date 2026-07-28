@@ -43,10 +43,14 @@ public struct SearchTabScreenView: View {
                     }
                 )
             } else {
-                CategoriesView(categories: viewModel.categories) { category in
-                    viewModel.didSelectCategory(category)
-                    navigation.openCategoryResults(category: category.slug)
-                }
+                CategoriesView(
+                    categories: viewModel.categories,
+                    onSelectAll: { navigation.openCategoryResults(category: nil) },
+                    onSelect: { category in
+                        viewModel.didSelectCategory(category)
+                        navigation.openCategoryResults(category: category.slug)
+                    }
+                )
             }
         }
         .onChange(of: isFocused) {

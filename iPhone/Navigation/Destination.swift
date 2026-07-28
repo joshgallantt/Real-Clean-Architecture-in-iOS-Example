@@ -17,7 +17,7 @@ import ProductUIDI
 
 public enum Destination: Hashable {
     case searchResults(query: String)
-    case categoryResults(category: CategorySlug)
+    case categoryResults(category: CategorySlug?)
     case productDetails(ProductReference)
 
     /// Either the bare id (fetched on appear) or an already-loaded model
@@ -56,7 +56,7 @@ extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNa
         open(.searchResults(query: query))
     }
 
-    func openCategoryResults(category: CategorySlug) {
+    func openCategoryResults(category: CategorySlug?) {
         open(.categoryResults(category: category))
     }
 
