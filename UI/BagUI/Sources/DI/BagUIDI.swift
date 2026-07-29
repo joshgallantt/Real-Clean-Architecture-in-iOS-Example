@@ -1,7 +1,3 @@
-//
-//  BagUIDI.swift
-//
-
 import SwiftUI
 import Bag
 import Product
@@ -12,40 +8,43 @@ public struct BagUIDI {
     private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase
     private let bagItemQuantity: BagItemQuantityUseCase
-    private let addProductToBag: AddProductToBagUseCase
-    private let removeProductFromBag: RemoveProductFromBagUseCase
-    private let updateBagItemQuantity: UpdateBagItemQuantityUseCase
+    private let addItemToBag: AddItemToBagUseCase
+    private let setBagItemQuantity: SetBagItemQuantityUseCase
     private let getProductsByIds: GetProductsByIdsUseCase
+    private let reconcileBag: ReconcileBagUseCase
+    private let acknowledgeBagChange: AcknowledgeBagChangeUseCase
     private let snackbarPresenter: SnackbarPresenting
 
     public init(
         navigation: BagNavigation,
         observeBag: ObserveBagUseCase,
         bagItemQuantity: BagItemQuantityUseCase,
-        addProductToBag: AddProductToBagUseCase,
-        removeProductFromBag: RemoveProductFromBagUseCase,
-        updateBagItemQuantity: UpdateBagItemQuantityUseCase,
+        addItemToBag: AddItemToBagUseCase,
+        setBagItemQuantity: SetBagItemQuantityUseCase,
         getProductsByIds: GetProductsByIdsUseCase,
+        reconcileBag: ReconcileBagUseCase,
+        acknowledgeBagChange: AcknowledgeBagChangeUseCase,
         snackbarPresenter: SnackbarPresenting
     ) {
         self.navigation = navigation
         self.observeBag = observeBag
         self.bagItemQuantity = bagItemQuantity
-        self.addProductToBag = addProductToBag
-        self.removeProductFromBag = removeProductFromBag
-        self.updateBagItemQuantity = updateBagItemQuantity
+        self.addItemToBag = addItemToBag
+        self.setBagItemQuantity = setBagItemQuantity
         self.getProductsByIds = getProductsByIds
+        self.reconcileBag = reconcileBag
+        self.acknowledgeBagChange = acknowledgeBagChange
         self.snackbarPresenter = snackbarPresenter
     }
 
     @MainActor
-    public func button(productId: Int) -> some View {
-        BagButtonView(viewModel: makeButtonViewModel(productId: productId))
+    public func button(product: Product) -> some View {
+        BagButtonView(viewModel: makeButtonViewModel(product: product))
     }
 
     @MainActor
-    public func detailsButton(productId: Int) -> some View {
-        AddToBagButton(viewModel: makeButtonViewModel(productId: productId))
+    public func detailsButton(product: Product) -> some View {
+        AddToBagButton(viewModel: makeButtonViewModel(product: product))
     }
 
     @MainActor
@@ -54,20 +53,20 @@ public struct BagUIDI {
             viewModel: BagScreenViewModel(
                 observeBag: observeBag,
                 getProductsByIds: getProductsByIds,
-                updateBagItemQuantity: updateBagItemQuantity,
-                removeProductFromBag: removeProductFromBag,
-                snackbar: snackbarPresenter
+                setBagItemQuantity: setBagItemQuantity,
+                reconcileBag: reconcileBag,
+                acknowledgeBagChange: acknowledgeBagChange
             ),
             navigation: navigation
         )
     }
 
     @MainActor
-    private func makeButtonViewModel(productId: Int) -> BagButtonViewModel {
+    private func makeButtonViewModel(product: Product) -> BagButtonViewModel {
         BagButtonViewModel(
-            productId: productId,
+            product: product,
             bagItemQuantity: bagItemQuantity,
-            addProductToBag: addProductToBag,
+            addItemToBag: addItemToBag,
             navigation: navigation,
             snackbarPresenter: snackbarPresenter
         )

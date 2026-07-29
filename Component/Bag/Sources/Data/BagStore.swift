@@ -2,13 +2,13 @@ import Foundation
 import Bag
 
 public protocol BagStore: Sendable {
-    func getItems(forUserKey userKey: String) -> [BagItem]
-    func setItems(_ items: [BagItem], forUserKey userKey: String) async
+    func getBag(forUserKey userKey: String) -> Bag
+    func setBag(_ bag: Bag, forUserKey userKey: String) async
 }
 
 // Reads are synchronous because they happen once per user switch, and seeding the
 // repository asynchronously would flash an empty bag on launch. Writes happen on
-// every mutation and re-encode the whole list, so they go off the main thread.
+// every change and re-encode the whole bag, so they go off the main thread.
 public struct FileBagStore: BagStore, @unchecked Sendable {
     private let directory: URL
 
@@ -23,28 +23,28 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         return base.appending(path: "Bag", directoryHint: .isDirectory)
     }
 
-    public func getItems(forUserKey userKey: String) -> [BagItem] {
+    public func getBag(forUserKey userKey: String) -> Bag {
         guard
             let data = try? Data(contentsOf: url(for: userKey)),
-            let dtos = try? JSONDecoder().decode([BagItemDTO].self, from: data)
+            let dto = try? JSONDecoder().decode(BagDTO.self, from: data)
         else {
-            return []
+            return Bag()
         }
-        return dtos.map { $0.toDomain() }
+        return dto.toDomain()
     }
 
-    public func setItems(_ items: [BagItem], forUserKey userKey: String) async {
-        let dtos = items.map(BagItemDTO.init(from:))
+    public func setBag(_ bag: Bag, forUserKey userKey: String) async {
+        let dto = BagDTO(from: bag)
         let directory = self.directory
         let url = url(for: userKey)
 
         await Task.detached(priority: .utility) {
-            Self.write(dtos, to: url, in: directory)
+            Self.write(dto, to: url, in: directory)
         }.value
     }
 
-    private static func write(_ dtos: [BagItemDTO], to url: URL, in directory: URL) {
-        guard let data = try? JSONEncoder().encode(dtos) else { return }
+    private static func write(_ dto: BagDTO, to url: URL, in directory: URL) {
+        guard let data = try? JSONEncoder().encode(dto) else { return }
         try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try? data.write(to: url, options: .atomic)
     }

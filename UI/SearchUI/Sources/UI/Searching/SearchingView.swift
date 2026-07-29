@@ -20,7 +20,7 @@ public struct SearchingView: View {
         List {
             if viewModel.suggestions.isEmpty {
                 Section("Recent Searches") {
-                    ForEach(viewModel.history, id: \.self) { query in
+                    ForEach(viewModel.history.queries, id: \.self) { query in
                         Button {
                             onSelectHistory(query)
                         } label: {

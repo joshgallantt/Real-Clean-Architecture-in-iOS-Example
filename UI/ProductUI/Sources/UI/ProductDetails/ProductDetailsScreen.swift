@@ -4,12 +4,12 @@ import Kingfisher
 
 public struct ProductDetailsScreen: View {
     @StateObject private var viewModel: ProductDetailsViewModel
-    private let actionButton: AnyView
+    private let actionButton: (Product) -> AnyView
     private let wishlistButton: AnyView
 
     public init(
         viewModel: @autoclosure @escaping () -> ProductDetailsViewModel,
-        actionButton: AnyView = AnyView(EmptyView()),
+        actionButton: @escaping (Product) -> AnyView = { _ in AnyView(EmptyView()) },
         wishlistButton: AnyView = AnyView(EmptyView())
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel())
@@ -77,7 +77,7 @@ public struct ProductDetailsScreen: View {
                     .foregroundStyle(product.stock > 0 ? .green : .red)
             }
 
-            actionButton
+            actionButton(product)
 
             Text(product.description)
                 .font(.body)

@@ -19,7 +19,7 @@ public final class WishlistScreenViewModel: ObservableObject {
     private let observeSession: ObserveSessionUseCase
     private let snackbar: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
-    private var items: [WishlistItem] = []
+    private var wishlist = Wishlist()
     private var cache: [Int: Product] = [:]
     private var loadedCount: Int
     private var hydrationTask: Task<Void, Never>?
@@ -49,22 +49,22 @@ public final class WishlistScreenViewModel: ObservableObject {
         // Ids are cheap to carry in full; only the visible window is ever hydrated
         // into products, so the wishlist can hold thousands of entries.
         observeWishlist()
-            .sink { [weak self] items in
-                self?.wishlistChanged(items)
+            .sink { [weak self] wishlist in
+                self?.wishlistChanged(wishlist)
             }
             .store(in: &cancellables)
     }
 
     func onReachEnd() {
-        guard loadedCount < items.count, !isLoading, !isLoadingMore else { return }
+        guard loadedCount < wishlist.count, !isLoading, !isLoadingMore else { return }
         loadedCount += pageSize
         hydrate(isPaging: true)
     }
 
-    private func wishlistChanged(_ items: [WishlistItem]) {
-        self.items = items
+    private func wishlistChanged(_ wishlist: Wishlist) {
+        self.wishlist = wishlist
 
-        let ids = Set(items.map(\.id))
+        let ids = Set(wishlist.items.map(\.id))
         cache = cache.filter { ids.contains($0.key) }
 
         hydrate(isPaging: false)
@@ -75,7 +75,7 @@ public final class WishlistScreenViewModel: ObservableObject {
         // clobber newer state.
         hydrationTask?.cancel()
 
-        let window = Array(items.prefix(loadedCount))
+        let window = Array(wishlist.items.prefix(loadedCount))
         let missing = window.map(\.id).filter { cache[$0] == nil }
 
         guard !missing.isEmpty else {

@@ -51,6 +51,27 @@ let package = Package(
                 .product(name: "Session", package: "Session")
             ],
             path: "Sources/DI"
+        ),
+        .testTarget(
+            name: "WishlistTests",
+            dependencies: [
+                "Wishlist",
+                .product(name: "Session", package: "Session")
+            ],
+            path: "Tests/WishlistTests"
+        ),
+        .testTarget(
+            name: "WishlistDataTests",
+            dependencies: ["WishlistData"],
+            path: "Tests/WishlistDataTests"
+        ),
+        .testTarget(
+            name: "WishlistAcceptanceTests",
+            dependencies: [
+                "WishlistDI",
+                .product(name: "Session", package: "Session")
+            ],
+            path: "Tests/WishlistAcceptanceTests"
         )
     ]
 )

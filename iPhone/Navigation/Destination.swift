@@ -57,6 +57,10 @@ extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNa
         open(.productDetails(.product(product)))
     }
 
+    func openProductDetails(id: Int) {
+        open(.productDetails(.id(id)))
+    }
+
     func switchToBagTab() {
         bagPath = NavigationPath()
         selectedTab = .bag

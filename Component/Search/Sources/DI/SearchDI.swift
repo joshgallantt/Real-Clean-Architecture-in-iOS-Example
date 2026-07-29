@@ -9,8 +9,8 @@ public struct SearchDI {
 
     public init(store: SearchHistoryStore, getSession: GetSessionUseCase) {
         let repository = DefaultSearchHistoryRepository(store: store, getSession: getSession)
-        self.getSearchHistoryUseCase = DefaultGetSearchHistoryUseCase(searchHistoryRepository: repository)
-        self.recordSearchUseCase = DefaultRecordSearchUseCase(searchHistoryRepository: repository)
-        self.clearSearchHistoryUseCase = DefaultClearSearchHistoryUseCase(searchHistoryRepository: repository)
+        self.getSearchHistoryUseCase = DefaultGetSearchHistoryUseCase(repository: repository)
+        self.recordSearchUseCase = DefaultRecordSearchUseCase(repository: repository)
+        self.clearSearchHistoryUseCase = DefaultClearSearchHistoryUseCase(repository: repository)
     }
 }

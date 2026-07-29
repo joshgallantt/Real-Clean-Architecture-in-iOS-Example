@@ -21,7 +21,7 @@ public struct DefaultRemoveProductFromWishlistUseCase: RemoveProductFromWishlist
         guard await userIsLoggedIn() else {
             return .failure(.unauthenticated)
         }
-        repository.remove(productId: productId)
+        repository.save(repository.wishlist.removing(productId: productId))
         return .success(())
     }
 }

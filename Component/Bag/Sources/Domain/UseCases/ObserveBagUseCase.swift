@@ -2,7 +2,7 @@ import Combine
 
 public protocol ObserveBagUseCase: Sendable {
     @MainActor
-    func callAsFunction() -> AnyPublisher<[BagItem], Never>
+    func callAsFunction() -> AnyPublisher<Bag, Never>
 }
 
 public struct DefaultObserveBagUseCase: ObserveBagUseCase {
@@ -13,7 +13,7 @@ public struct DefaultObserveBagUseCase: ObserveBagUseCase {
     }
 
     @MainActor
-    public func callAsFunction() -> AnyPublisher<[BagItem], Never> {
-        repository.itemsPublisher
+    public func callAsFunction() -> AnyPublisher<Bag, Never> {
+        repository.bagPublisher
     }
 }

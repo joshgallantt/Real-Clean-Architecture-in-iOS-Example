@@ -49,6 +49,19 @@ let package = Package(
                 .product(name: "Session", package: "Session")
             ],
             path: "Sources/DI"
+        ),
+        .testTarget(
+            name: "SearchTests",
+            dependencies: ["Search"],
+            path: "Tests/SearchTests"
+        ),
+        .testTarget(
+            name: "SearchAcceptanceTests",
+            dependencies: [
+                "SearchDI",
+                .product(name: "Session", package: "Session")
+            ],
+            path: "Tests/SearchAcceptanceTests"
         )
     ]
 )

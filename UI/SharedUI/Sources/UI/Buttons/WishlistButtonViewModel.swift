@@ -73,13 +73,6 @@ public final class WishlistButtonViewModel: ObservableObject {
                 return
             }
             await self.add()
-        case .failure(.network):
-            snackbarPresenter.show(Snackbar(
-                title: "Couldn't Add to Wishlist",
-                message: "Check your connection and try again.",
-                icon: "wifi.slash",
-                action: .retry { [weak self] in Task { await self?.add() } }
-            ))
         }
     }
 
@@ -106,13 +99,6 @@ public final class WishlistButtonViewModel: ObservableObject {
                 return
             }
             await self.remove()
-        case .failure(.network):
-            snackbarPresenter.show(Snackbar(
-                title: "Couldn't Remove Item",
-                message: "Check your connection and try again.",
-                icon: "wifi.slash",
-                action: .retry { [weak self] in Task { await self?.remove() } }
-            ))
         }
     }
 }

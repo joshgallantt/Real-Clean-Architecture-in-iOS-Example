@@ -2,7 +2,7 @@ import Combine
 
 public protocol ObserveWishlistUseCase: Sendable {
     @MainActor
-    func callAsFunction() -> AnyPublisher<[WishlistItem], Never>
+    func callAsFunction() -> AnyPublisher<Wishlist, Never>
 }
 
 public struct DefaultObserveWishlistUseCase: ObserveWishlistUseCase {
@@ -13,7 +13,7 @@ public struct DefaultObserveWishlistUseCase: ObserveWishlistUseCase {
     }
 
     @MainActor
-    public func callAsFunction() -> AnyPublisher<[WishlistItem], Never> {
-        repository.itemsPublisher
+    public func callAsFunction() -> AnyPublisher<Wishlist, Never> {
+        repository.wishlistPublisher
     }
 }

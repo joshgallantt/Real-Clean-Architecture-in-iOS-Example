@@ -1,18 +1,14 @@
 import Combine
 
+/// Access to the shopper's wishlist, and nothing else. What saving or removing *means*
+/// is the wishlist's own business, and deciding which to do is the use case's.
 public protocol WishlistRepository: Sendable {
     @MainActor
-    var itemsPublisher: AnyPublisher<[WishlistItem], Never> { get }
+    var wishlist: Wishlist { get }
 
     @MainActor
-    var items: [WishlistItem] { get }
+    var wishlistPublisher: AnyPublisher<Wishlist, Never> { get }
 
     @MainActor
-    func isInWishlistPublisher(productId: Int) -> AnyPublisher<Bool, Never>
-
-    @MainActor
-    func add(productId: Int)
-
-    @MainActor
-    func remove(productId: Int)
+    func save(_ wishlist: Wishlist)
 }
