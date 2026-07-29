@@ -10,8 +10,13 @@ public struct DefaultAddItemToBagUseCase: AddItemToBagUseCase {
         self.repository = repository
     }
 
+    /// Choosing something is also seeing its price and its availability, so anything
+    /// waiting to be said about it has already served its purpose.
     @MainActor
     public func callAsFunction(_ item: BagItem) {
-        repository.save(repository.bag.adding(item))
+        repository.save(
+            bag: repository.bag.adding(item),
+            changes: repository.changes.acknowledging(itemId: item.id)
+        )
     }
 }

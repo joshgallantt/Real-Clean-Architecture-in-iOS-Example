@@ -14,6 +14,14 @@ public struct DefaultSetBagItemQuantityUseCase: SetBagItemQuantityUseCase {
 
     @MainActor
     public func callAsFunction(itemId: Int, to quantity: Int) {
-        repository.save(repository.bag.changingQuantity(ofItemId: itemId, to: quantity))
+        let bag = repository.bag.changingQuantity(ofItemId: itemId, to: quantity)
+
+        // A price warning about a line the shopper has just taken out is a warning about
+        // nothing, so it goes with it.
+        let changes = bag.quantity(forItemId: itemId) == 0
+            ? repository.changes.acknowledging(itemId: itemId)
+            : repository.changes
+
+        repository.save(bag: bag, changes: changes)
     }
 }

@@ -39,8 +39,9 @@ import Product
 /// How the fake shop misbehaves. Deterministic, so a demo can be repeated and a
 /// screenshot reproduced.
 enum DemoCatalogMischief {
-    /// Every third product costs more, every third costs less, and every fifth has
-    /// sold out — enough overlap that some lines report two changes at once.
+    /// Every third product costs more, every third costs less, every fifth has sold out,
+    /// and every tenth is gone for good — enough overlap that some lines report two
+    /// changes at once, and both out-of-stock endings are reachable.
     nonisolated static func meddle(with product: Product) -> Product {
         let price = switch product.id % 3 {
         case 0: (product.price * 1.2).toTheNearestPenny
@@ -57,6 +58,7 @@ enum DemoCatalogMischief {
             discountPercentage: product.discountPercentage,
             rating: product.rating,
             stock: product.id % 5 == 0 ? 0 : product.stock,
+            willRestock: product.id % 10 != 0,
             brand: product.brand,
             thumbnail: product.thumbnail,
             images: product.images

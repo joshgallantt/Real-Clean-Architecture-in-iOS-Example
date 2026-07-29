@@ -37,20 +37,30 @@ public final class BagButtonViewModel: ObservableObject {
     // product, and what it costs today. The name and the picture stay where they belong,
     // in the catalog.
     //
-    // Something out of stock still goes in. The shopper decided they want it; the shop
-    // saying "not today" is worth mentioning, not worth refusing over. Nothing is
-    // fetched, so nothing can fail.
+    // The boundary between the two contexts, and the only things that cross it: which
+    // product, and what it costs today. Nothing is fetched, so nothing can fail.
+    //
+    // Something the shop cannot supply is not added — the next catch-up would only take
+    // it straight back out again, which would read as the app losing it.
     func didTap() {
+        guard product.isInStock else {
+            snackbarPresenter.show(Snackbar(
+                title: product.willRestock ? "Out of Stock" : "No Longer Available",
+                message: product.willRestock
+                    ? "Open it to be told when it's back."
+                    : "This isn't sold any more.",
+                icon: product.willRestock ? "shippingbox" : "xmark.circle"
+            ))
+            return
+        }
+
         addItemToBag(BagItem(id: product.id, lastKnownPrice: product.price))
 
         let navigation = navigation
-        let inStock = product.stock > 0
         snackbarPresenter.show(Snackbar(
             title: "Added to Bag",
-            message: inStock
-                ? "View it any time in your bag."
-                : "It's out of stock right now — we'll let you know at checkout.",
-            icon: inStock ? "bag.fill" : "shippingbox",
+            message: "View it any time in your bag.",
+            icon: "bag.fill",
             action: .view { navigation.switchToBagTab() }
         ))
     }

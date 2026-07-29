@@ -5,8 +5,8 @@ import Session
 extension LoginError {
     var userMessage: String {
         switch self {
-        case .emailIsEmpty: "Email is required."
-        case .passwordIsEmpty: "Password is required."
+        case .invalidEmail: "Enter a valid email address."
+        case .invalidPassword: "Passwords are at least \(Password.minimumLength) characters."
         case .invalidCredentials: "Invalid email or password."
         case .unknown: "An unknown error occurred. Please try again later."
         }
@@ -16,9 +16,9 @@ extension LoginError {
 extension CreateAccountError {
     var userMessage: String {
         switch self {
-        case .firstNameIsEmpty: "First name is required."
-        case .emailIsEmpty: "Email is required."
-        case .passwordIsEmpty: "Password is required."
+        case .nameIsMissing: "First name is required."
+        case .invalidEmail: "Enter a valid email address."
+        case .invalidPassword: "Passwords are at least \(Password.minimumLength) characters."
         case .emailAlreadyInUse: "An account with this email already exists."
         case .unknown: "Something went wrong. Please try again."
         }

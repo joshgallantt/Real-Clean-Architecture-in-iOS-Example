@@ -28,8 +28,8 @@ struct DefaultBagRepositoryTests {
         var seen: [Int] = []
         let cancellable = repository.bagPublisher.sink { seen.append($0.items.count) }
 
-        repository.save(Bag(items: [BagItem(id: 1, lastKnownPrice: 1)]))
-        repository.save(Bag(items: [BagItem(id: 1, lastKnownPrice: 1), BagItem(id: 2, lastKnownPrice: 2)]))
+        repository.save(bag: Bag(items: [BagItem(id: 1, lastKnownPrice: 1)]), changes: BagChanges())
+        repository.save(bag: Bag(items: [BagItem(id: 1, lastKnownPrice: 1), BagItem(id: 2, lastKnownPrice: 2)]), changes: BagChanges())
 
         #expect(seen == [0, 1, 2])
         cancellable.cancel()
@@ -39,7 +39,7 @@ struct DefaultBagRepositoryTests {
     func savedBagIsCurrent() {
         let repository = makeRepository()
 
-        repository.save(Bag(items: [BagItem(id: 1, quantity: 2, lastKnownPrice: 4.99)]))
+        repository.save(bag: Bag(items: [BagItem(id: 1, quantity: 2, lastKnownPrice: 4.99)]), changes: BagChanges())
 
         #expect(repository.bag.total.cents == 998)
     }
@@ -51,12 +51,12 @@ struct DefaultBagRepositoryTests {
         let first = BagItem(id: 1, lastKnownPrice: 1)
         let second = BagItem(id: 2, lastKnownPrice: 2)
 
-        repository.save(Bag(items: [first]))
-        repository.save(Bag(items: [first, second]))
-        repository.save(Bag(items: [second]))
+        repository.save(bag: Bag(items: [first]), changes: BagChanges())
+        repository.save(bag: Bag(items: [first, second]), changes: BagChanges())
+        repository.save(bag: Bag(items: [second]), changes: BagChanges())
         await repository.flushPendingWrites()
 
-        #expect(store.writes.map { $0.items.map(\.id).sorted() } == [[1], [1, 2], [2]])
+        #expect(store.writes.map { $0.bag.items.map(\.id).sorted() } == [[1], [1, 2], [2]])
     }
 
     @Test("A bag kept from a previous visit is there on the next one")
@@ -65,7 +65,7 @@ struct DefaultBagRepositoryTests {
             BagItem(id: 1, quantity: 2, lastKnownPrice: 4.99, dateAdded: .distantPast),
             BagItem(id: 2, lastKnownPrice: 9.99, dateAdded: .now)
         ]
-        let store = InMemoryBagStore(seeded: ["guest": Bag(items: kept)])
+        let store = InMemoryBagStore(seeded: ["guest": (Bag(items: kept), BagChanges())])
 
         let repository = makeRepository(store: store)
 
@@ -75,10 +75,10 @@ struct DefaultBagRepositoryTests {
 
     @Test("Signing in swaps the guest's bag for the shopper's own")
     func switchingUserSwapsTheBag() {
-        let store = InMemoryBagStore(seeded: ["42": Bag(items: [BagItem(id: 9, lastKnownPrice: 5)])])
+        let store = InMemoryBagStore(seeded: ["42": (Bag(items: [BagItem(id: 9, lastKnownPrice: 5)]), BagChanges())])
         let userKeys = CurrentValueSubject<String, Never>("guest")
         let repository = makeRepository(store: store, userKeys: userKeys)
-        repository.save(Bag(items: [BagItem(id: 1, lastKnownPrice: 1)]))
+        repository.save(bag: Bag(items: [BagItem(id: 1, lastKnownPrice: 1)]), changes: BagChanges())
 
         userKeys.send("42")
 
@@ -89,7 +89,7 @@ struct DefaultBagRepositoryTests {
     func sameUserIsNotAReload() {
         let userKeys = CurrentValueSubject<String, Never>("guest")
         let repository = makeRepository(userKeys: userKeys)
-        repository.save(Bag(items: [BagItem(id: 1, lastKnownPrice: 1)]))
+        repository.save(bag: Bag(items: [BagItem(id: 1, lastKnownPrice: 1)]), changes: BagChanges())
 
         userKeys.send("guest")
 

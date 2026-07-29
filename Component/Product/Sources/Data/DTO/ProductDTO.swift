@@ -9,6 +9,7 @@ public struct ProductDTO: Decodable {
     let discountPercentage: Double
     let rating: Double
     let stock: Int
+    let willRestock: Bool?
     let brand: String?
     let thumbnail: String
     let images: [String]
@@ -23,6 +24,7 @@ public struct ProductDTO: Decodable {
             discountPercentage: discountPercentage,
             rating: rating,
             stock: stock,
+            willRestock: willRestock ?? true,
             brand: brand ?? "",
             thumbnail: thumbnail,
             images: images

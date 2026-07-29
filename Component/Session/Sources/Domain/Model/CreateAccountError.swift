@@ -1,9 +1,7 @@
-import Foundation
-
-public enum CreateAccountError: Error {
-    case firstNameIsEmpty
-    case emailIsEmpty
-    case passwordIsEmpty
+public enum CreateAccountError: Error, Equatable, Sendable {
+    case nameIsMissing
+    case invalidEmail
+    case invalidPassword
     case emailAlreadyInUse
     case unknown
 }

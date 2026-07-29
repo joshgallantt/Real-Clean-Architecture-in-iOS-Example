@@ -2,12 +2,14 @@ import Combine
 import Foundation
 import Bag
 
-/// Holds the current bag, keeps it on disk, swaps it when the shopper changes, and
-/// tells anyone watching. It decides nothing about what a bag is or how one changes.
+/// Holds the current bag and the current list of things to tell the shopper, keeps them
+/// on disk together, swaps them when the shopper changes, and tells anyone watching. It
+/// decides nothing about what either one means.
 @MainActor
 public final class DefaultBagRepository: BagRepository {
     private let store: BagStore
-    private let subject: CurrentValueSubject<Bag, Never>
+    private let bagSubject: CurrentValueSubject<Bag, Never>
+    private let changesSubject: CurrentValueSubject<BagChanges, Never>
     private var userKey: String
     private var cancellables = Set<AnyCancellable>()
     private var pendingWrite: Task<Void, Never>?
@@ -19,7 +21,10 @@ public final class DefaultBagRepository: BagRepository {
     ) {
         self.store = store
         self.userKey = userKey
-        self.subject = CurrentValueSubject(store.getBag(forUserKey: userKey))
+
+        let kept = store.getBag(forUserKey: userKey)
+        self.bagSubject = CurrentValueSubject(kept.bag)
+        self.changesSubject = CurrentValueSubject(kept.changes)
 
         userKeyPublisher
             .sink { [weak self] key in
@@ -28,26 +33,27 @@ public final class DefaultBagRepository: BagRepository {
             .store(in: &cancellables)
     }
 
-    public var bag: Bag {
-        subject.value
-    }
+    public var bag: Bag { bagSubject.value }
 
-    public var bagPublisher: AnyPublisher<Bag, Never> {
-        subject.eraseToAnyPublisher()
-    }
+    public var bagPublisher: AnyPublisher<Bag, Never> { bagSubject.eraseToAnyPublisher() }
 
-    // Each write awaits the previous one so rapid changes land on disk in the order
-    // they were made; without the chain, unstructured tasks could reorder and persist
-    // stale state.
-    public func save(_ bag: Bag) {
-        subject.value = bag
+    public var changes: BagChanges { changesSubject.value }
+
+    public var changesPublisher: AnyPublisher<BagChanges, Never> { changesSubject.eraseToAnyPublisher() }
+
+    // Each write awaits the previous one so rapid changes land on disk in the order they
+    // were made; without the chain, unstructured tasks could reorder and persist stale
+    // state.
+    public func save(bag: Bag, changes: BagChanges) {
+        bagSubject.value = bag
+        changesSubject.value = changes
 
         let store = store
         let userKey = userKey
         let previous = pendingWrite
         pendingWrite = Task {
             await previous?.value
-            await store.setBag(bag, forUserKey: userKey)
+            await store.setBag(bag, changes: changes, forUserKey: userKey)
         }
     }
 
@@ -58,6 +64,8 @@ public final class DefaultBagRepository: BagRepository {
     private func switchUser(to key: String) {
         guard key != userKey else { return }
         userKey = key
-        subject.value = store.getBag(forUserKey: key)
+        let kept = store.getBag(forUserKey: key)
+        bagSubject.value = kept.bag
+        changesSubject.value = kept.changes
     }
 }

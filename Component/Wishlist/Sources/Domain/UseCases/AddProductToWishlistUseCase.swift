@@ -8,11 +8,11 @@ public protocol AddProductToWishlistUseCase: Sendable {
 
 public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
     private let repository: WishlistRepository
-    private let userIsLoggedIn: UserIsLoggedInUseCase
+    private let getSession: GetSessionUseCase
 
-    public init(repository: WishlistRepository, userIsLoggedIn: UserIsLoggedInUseCase) {
+    public init(repository: WishlistRepository, getSession: GetSessionUseCase) {
         self.repository = repository
-        self.userIsLoggedIn = userIsLoggedIn
+        self.getSession = getSession
     }
 
     /// Needing a signed-in shopper is not something a wishlist can decide for itself —
@@ -20,7 +20,7 @@ public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
     @MainActor
     @discardableResult
     public func callAsFunction(productId: Int) async -> Result<Void, WishlistError> {
-        guard await userIsLoggedIn() else {
+        guard getSession().isLoggedIn else {
             return .failure(.unauthenticated)
         }
         repository.save(repository.wishlist.adding(WishlistItem(id: productId)))

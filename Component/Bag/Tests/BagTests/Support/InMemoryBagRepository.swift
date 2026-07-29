@@ -6,22 +6,29 @@ import Bag
 /// and hands it back. The use cases under test genuinely read, apply and save.
 @MainActor
 final class InMemoryBagRepository: BagRepository {
-    private let subject: CurrentValueSubject<Bag, Never>
+    private let bagSubject: CurrentValueSubject<Bag, Never>
+    private let changesSubject: CurrentValueSubject<BagChanges, Never>
 
-    /// Every bag handed over, in order, so a test can see what a use case decided to
-    /// save rather than only where things ended up.
-    private(set) var saved: [Bag] = []
+    /// Every save, in order, so a test can see what a use case decided to keep rather
+    /// than only where things ended up.
+    private(set) var saved: [(bag: Bag, changes: BagChanges)] = []
 
-    init(_ bag: Bag = Bag()) {
-        self.subject = CurrentValueSubject(bag)
+    init(_ bag: Bag = Bag(), changes: BagChanges = BagChanges()) {
+        self.bagSubject = CurrentValueSubject(bag)
+        self.changesSubject = CurrentValueSubject(changes)
     }
 
-    var bag: Bag { subject.value }
+    var bag: Bag { bagSubject.value }
 
-    var bagPublisher: AnyPublisher<Bag, Never> { subject.eraseToAnyPublisher() }
+    var bagPublisher: AnyPublisher<Bag, Never> { bagSubject.eraseToAnyPublisher() }
 
-    func save(_ bag: Bag) {
-        saved.append(bag)
-        subject.value = bag
+    var changes: BagChanges { changesSubject.value }
+
+    var changesPublisher: AnyPublisher<BagChanges, Never> { changesSubject.eraseToAnyPublisher() }
+
+    func save(bag: Bag, changes: BagChanges) {
+        saved.append((bag, changes))
+        bagSubject.value = bag
+        changesSubject.value = changes
     }
 }

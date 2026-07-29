@@ -22,7 +22,7 @@ public struct FakeAuthClient: AuthClient {
     }
 
     public func login(email: String, password: String) async -> Result<(User, AuthToken), AuthClientError> {
-        guard isValidEmail(email), !password.isEmpty else {
+        guard Email(email).isValid, Password(password).isValid else {
             return .failure(.invalidCredentials)
         }
         guard let record = userStore.find(email: email) else {
@@ -40,7 +40,7 @@ public struct FakeAuthClient: AuthClient {
         email: String,
         password: String
     ) async -> Result<(User, AuthToken), AuthClientError> {
-        guard isValidEmail(email), !password.isEmpty else {
+        guard Email(email).isValid, Password(password).isValid else {
             return .failure(.unknown)
         }
         guard userStore.find(email: email) == nil else {
@@ -70,10 +70,6 @@ public struct FakeAuthClient: AuthClient {
         )
         let token = AuthToken(value: UUID().uuidString, expiresAt: Date().addingTimeInterval(tokenLifetime))
         return (user, token)
-    }
-
-    private func isValidEmail(_ email: String) -> Bool {
-        email.range(of: #"^[^@\s]+@[^@\s]+\.[^@\s]+$"#, options: .regularExpression) != nil
     }
 
     private func hash(_ password: String) -> String {

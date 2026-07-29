@@ -16,7 +16,6 @@ public struct WishlistDI {
     public init(
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
-        userIsLoggedIn: UserIsLoggedInUseCase,
         store: WishlistStore = FileWishlistStore()
     ) {
         let repository = DefaultWishlistRepository(
@@ -30,11 +29,11 @@ public struct WishlistDI {
         self.productIsWishlistedUseCase = DefaultProductIsWishlistedUseCase(repository: repository)
         self.addProductToWishlistUseCase = DefaultAddProductToWishlistUseCase(
             repository: repository,
-            userIsLoggedIn: userIsLoggedIn
+            getSession: getSession
         )
         self.removeProductFromWishlistUseCase = DefaultRemoveProductFromWishlistUseCase(
             repository: repository,
-            userIsLoggedIn: userIsLoggedIn
+            getSession: getSession
         )
     }
 

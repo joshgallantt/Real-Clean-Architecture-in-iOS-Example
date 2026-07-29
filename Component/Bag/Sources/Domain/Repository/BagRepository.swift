@@ -1,8 +1,11 @@
 import Combine
 
-/// Access to the shopper's bag, and nothing else. What a change to the bag *means* is
-/// the bag's own business, and deciding which change to make is the use case's — so
-/// this offers no menu of mutations, only the aggregate and a way to keep it.
+/// Access to the shopper's bag and to what they still need to be told about it.
+///
+/// Two aggregates, one repository, because they have to be kept together: a crash
+/// between two writes could leave a warning about a line that is still in the bag, or a
+/// bag missing a line with nothing to say why. Saving them in one go is the only way
+/// that cannot happen.
 public protocol BagRepository: Sendable {
     @MainActor
     var bag: Bag { get }
@@ -11,5 +14,11 @@ public protocol BagRepository: Sendable {
     var bagPublisher: AnyPublisher<Bag, Never> { get }
 
     @MainActor
-    func save(_ bag: Bag)
+    var changes: BagChanges { get }
+
+    @MainActor
+    var changesPublisher: AnyPublisher<BagChanges, Never> { get }
+
+    @MainActor
+    func save(bag: Bag, changes: BagChanges)
 }

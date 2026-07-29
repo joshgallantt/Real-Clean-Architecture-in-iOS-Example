@@ -2,13 +2,13 @@ import Foundation
 import Bag
 
 public protocol BagStore: Sendable {
-    func getBag(forUserKey userKey: String) -> Bag
-    func setBag(_ bag: Bag, forUserKey userKey: String) async
+    func getBag(forUserKey userKey: String) -> (bag: Bag, changes: BagChanges)
+    func setBag(_ bag: Bag, changes: BagChanges, forUserKey userKey: String) async
 }
 
 // Reads are synchronous because they happen once per user switch, and seeding the
-// repository asynchronously would flash an empty bag on launch. Writes happen on
-// every change and re-encode the whole bag, so they go off the main thread.
+// repository asynchronously would flash an empty bag on launch. Writes happen on every
+// change and re-encode everything, so they go off the main thread.
 public struct FileBagStore: BagStore, @unchecked Sendable {
     private let directory: URL
 
@@ -23,18 +23,18 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         return base.appending(path: "Bag", directoryHint: .isDirectory)
     }
 
-    public func getBag(forUserKey userKey: String) -> Bag {
+    public func getBag(forUserKey userKey: String) -> (bag: Bag, changes: BagChanges) {
         guard
             let data = try? Data(contentsOf: url(for: userKey)),
             let dto = try? JSONDecoder().decode(BagDTO.self, from: data)
         else {
-            return Bag()
+            return (Bag(), BagChanges())
         }
         return dto.toDomain()
     }
 
-    public func setBag(_ bag: Bag, forUserKey userKey: String) async {
-        let dto = BagDTO(from: bag)
+    public func setBag(_ bag: Bag, changes: BagChanges, forUserKey userKey: String) async {
+        let dto = BagDTO(bag: bag, changes: changes)
         let directory = self.directory
         let url = url(for: userKey)
 

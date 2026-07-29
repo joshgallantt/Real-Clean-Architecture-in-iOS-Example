@@ -8,17 +8,17 @@ public protocol RemoveProductFromWishlistUseCase: Sendable {
 
 public struct DefaultRemoveProductFromWishlistUseCase: RemoveProductFromWishlistUseCase {
     private let repository: WishlistRepository
-    private let userIsLoggedIn: UserIsLoggedInUseCase
+    private let getSession: GetSessionUseCase
 
-    public init(repository: WishlistRepository, userIsLoggedIn: UserIsLoggedInUseCase) {
+    public init(repository: WishlistRepository, getSession: GetSessionUseCase) {
         self.repository = repository
-        self.userIsLoggedIn = userIsLoggedIn
+        self.getSession = getSession
     }
 
     @MainActor
     @discardableResult
     public func callAsFunction(productId: Int) async -> Result<Void, WishlistError> {
-        guard await userIsLoggedIn() else {
+        guard getSession().isLoggedIn else {
             return .failure(.unauthenticated)
         }
         repository.save(repository.wishlist.removing(productId: productId))

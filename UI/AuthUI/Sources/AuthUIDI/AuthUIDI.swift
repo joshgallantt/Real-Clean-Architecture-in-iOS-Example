@@ -19,13 +19,11 @@ public struct AuthUIDI {
     public init(
         loginUseCase: LoginUseCase,
         createAccountUseCase: CreateAccountUseCase,
-        userIsLoggedInUseCase: UserIsLoggedInUseCase,
         getSessionUseCase: GetSessionUseCase,
         sheetPresenting: SheetPresenting
     ) {
         self.presenter = AuthPresenter(
             sheetPresenting: sheetPresenting,
-            userIsLoggedIn: userIsLoggedInUseCase,
             loginUseCase: loginUseCase,
             createAccountUseCase: createAccountUseCase,
             getSession: getSessionUseCase

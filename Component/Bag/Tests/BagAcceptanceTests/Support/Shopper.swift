@@ -73,17 +73,17 @@ private struct StubObserveSession: ObserveSessionUseCase, @unchecked Sendable {
 
 final class InMemoryBagStore: BagStore, @unchecked Sendable {
     private let lock = NSLock()
-    private var bags: [String: Bag]
+    private var bags: [String: (bag: Bag, changes: BagChanges)]
 
-    init(seeded: [String: Bag] = [:]) {
+    init(seeded: [String: (bag: Bag, changes: BagChanges)] = [:]) {
         self.bags = seeded
     }
 
-    func getBag(forUserKey userKey: String) -> Bag {
-        lock.withLock { bags[userKey] ?? Bag() }
+    func getBag(forUserKey userKey: String) -> (bag: Bag, changes: BagChanges) {
+        lock.withLock { bags[userKey] ?? (Bag(), BagChanges()) }
     }
 
-    func setBag(_ bag: Bag, forUserKey userKey: String) async {
-        lock.withLock { bags[userKey] = bag }
+    func setBag(_ bag: Bag, changes: BagChanges, forUserKey userKey: String) async {
+        lock.withLock { bags[userKey] = (bag, changes) }
     }
 }

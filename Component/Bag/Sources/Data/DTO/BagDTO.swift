@@ -5,15 +5,15 @@ struct BagDTO: Codable, Sendable {
     let items: [BagItemDTO]
     let pendingChanges: [BagChangeDTO]
 
-    init(from bag: Bag) {
+    init(bag: Bag, changes: BagChanges) {
         self.items = bag.items.map(BagItemDTO.init(from:))
-        self.pendingChanges = bag.pendingChanges.map(BagChangeDTO.init(from:))
+        self.pendingChanges = changes.all.map(BagChangeDTO.init(from:))
     }
 
-    func toDomain() -> Bag {
-        Bag(
-            items: items.map { $0.toDomain() },
-            pendingChanges: pendingChanges.compactMap { $0.toDomain() }
+    func toDomain() -> (bag: Bag, changes: BagChanges) {
+        (
+            Bag(items: items.map { $0.toDomain() }),
+            BagChanges(pendingChanges.compactMap { $0.toDomain() })
         )
     }
 }
