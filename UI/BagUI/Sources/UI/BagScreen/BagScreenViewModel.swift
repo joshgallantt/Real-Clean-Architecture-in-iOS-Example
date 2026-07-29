@@ -153,8 +153,12 @@ public final class BagScreenViewModel: ObservableObject {
             BagRow(item: item, name: catalog[item.id]?.title, imageURL: catalog[item.id]?.thumbnail)
         }
 
-        removedRows = changes.removals.map(row(for:))
-        priceChangedRows = changes.priceChanges.map(row(for:))
+        // What is worth saying depends on both, so the domain is asked rather than the
+        // screen deciding: a price notice for a line no longer in the bag, or a removal
+        // notice for one the shopper has chosen again, is not news.
+        let worthSaying = BagReconciliation.applicable(changes, to: bag)
+        removedRows = worthSaying.removals.map(row(for:))
+        priceChangedRows = worthSaying.priceChanges.map(row(for:))
     }
 
     /// - Parameter aboutEverythingVisible: ask again about lines already looked up, so

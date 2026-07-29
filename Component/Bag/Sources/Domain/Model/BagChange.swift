@@ -18,7 +18,7 @@ public enum BagChange: Equatable, Sendable {
         }
     }
 
-    var isPriceChange: Bool {
+    public var isPriceChange: Bool {
         switch self {
         case .priceWentUp, .priceWentDown: true
         case .outOfStock: false

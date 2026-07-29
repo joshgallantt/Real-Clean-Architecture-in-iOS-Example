@@ -232,3 +232,56 @@ struct PendingChangeTests {
         #expect(both.changes.acknowledging(itemId: 2).removals == [.outOfStock(itemId: 1)])
     }
 }
+
+/// `Bag` and `BagChanges` are written one after the other. Deciding what is worth saying
+/// when they are read means a pair that has drifted apart — a crash between the two
+/// writes, or a product chosen again — corrects itself rather than showing nonsense.
+@Suite("Which notices still make sense")
+struct ApplicableChangesTests {
+
+    private let inTheBag = Bag(items: [BagItem(id: 1, lastKnownPrice: 10)])
+
+    @Test("A price notice about something in the bag stands")
+    func priceNoticeForAPresentLine() {
+        let changes = BagChanges([.priceWentUp(itemId: 1, from: 10, to: 12)])
+
+        #expect(BagReconciliation.applicable(changes, to: inTheBag) == changes)
+    }
+
+    @Test("A price notice about something no longer in the bag is news about nothing")
+    func priceNoticeForAnAbsentLine() {
+        let changes = BagChanges([.priceWentUp(itemId: 1, from: 10, to: 12)])
+
+        #expect(BagReconciliation.applicable(changes, to: Bag()).isEmpty)
+    }
+
+    @Test("A removal notice about something no longer in the bag stands")
+    func removalNoticeForAnAbsentLine() {
+        let changes = BagChanges([.outOfStock(itemId: 1)])
+
+        #expect(BagReconciliation.applicable(changes, to: Bag()) == changes)
+    }
+
+    @Test("A removal notice about something the shopper has chosen again is spent")
+    func removalNoticeForAPresentLine() {
+        let changes = BagChanges([.outOfStock(itemId: 1)])
+
+        #expect(BagReconciliation.applicable(changes, to: inTheBag).isEmpty)
+    }
+
+    @Test("A pair that has drifted apart keeps only the half that still holds")
+    func mixedNotices() {
+        let bag = Bag(items: [BagItem(id: 1, lastKnownPrice: 10)])
+        let changes = BagChanges([
+            .priceWentUp(itemId: 1, from: 10, to: 12),   // in the bag: stands
+            .priceWentUp(itemId: 2, from: 20, to: 25),   // gone: nonsense
+            .outOfStock(itemId: 3),                      // gone: stands
+            .outOfStock(itemId: 1)                       // back in the bag: spent
+        ])
+
+        let worthSaying = BagReconciliation.applicable(changes, to: bag)
+
+        #expect(worthSaying.priceChanges == [.priceWentUp(itemId: 1, from: 10, to: 12)])
+        #expect(worthSaying.removals == [.outOfStock(itemId: 3)])
+    }
+}
