@@ -1,0 +1,105 @@
+import Testing
+import Product
+
+/// A handful of journeys, run over a fake shop with the whole product stack behind
+/// them: the composition root's wiring, the real client, the real parsing and the real
+/// use cases. These do not enumerate what can go wrong — `ProductDataTests` owns that,
+/// where a failure names the layer that broke. What lives here is the thing no layer
+/// test can show, which is that the layers fit together.
+@Suite("Shopping the catalog")
+struct ShoppingTheCatalogTests {
+
+    @Test("A shopper opens the app and sees the first page of products")
+    func opensTheApp() async {
+        let shop = Shop()
+
+        let firstPage = await shop.browse(page: 0, pageSize: 3)
+
+        #expect(firstPage.success?.map(\.title) == [
+            "Mascara Lash Princess",
+            "Eyeshadow Palette",
+            "Powder Canister"
+        ])
+    }
+
+    @Test("Scrolling to the end brings the next page, and nothing already seen")
+    func scrollsToTheNextPage() async {
+        let shop = Shop()
+
+        let firstPage = await shop.browse(page: 0, pageSize: 3)
+        let secondPage = await shop.browse(page: 1, pageSize: 3)
+
+        #expect(secondPage.success?.map(\.title) == [
+            "Red Lipstick",
+            "Calvin Klein CK One",
+            "Dolce Shine Eau de"
+        ])
+        let seen = Set(firstPage.success?.map(\.id) ?? [])
+        #expect(seen.isDisjoint(with: Set(secondPage.success?.map(\.id) ?? [])))
+    }
+
+    @Test("A shopper picks a category from the list and sees only that category's products")
+    func narrowsToACategory() async throws {
+        let shop = Shop()
+
+        let categories = await shop.categories()
+        #expect(categories.success?.map(\.name) == ["Beauty", "Fragrances", "Furniture"])
+
+        let fragrances = try #require(categories.success?.first { $0.name == "Fragrances" })
+        let products = await shop.browse(fragrances)
+
+        #expect(products.success?.map(\.title) == ["Calvin Klein CK One", "Dolce Shine Eau de"])
+    }
+
+    @Test("A shopper searches for something the shop stocks and sees the matches")
+    func searches() async {
+        let shop = Shop()
+
+        let results = await shop.search("Annibale")
+
+        #expect(results.success?.map(\.title) == ["Annibale Colombo Bed", "Annibale Colombo Sofa"])
+    }
+
+    @Test("A shopper opens a product from the grid and sees its details")
+    func opensAProduct() async {
+        let shop = Shop()
+
+        let product = await shop.open(productId: 5)
+
+        #expect(product.success?.title == "Calvin Klein CK One")
+        #expect(product.success?.price == 49.99)
+    }
+
+    @Test("A shopper returns to a screen that remembered ids and gets the products back, in order")
+    func returnsToASavedSet() async {
+        let shop = Shop()
+
+        let products = await shop.products(withIds: [6, 1, 8])
+
+        #expect(products.success?.map(\.title) == [
+            "Dolce Shine Eau de",
+            "Mascara Lash Princess",
+            "Annibale Colombo Sofa"
+        ])
+    }
+
+    @Test("A shopper who cannot reach the shop is told, rather than shown an empty catalog")
+    func cannotReachTheShop() async {
+        let shop = Shop()
+        shop.catalog.goOffline()
+
+        #expect(await shop.browse() == .failure(.networkFailure))
+    }
+
+    @Test("A shopper who goes offline mid-session sees the failure on their next action, not stale results")
+    func goesOfflineMidSession() async {
+        let shop = Shop()
+
+        let beforeLosingSignal = await shop.browse(page: 0, pageSize: 3)
+        shop.catalog.goOffline()
+        let afterLosingSignal = await shop.browse(page: 1, pageSize: 3)
+
+        #expect(beforeLosingSignal.success?.count == 3)
+        #expect(afterLosingSignal == .failure(.networkFailure))
+    }
+}
