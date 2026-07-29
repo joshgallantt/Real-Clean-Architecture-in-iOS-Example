@@ -74,20 +74,20 @@ final class Injector {
         )
         productDI = ProductDI(client: DummyJSONProductClient(httpClient: URLSessionHTTPClient(session: .shared)))
 
-//        let getProducts: GetProductsUseCase = productDI.getProductsUseCase
-//        let getProductsByIds: GetProductsByIdsUseCase = productDI.getProductsByIdsUseCase
-//        let getProduct: GetProductUseCase = productDI.getProductUseCase
+        let getProducts: GetProductsUseCase = productDI.getProductsUseCase
+        let getProductsByIds: GetProductsByIdsUseCase = productDI.getProductsByIdsUseCase
+        let getProduct: GetProductUseCase = productDI.getProductUseCase
 
         // DEMO ONLY. Comment out the three lines above and uncomment these to make the
         // shop change its mind, so reopening the bag shows the Changed section. See
         // DemoCatalog.swift for the script. Never commit this switched on.
         //
-         let getProducts: GetProductsUseCase =
-             DemoGetProductsUseCase(wrapped: productDI.getProductsUseCase)
-         let getProductsByIds: GetProductsByIdsUseCase =
-             DemoGetProductsByIdsUseCase(wrapped: productDI.getProductsByIdsUseCase)
-         let getProduct: GetProductUseCase =
-             DemoGetProductUseCase(wrapped: productDI.getProductUseCase)
+        // let getProducts: GetProductsUseCase =
+        //     DemoGetProductsUseCase(wrapped: productDI.getProductsUseCase)
+        // let getProductsByIds: GetProductsByIdsUseCase =
+        //     DemoGetProductsByIdsUseCase(wrapped: productDI.getProductsByIdsUseCase)
+        // let getProduct: GetProductUseCase =
+        //     DemoGetProductUseCase(wrapped: productDI.getProductUseCase)
         searchDI = SearchDI(
             store: UserDefaultsSearchHistoryStore(defaults: .standard),
             getSession: sessionDI.getSessionUseCase
@@ -95,7 +95,6 @@ final class Injector {
         wishlistDI = WishlistDI(
             getSession: sessionDI.getSessionUseCase,
             observeSession: sessionDI.observeSessionUseCase,
-            userIsLoggedIn: sessionDI.userIsLoggedInUseCase
         )
         bagDI = BagDI(
             getSession: sessionDI.getSessionUseCase,
@@ -115,7 +114,6 @@ final class Injector {
         let authDI = AuthUIDI(
             loginUseCase: sessionDI.loginUseCase,
             createAccountUseCase: sessionDI.createAccountUseCase,
-            userIsLoggedInUseCase: sessionDI.userIsLoggedInUseCase,
             getSessionUseCase: sessionDI.getSessionUseCase,
             sheetPresenting: sheetDI.presenter
         )
@@ -124,18 +122,6 @@ final class Injector {
         // MARK: Navigation
         navigator = Navigator(authPresenter: authDI.presenter)
 
-        let bagUI = BagUIDI(
-            navigation: navigator,
-            observeBag: bagDI.observeBagUseCase,
-            bagItemQuantity: bagDI.bagItemQuantityUseCase,
-            addItemToBag: bagDI.addItemToBagUseCase,
-            setBagItemQuantity: bagDI.setBagItemQuantityUseCase,
-            getProductsByIds: getProductsByIds,
-            reconcileBag: bagDI.reconcileBagUseCase,
-            acknowledgeBagChange: bagDI.acknowledgeBagChangeUseCase,
-            snackbarPresenter: snackbarDI.presenter
-        )
-        bagUIDI = bagUI
         let sharedUI = SharedUIDI(
             productIsWishlisted: wishlistDI.productIsWishlistedUseCase,
             addProductToWishlist: wishlistDI.addProductToWishlistUseCase,
@@ -143,6 +129,21 @@ final class Injector {
             authPresenter: authDI.presenter,
             snackbarPresenter: snackbarDI.presenter
         )
+
+        let bagUI = BagUIDI(
+            navigation: navigator,
+            observeBag: bagDI.observeBagUseCase,
+            observeBagChanges: bagDI.observeBagChangesUseCase,
+            bagItemQuantity: bagDI.bagItemQuantityUseCase,
+            addItemToBag: bagDI.addItemToBagUseCase,
+            setBagItemQuantity: bagDI.setBagItemQuantityUseCase,
+            getProductsByIds: getProductsByIds,
+            reconcileBag: bagDI.reconcileBagUseCase,
+            acknowledgeBagChange: bagDI.acknowledgeBagChangeUseCase,
+            snackbarPresenter: snackbarDI.presenter,
+            wishlistButton: { id in AnyView(sharedUI.wishlistButton(productId: id)) }
+        )
+        bagUIDI = bagUI
         let wishlistUI = WishlistUIDI(
             navigation: navigator,
             observeWishlist: wishlistDI.observeWishlistUseCase,

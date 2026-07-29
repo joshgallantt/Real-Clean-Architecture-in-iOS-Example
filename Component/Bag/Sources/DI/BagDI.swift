@@ -8,6 +8,7 @@ public struct BagDI {
     private let repository: BagRepository
 
     public let observeBagUseCase: ObserveBagUseCase
+    public let observeBagChangesUseCase: ObserveBagChangesUseCase
     public let bagItemQuantityUseCase: BagItemQuantityUseCase
     public let addItemToBagUseCase: AddItemToBagUseCase
     public let setBagItemQuantityUseCase: SetBagItemQuantityUseCase
@@ -28,6 +29,7 @@ public struct BagDI {
         self.repository = repository
 
         self.observeBagUseCase = DefaultObserveBagUseCase(repository: repository)
+        self.observeBagChangesUseCase = DefaultObserveBagChangesUseCase(repository: repository)
         self.bagItemQuantityUseCase = DefaultBagItemQuantityUseCase(repository: repository)
         self.addItemToBagUseCase = DefaultAddItemToBagUseCase(repository: repository)
         self.setBagItemQuantityUseCase = DefaultSetBagItemQuantityUseCase(repository: repository)

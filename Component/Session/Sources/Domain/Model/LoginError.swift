@@ -1,15 +1,6 @@
-//
-//  LoginError.swift
-//  User
-//
-//  Created by Josh Gallant on 02/08/2025.
-//
-
-import Foundation
-
-public enum LoginError: Error {
+public enum LoginError: Error, Equatable, Sendable {
+    case invalidEmail
+    case invalidPassword
     case invalidCredentials
-    case emailIsEmpty
-    case passwordIsEmpty
     case unknown
 }

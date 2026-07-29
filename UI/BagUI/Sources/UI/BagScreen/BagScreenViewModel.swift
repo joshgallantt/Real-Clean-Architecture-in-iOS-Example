@@ -2,31 +2,31 @@ import Combine
 import Foundation
 import Bag
 import Product
+import SnackbarUI
 
 @MainActor
 public final class BagScreenViewModel: ObservableObject {
     @Published private(set) var rows: [BagRow] = []
-    @Published private(set) var changedRows: [ChangedBagRow] = []
+    @Published private(set) var removedRows: [ChangedBagRow] = []
+    @Published private(set) var priceChangedRows: [ChangedBagRow] = []
     @Published private(set) var isLoadingMore = false
 
     private let pageSize = 30
 
     private let observeBag: ObserveBagUseCase
+    private let observeBagChanges: ObserveBagChangesUseCase
     private let getProductsByIds: GetProductsByIdsUseCase
     private let setBagItemQuantity: SetBagItemQuantityUseCase
     private let reconcileBag: ReconcileBagUseCase
     private let acknowledgeBagChange: AcknowledgeBagChangeUseCase
+    private let snackbar: SnackbarPresenting
 
     private var cancellables = Set<AnyCancellable>()
     private var bag = Bag()
+    private var changes = BagChanges()
     private var catalog: [Int: Product] = [:]
     private var loadedCount: Int
     private var lookupTask: Task<Void, Never>?
-
-    /// What the shopper has chosen, ignoring what it costs. Used to tell their own edits
-    /// apart from the repricing that catching up causes — otherwise saving a reconciled
-    /// bag would look like a change and ask the shop again, forever.
-    private var chosenContents: [Int: Int] = [:]
 
     /// Always from the bag, never from the catalog: the total must be right whether or
     /// not anything loaded.
@@ -36,26 +36,33 @@ public final class BagScreenViewModel: ObservableObject {
 
     public init(
         observeBag: ObserveBagUseCase,
+        observeBagChanges: ObserveBagChangesUseCase,
         getProductsByIds: GetProductsByIdsUseCase,
         setBagItemQuantity: SetBagItemQuantityUseCase,
         reconcileBag: ReconcileBagUseCase,
-        acknowledgeBagChange: AcknowledgeBagChangeUseCase
+        acknowledgeBagChange: AcknowledgeBagChangeUseCase,
+        snackbar: SnackbarPresenting
     ) {
         self.observeBag = observeBag
+        self.observeBagChanges = observeBagChanges
         self.getProductsByIds = getProductsByIds
         self.setBagItemQuantity = setBagItemQuantity
         self.reconcileBag = reconcileBag
         self.acknowledgeBagChange = acknowledgeBagChange
+        self.snackbar = snackbar
         self.loadedCount = pageSize
     }
 
-    /// Opening the bag is a reason to ask the shop again — a shopper coming back after
-    /// a day is the whole point of catching up, and the tab is held alive between
-    /// visits, so nothing else would ever ask.
+    /// Opening the bag is a reason to ask the shop again — a shopper coming back after a
+    /// day is the whole point of catching up, and the tab is held alive between visits,
+    /// so nothing else would ever ask.
+    ///
+    /// It also covers anything added from another tab while this screen was off-screen:
+    /// that bag change does not ask on its own, and does not need to, because the shopper
+    /// has to come here to see it.
     func onAppear() {
-        guard !cancellables.isEmpty else {
+        if cancellables.isEmpty {
             subscribe()
-            return
         }
         askTheShop(aboutEverythingVisible: true)
     }
@@ -69,12 +76,14 @@ public final class BagScreenViewModel: ObservableObject {
 
     func didChangeQuantity(itemId: Int, quantity: Int) {
         setBagItemQuantity(itemId: itemId, to: quantity)
+        askTheShop(aboutEverythingVisible: true)
     }
 
     // Wanting none of something is the same thing as taking it out, so the bag is told
     // once, in one way.
     func didSwipeToDelete(itemId: Int) {
         setBagItemQuantity(itemId: itemId, to: 0)
+        askTheShop(aboutEverythingVisible: true)
     }
 
     func didAcknowledgeChange(itemId: Int) {
@@ -83,6 +92,27 @@ public final class BagScreenViewModel: ObservableObject {
 
     func didRemoveChangedItem(itemId: Int) {
         setBagItemQuantity(itemId: itemId, to: 0)
+        askTheShop(aboutEverythingVisible: true)
+    }
+
+    /// Stubbed until there is a push notification system to register with. It dismisses
+    /// the row so the shopper is not left with a button that appears to do nothing, and
+    /// says what it will eventually mean.
+    func didAskToBeNotified(itemId: Int) {
+        acknowledgeBagChange(itemId: itemId)
+        snackbar.show(Snackbar(
+            title: "We'll Let You Know",
+            message: "You'll hear from us when this is back in stock.",
+            icon: "bell.fill"
+        ))
+    }
+
+    private func row(for change: BagChange) -> ChangedBagRow {
+        ChangedBagRow(
+            change: change,
+            name: catalog[change.itemId]?.title,
+            imageURL: catalog[change.itemId]?.thumbnail
+        )
     }
 
     // MARK: -
@@ -93,23 +123,27 @@ public final class BagScreenViewModel: ObservableObject {
                 self?.bagChanged(bag)
             }
             .store(in: &cancellables)
+
+        observeBagChanges()
+            .sink { [weak self] changes in
+                self?.changes = changes
+                self?.render()
+            }
+            .store(in: &cancellables)
     }
 
+    /// Redraws, and nothing else. Asking the shop is triggered by the things that
+    /// warrant it — opening the screen, and the shopper changing something here — rather
+    /// than inferred from the bag having changed. Inferring it means telling the
+    /// shopper's own edits apart from the repricing that asking causes, and getting that
+    /// wrong makes the screen ask forever.
     private func bagChanged(_ bag: Bag) {
-        let previousContents = chosenContents
         self.bag = bag
-        chosenContents = Dictionary(uniqueKeysWithValues: bag.items.map { ($0.id, $0.quantity) })
 
         let ids = Set(bag.items.map(\.id))
         catalog = catalog.filter { ids.contains($0.key) }
 
         render()
-
-        // Adding, removing or changing how many is also a reason to ask. Repricing is
-        // not: that came from the shop's own answer, and asking again would loop.
-        if chosenContents != previousContents {
-            askTheShop(aboutEverythingVisible: true)
-        }
     }
 
     /// Rows go out immediately from the bag alone. Names and pictures arrive later if
@@ -119,13 +153,8 @@ public final class BagScreenViewModel: ObservableObject {
             BagRow(item: item, name: catalog[item.id]?.title, imageURL: catalog[item.id]?.thumbnail)
         }
 
-        changedRows = bag.pendingChanges.map { change in
-            ChangedBagRow(
-                change: change,
-                name: catalog[change.itemId]?.title,
-                imageURL: catalog[change.itemId]?.thumbnail
-            )
-        }
+        removedRows = changes.removals.map(row(for:))
+        priceChangedRows = changes.priceChanges.map(row(for:))
     }
 
     /// - Parameter aboutEverythingVisible: ask again about lines already looked up, so

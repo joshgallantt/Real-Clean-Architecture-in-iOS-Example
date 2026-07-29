@@ -5,15 +5,21 @@ import Kingfisher
 public struct BagScreenView: View {
     @ObservedObject var viewModel: BagScreenViewModel
     let navigation: BagNavigation
+    let wishlistButton: (Int) -> AnyView
 
-    public init(viewModel: BagScreenViewModel, navigation: BagNavigation) {
+    public init(
+        viewModel: BagScreenViewModel,
+        navigation: BagNavigation,
+        wishlistButton: @escaping (Int) -> AnyView = { _ in AnyView(EmptyView()) }
+    ) {
         self.viewModel = viewModel
         self.navigation = navigation
+        self.wishlistButton = wishlistButton
     }
 
     public var body: some View {
         Group {
-            if viewModel.isEmpty {
+            if viewModel.isEmpty && viewModel.removedRows.isEmpty {
                 ContentUnavailableView(
                     "Your Bag is Empty",
                     systemImage: "bag",
@@ -21,33 +27,24 @@ public struct BagScreenView: View {
                 )
             } else {
                 List {
-                    if !viewModel.changedRows.isEmpty {
-                        changedSection
+                    // The first two sections are notices about what happened while the
+                    // shopper was away. Neither is the bag; the bag is the last section.
+                    if !viewModel.removedRows.isEmpty {
+                        removedSection
                     }
 
-                    Section {
-                        ForEach(viewModel.rows) { row in
-                            self.row(for: row)
-                                .swipeActions {
-                                    Button("Remove", role: .destructive) {
-                                        viewModel.didSwipeToDelete(itemId: row.id)
-                                    }
-                                }
-                                .onAppear {
-                                    if row.id == viewModel.rows.last?.id {
-                                        viewModel.onReachEnd()
-                                    }
-                                }
-                        }
+                    if !viewModel.priceChangedRows.isEmpty {
+                        priceChangedSection
+                    }
 
-                        if viewModel.isLoadingMore {
-                            ProgressView()
-                                .frame(maxWidth: .infinity)
-                        }
+                    if !viewModel.isEmpty {
+                        bagSection
                     }
                 }
                 .safeAreaInset(edge: .bottom) {
-                    totalFooter
+                    if !viewModel.isEmpty {
+                        totalFooter
+                    }
                 }
             }
         }
@@ -56,11 +53,56 @@ public struct BagScreenView: View {
         }
     }
 
-    // MARK: - Changed
+    // MARK: - Removed
 
-    private var changedSection: some View {
+    private var removedSection: some View {
         Section {
-            ForEach(viewModel.changedRows) { changed in
+            ForEach(viewModel.removedRows) { removed in
+                VStack(alignment: .leading, spacing: 10) {
+                    HStack(spacing: 12) {
+                        thumbnail(url: removed.imageURL)
+
+                        wishlistButton(removed.id)
+
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(removed.name ?? " ")
+                                .font(.subheadline.weight(.semibold))
+                                .lineLimit(2)
+                                .redacted(reason: removed.name == nil ? .placeholder : [])
+                            Text(removed.summary)
+                                .font(.footnote)
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    HStack(spacing: 12) {
+                        Button("Okay") {
+                            viewModel.didAcknowledgeChange(itemId: removed.id)
+                        }
+                        .buttonStyle(.bordered)
+
+                        Button("Notify Me") {
+                            viewModel.didAskToBeNotified(itemId: removed.id)
+                        }
+                        .buttonStyle(.bordered)
+                    }
+                    .controlSize(.small)
+                    .buttonBorderShape(.capsule)
+                }
+                .padding(.vertical, 4)
+            }
+        } header: {
+            sectionHeader("Removed", icon: "xmark.circle")
+        } footer: {
+            Text("We can't supply these, so they've left your bag.")
+        }
+    }
+
+    // MARK: - Price changes
+
+    private var priceChangedSection: some View {
+        Section {
+            ForEach(viewModel.priceChangedRows) { changed in
                 VStack(alignment: .leading, spacing: 10) {
                     HStack(spacing: 12) {
                         thumbnail(url: changed.imageURL)
@@ -93,16 +135,38 @@ public struct BagScreenView: View {
                 .padding(.vertical, 4)
             }
         } header: {
-            Label("Changed", systemImage: "exclamationmark.circle")
-                .font(.subheadline.weight(.semibold))
-                .foregroundStyle(.primary)
-                .textCase(nil)
+            sectionHeader("Prices Changed", icon: "tag")
         } footer: {
-            Text("These changed while you were away. Keeping them is fine — we'll confirm everything at checkout.")
+            Text("These are still in your bag, at the new price.")
         }
     }
 
-    // MARK: - Items
+    // MARK: - The bag itself
+
+    private var bagSection: some View {
+        Section {
+            ForEach(viewModel.rows) { row in
+                self.row(for: row)
+                    .swipeActions {
+                        Button("Remove", role: .destructive) {
+                            viewModel.didSwipeToDelete(itemId: row.id)
+                        }
+                    }
+                    .onAppear {
+                        if row.id == viewModel.rows.last?.id {
+                            viewModel.onReachEnd()
+                        }
+                    }
+            }
+
+            if viewModel.isLoadingMore {
+                ProgressView()
+                    .frame(maxWidth: .infinity)
+            }
+        } header: {
+            sectionHeader("Your Bag", icon: "bag")
+        }
+    }
 
     private func row(for row: BagRow) -> some View {
         HStack(spacing: 12) {
@@ -143,6 +207,15 @@ public struct BagScreenView: View {
             }
             .fixedSize()
         }
+    }
+
+    // MARK: -
+
+    private func sectionHeader(_ title: String, icon: String) -> some View {
+        Label(title, systemImage: icon)
+            .font(.subheadline.weight(.semibold))
+            .foregroundStyle(.primary)
+            .textCase(nil)
     }
 
     @ViewBuilder

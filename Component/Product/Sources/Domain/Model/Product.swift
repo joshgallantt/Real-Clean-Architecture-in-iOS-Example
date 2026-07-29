@@ -9,9 +9,15 @@ public struct Product: Equatable, Hashable, Sendable, Identifiable {
     public let discountPercentage: Double
     public let rating: Double
     public let stock: Int
+
+    /// Whether the shop expects to have this again. Only meaningful when `stock` is
+    /// none — a shopper looking at something in stock has no use for it.
+    public let willRestock: Bool
     public let brand: String
     public let thumbnail: String
     public let images: [String]
+
+    public var isInStock: Bool { stock > 0 }
 
     public init(
         id: Int,
@@ -22,6 +28,7 @@ public struct Product: Equatable, Hashable, Sendable, Identifiable {
         discountPercentage: Double,
         rating: Double,
         stock: Int,
+        willRestock: Bool,
         brand: String,
         thumbnail: String,
         images: [String]
@@ -34,6 +41,7 @@ public struct Product: Equatable, Hashable, Sendable, Identifiable {
         self.discountPercentage = discountPercentage
         self.rating = rating
         self.stock = stock
+        self.willRestock = willRestock
         self.brand = brand
         self.thumbnail = thumbnail
         self.images = images

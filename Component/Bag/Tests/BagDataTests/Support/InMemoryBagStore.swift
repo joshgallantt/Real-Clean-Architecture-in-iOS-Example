@@ -4,25 +4,25 @@ import Bag
 
 final class InMemoryBagStore: BagStore, @unchecked Sendable {
     private let lock = NSLock()
-    private var bags: [String: Bag] = [:]
-    private var _writes: [Bag] = []
+    private var bags: [String: (bag: Bag, changes: BagChanges)] = [:]
+    private var _writes: [(bag: Bag, changes: BagChanges)] = []
 
     /// Every write in the order it landed, so ordering guarantees can be asserted
     /// rather than inferred from the final state.
-    var writes: [Bag] { lock.withLock { _writes } }
+    var writes: [(bag: Bag, changes: BagChanges)] { lock.withLock { _writes } }
 
-    init(seeded: [String: Bag] = [:]) {
+    init(seeded: [String: (bag: Bag, changes: BagChanges)] = [:]) {
         self.bags = seeded
     }
 
-    func getBag(forUserKey userKey: String) -> Bag {
-        lock.withLock { bags[userKey] ?? Bag() }
+    func getBag(forUserKey userKey: String) -> (bag: Bag, changes: BagChanges) {
+        lock.withLock { bags[userKey] ?? (Bag(), BagChanges()) }
     }
 
-    func setBag(_ bag: Bag, forUserKey userKey: String) async {
+    func setBag(_ bag: Bag, changes: BagChanges, forUserKey userKey: String) async {
         lock.withLock {
-            bags[userKey] = bag
-            _writes.append(bag)
+            bags[userKey] = (bag, changes)
+            _writes.append((bag, changes))
         }
     }
 }

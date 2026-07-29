@@ -1,3 +1,5 @@
+import Foundation
+
 public protocol CreateAccountUseCase: Sendable {
     func callAsFunction(
         firstName: String,
@@ -8,7 +10,7 @@ public protocol CreateAccountUseCase: Sendable {
 }
 
 public struct DefaultCreateAccountUseCase: CreateAccountUseCase {
-    let sessionRepository: SessionRepository
+    private let sessionRepository: SessionRepository
 
     public init(sessionRepository: SessionRepository) {
         self.sessionRepository = sessionRepository
@@ -20,15 +22,12 @@ public struct DefaultCreateAccountUseCase: CreateAccountUseCase {
         email: String,
         password: String
     ) async -> Result<Void, CreateAccountError> {
-        if firstName.isEmpty {
-            return .failure(.firstNameIsEmpty)
+        guard !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            return .failure(.nameIsMissing)
         }
-        if email.isEmpty {
-            return .failure(.emailIsEmpty)
-        }
-        if password.isEmpty {
-            return .failure(.passwordIsEmpty)
-        }
+        guard Email(email).isValid else { return .failure(.invalidEmail) }
+        guard Password(password).isValid else { return .failure(.invalidPassword) }
+
         return await sessionRepository.createAccount(
             firstName: firstName,
             lastName: lastName,

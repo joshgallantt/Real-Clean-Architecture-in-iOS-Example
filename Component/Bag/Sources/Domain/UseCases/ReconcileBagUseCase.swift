@@ -14,12 +14,18 @@ public struct DefaultReconcileBagUseCase: ReconcileBagUseCase {
 
     @MainActor
     public func callAsFunction(prices: [Int: Double], inStock: [Int: Bool]) {
-        let bag = repository.bag
-        let reconciled = bag.reconciled(prices: prices, inStock: inStock)
+        let caughtUp = BagReconciliation.catchUp(
+            bag: repository.bag,
+            changes: repository.changes,
+            prices: prices,
+            inStock: inStock
+        )
 
         // Saving an unchanged bag would wake everything watching it for nothing, and on
         // a screen that reconciles every time it appears, that is most of the time.
-        guard reconciled != bag else { return }
-        repository.save(reconciled)
+        guard caughtUp.bag != repository.bag || caughtUp.changes != repository.changes else {
+            return
+        }
+        repository.save(bag: caughtUp.bag, changes: caughtUp.changes)
     }
 }

@@ -75,6 +75,32 @@ struct DefaultProductRepositoryTests {
         #expect(result.success?.first?.category == CategoryID(rawValue: "beauty"))
     }
 
+    @Test("A catalog that says nothing about restocking is taken to mean it will")
+    func restockingIsAssumed() async {
+        let (repository, transport) = makeRepository()
+        transport.stub(path: "/products", returning: Self.pageJSON)
+
+        let result = await repository.getProducts(matching: .all(page: 0, pageSize: 30))
+
+        // DummyJSON has no such field. Assuming the optimistic answer keeps the offer to
+        // wait available; assuming the other would hide it everywhere, permanently.
+        #expect(result.success?.first?.willRestock == true)
+    }
+
+    @Test("A catalog that says something is gone for good is believed")
+    func goneForGood() async {
+        let (repository, transport) = makeRepository()
+        transport.stub(
+            path: "/products",
+            returning: Self.pageJSON.replacingOccurrences(of: #""stock": 5"#, with: #""stock": 0, "willRestock": false"#)
+        )
+
+        let result = await repository.getProducts(matching: .all(page: 0, pageSize: 30))
+
+        #expect(result.success?.first?.isInStock == false)
+        #expect(result.success?.first?.willRestock == false)
+    }
+
     @Test("A product listed without a brand is still a product")
     func brandlessProducts() async {
         let (repository, transport) = makeRepository()

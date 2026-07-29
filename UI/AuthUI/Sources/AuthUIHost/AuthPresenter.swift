@@ -24,7 +24,6 @@ public final class AuthPresenter: AuthPresenting {
     }
 
     private let sheetPresenting: SheetPresenting
-    private let userIsLoggedIn: UserIsLoggedInUseCase
     private let loginUseCase: LoginUseCase
     private let createAccountUseCase: CreateAccountUseCase
     private let getSession: GetSessionUseCase
@@ -34,13 +33,11 @@ public final class AuthPresenter: AuthPresenting {
 
     public init(
         sheetPresenting: SheetPresenting,
-        userIsLoggedIn: UserIsLoggedInUseCase,
         loginUseCase: LoginUseCase,
         createAccountUseCase: CreateAccountUseCase,
         getSession: GetSessionUseCase
     ) {
         self.sheetPresenting = sheetPresenting
-        self.userIsLoggedIn = userIsLoggedIn
         self.loginUseCase = loginUseCase
         self.createAccountUseCase = createAccountUseCase
         self.getSession = getSession
@@ -67,7 +64,7 @@ public final class AuthPresenter: AuthPresenting {
     }
 
     private func authenticate(mode: AuthMode, prompt: AuthenticationPrompt?) async -> Bool {
-        if await userIsLoggedIn() {
+        if getSession().isLoggedIn {
             return true
         }
         if !waiting.isEmpty {

@@ -95,7 +95,6 @@ final class Saver {
         self.di = WishlistDI(
             getSession: StubGetSession(sessions: sessions),
             observeSession: StubObserveSession(sessions: sessions),
-            userIsLoggedIn: StubUserIsLoggedIn(sessions: sessions),
             store: store
         )
 
@@ -127,12 +126,6 @@ private struct StubObserveSession: ObserveSessionUseCase, @unchecked Sendable {
 
     @MainActor
     func callAsFunction() -> AnyPublisher<Session, Never> { sessions.eraseToAnyPublisher() }
-}
-
-private struct StubUserIsLoggedIn: UserIsLoggedInUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    func callAsFunction() async -> Bool { sessions.value.isLoggedIn }
 }
 
 final class InMemoryWishlistStore: WishlistStore, @unchecked Sendable {

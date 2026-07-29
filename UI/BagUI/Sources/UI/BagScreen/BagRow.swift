@@ -44,7 +44,7 @@ struct ChangedBagRow: Identifiable, Equatable {
         case .priceWentDown(_, let from, let to):
             "Price dropped from \(money(from)) to \(money(to))"
         case .outOfStock:
-            "Out of stock — we'll confirm at checkout"
+            "Out of stock"
         }
     }
 

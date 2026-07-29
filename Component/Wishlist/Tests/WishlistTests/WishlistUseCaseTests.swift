@@ -14,7 +14,7 @@ struct WishlistUseCaseTests {
     @Test("A signed-in shopper saving something saves a list with it in")
     func savingWhenSignedIn() async {
         let repository = InMemoryWishlistRepository()
-        let save = DefaultAddProductToWishlistUseCase(repository: repository, userIsLoggedIn: StubUserIsLoggedIn(true))
+        let save = DefaultAddProductToWishlistUseCase(repository: repository, getSession: StubGetSession(signedIn: true))
 
         let result = await save(productId: 1)
 
@@ -25,7 +25,7 @@ struct WishlistUseCaseTests {
     @Test("A guest is asked to sign in, and nothing is saved on their behalf")
     func savingWhenGuest() async {
         let repository = InMemoryWishlistRepository()
-        let save = DefaultAddProductToWishlistUseCase(repository: repository, userIsLoggedIn: StubUserIsLoggedIn(false))
+        let save = DefaultAddProductToWishlistUseCase(repository: repository, getSession: StubGetSession(signedIn: false))
 
         let result = await save(productId: 1)
 
@@ -36,7 +36,7 @@ struct WishlistUseCaseTests {
     @Test("Saving builds on the list the shopper already has, rather than replacing it")
     func savingReadsBeforeItWrites() async {
         let repository = InMemoryWishlistRepository(Wishlist(items: [WishlistItem(id: 1)]))
-        let save = DefaultAddProductToWishlistUseCase(repository: repository, userIsLoggedIn: StubUserIsLoggedIn(true))
+        let save = DefaultAddProductToWishlistUseCase(repository: repository, getSession: StubGetSession(signedIn: true))
 
         await save(productId: 2)
 
@@ -46,7 +46,7 @@ struct WishlistUseCaseTests {
     @Test("A signed-in shopper unsaving something saves a list without it")
     func unsaving() async {
         let repository = InMemoryWishlistRepository(Wishlist(items: [WishlistItem(id: 1)]))
-        let unsave = DefaultRemoveProductFromWishlistUseCase(repository: repository, userIsLoggedIn: StubUserIsLoggedIn(true))
+        let unsave = DefaultRemoveProductFromWishlistUseCase(repository: repository, getSession: StubGetSession(signedIn: true))
 
         await unsave(productId: 1)
 
@@ -56,7 +56,7 @@ struct WishlistUseCaseTests {
     @Test("A guest cannot unsave either")
     func unsavingWhenGuest() async {
         let repository = InMemoryWishlistRepository(Wishlist(items: [WishlistItem(id: 1)]))
-        let unsave = DefaultRemoveProductFromWishlistUseCase(repository: repository, userIsLoggedIn: StubUserIsLoggedIn(false))
+        let unsave = DefaultRemoveProductFromWishlistUseCase(repository: repository, getSession: StubGetSession(signedIn: false))
 
         #expect(await unsave(productId: 1).failure == .unauthenticated)
         #expect(repository.saved.isEmpty)
@@ -66,7 +66,7 @@ struct WishlistUseCaseTests {
     func watchingOneProduct() async {
         let repository = InMemoryWishlistRepository()
         let isSaved = DefaultProductIsWishlistedUseCase(repository: repository)
-        let save = DefaultAddProductToWishlistUseCase(repository: repository, userIsLoggedIn: StubUserIsLoggedIn(true))
+        let save = DefaultAddProductToWishlistUseCase(repository: repository, getSession: StubGetSession(signedIn: true))
         var seen: [Bool] = []
         let cancellable = isSaved(productId: 7).sink { seen.append($0) }
 
@@ -86,10 +86,17 @@ private extension Result where Success == Void, Failure: Equatable {
     var failure: Failure? { if case .failure(let error) = self { error } else { nil } }
 }
 
-private struct StubUserIsLoggedIn: UserIsLoggedInUseCase {
-    let loggedIn: Bool
+/// A session rather than a bare boolean: a test can now say *who* is signed in, which
+/// is what the wishlist is actually partitioned by.
+private struct StubGetSession: GetSessionUseCase {
+    let session: Session
 
-    init(_ loggedIn: Bool) { self.loggedIn = loggedIn }
+    init(signedIn: Bool) {
+        session = signedIn
+            ? .authenticated(User(id: 42, email: "", firstName: "", lastName: ""))
+            : .guest
+    }
 
-    func callAsFunction() async -> Bool { loggedIn }
+    @MainActor
+    func callAsFunction() -> Session { session }
 }
