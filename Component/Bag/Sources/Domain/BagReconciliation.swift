@@ -54,4 +54,27 @@ public enum BagReconciliation {
 
         return (Bag(items: keptItems), BagChanges(priceChanges + removals))
     }
+
+    /// The notices that still make sense against this bag.
+    ///
+    /// A price is news about something the shopper is buying, so a price notice for a
+    /// line no longer in the bag is news about nothing. A removal is news about something
+    /// that has gone, so it only stands while the line is absent — choose the product
+    /// again and there is nothing to report.
+    ///
+    /// Applied when the notices are read rather than when they are written. `Bag` and
+    /// `BagChanges` are kept together but written one after the other, and a process that
+    /// dies in between would leave the pair disagreeing. Deciding this on the way out
+    /// means the disagreement corrects itself instead of persisting.
+    public static func applicable(_ changes: BagChanges, to bag: Bag) -> BagChanges {
+        let present = Set(bag.items.map(\.id))
+
+        return BagChanges(
+            changes.all.filter { change in
+                change.isPriceChange
+                    ? present.contains(change.itemId)
+                    : !present.contains(change.itemId)
+            }
+        )
+    }
 }

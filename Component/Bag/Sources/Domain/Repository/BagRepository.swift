@@ -2,10 +2,11 @@ import Combine
 
 /// Access to the shopper's bag and to what they still need to be told about it.
 ///
-/// Two aggregates, one repository, because they have to be kept together: a crash
-/// between two writes could leave a warning about a line that is still in the bag, or a
-/// bag missing a line with nothing to say why. Saving them in one go is the only way
-/// that cannot happen.
+/// Two aggregates, one repository. Not because they must be written atomically — if that
+/// were required they would be one aggregate — but because there is one reason for this
+/// to change: they share a file, a user key, and a sign-in. Whether a notice still makes
+/// sense against a given bag is decided when they are read, by
+/// `BagReconciliation.applicable(_:to:)`, so a write that tears corrects itself.
 public protocol BagRepository: Sendable {
     @MainActor
     var bag: Bag { get }
