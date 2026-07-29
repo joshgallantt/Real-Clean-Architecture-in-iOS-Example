@@ -19,7 +19,7 @@ public struct ProductUIDI {
     public func detailView(id: Int) -> some View {
         ProductDetailsScreen(
             viewModel: ProductDetailsViewModel(id: id, getProduct: getProduct),
-            actionButton: AnyView(bagUIDI.detailsButton(productId: id)),
+            actionButton: { product in AnyView(bagUIDI.detailsButton(product: product)) },
             wishlistButton: AnyView(sharedUIDI.wishlistButton(productId: id))
         )
     }
@@ -28,7 +28,7 @@ public struct ProductUIDI {
     public func detailView(product: Product) -> some View {
         ProductDetailsScreen(
             viewModel: ProductDetailsViewModel(product: product),
-            actionButton: AnyView(bagUIDI.detailsButton(productId: product.id)),
+            actionButton: { product in AnyView(bagUIDI.detailsButton(product: product)) },
             wishlistButton: AnyView(sharedUIDI.wishlistButton(productId: product.id))
         )
     }

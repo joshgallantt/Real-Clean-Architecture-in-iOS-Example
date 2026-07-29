@@ -3,13 +3,13 @@ public protocol RecordSearchUseCase: Sendable {
 }
 
 public struct DefaultRecordSearchUseCase: RecordSearchUseCase {
-    let searchHistoryRepository: SearchHistoryRepository
+    private let repository: SearchHistoryRepository
 
-    public init(searchHistoryRepository: SearchHistoryRepository) {
-        self.searchHistoryRepository = searchHistoryRepository
+    public init(repository: SearchHistoryRepository) {
+        self.repository = repository
     }
 
     public func callAsFunction(_ query: String) async {
-        await searchHistoryRepository.recordSearch(query)
+        await repository.save(await repository.history().recording(query))
     }
 }

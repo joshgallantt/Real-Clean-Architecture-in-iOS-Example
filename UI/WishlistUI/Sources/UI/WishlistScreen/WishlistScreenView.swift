@@ -1,4 +1,5 @@
 import SwiftUI
+import Product
 import ProductUI
 import AuthUI
 
@@ -6,14 +7,14 @@ public struct WishlistScreenView: View {
     @ObservedObject var viewModel: WishlistScreenViewModel
     let navigation: WishlistNavigation
     let wishlistButton: (Int) -> AnyView
-    let bagButton: (Int) -> AnyView
+    let bagButton: (Product) -> AnyView
     let authPresenter: AuthPresenting
 
     public init(
         viewModel: WishlistScreenViewModel,
         navigation: WishlistNavigation,
         wishlistButton: @escaping (Int) -> AnyView,
-        bagButton: @escaping (Int) -> AnyView,
+        bagButton: @escaping (Product) -> AnyView,
         authPresenter: AuthPresenting
     ) {
         self.viewModel = viewModel
@@ -43,7 +44,7 @@ public struct WishlistScreenView: View {
             onSelect: { navigation.openProductDetails(product: $0) },
             onReachEnd: { viewModel.onReachEnd() },
             accessory: { product in wishlistButton(product.id) },
-            leadingAccessory: { product in bagButton(product.id) }
+            leadingAccessory: { product in bagButton(product) }
         )
         .overlay {
             if viewModel.products.isEmpty && !viewModel.isLoading {

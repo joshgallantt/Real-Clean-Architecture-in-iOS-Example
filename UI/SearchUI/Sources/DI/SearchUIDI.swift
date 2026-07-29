@@ -66,7 +66,7 @@ public struct SearchUIDI {
             ),
             navigation: navigation,
             wishlistButton: { id in AnyView(wishlistUIDI.button(productId: id)) },
-            bagButton: { id in AnyView(bagUIDI.button(productId: id)) }
+            bagButton: { product in AnyView(bagUIDI.button(product: product)) }
         )
     }
 }

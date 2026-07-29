@@ -4,7 +4,7 @@ import Search
 
 @MainActor
 public final class SearchingViewModel: ObservableObject {
-    @Published private(set) var history: [String] = []
+    @Published private(set) var history = SearchHistory()
     @Published private(set) var suggestions: [Product] = []
     @Published private(set) var isSuggesting: Bool = false
 
@@ -53,7 +53,7 @@ public final class SearchingViewModel: ObservableObject {
     func clearHistory() {
         Task {
             await clearSearchHistory()
-            history = []
+            history = await getSearchHistory()
         }
     }
 }

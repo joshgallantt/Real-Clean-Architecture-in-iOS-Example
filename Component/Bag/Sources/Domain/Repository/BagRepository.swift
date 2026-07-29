@@ -1,21 +1,15 @@
 import Combine
 
+/// Access to the shopper's bag, and nothing else. What a change to the bag *means* is
+/// the bag's own business, and deciding which change to make is the use case's — so
+/// this offers no menu of mutations, only the aggregate and a way to keep it.
 public protocol BagRepository: Sendable {
     @MainActor
-    var itemsPublisher: AnyPublisher<[BagItem], Never> { get }
+    var bag: Bag { get }
 
     @MainActor
-    var items: [BagItem] { get }
+    var bagPublisher: AnyPublisher<Bag, Never> { get }
 
     @MainActor
-    func quantityPublisher(productId: Int) -> AnyPublisher<Int, Never>
-
-    @MainActor
-    func add(productId: Int)
-
-    @MainActor
-    func remove(productId: Int)
-
-    @MainActor
-    func updateQuantity(productId: Int, quantity: Int)
+    func save(_ bag: Bag)
 }

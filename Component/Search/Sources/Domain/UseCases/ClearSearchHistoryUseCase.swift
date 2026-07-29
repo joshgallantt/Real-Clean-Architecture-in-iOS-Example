@@ -3,13 +3,13 @@ public protocol ClearSearchHistoryUseCase: Sendable {
 }
 
 public struct DefaultClearSearchHistoryUseCase: ClearSearchHistoryUseCase {
-    let searchHistoryRepository: SearchHistoryRepository
+    private let repository: SearchHistoryRepository
 
-    public init(searchHistoryRepository: SearchHistoryRepository) {
-        self.searchHistoryRepository = searchHistoryRepository
+    public init(repository: SearchHistoryRepository) {
+        self.repository = repository
     }
 
     public func callAsFunction() async {
-        await searchHistoryRepository.clearRecentSearches()
+        await repository.save(await repository.history().cleared())
     }
 }

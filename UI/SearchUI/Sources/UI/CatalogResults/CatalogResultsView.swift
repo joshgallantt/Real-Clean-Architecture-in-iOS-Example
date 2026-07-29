@@ -1,17 +1,18 @@
 import SwiftUI
+import Product
 import ProductUI
 
 public struct CatalogResultsView: View {
     @StateObject private var viewModel: CatalogResultsViewModel
     let navigation: SearchNavigation
     let wishlistButton: (Int) -> AnyView
-    let bagButton: (Int) -> AnyView
+    let bagButton: (Product) -> AnyView
 
     public init(
         viewModel: @autoclosure @escaping () -> CatalogResultsViewModel,
         navigation: SearchNavigation,
         wishlistButton: @escaping (Int) -> AnyView,
-        bagButton: @escaping (Int) -> AnyView
+        bagButton: @escaping (Product) -> AnyView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel())
         self.navigation = navigation
@@ -31,7 +32,7 @@ public struct CatalogResultsView: View {
                 Task { await viewModel.loadMore() }
             },
             accessory: { product in wishlistButton(product.id) },
-            leadingAccessory: { product in bagButton(product.id) }
+            leadingAccessory: { product in bagButton(product) }
         )
         .overlay {
             if viewModel.isLoading && viewModel.results.isEmpty {

@@ -2,10 +2,12 @@ import Combine
 import Foundation
 import Wishlist
 
+/// Holds the current wishlist, keeps it on disk, swaps it when the shopper changes, and
+/// tells anyone watching. It decides nothing about what a wishlist is or how one changes.
 @MainActor
 public final class DefaultWishlistRepository: WishlistRepository {
     private let store: WishlistStore
-    private let subject: CurrentValueSubject<[WishlistItem], Never>
+    private let subject: CurrentValueSubject<Wishlist, Never>
     private var userKey: String
     private var cancellables = Set<AnyCancellable>()
     private var pendingWrite: Task<Void, Never>?
@@ -17,7 +19,7 @@ public final class DefaultWishlistRepository: WishlistRepository {
     ) {
         self.store = store
         self.userKey = userKey
-        self.subject = CurrentValueSubject(Self.newestFirst(store.getItems(forUserKey: userKey)))
+        self.subject = CurrentValueSubject(Wishlist(items: store.getItems(forUserKey: userKey)))
 
         userKeyPublisher
             .sink { [weak self] key in
@@ -26,42 +28,23 @@ public final class DefaultWishlistRepository: WishlistRepository {
             .store(in: &cancellables)
     }
 
-    public var itemsPublisher: AnyPublisher<[WishlistItem], Never> {
-        subject.eraseToAnyPublisher()
-    }
-
-    public var items: [WishlistItem] {
+    public var wishlist: Wishlist {
         subject.value
     }
 
-    public func isInWishlistPublisher(productId: Int) -> AnyPublisher<Bool, Never> {
-        subject
-            .map { items in items.contains { $0.id == productId } }
-            .removeDuplicates()
-            .eraseToAnyPublisher()
+    public var wishlistPublisher: AnyPublisher<Wishlist, Never> {
+        subject.eraseToAnyPublisher()
     }
 
-    public func add(productId: Int) {
-        guard !subject.value.contains(where: { $0.id == productId }) else { return }
-        var items = subject.value
-        items.insert(WishlistItem(id: productId), at: 0)
-        persist(items)
-    }
-
-    public func remove(productId: Int) {
-        var items = subject.value
-        items.removeAll { $0.id == productId }
-        persist(items)
-    }
-
-    // Each write awaits the previous one so rapid toggles land on disk in the order
-    // they were made; without the chain, unstructured tasks could reorder and
-    // persist stale state.
-    private func persist(_ items: [WishlistItem]) {
-        subject.value = items
+    // Each write awaits the previous one so rapid toggles land on disk in the order they
+    // were made; without the chain, unstructured tasks could reorder and persist stale
+    // state.
+    public func save(_ wishlist: Wishlist) {
+        subject.value = wishlist
 
         let store = store
         let userKey = userKey
+        let items = wishlist.items
         let previous = pendingWrite
         pendingWrite = Task {
             await previous?.value
@@ -76,12 +59,6 @@ public final class DefaultWishlistRepository: WishlistRepository {
     private func switchUser(to key: String) {
         guard key != userKey else { return }
         userKey = key
-        subject.value = Self.newestFirst(store.getItems(forUserKey: key))
-    }
-
-    // `add` prepends, so live mutations already hold this order. Sorting on read
-    // covers lists written before newest-first was the rule.
-    private static func newestFirst(_ items: [WishlistItem]) -> [WishlistItem] {
-        items.sorted { $0.dateAdded > $1.dateAdded }
+        subject.value = Wishlist(items: store.getItems(forUserKey: key))
     }
 }

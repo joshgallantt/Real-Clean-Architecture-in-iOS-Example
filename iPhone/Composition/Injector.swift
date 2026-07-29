@@ -19,6 +19,7 @@ import SnackbarUIDI
 import SheetUIDI
 import SessionDI
 import SessionData
+import Product
 import ProductDI
 import ProductData
 import SearchDI
@@ -72,6 +73,21 @@ final class Injector {
             )
         )
         productDI = ProductDI(client: DummyJSONProductClient(httpClient: URLSessionHTTPClient(session: .shared)))
+
+//        let getProducts: GetProductsUseCase = productDI.getProductsUseCase
+//        let getProductsByIds: GetProductsByIdsUseCase = productDI.getProductsByIdsUseCase
+//        let getProduct: GetProductUseCase = productDI.getProductUseCase
+
+        // DEMO ONLY. Comment out the three lines above and uncomment these to make the
+        // shop change its mind, so reopening the bag shows the Changed section. See
+        // DemoCatalog.swift for the script. Never commit this switched on.
+        //
+         let getProducts: GetProductsUseCase =
+             DemoGetProductsUseCase(wrapped: productDI.getProductsUseCase)
+         let getProductsByIds: GetProductsByIdsUseCase =
+             DemoGetProductsByIdsUseCase(wrapped: productDI.getProductsByIdsUseCase)
+         let getProduct: GetProductUseCase =
+             DemoGetProductUseCase(wrapped: productDI.getProductUseCase)
         searchDI = SearchDI(
             store: UserDefaultsSearchHistoryStore(defaults: .standard),
             getSession: sessionDI.getSessionUseCase
@@ -112,10 +128,11 @@ final class Injector {
             navigation: navigator,
             observeBag: bagDI.observeBagUseCase,
             bagItemQuantity: bagDI.bagItemQuantityUseCase,
-            addProductToBag: bagDI.addProductToBagUseCase,
-            removeProductFromBag: bagDI.removeProductFromBagUseCase,
-            updateBagItemQuantity: bagDI.updateBagItemQuantityUseCase,
-            getProductsByIds: productDI.getProductsByIdsUseCase,
+            addItemToBag: bagDI.addItemToBagUseCase,
+            setBagItemQuantity: bagDI.setBagItemQuantityUseCase,
+            getProductsByIds: getProductsByIds,
+            reconcileBag: bagDI.reconcileBagUseCase,
+            acknowledgeBagChange: bagDI.acknowledgeBagChangeUseCase,
             snackbarPresenter: snackbarDI.presenter
         )
         bagUIDI = bagUI
@@ -129,7 +146,7 @@ final class Injector {
         let wishlistUI = WishlistUIDI(
             navigation: navigator,
             observeWishlist: wishlistDI.observeWishlistUseCase,
-            getProductsByIds: productDI.getProductsByIdsUseCase,
+            getProductsByIds: getProductsByIds,
             observeSession: sessionDI.observeSessionUseCase,
             authPresenter: authDI.presenter,
             snackbarPresenter: snackbarDI.presenter,
@@ -138,18 +155,18 @@ final class Injector {
         )
         wishlistUIDI = wishlistUI
         productUIDI = ProductUIDI(
-            getProduct: productDI.getProductUseCase,
+            getProduct: getProduct,
             bagUIDI: bagUI,
             sharedUIDI: sharedUI
         )
         homeUIDI = HomeUIDI(
             navigation: navigator,
-            getProducts: productDI.getProductsUseCase,
+            getProducts: getProducts,
             snackbar: snackbarDI.presenter
         )
         searchUIDI = SearchUIDI(
             navigation: navigator,
-            getProducts: productDI.getProductsUseCase,
+            getProducts: getProducts,
             getCategories: productDI.getCategoriesUseCase,
             getSearchHistory: searchDI.getSearchHistoryUseCase,
             recordSearch: searchDI.recordSearchUseCase,
