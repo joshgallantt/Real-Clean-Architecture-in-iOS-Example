@@ -2,12 +2,12 @@ import Foundation
 import Money
 import Product
 
-/// Evans, *Domain-Driven Design* (2003) — Aggregates: the aggregate root, and the only door in. Its
+/// Evans, *Domain-Driven Design* (2003), Ch. 6 — Aggregates: the aggregate root, and the only door in. Its
 /// invariants are enforced by the initialiser rather than promised in prose — one line per product,
 /// no line with none of it, newest first. A bag cannot be in those states because building one out
 /// of them produces a bag that isn't.
 ///
-/// Evans — Side-Effect-Free Functions: every change returns a new `Bag`, so the invariants are
+/// Evans, Ch. 10 — Side-Effect-Free Functions: every change returns a new `Bag`, so the invariants are
 /// re-established by the initialiser on every path rather than defended after the fact.
 public struct Bag: Equatable, Sendable {
     public let items: [BagItem]
@@ -32,7 +32,7 @@ public struct Bag: Equatable, Sendable {
 
     // MARK: - What the bag is worth
 
-    /// Fowler, *PoEAA* (2002) — Money. Nothing at all when the bag is empty: there is no currency
+    /// Fowler, *PoEAA* (2002), Ch. 18 — Money. Nothing at all when the bag is empty: there is no currency
     /// in an empty bag to name an amount in.
     public var total: Money? {
         Money.total(of: items.map(\.lineTotal))

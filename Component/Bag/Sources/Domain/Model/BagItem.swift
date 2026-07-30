@@ -2,11 +2,11 @@ import Foundation
 import Money
 import Product
 
-/// Evans, *Domain-Driven Design* (2003) — Aggregates: inside the `Bag` boundary, and holding
+/// Evans, *Domain-Driven Design* (2003), Ch. 6 — Aggregates: inside the `Bag` boundary, and holding
 /// another aggregate by identity alone. What a product is called and looks like belongs to the
 /// catalog; copying it here is how one model becomes five.
 ///
-/// Evans — Value Objects; Side-Effect-Free Functions. Fowler, *PoEAA* (2002) — Money.
+/// Evans, Ch. 5 — Value Objects; Ch. 10 — Side-Effect-Free Functions. Fowler, *PoEAA* (2002), Ch. 18 — Money.
 public struct BagItem: Equatable, Sendable, Identifiable {
     public let productId: ProductID
     public let quantity: Int

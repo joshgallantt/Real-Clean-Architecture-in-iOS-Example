@@ -5,7 +5,7 @@ import Product
 /// declares the moves it needs; the app layer conforms. The feature never learns what a destination
 /// is or which tab it sits in.
 ///
-/// Fowler, *PoEAA* (2002) — Separated Interface. Martin, Ch. 10 — Interface Segregation Principle:
+/// Fowler, *PoEAA* (2002), Ch. 18 — Separated Interface. Martin, Ch. 10 — Interface Segregation Principle:
 /// one protocol per feature, so nothing depends on another feature's routes.
 public protocol BagNavigation: AnyObject {
     func openProductDetails(id: ProductID)

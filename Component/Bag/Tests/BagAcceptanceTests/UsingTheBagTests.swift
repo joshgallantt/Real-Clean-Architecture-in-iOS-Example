@@ -9,7 +9,7 @@ import Money
 /// composition root wires it, driven only through the use cases the UI is given. Every test here is
 /// something a shopper would notice; nothing here names a repository, a store or a use case type.
 ///
-/// Evans, *Domain-Driven Design* (2003) — Ubiquitous Language: the tests are named in the shopper's
+/// Evans, *Domain-Driven Design* (2003), Ch. 2 — Ubiquitous Language: the tests are named in the shopper's
 /// words, so a failure reads as a broken journey rather than a broken method.
 struct UsingTheBagTests {
     @Test("A shopper chooses two things and their bag is worth what they agreed to pay")
