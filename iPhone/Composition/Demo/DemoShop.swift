@@ -2,123 +2,112 @@ import Foundation
 import Money
 import Product
 
-/// Martin, *Clean Architecture* (2017), Ch. 9 — Liskov Substitution Principle: decorators standing
-/// in for the real use cases. Nothing below the app layer knows a demo is possible — `Component/Bag`
-/// sees ordinary catalog answers and reacts exactly as it would in production.
+/// What the demo shop is like this time the app was opened.
 ///
-/// One decision per product, taken from its id, so the demo is deterministic: it can be repeated and
-/// a screenshot reproduced. Every path the app reads products through is decorated, so a product
-/// reads the same on a card, in a search result, on its own page and in the bag. A demo that only
-/// dressed one screen would prove nothing about the others.
-enum DemoShop {
-    /// What the shop has decided about one product.
-    ///
-    /// `soldOut` is true of a product wherever it appears. The rest are things the shop has changed
-    /// its mind about *since the shopper looked*, and are only ever said to `lookUpProducts`.
+/// One decision per product, and it is the answer to every question about that product for as long
+/// as the app is running. A shopper cannot be sold something on a card that the bag then calls sold
+/// out, because there is nowhere for the two to disagree — see `DemoProductRepository`.
+///
+/// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the offset is drawn here, at
+/// launch, by the only layer allowed to decide such things.
+nonisolated struct DemoShop: Sendable {
     enum Mood {
-        /// Run out, and says so everywhere: a bell on its card where the bag button would be, Notify
-        /// Me on its page, and the Out Of Stock section if a shopper is holding one.
+        case ordinary
+
+        /// Run out, coming back. A bell on its card where the bag button would be, Notify Me on its
+        /// page, and Out Of Stock in a bag that was holding one.
         case soldOut
 
-        /// In stock when it went into the bag, gone when the bag asked again.
-        ///
-        /// It has to be this way round. A shopper cannot put something out of stock into a bag — the
-        /// card offers a bell instead — so a product the demo called sold out everywhere could never
-        /// reach a bag, and the bag's own notice about it would be unreachable.
-        case soldOutSinceYouLooked
+        /// Stopped selling. Not listed, no page, and No Longer Available in a bag holding one —
+        /// which is the app's rule about the real shop, working.
+        case discontinued
 
-        /// Same reason, more so: the shop does not list what it has stopped selling, so a product
-        /// the demo called discontinued everywhere would be filtered out of every grid and its page
-        /// would be `.notFound`. Which is the rule working — but it leaves nothing to demonstrate.
-        case discontinuedSinceYouLooked
+        /// One left, so a bag holding more is told it can have one.
+        case nearlyGone
 
-        case dearerThanYouPaid
-        case cheaperThanYouPaid
-
-        /// Say one left, so a bag holding two or more is told it can have one.
-        case fewerLeftThanYouWanted
-
-        case ordinary
+        case dearer
+        case cheaper
     }
 
-    /// Ten buckets, so roughly half a page of products is interesting and the rest is a shop.
-    nonisolated static func mood(of id: ProductID) -> Mood {
-        switch id.rawValue % 10 {
-        case 0: .discontinuedSinceYouLooked
-        case 1: .dearerThanYouPaid
-        case 2: .cheaperThanYouPaid
+    /// Which products get which mood, rotated by a number drawn once at launch.
+    ///
+    /// The rotation is the whole demo. A shop that decided the same thing every time would agree
+    /// with the bag it filled last time, and a bag is only worth looking at when it disagrees:
+    /// prices move, things sell out, and things stop being sold *between* one visit and the next.
+    /// So the bag's before is what a shopper paid, which is on disk, and the after is this — and
+    /// nothing has to be told a different story to make a notice appear.
+    let offset: Int
+
+    init(offset: Int = Int.random(in: 0..<10)) {
+        self.offset = offset
+    }
+
+    func mood(of id: ProductID) -> Mood {
+        switch (id.rawValue + offset) % 10 {
+        case 0: .discontinued
+        case 1: .dearer
+        case 2: .cheaper
         case 3: .soldOut
-        case 4: .fewerLeftThanYouWanted
-        case 5: .soldOutSinceYouLooked
+        case 4: .nearlyGone
+        case 5: .soldOut
         default: .ordinary
         }
     }
 
-    /// What the shop is selling now: a grid, a search, a category, a product's own page.
-    ///
-    /// Every mood is listed rather than defaulted, so a new one cannot be added without deciding
-    /// what both reads say about it — which is the decision the demo exists to make.
-    nonisolated static func onTheShelf(_ product: Product) -> Product {
+    /// The product as this shop is selling it today. Every read goes through here, so this is what
+    /// the grid shows, what the page shows, and what the bag is told when it asks.
+    func asItIsToday(_ product: Product) -> Product {
         switch mood(of: product.id) {
+        case .ordinary:
+            product
+
         case .soldOut:
             copy(product, availability: .outOfStock)
 
-        case .soldOutSinceYouLooked, .discontinuedSinceYouLooked, .dearerThanYouPaid,
-                .cheaperThanYouPaid, .fewerLeftThanYouWanted, .ordinary:
-            product
-        }
-    }
-
-    /// What the shop says about something the shopper already holds — the bag's lookup, and the only
-    /// read in the app that looks backwards.
-    nonisolated static func askedAbout(_ product: Product) -> Product {
-        switch mood(of: product.id) {
-        case .soldOut, .soldOutSinceYouLooked:
-            copy(product, availability: .outOfStock)
-
-        case .discontinuedSinceYouLooked:
+        case .discontinued:
             copy(product, availability: .discontinued)
 
-        case .dearerThanYouPaid:
-            copy(product, price: scaled(product.price, by: 1.2))
-
-        case .cheaperThanYouPaid:
-            copy(product, price: scaled(product.price, by: 0.8))
-
-        case .fewerLeftThanYouWanted:
+        case .nearlyGone:
             copy(product, availability: .inStock(remaining: 1))
 
-        case .ordinary:
-            product
+        case .dearer:
+            copy(product, price: scaled(product.price, by: 1.2))
+
+        case .cheaper:
+            copy(product, price: scaled(product.price, by: 0.8))
         }
     }
 }
 
-// MARK: - Decorators
+// MARK: -
 
-/// Grids, searches and categories all arrive here — `BrowseCatalogUseCase` is the one way the app
-/// asks what is for sale, so decorating it is enough to dress every screen that browses.
-struct DemoBrowseCatalogUseCase: BrowseCatalogUseCase {
-    let wrapped: BrowseCatalogUseCase
+/// Martin, *Clean Architecture* (2017), Ch. 9 — Liskov Substitution Principle: a repository standing
+/// in for the real one. Nothing inward knows a demo is possible — the use cases, the bag and the
+/// wishlist see ordinary catalog answers and behave exactly as they would in production.
+///
+/// One seam, deliberately. Decorating the use cases meant four places to remember and four chances
+/// to answer differently, and it took them: browsing was left alone while the bag's lookup was
+/// meddled with, so the catalog sold a shopper something the bag then called out of stock. Below
+/// the use cases there is one door, and everything comes through it.
+struct DemoProductRepository: ProductRepository {
+    let wrapped: ProductRepository
+    let shop: DemoShop
 
-    func callAsFunction(matching query: CatalogQuery) async -> Result<[Product], ProductError> {
-        await wrapped(matching: query).map { $0.map(DemoShop.onTheShelf) }
+    func getProducts(matching query: CatalogQuery) async -> Result<[Product], ProductError> {
+        await wrapped.getProducts(matching: query).map { $0.map(shop.asItIsToday) }
     }
-}
 
-struct DemoViewProductUseCase: ViewProductUseCase {
-    let wrapped: ViewProductUseCase
-
-    func callAsFunction(id: ProductID) async -> Result<Product, ProductError> {
-        await wrapped(id: id).map(DemoShop.onTheShelf)
+    func getProducts(ids: [ProductID]) async -> Result<[Product], ProductError> {
+        await wrapped.getProducts(ids: ids).map { $0.map(shop.asItIsToday) }
     }
-}
 
-struct DemoLookUpProductsUseCase: LookUpProductsUseCase {
-    let wrapped: LookUpProductsUseCase
+    func getProduct(id: ProductID) async -> Result<Product, ProductError> {
+        await wrapped.getProduct(id: id).map(shop.asItIsToday)
+    }
 
-    func callAsFunction(ids: [ProductID]) async -> Result<[Product], ProductError> {
-        await wrapped(ids: ids).map { $0.map(DemoShop.askedAbout) }
+    /// A category is a shelf, not a product. There is nothing here to change.
+    func getCategories() async -> Result<[ProductCategory], ProductError> {
+        await wrapped.getCategories()
     }
 }
 

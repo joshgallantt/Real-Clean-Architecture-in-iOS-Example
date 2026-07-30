@@ -1,3 +1,8 @@
+import Foundation
+import Networking
+import ProductData
+import ProductDI
+
 /// Martin, *Clean Architecture* (2017), Ch. 8 — Open/Closed Principle: a demo is added by writing a
 /// new `Catalog`, not by editing the app around it. The exemplar stays the thing worth reading, and
 /// a demo cannot leak into it.
@@ -8,36 +13,32 @@
 ///
 /// To run it, set `isOn` to `true` and rebuild.
 ///
-/// In the catalog, roughly one product in ten has sold out: its card carries a bell instead of a
-/// bag button, and its page offers Notify Me instead of Add to Bag. Tap the bell and it fills in —
-/// the same product, on any screen showing it, is the same product.
+/// The shop decides what it is like when the app starts, and holds to it. Around one product in five
+/// has sold out: its card carries a bell instead of a bag button and its page offers Notify Me
+/// instead of Add to Bag. Others cost more or less than they did, and one in ten has been dropped
+/// altogether — you will not find those, which is the point of them.
 ///
-/// Then add half a dozen things to the bag, taking two of at least one of them, and open the Bag
-/// tab. Prices have moved both ways, a line is short, and some have gone — out of stock in one
-/// section and stopped-selling in another. Tap Okay on one and it stays; tap the remove button on a
-/// dearer one and it goes with its notice. Relaunch and the notices a shopper never read are still
-/// waiting, because they are kept with the bag.
+/// The bag is where a shopper sees it happen, and it needs two visits, because the shop only changes
+/// its mind between them. Fill a bag, taking two of at least one thing. Then **quit the app and open
+/// it again**: prices have moved both ways, a line is short, and some have gone — out of stock in
+/// one section, stopped-selling in another. Tap Okay on one and it stays; tap the remove button on a
+/// dearer one and it goes with its notice. Notices a shopper never read are still waiting the launch
+/// after that, because they are kept with the bag.
 enum Demo {
     static let isOn = true
 
-    /// A shop that has changed its mind since the shopper last looked.
+    /// A shop that changes its mind between visits.
     ///
-    /// Every read the app makes about a product is decorated, so what the demo decides about one is
-    /// what every screen shows. What the two decorators say differs, though, and deliberately:
-    /// browsing is what the shop is selling *now*, while `lookUpProducts` is what it says about
-    /// things the shopper is already holding.
-    ///
-    /// Telling both the same story cost the demo its point. A price already moved when it was added
-    /// is the price the bag is later told, so nothing differs and nothing is reported; a product
-    /// already sold out cannot be put in a bag at all. The moods that only `lookUpProducts` hears
-    /// are the ones that need a before and an after to be visible — see `DemoShop.Mood`.
+    /// The meddling sits under the use cases rather than around them, so every question about a
+    /// product — a grid, a search, a category, a product's own page, and the lookups the bag and the
+    /// wishlist make — is answered by one thing that has already decided. Nothing has to agree with
+    /// anything, because there is only one answer.
     static func shopThatChangesItsMind() -> Catalog {
-        let real = Catalog.live()
-        return Catalog(
-            browseCatalog: DemoBrowseCatalogUseCase(wrapped: real.browseCatalog),
-            lookUpProducts: DemoLookUpProductsUseCase(wrapped: real.lookUpProducts),
-            viewProduct: DemoViewProductUseCase(wrapped: real.viewProduct),
-            browseCategories: real.browseCategories
-        )
+        Catalog(ProductDI(repository: DemoProductRepository(
+            wrapped: DefaultProductRepository(
+                client: DummyJSONProductClient(httpClient: URLSessionHTTPClient(session: .shared))
+            ),
+            shop: DemoShop()
+        )))
     }
 }
