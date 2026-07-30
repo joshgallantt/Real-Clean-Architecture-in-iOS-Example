@@ -66,7 +66,10 @@ public final class WishlistButtonViewModel: ObservableObject {
                 title: "Added to Wishlist",
                 message: "Find it any time in your wishlist.",
                 icon: "heart.fill",
-                action: .undo { Task { await remove(productId: productId) } }
+                action: undo(
+                    by: { await remove(productId: productId) },
+                    sayingSoIfItCannot: snackbarPresenter
+                )
             ))
         case .failure(.unauthenticated):
             guard await authPresenter.show(AuthenticationPrompt(
@@ -77,6 +80,13 @@ public final class WishlistButtonViewModel: ObservableObject {
                 return
             }
             await self.add()
+        case .failure(.unavailable):
+            snackbarPresenter.show(Snackbar(
+                title: "Couldn't Add to Wishlist",
+                message: "We couldn't save that just now.",
+                icon: "heart.slash",
+                action: .retry { Task { await self.add() } }
+            ))
         }
     }
 
@@ -92,7 +102,10 @@ public final class WishlistButtonViewModel: ObservableObject {
                 title: "Removed from Wishlist",
                 message: "This item is no longer saved.",
                 icon: "heart.slash",
-                action: .undo { Task { await add(productId: productId) } }
+                action: undo(
+                    by: { await add(productId: productId) },
+                    sayingSoIfItCannot: snackbarPresenter
+                )
             ))
         case .failure(.unauthenticated):
             guard await authPresenter.show(AuthenticationPrompt(
@@ -103,6 +116,59 @@ public final class WishlistButtonViewModel: ObservableObject {
                 return
             }
             await self.remove()
+        case .failure(.unavailable):
+            snackbarPresenter.show(Snackbar(
+                title: "Couldn't Update Wishlist",
+                message: "We couldn't change that just now.",
+                icon: "heart.slash",
+                action: .retry { Task { await self.remove() } }
+            ))
         }
     }
+}
+
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: an undo that could
+/// not happen has to say so. A shopper whose sign-in ended between saving something and changing
+/// their mind would otherwise watch the snackbar disappear as though it worked.
+///
+/// It cannot ask for a sign-in and resume the way the button does, because it outlives the button:
+/// a wishlist heart in a lazily-rendered grid cell is gone the moment the shopper scrolls, so this
+/// closure holds the use cases and the presenter rather than a view model. The most it can honestly
+/// do is not claim a change that did not happen.
+@MainActor
+private func undo(
+    by change: @escaping @MainActor () async -> Result<Void, WishlistError>,
+    sayingSoIfItCannot snackbarPresenter: SnackbarPresenting
+) -> SnackbarAction {
+    .undo {
+        Task {
+            switch await change() {
+            case .success:
+                break
+            case .failure(.unauthenticated):
+                snackbarPresenter.show(Snackbar(
+                    title: "Couldn't Undo",
+                    message: "Log in to change your wishlist.",
+                    icon: "heart.slash"
+                ))
+            case .failure(.unavailable):
+                snackbarPresenter.show(Snackbar(
+                    title: "Couldn't Undo",
+                    message: "We couldn't change that just now.",
+                    icon: "heart.slash",
+                    action: .retry(undoAgain(change, sayingSoIfItCannot: snackbarPresenter))
+                ))
+            }
+        }
+    }
+}
+
+/// The retry on a failed undo is the same undo again, so it is built the same way — otherwise a
+/// second failure would be the one that goes quiet.
+@MainActor
+private func undoAgain(
+    _ change: @escaping @MainActor () async -> Result<Void, WishlistError>,
+    sayingSoIfItCannot snackbarPresenter: SnackbarPresenting
+) -> @MainActor () -> Void {
+    { undo(by: change, sayingSoIfItCannot: snackbarPresenter).handler() }
 }

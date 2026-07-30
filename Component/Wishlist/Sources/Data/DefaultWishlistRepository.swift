@@ -15,7 +15,6 @@ public final class DefaultWishlistRepository: WishlistRepository {
     private let subject: CurrentValueSubject<Wishlist, Never>
     private var owner: UserID?
     private var cancellables = Set<AnyCancellable>()
-    private var pendingWrite: Task<Void, Never>?
 
     public init(
         store: WishlistStore,
@@ -41,21 +40,13 @@ public final class DefaultWishlistRepository: WishlistRepository {
         subject.eraseToAnyPublisher()
     }
 
-    public func save(_ wishlist: Wishlist) {
+    /// Fowler, *PoEAA* (2002) — Repository: kept first, published second. Publishing optimistically
+    /// and writing behind it would show the shopper a list that does not exist anywhere, and there
+    /// would be no honest moment to take it back. Awaiting the write also serialises saves without
+    /// a queue of pending ones to sequence by hand.
+    public func save(_ wishlist: Wishlist) async throws {
+        try await store.setItems(wishlist.items, for: owner)
         subject.value = wishlist
-
-        let store = store
-        let owner = owner
-        let items = wishlist.items
-        let previous = pendingWrite
-        pendingWrite = Task {
-            await previous?.value
-            await store.setItems(items, for: owner)
-        }
-    }
-
-    func flushPendingWrites() async {
-        await pendingWrite?.value
     }
 
     private func switchOwner(to owner: UserID?) {
