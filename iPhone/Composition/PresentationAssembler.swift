@@ -96,8 +96,6 @@ struct PresentationAssembler {
             lookUpProducts: catalog.lookUpProducts,
             bringBagUpToDate: domain.bag.bringBagUpToDateUseCase,
             acknowledgeBagChange: domain.bag.acknowledgeBagChangeUseCase,
-            snackbarPresenter: snackbar.presenter,
-            wishlistButton: { id in AnyView(productActions.wishlistButton(productId: id)) },
             stockAlertButton: { id in AnyView(productActions.stockAlertButton(productId: id)) }
         )
         self.bag = bag

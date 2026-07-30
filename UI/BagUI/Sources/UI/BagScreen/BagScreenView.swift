@@ -8,18 +8,23 @@ public struct BagScreenView: View {
     @State private var isConfirmingRemoveAll = false
 
     let navigation: BagNavigation
-    let wishlistButton: (ProductID) -> AnyView
+
+    /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: a bell this
+    /// screen cannot name. `Component/StockAlert` and its buttons live outside this feature, so the
+    /// app layer passes one in already built and BagUI stays unaware there is a stock alert domain.
+    /// The erasure is what a boundary costs, not a shortcut around one.
+    ///
+    /// No default. One of these used to be a wishlist button that nothing rendered, and a default
+    /// `EmptyView()` is exactly why nobody noticed.
     let stockAlertButton: (ProductID) -> AnyView
 
     public init(
         viewModel: BagScreenViewModel,
         navigation: BagNavigation,
-        wishlistButton: @escaping (ProductID) -> AnyView = { _ in AnyView(EmptyView()) },
-        stockAlertButton: @escaping (ProductID) -> AnyView = { _ in AnyView(EmptyView()) }
+        stockAlertButton: @escaping (ProductID) -> AnyView
     ) {
         self.viewModel = viewModel
         self.navigation = navigation
-        self.wishlistButton = wishlistButton
         self.stockAlertButton = stockAlertButton
     }
 

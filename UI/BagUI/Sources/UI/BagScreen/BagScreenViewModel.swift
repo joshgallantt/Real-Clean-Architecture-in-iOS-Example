@@ -3,7 +3,6 @@ import Foundation
 import Bag
 import Money
 import Product
-import SnackbarUI
 
 @MainActor
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
@@ -26,7 +25,6 @@ public final class BagScreenViewModel: ObservableObject {
     private let setBagItemQuantity: SetBagItemQuantityUseCase
     private let bringBagUpToDate: BringBagUpToDateUseCase
     private let acknowledgeBagChange: AcknowledgeBagChangeUseCase
-    private let snackbar: SnackbarPresenting
 
     private var cancellables = Set<AnyCancellable>()
     private var bag = Bag()
@@ -60,8 +58,7 @@ public final class BagScreenViewModel: ObservableObject {
         lookUpProducts: LookUpProductsUseCase,
         setBagItemQuantity: SetBagItemQuantityUseCase,
         bringBagUpToDate: BringBagUpToDateUseCase,
-        acknowledgeBagChange: AcknowledgeBagChangeUseCase,
-        snackbar: SnackbarPresenting
+        acknowledgeBagChange: AcknowledgeBagChangeUseCase
     ) {
         self.observeBag = observeBag
         self.observeBagChanges = observeBagChanges
@@ -69,7 +66,6 @@ public final class BagScreenViewModel: ObservableObject {
         self.setBagItemQuantity = setBagItemQuantity
         self.bringBagUpToDate = bringBagUpToDate
         self.acknowledgeBagChange = acknowledgeBagChange
-        self.snackbar = snackbar
     }
 
     func onAppear() {

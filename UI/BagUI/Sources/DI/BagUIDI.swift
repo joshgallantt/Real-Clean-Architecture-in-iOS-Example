@@ -1,7 +1,6 @@
 import SwiftUI
 import Bag
 import Product
-import SnackbarUI
 import BagUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
@@ -19,8 +18,6 @@ public struct BagUIDI {
     private let lookUpProducts: LookUpProductsUseCase
     private let bringBagUpToDate: BringBagUpToDateUseCase
     private let acknowledgeBagChange: AcknowledgeBagChangeUseCase
-    private let snackbarPresenter: SnackbarPresenting
-    private let wishlistButton: (ProductID) -> AnyView
     private let stockAlertButton: (ProductID) -> AnyView
 
     public init(
@@ -31,8 +28,6 @@ public struct BagUIDI {
         lookUpProducts: LookUpProductsUseCase,
         bringBagUpToDate: BringBagUpToDateUseCase,
         acknowledgeBagChange: AcknowledgeBagChangeUseCase,
-        snackbarPresenter: SnackbarPresenting,
-        wishlistButton: @escaping (ProductID) -> AnyView,
         stockAlertButton: @escaping (ProductID) -> AnyView
     ) {
         self.navigation = navigation
@@ -42,12 +37,8 @@ public struct BagUIDI {
         self.lookUpProducts = lookUpProducts
         self.bringBagUpToDate = bringBagUpToDate
         self.acknowledgeBagChange = acknowledgeBagChange
-        self.snackbarPresenter = snackbarPresenter
-        self.wishlistButton = wishlistButton
         self.stockAlertButton = stockAlertButton
     }
-
-
 
     @MainActor
     public func mainView() -> some View {
@@ -58,13 +49,10 @@ public struct BagUIDI {
                 lookUpProducts: lookUpProducts,
                 setBagItemQuantity: setBagItemQuantity,
                 bringBagUpToDate: bringBagUpToDate,
-                acknowledgeBagChange: acknowledgeBagChange,
-                snackbar: snackbarPresenter
+                acknowledgeBagChange: acknowledgeBagChange
             ),
             navigation: navigation,
-            wishlistButton: wishlistButton,
             stockAlertButton: stockAlertButton
         )
     }
-
 }
