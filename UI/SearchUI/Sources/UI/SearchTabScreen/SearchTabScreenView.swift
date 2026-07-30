@@ -34,7 +34,6 @@ public struct SearchTabScreenView: View {
                 SearchingView(
                     viewModel: searchingViewModel,
                     onSelectHistory: { term in
-                        // Already a search — it was one when it was remembered.
                         viewModel.query = term.text
                         isFocused = false
                         viewModel.didSubmitSearch(term)
@@ -67,9 +66,10 @@ public struct SearchTabScreenView: View {
         }
     }
 
-    /// Whether what the shopper typed is a search, and what it amounts to once it is, are
-    /// `SearchTerm`'s to answer. This screen no longer trims or checks for blank — doing so
-    /// here is how the recorded search and the search that was actually run came to disagree.
+    /// Evans, *Domain-Driven Design* (2003) — Value Objects: whether what the shopper typed is a
+    /// search at all is `SearchTerm`'s to answer. A view that trims first is a second definition of
+    /// the same rule, and that is how the search that was recorded and the search that was run came
+    /// to disagree.
     private func commitSearch(_ typed: String) {
         guard let term = SearchTerm(typed) else { return }
         isFocused = false

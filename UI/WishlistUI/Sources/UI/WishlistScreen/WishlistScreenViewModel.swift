@@ -6,6 +6,12 @@ import SnackbarUI
 import Wishlist
 
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
+/// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
+/// never a repository, a store or a data source.
+///
+/// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
+/// a container that could resolve anything.
 public final class WishlistScreenViewModel: ObservableObject {
     @Published private(set) var products: [Product] = []
     @Published private(set) var isLoading = false
@@ -46,8 +52,6 @@ public final class WishlistScreenViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Ids are cheap to carry in full; only the visible window is ever hydrated
-        // into products, so the wishlist can hold thousands of entries.
         observeWishlist()
             .sink { [weak self] wishlist in
                 self?.wishlistChanged(wishlist)
@@ -71,8 +75,6 @@ public final class WishlistScreenViewModel: ObservableObject {
     }
 
     private func hydrate(isPaging: Bool) {
-        // A newer window supersedes any in-flight one, so a slow fetch can never
-        // clobber newer state.
         hydrationTask?.cancel()
 
         let window = Array(wishlist.items.prefix(loadedCount))

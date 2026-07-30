@@ -7,10 +7,9 @@ import Money
 import Product
 import Session
 
-/// The bag feature wired as the composition root wires it, over an in-memory store.
-/// Tests drive it only through the use cases the UI is given — nothing reaches past
-/// this into the repository or the store.
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the feature wired exactly as
+/// the composition root wires it, over an in-memory store.
 final class Shopper {
     let store: InMemoryBagStore
 
@@ -52,7 +51,6 @@ final class Shopper {
         di.setBagItemQuantityUseCase(productId: ProductID(rawValue: productId), to: 0)
     }
 
-    /// What the shop now says about everything in the bag.
     func shopSays(_ shopSays: ShopSays...) {
         di.bringBagUpToDateUseCase(against: shopSays)
     }

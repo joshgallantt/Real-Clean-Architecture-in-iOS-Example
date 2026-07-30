@@ -3,12 +3,13 @@ import Foundation
 import Session
 import Wishlist
 
-/// Holds the current wishlist, keeps it on disk, swaps it when the owner changes, and
-/// tells anyone watching. It decides nothing about what a wishlist is or how one changes.
-///
-/// Takes owners rather than sessions. Who is signed in is not this layer's concern; whose
-/// list is the live one is.
 @MainActor
+/// Evans, *Domain-Driven Design* (2003) — Repositories. Fowler, *PoEAA* (2002) — Repository: it
+/// keeps and hands back aggregates and decides nothing about what they mean.
+///
+/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: takes an owner and a
+/// stream of owners, never a `Session`. It needs to know whose list is live, not to understand
+/// identity.
 public final class DefaultWishlistRepository: WishlistRepository {
     private let store: WishlistStore
     private let subject: CurrentValueSubject<Wishlist, Never>
@@ -40,9 +41,6 @@ public final class DefaultWishlistRepository: WishlistRepository {
         subject.eraseToAnyPublisher()
     }
 
-    // Each write awaits the previous one so rapid toggles land on disk in the order they
-    // were made; without the chain, unstructured tasks could reorder and persist stale
-    // state.
     public func save(_ wishlist: Wishlist) {
         subject.value = wishlist
 

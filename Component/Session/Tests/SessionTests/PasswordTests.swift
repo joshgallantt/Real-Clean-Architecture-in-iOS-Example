@@ -2,6 +2,9 @@ import Testing
 import Session
 
 @Suite("What counts as a password")
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the domain is tested with no
+/// repository, no store and no simulator in the room. Anything here that needed one would not be a
+/// domain rule.
 struct PasswordTests {
 
     @Test("Long enough is the only rule, and it is stated once")

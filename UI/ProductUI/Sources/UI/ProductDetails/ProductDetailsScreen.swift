@@ -86,9 +86,9 @@ public struct ProductDetailsScreen: View {
         .padding()
     }
 
-    /// The shop's answer put into words. Which words depend on which of the three states it
-    /// is in, and the state is the domain's to say — the screen does not work it out from a
-    /// count and a flag.
+    /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: the wording is
+    /// a presentation decision; which of the three states it is in is the domain's, and is read
+    /// rather than re-derived.
     private func availabilityText(_ availability: Availability) -> String {
         switch availability {
         case .inStock: "In stock"
@@ -96,5 +96,4 @@ public struct ProductDetailsScreen: View {
         case .discontinued: "No longer available"
         }
     }
-
 }

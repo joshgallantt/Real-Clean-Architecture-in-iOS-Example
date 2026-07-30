@@ -1,3 +1,4 @@
+/// Evans, *Domain-Driven Design* (2003) — Entities.
 public struct ProductCategory: Equatable, Hashable, Sendable, Identifiable {
     public let id: CategoryID
     public let name: String

@@ -2,9 +2,9 @@ import Product
 import ProductData
 import ProductDI
 
-/// The app's product feature, wired exactly as the composition root wires it, over a
-/// fake backend. Tests drive it only through the use cases the UI is given — nothing
-/// reaches past this into a repository, a client or a DTO.
+/// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the feature wired exactly as
+/// the composition root wires it. Nothing here reaches past a use case into a repository, a client
+/// or a DTO.
 struct Shop {
     let catalog: FakeCatalog
     private let di: ProductDI

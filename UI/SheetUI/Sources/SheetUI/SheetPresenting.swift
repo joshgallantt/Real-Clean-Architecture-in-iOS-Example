@@ -1,20 +1,12 @@
 import SwiftUI
 
-/// Presents modal content and reports how it ended. A generic building block for any
-/// "show a sheet, maybe chain to another, then resume the caller" flow — not tied to
-/// authentication or any other specific feature.
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle; Fowler, *PoEAA*
+/// (2002) — Separated Interface: a feature asks for the effect it wants without depending on
+/// whatever presents it.
 public protocol SheetPresenting: AnyObject {
-    /// Presents `content`, replacing whatever is currently showing. Chaining straight from
-    /// one sheet to the next needs no separate dismiss step first.
-    ///
-    /// - Parameter onDismiss: fires only when the user ends this sheet — not when a later
-    ///   `present` supersedes it, and not when `dismiss()` ends it programmatically. Use it
-    ///   to resume a caller waiting on the outcome of the flow.
     func present<Content: View>(onDismiss: (() -> Void)?, @ViewBuilder content: () -> Content)
 
-    /// Ends the current presentation without firing its `onDismiss`, and drops anything
-    /// queued behind it.
     func dismiss()
 }
 

@@ -2,6 +2,10 @@ import Foundation
 import Networking
 import Product
 
+/// Fowler, *PoEAA* (2002) — Gateway: wraps one external system behind a domain-shaped call.
+///
+/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the outermost ring,
+/// replaceable without anything inward moving.
 public protocol ProductClient: Sendable {
     func fetchProducts(query: CatalogQuery) async throws -> [ProductDTO]
     func fetchProduct(id: ProductID) async throws -> ProductDTO
@@ -23,8 +27,6 @@ public struct DummyJSONProductClient: ProductClient {
             URLQueryItem(name: "skip", value: String(query.page * query.pageSize))
         ]
 
-        // DummyJSON exposes no "all products" category, so `.all` is served by the
-        // unfiltered collection. That gap is this client's problem, not the domain's.
         switch query.filter {
         case .all:
             path = "products"

@@ -1,10 +1,8 @@
-/// Opaque identity for a product. The backend's token format — an integer today — is not
-/// the domain's business, and nothing inward of the data layer reads `rawValue`.
+/// Evans, *Domain-Driven Design* (2003) — Aggregates: other aggregates are referenced only by
+/// identity, so this is the one part of a product a bag or a wishlist may hold.
 ///
-/// This is the one part of a product that other contexts are allowed to hold: a bag and a
-/// wishlist both refer to products they do not own, and identity is what makes that
-/// reference safe. Being a type rather than an `Int` is what stops a category id, a user
-/// id, or a quantity being passed where a product was meant.
+/// Evans — Value Objects. Fowler, *PoEAA* (2002) — Identity Field: the format the backend mints is
+/// the data layer's business, not the domain's.
 public struct ProductID: Equatable, Hashable, Sendable {
     public let rawValue: Int
 

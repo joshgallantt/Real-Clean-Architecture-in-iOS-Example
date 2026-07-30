@@ -4,6 +4,13 @@ import Product
 import SnackbarUI
 import BagUI
 
+/// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
+/// hierarchy and holds its collaborators.
+///
+/// Martin, Ch. 10 — Interface Segregation Principle: handed individual use cases, never a whole
+/// component container. Injecting the container would be a Service Locator (Fowler, *Inversion of
+/// Control Containers and the Dependency Injection Pattern* (2004)) and would blur the boundary the
+/// layering exists to enforce.
 public struct BagUIDI {
     private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase
@@ -48,8 +55,6 @@ public struct BagUIDI {
         BagButtonView(viewModel: makeButtonViewModel(product: product))
     }
 
-    /// What a shopper can do about a product they are looking at. Something in stock can
-    /// be bagged; something coming back can be waited for; something gone offers nothing.
     @MainActor
     @ViewBuilder
     public func detailsButton(product: Product) -> some View {

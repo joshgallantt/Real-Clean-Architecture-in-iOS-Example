@@ -2,13 +2,11 @@ import Foundation
 import Testing
 import Product
 
-/// What makes something a search, and what makes two searches the same search. Stated once,
-/// here, because every place that used to decide it for itself — a text field trimming
-/// before it searched, a history list trimming again afterwards — could disagree with the
-/// others and did.
 @Suite("What counts as a search")
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the domain is tested with no
+/// repository, no store and no simulator in the room. Anything here that needed one would not be a
+/// domain rule.
 struct SearchTermTests {
-
     @Test("Ordinary words are a search")
     func acceptsWords() {
         #expect(SearchTerm("red dress")?.text == "red dress")
@@ -57,8 +55,6 @@ struct SearchTermTests {
 
     @Test("The shopper's own capitalisation is what they see back")
     func keepsTheirSpelling() {
-        // Two terms can be equal and still not be the same text: what is kept is what they
-        // typed, so their history reads the way they wrote it.
         #expect(SearchTerm("Red Dress")?.text == "Red Dress")
     }
 }

@@ -3,15 +3,11 @@ import Testing
 import Product
 import SearchHistory
 
-/// Which searches are worth remembering, asserted without a store, a session or a catalog.
-/// None of them depend on where the list is kept.
-///
-/// What makes something a search, and what makes two searches the same search, is asserted
-/// in `SearchTermTests` — the rule lives on the term now, so this suite cannot restate it
-/// and cannot drift from it.
 @Suite("Remembering what a shopper searched for")
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the domain is tested with no
+/// repository, no store and no simulator in the room. Anything here that needed one would not be a
+/// domain rule.
 struct SearchHistoryTests {
-
     @Test("A new history remembers nothing")
     func empty() {
         #expect(SearchHistory().isEmpty)
@@ -42,7 +38,6 @@ struct SearchHistoryTests {
             .recording(term("red dress"))
             .recording(term("Red Dress"))
 
-        // The newer spelling is what the shopper just typed, so it is what is kept.
         #expect(history.terms.map(\.text) == ["Red Dress"])
     }
 

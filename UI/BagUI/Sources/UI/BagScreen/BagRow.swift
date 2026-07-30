@@ -3,12 +3,9 @@ import Bag
 import Money
 import Product
 
-/// One line as the screen needs it: what the bag knows joined to what the catalog
-/// knows. Purely a rendering concern — a headless bag has no use for it, which is why
-/// it lives here and not in the domain.
-///
-/// `name` and `imageURL` are optional because the catalog may not have answered yet, or
-/// at all. The row still renders, and it still costs what it costs.
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: a view model in the
+/// literal sense — what the bag knows joined to what the catalog knows, shaped for one screen. A
+/// headless bag has no use for it, which is why it is here and not in the domain.
 struct BagRow: Identifiable, Equatable {
     let id: ProductID
     let quantity: Int
@@ -25,7 +22,8 @@ struct BagRow: Identifiable, Equatable {
     }
 }
 
-/// A line the shopper needs to be told about, with the change already put into words.
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: the notice already
+/// put into words, so the view holds no formatting decisions.
 struct ChangedBagRow: Identifiable, Equatable {
     let id: ProductID
     let name: String?

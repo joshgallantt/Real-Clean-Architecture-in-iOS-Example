@@ -1,5 +1,10 @@
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: an application-specific rule,
+/// named for what a shopper is trying to do — everything the shop knows about one product a shopper
+/// has opened.
+///
+/// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces. Fowler, *PoEAA* (2002) —
+/// Service Layer.
 public protocol ViewProductUseCase: Sendable {
-    /// Everything the shop knows about one product, for a shopper who has opened it.
     func callAsFunction(id: ProductID) async -> Result<Product, ProductError>
 }
 

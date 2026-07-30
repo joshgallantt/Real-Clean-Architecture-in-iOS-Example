@@ -2,9 +2,6 @@ import Foundation
 import CryptoKit
 import Session
 
-/// Local auth client that bypasses any backend. Accounts are stored on-device in a
-/// `UserStore`: Create Account registers a user, and Login only succeeds for an email
-/// that has been registered with the matching password. Tokens are minted locally.
 public struct FakeAuthClient: AuthClient {
     private let userStore: UserStore
     private let tokenLifetime: TimeInterval
@@ -69,7 +66,6 @@ public struct FakeAuthClient: AuthClient {
             .joined()
     }
 
-    /// Deterministic id so the same email always maps to the same user (and wishlist).
     private func stableId(for email: String) -> Int {
         var hash = 5381
         for byte in email.lowercased().utf8 {

@@ -6,13 +6,11 @@ import Money
 import Session
 @testable import BagData
 
-/// What is left once the bag owns its rules and the use cases own the sequencing:
-/// keeping the current bag, putting it on disk in the right order, swapping it when the
-/// owner changes, and telling anyone watching.
 @MainActor
 @Suite("Keeping the bag")
+/// Fowler, *PoEAA* (2002) — Repository: the translation and the keeping, tested with the real
+/// implementation over a stubbed gateway. No rule about what the domain means lives at this level.
 struct DefaultBagRepositoryTests {
-
     private func makeRepository(
         store: InMemoryBagStore = InMemoryBagStore(),
         owners: CurrentValueSubject<BagOwner, Never> = CurrentValueSubject(.guest)
@@ -119,7 +117,6 @@ struct DefaultBagRepositoryTests {
 
         owners.send(.guest)
 
-        // A reload here would drop the save that has not reached disk yet.
         #expect(repository.bag.items.map(\.id) == [pid(1)])
     }
 

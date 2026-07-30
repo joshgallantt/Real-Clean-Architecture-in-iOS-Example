@@ -3,6 +3,12 @@ import Product
 import SnackbarUI
 
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
+/// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
+/// never a repository, a store or a data source.
+///
+/// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
+/// a container that could resolve anything.
 public final class CatalogResultsViewModel: ObservableObject {
     let filter: CatalogFilter
     @Published private(set) var results: [Product] = []
@@ -30,8 +36,6 @@ public final class CatalogResultsViewModel: ObservableObject {
         }
     }
 
-    /// Only a search has an empty state worth naming — an empty category or an empty
-    /// catalog is a backend anomaly, not something to explain to the user.
     var emptySearchText: String? {
         guard case .search(let term) = filter else { return nil }
         return term.text
@@ -74,6 +78,5 @@ public final class CatalogResultsViewModel: ObservableObject {
     }
 
     func didSelect(_ product: Product) {
-        // Any non-navigation side effects, e.g. analytics
     }
 }

@@ -1,3 +1,5 @@
+/// Fowler, *PoEAA* (2002) — Data Transfer Object: the serialisation shape, kept out of the domain.
+/// It maps at the boundary, so a wire format change stops here.
 public struct StoredUser: Codable, Sendable {
     public let id: Int
     public let email: String

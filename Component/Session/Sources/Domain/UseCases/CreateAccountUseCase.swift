@@ -1,3 +1,7 @@
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002) — Service
+/// Layer.
+///
+/// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces.
 public protocol CreateAccountUseCase: Sendable {
     func callAsFunction(
         name: PersonName,
@@ -13,10 +17,8 @@ public struct DefaultCreateAccountUseCase: CreateAccountUseCase {
         self.sessionRepository = sessionRepository
     }
 
-    /// Checks what can be checked here before troubling the shop with it. Each rule is
-    /// asked of the thing that owns it — the name says whether it is a name, the address
-    /// whether it is an address — so this decides only the order to ask in, and there is no
-    /// half of a rule left here to forget.
+    /// Evans, *Domain-Driven Design* (2003) — Assertions: each rule is asked of the type that owns
+    /// it — the name says whether it is a name, the address whether it is an address.
     public func callAsFunction(
         name: PersonName,
         email: Email,

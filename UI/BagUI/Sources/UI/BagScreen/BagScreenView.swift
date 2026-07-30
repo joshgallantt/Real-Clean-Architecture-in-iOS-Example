@@ -28,8 +28,6 @@ public struct BagScreenView: View {
                 )
             } else {
                 List {
-                    // The first two sections are notices about what happened while the
-                    // shopper was away. Neither is the bag; the bag is the last section.
                     if !viewModel.removedRows.isEmpty {
                         removedSection
                     }
@@ -131,8 +129,6 @@ public struct BagScreenView: View {
         }
     }
 
-    /// One notice, whichever kind it is. The words are already decided; what a shopper can
-    /// do about it — say they have seen it, or take it out — is the same either way.
     private func changedRow(_ changed: ChangedBagRow) -> some View {
         VStack(alignment: .leading, spacing: 10) {
             HStack(spacing: 12) {
@@ -264,8 +260,6 @@ public struct BagScreenView: View {
             Text("Total")
                 .font(.headline)
             Spacer()
-            // Only reached when the bag is not empty, which is exactly when there is a
-            // currency in it to name an amount in.
             Text(viewModel.total?.formatted() ?? "")
                 .font(.headline)
         }

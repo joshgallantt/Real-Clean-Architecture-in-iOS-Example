@@ -1,14 +1,15 @@
 import Foundation
 import Bag
 
+/// Fowler, *PoEAA* (2002) — Gateway: wraps one external system behind a domain-shaped call.
+///
+/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the outermost ring,
+/// replaceable without anything inward moving.
 public protocol BagStore: Sendable {
     func getBag(for owner: BagOwner) -> (bag: Bag, changes: BagChanges)
     func setBag(_ bag: Bag, changes: BagChanges, for owner: BagOwner) async
 }
 
-// Reads are synchronous because they happen once per owner switch, and seeding the
-// repository asynchronously would flash an empty bag on launch. Writes happen on every
-// change and re-encode everything, so they go off the main thread.
 public struct FileBagStore: BagStore, @unchecked Sendable {
     private let directory: URL
 
@@ -53,8 +54,8 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         directory.appending(path: "\(Self.filename(for: owner)).json", directoryHint: .notDirectory)
     }
 
-    /// What a bag is filed under. The only place an owner turns back into a string, and the
-    /// spellings are the ones already on disk so bags kept by earlier builds still load.
+    /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: what something is
+    /// filed under is the storage layer's business. The only place an owner becomes a string.
     private static func filename(for owner: BagOwner) -> String {
         switch owner {
         case .guest: "guest"

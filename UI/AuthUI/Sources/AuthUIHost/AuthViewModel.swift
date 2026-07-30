@@ -4,6 +4,12 @@ import Session
 import AuthUI
 
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
+/// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
+/// never a repository, a store or a data source.
+///
+/// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
+/// a container that could resolve anything.
 final class AuthViewModel: ObservableObject {
     @Published private(set) var mode: AuthMode
     @Published var firstName = ""
@@ -38,8 +44,6 @@ final class AuthViewModel: ObservableObject {
         self.onAuthenticated = onAuthenticated
     }
 
-    /// Only the mode the flow opened on wears the prompt: it is the reason the sheet is
-    /// here, and it stops being the reason once the user has chosen to go elsewhere in it.
     var icon: String {
         mode == openedMode ? (prompt?.icon ?? mode.icon) : mode.icon
     }

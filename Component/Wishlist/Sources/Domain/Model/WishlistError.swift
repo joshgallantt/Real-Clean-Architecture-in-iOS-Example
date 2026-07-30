@@ -1,5 +1,6 @@
-/// The only thing that can stop a shopper changing their wishlist: it is theirs, so
-/// they have to be signed in for there to be a "theirs" to change.
+/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the domain's vocabulary
+/// for the one thing that can stop a shopper changing their wishlist — it is theirs, so there has
+/// to be a them.
 public enum WishlistError: Error, Equatable, Sendable {
     case unauthenticated
 }

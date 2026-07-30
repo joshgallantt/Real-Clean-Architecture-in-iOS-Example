@@ -7,12 +7,15 @@ import Wishlist
 import WishlistData
 import WishlistDI
 
-/// Journeys through the whole feature — use cases, repository and store — as the
-/// composition root wires it.
 @MainActor
 @Suite("Saving products for later")
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: a whole feature wired as the
+/// composition root wires it, driven only through the use cases the UI is given. What no layer test
+/// can show is that the layers fit together.
+///
+/// Evans, *Domain-Driven Design* (2003) — Ubiquitous Language: the tests are named in the shopper's
+/// words, so a failure reads as a broken journey rather than a broken method.
 struct SavingProductsTests {
-
     @Test("A signed-in shopper saves two things and finds both waiting, most recent first")
     func savesTwoThings() async {
         let shopper = Saver(signedInAs: 42)
@@ -80,7 +83,6 @@ struct SavingProductsTests {
     }
 }
 
-/// The wishlist feature wired as the composition root wires it, over an in-memory store.
 @MainActor
 final class Saver {
     private let sessions: CurrentValueSubject<Session, Never>
@@ -156,7 +158,6 @@ private extension Result where Success == Void, Failure: Equatable {
     var isSuccess: Bool { if case .success = self { true } else { false } }
     var failure: Failure? { if case .failure(let error) = self { error } else { nil } }
 }
-
 
 // MARK: - Fixtures
 

@@ -1,6 +1,10 @@
 import Combine
 import Product
 
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002) — Service
+/// Layer.
+///
+/// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces.
 public protocol ObserveProductIsWishlistedUseCase: Sendable {
     @MainActor
     func callAsFunction(productId: ProductID) -> AnyPublisher<Bool, Never>
@@ -13,8 +17,6 @@ public struct DefaultObserveProductIsWishlistedUseCase: ObserveProductIsWishlist
         self.repository = repository
     }
 
-    /// Only whether this one product is saved, and only when that changes — a heart on
-    /// a product tile has no interest in the rest of the list moving around it.
     @MainActor
     public func callAsFunction(productId: ProductID) -> AnyPublisher<Bool, Never> {
         repository.wishlistPublisher

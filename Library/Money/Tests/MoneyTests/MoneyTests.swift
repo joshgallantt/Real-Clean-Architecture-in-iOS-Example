@@ -2,8 +2,10 @@ import Foundation
 import Testing
 @testable import Money
 
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the domain is tested with no
+/// repository, no store and no simulator in the room. Anything here that needed one would not be a
+/// domain rule.
 struct MoneyTests {
-
     // MARK: - Exactness, which is the whole reason this type exists
 
     @Test
@@ -32,17 +34,12 @@ struct MoneyTests {
 
     // MARK: - Building from what the catalog sends
 
-    /// Stated with exact decimals rather than float literals: `9.995` written as a literal
-    /// is a `Double` first, and lands a hair below the halfway point it looks like.
     @Test
     func aMajorAmountRoundsToTheNearestMinorUnit() {
         #expect(Money(amount: Decimal(string: "9.994")!, currency: .usd).minorUnits == 999)
         #expect(Money(amount: Decimal(string: "9.995")!, currency: .usd).minorUnits == 1000)
     }
 
-    /// A price with the precision a currency actually has survives a float literal, because
-    /// rounding to the nearest minor unit absorbs noise that small. This is what makes
-    /// `Money(amount: 9.99, currency: .usd)` safe to write in tests and at the DTO boundary.
     @Test
     func twoDecimalPricesSurviveBeingWrittenAsLiterals() {
         #expect(Money(amount: 9.99, currency: .usd).minorUnits == 999)

@@ -3,12 +3,10 @@ import Foundation
 import Testing
 import Session
 
-/// The order things are asked in, and what happens when the answer is no. What makes an
-/// address or a password acceptable belongs to `Email` and `Password` and is asserted in
-/// their own suites — these check that the shop is only troubled once it is worth it.
 @Suite("Signing in")
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: what the use case sequences, and
+/// what it keeps.
 struct SigningInTests {
-
     @Test("A valid email and password reach the shop")
     func credentialsReachTheShop() async {
         let repository = RecordingSessionRepository()
@@ -62,8 +60,9 @@ struct SigningInTests {
 }
 
 @Suite("Creating an account")
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: what the use case sequences, and
+/// what it keeps.
 struct CreatingAnAccountTests {
-
     @Test("A complete sign-up reaches the shop")
     func reachesTheShop() async {
         let repository = RecordingSessionRepository()
@@ -150,8 +149,6 @@ struct CreatingAnAccountTests {
 
 // MARK: -
 
-/// Derived from the rule rather than written out, so raising or lowering the minimum
-/// does not quietly turn these into tests of nothing.
 private let tooShort = String(repeating: "a", count: Password.minimumLength - 1)
 
 private actor RecordingSessionRepository: SessionRepository {

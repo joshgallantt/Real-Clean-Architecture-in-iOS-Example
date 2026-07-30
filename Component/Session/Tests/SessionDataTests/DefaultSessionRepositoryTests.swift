@@ -4,13 +4,11 @@ import Testing
 import Session
 @testable import SessionData
 
-/// The boundary where an auth system's vocabulary becomes the domain's. Everything here
-/// is about translation and about what gets kept — no rule about what a valid email or
-/// password is lives at this level.
 @MainActor
 @Suite("Signing in against the auth system")
+/// Fowler, *PoEAA* (2002) — Repository: the translation and the keeping, tested with the real
+/// implementation over a stubbed gateway. No rule about what the domain means lives at this level.
 struct DefaultSessionRepositoryTests {
-
     @Test("A successful sign-in keeps the user and their token")
     func successKeepsTheSession() async {
         let store = RecordingSessionStore()
@@ -85,8 +83,6 @@ struct DefaultSessionRepositoryTests {
 
         await repository.logout()
 
-        // A shopper who taps Log Out must end up logged out. Leaving them signed in
-        // because a server did not reply is the wrong way to fail.
         #expect(store.session == .guest)
         #expect(store.clearCount == 1)
     }

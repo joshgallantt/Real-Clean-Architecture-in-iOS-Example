@@ -1,18 +1,16 @@
-//
-//  AuthUIDI.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 14/07/2025.
-//
-
 import SwiftUI
 import AuthUI
 import Session
 import SheetUI
 
+/// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
+/// hierarchy and holds its collaborators.
+///
+/// Martin, Ch. 10 — Interface Segregation Principle: handed individual use cases, never a whole
+/// component container. Injecting the container would be a Service Locator (Fowler, *Inversion of
+/// Control Containers and the Dependency Injection Pattern* (2004)) and would blur the boundary the
+/// layering exists to enforce.
 public struct AuthUIDI {
-    /// One shared presenter for the whole app — inject this wherever a feature needs to hold
-    /// an action back until the user is authenticated.
     public let presenter: AuthPresenter
 
     @MainActor
@@ -30,10 +28,6 @@ public struct AuthUIDI {
         )
     }
 
-    /// A self-contained "Log In" button: tapping it presents the Log In sheet directly and
-    /// resolves on its own. Most callers need no completion closure — the screen just reacts
-    /// to the resulting session change. `onAuthenticated` is for the ones that can't, because
-    /// what they do next has to wait for the sheet to be gone; it fires once it is.
     @MainActor
     public func loginButtonView(
         title: String = "Log In",
@@ -48,7 +42,6 @@ public struct AuthUIDI {
         }
     }
 
-    /// A self-contained "Create Account" button — see `loginButtonView(title:onAuthenticated:)`.
     @MainActor
     public func createAccountButtonView(
         title: String = "Create Account",
@@ -63,9 +56,6 @@ public struct AuthUIDI {
         }
     }
 
-    /// - Parameter onAuthenticated: fires once the flow's sheet has left the screen, not the
-    ///   moment the session changes — this screen is underneath that sheet, so replacing it
-    ///   any earlier pulls the ground out from under the confirmation the user is reading.
     @MainActor
     public func welcomeView(
         onContinueAsGuest: @escaping () -> Void,

@@ -1,6 +1,8 @@
 import Networking
 import Product
 
+/// Evans, *Domain-Driven Design* (2003) — Repositories. Fowler, *PoEAA* (2002) — Repository: it
+/// keeps and hands back aggregates and decides nothing about what they mean.
 public struct DefaultProductRepository: ProductRepository {
     private let client: ProductClient
 
@@ -17,10 +19,6 @@ public struct DefaultProductRepository: ProductRepository {
         }
     }
 
-    // The catalog has no endpoint for a set of ids, so each one is fetched on its own.
-    // A product that 404s has been delisted since its id was stored and is simply gone;
-    // any other failure means the set could not be assembled, and a short list would be
-    // indistinguishable from the shopper having chosen fewer things.
     public func getProducts(ids: [ProductID]) async -> Result<[Product], ProductError> {
         guard !ids.isEmpty else { return .success([]) }
 
@@ -72,9 +70,8 @@ public struct DefaultProductRepository: ProductRepository {
         }
     }
 
-    // The one place the transport's vocabulary becomes the domain's. Only a 404 tells
-    // us a product is genuinely gone; a timeout, a 500 and an unreadable payload are
-    // all the same thing to a shopper — the app could not get what it asked for.
+    /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the one place the
+    /// transport's vocabulary becomes the domain's.
     private static func productError(from error: Error) -> ProductError {
         guard case .server(404) = error as? HTTPClientError else { return .unavailable }
         return .notFound

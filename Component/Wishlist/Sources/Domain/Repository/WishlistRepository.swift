@@ -1,7 +1,9 @@
 import Combine
 
-/// Access to the shopper's wishlist, and nothing else. What saving or removing *means*
-/// is the wishlist's own business, and deciding which to do is the use case's.
+/// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle.
+///
+/// Evans, *Domain-Driven Design* (2003) — Repositories. Fowler, *PoEAA* (2002) — Repository;
+/// Separated Interface.
 public protocol WishlistRepository: Sendable {
     @MainActor
     var wishlist: Wishlist { get }

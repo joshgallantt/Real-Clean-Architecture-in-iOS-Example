@@ -1,7 +1,8 @@
 import Foundation
 
-/// What the shop's backend puts on the wire. Deliberately not a domain type — these
-/// tests seed a backend, they do not construct domain models.
+/// Fowler, *PoEAA* (2002) — Data Transfer Object: what the shop's backend puts on the wire.
+/// Deliberately not a domain type — these tests seed a backend, they do not construct domain
+/// models.
 struct CatalogItem: Encodable {
     var id: Int
     var title: String

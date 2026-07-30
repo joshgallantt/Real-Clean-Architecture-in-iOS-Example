@@ -1,10 +1,3 @@
-//
-//  TabScreen.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 22/12/2025.
-//
-
 import SwiftUI
 import HomeUIDI
 import SearchUIDI

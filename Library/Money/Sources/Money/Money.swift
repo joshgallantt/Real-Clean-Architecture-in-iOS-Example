@@ -1,15 +1,11 @@
 import Foundation
 
-/// An amount of money, held in whole smallest-units of its currency.
+/// Fowler, *PoEAA* (2002) — Money: a quantity is inseparable from its currency, and is counted in
+/// the smallest whole unit so arithmetic is exact rather than approximate.
 ///
-/// Not `Double`. A price like 9.99 has no exact binary representation, so a total built by
-/// adding them drifts — 9.99 + 49.99 comes out as 59.980000000000004 — and two amounts that
-/// should be equal compare unequal. That matters here beyond tidiness: whether the shopper
-/// is *told* a price moved is decided by comparing two amounts, and drift turns "nothing
-/// happened" into a notice about nothing.
-///
-/// Counting in minor units makes the arithmetic exact, and pairing the count with its
-/// currency means an amount always knows what it is denominated in.
+/// Evans, *Domain-Driven Design* (2003) — Value Objects: identified by value, immutable, freely
+/// shared. Evans — Closure of Operations: `+` and `*` return `Money`, so amounts compose without
+/// leaving the type.
 public struct Money: Equatable, Hashable, Sendable {
     public let minorUnits: Int
     public let currency: Currency
@@ -19,10 +15,6 @@ public struct Money: Equatable, Hashable, Sendable {
         self.currency = currency
     }
 
-    /// Builds an amount from a major-unit figure, e.g. `9.99` dollars.
-    ///
-    /// Rounds to the nearest minor unit, which is the only sensible reading of a price that
-    /// arrives with more precision than the currency has.
     public init(amount: Decimal, currency: Currency) {
         var scaled = amount * Decimal(currency.minorUnitsPerMajor)
         var rounded = Decimal()
@@ -33,8 +25,6 @@ public struct Money: Equatable, Hashable, Sendable {
         )
     }
 
-    /// The amount as a major-unit figure, for formatting. Exact, because it is derived from
-    /// the integer count rather than the other way round.
     public var amount: Decimal {
         Decimal(minorUnits) / Decimal(currency.minorUnitsPerMajor)
     }
@@ -46,9 +36,6 @@ public struct Money: Equatable, Hashable, Sendable {
 
 // MARK: - Arithmetic
 
-/// Amounts in different currencies are not comparable and do not add. There is no right
-/// answer to give in that case, and returning a wrong one quietly is worse than stopping:
-/// a total is either correct or it is misinformation.
 extension Money {
     public static func + (lhs: Money, rhs: Money) -> Money {
         precondition(
@@ -58,8 +45,6 @@ extension Money {
         return Money(minorUnits: lhs.minorUnits + rhs.minorUnits, currency: lhs.currency)
     }
 
-    /// Times a count, which is what a line in a bag needs and the only multiplication that
-    /// means anything: money times money is not money.
     public static func * (lhs: Money, count: Int) -> Money {
         Money(minorUnits: lhs.minorUnits * count, currency: lhs.currency)
     }
@@ -75,9 +60,8 @@ extension Money: Comparable {
     }
 }
 
+/// Evans, *Domain-Driven Design* (2003) — Closure of Operations.
 extension Sequence where Element == Money {
-    /// The total, or nothing at all when there is nothing to total. An empty collection is
-    /// not worth zero of any particular currency — there is no currency in it to name.
     public func total() -> Money? {
         reduce(nil) { running, next in
             running.map { $0 + next } ?? next

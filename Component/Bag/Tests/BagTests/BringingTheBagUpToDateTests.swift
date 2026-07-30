@@ -5,17 +5,13 @@ import Bag
 import Money
 import Product
 
-/// A shopper comes back to a bag they filled a while ago. Prices have moved, some things
-/// have sold out, some are down to the last few, and they are owed an explanation for all
-/// of it.
-///
-/// Driven through the use case, not a static helper behind it. Catching up is application
-/// work — read both, decide, write both back — and the thing worth proving is that the use
-/// case does it, because that is all any caller can reach.
 @MainActor
 @Suite("Coming back to a bag after the shop has moved on")
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: driven through the use case rather
+/// than a helper behind it, because the use case is all any caller can reach.
+///
+/// Martin, Ch. 28 — The Test Boundary.
 struct ComingBackToTheBagTests {
-
     private let bag = Bag(items: [
         item(1, quantity: 2, price: 9.99, addedAt: .distantPast),
         item(2, quantity: 1, price: 49.99, addedAt: .now)
@@ -36,8 +32,6 @@ struct ComingBackToTheBagTests {
 
         bringUpToDate(against: [shopSells(1, at: 9.99), shopSells(2, at: 49.99)])
 
-        // Saving here would wake everything watching the bag for nothing, on a screen that
-        // does this every time it appears.
         #expect(repository.saved.isEmpty)
     }
 
@@ -61,8 +55,6 @@ struct ComingBackToTheBagTests {
     func soldOut() {
         let upToDate = catchUp(bag, against: [shopHasSoldOutOf(1)])
 
-        // A bag is what the shopper is going to buy, and a line that cannot be bought
-        // does not belong in it.
         #expect(upToDate.bag.items.map(\.productId) == [pid(2)])
         #expect(upToDate.changes.noLongerAvailable == [.noLongerAvailable(productId: pid(1))])
         #expect(upToDate.bag.total == usd(49.99))
@@ -83,15 +75,11 @@ struct ComingBackToTheBagTests {
             against: [ShopSays(productId: pid(1), price: usd(12.99), availability: .outOfStock)]
         )
 
-        // Telling a shopper what something costs and that they cannot have it is two
-        // messages where one will do.
         #expect(upToDate.changes.all == [.noLongerAvailable(productId: pid(1))])
     }
 
     @Test("A product the shop was not asked about is left exactly as it was")
     func notAskedAbout() {
-        // A lookup that covered part of the bag, or failed for one product, must never
-        // read as "that product is gone".
         let upToDate = catchUp(bag, against: [shopSells(2, at: 49.99)])
 
         #expect(upToDate.bag == bag)
@@ -146,13 +134,11 @@ struct ComingBackToTheBagTests {
     }
 }
 
-/// A shopper cannot buy five of something the shop has two of. Finding that out at checkout
-/// is finding out too late, and a count that quietly changes on its own is the thing the
-/// removal notice already exists to avoid.
 @MainActor
 @Suite("Asking for more than the shop has")
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: what the use case sequences, and
+/// what it keeps.
 struct MoreThanTheShopHasTests {
-
     @Test("A line comes down to what the shop can actually supply")
     func quantityIsCapped() {
         let upToDate = catchUp(
@@ -199,8 +185,6 @@ struct MoreThanTheShopHasTests {
 
     @Test("A shortage next to a price move does not swallow the price the shopper knew")
     func shortageDoesNotHideThePriceTheyKnew() {
-        // Both notices are about the same product, and only one of them carries a price.
-        // Reading the wrong one would restart the price move from nothing.
         let once = catchUp(
             Bag(items: [item(1, quantity: 5, price: 10)]),
             against: [shopSells(1, at: 12, remaining: 2)]
@@ -212,12 +196,11 @@ struct MoreThanTheShopHasTests {
     }
 }
 
-/// A shopper who does not read the notice is owed the whole story next time, not the last
-/// instalment of it.
 @MainActor
 @Suite("News that piles up while nobody is looking")
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: what the use case sequences, and
+/// what it keeps.
 struct NewsThatPilesUpTests {
-
     private let bag = Bag(items: [item(1, quantity: 1, price: 10)])
 
     @Test("A price that moves twice before the shopper looks reads as one move from what they knew")
@@ -265,8 +248,6 @@ struct NewsThatPilesUpTests {
 
     @Test("News about something that has left the bag outlives the line it refers to")
     func newsOutlivesTheLine() {
-        // The whole point is to explain a bag that is now shorter, so it cannot be
-        // dropped for the very reason it exists.
         let gone = catchUp(bag, against: [shopHasSoldOutOf(1)])
 
         #expect(gone.bag.isEmpty)
@@ -299,16 +280,11 @@ struct NewsThatPilesUpTests {
     }
 }
 
-/// The bag and the notices are written one after the other. Deciding what is worth saying
-/// when they are read means a pair that has drifted apart — a crash between the two writes,
-/// or a product chosen again — corrects itself rather than showing nonsense.
-///
-/// Asserted through the publisher a screen actually subscribes to, because that is the point:
-/// a screen is handed news it can show as-is and is never trusted to apply the rule itself.
 @MainActor
 @Suite("Which news still holds")
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: what the use case sequences, and
+/// what it keeps.
 struct WorthTellingTests {
-
     private let inTheBag = Bag(items: [item(1, price: 10)])
 
     @Test("A price move about something in the bag stands")
@@ -375,7 +351,6 @@ struct WorthTellingTests {
 
 // MARK: -
 
-/// Runs the real use case over a real in-memory repository and hands back what it kept.
 @MainActor
 private func catchUp(
     _ bag: Bag,

@@ -1,12 +1,11 @@
 import Testing
 import Session
 
-/// What the app is willing to treat as an email address. It can only ever guess — the
-/// one way to know an address is real is to send something to it — so these pin down
-/// what is obviously wrong, and leave the rest to the shop's confirmation.
 @Suite("What counts as an email address")
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the domain is tested with no
+/// repository, no store and no simulator in the room. Anything here that needed one would not be a
+/// domain rule.
 struct EmailTests {
-
     @Test("An ordinary address is fine", arguments: [
         "shopper@example.com",
         "first.last@example.co.uk",
@@ -39,16 +38,12 @@ struct EmailTests {
 
     @Test("Stray whitespace is rejected rather than quietly trimmed")
     func rejectsSurroundingWhitespace() {
-        // Silently trimming would sign the shopper in under an address they did not
-        // type, and they would never find out which one.
         #expect(!Email(" shopper@example.com").isValid)
         #expect(!Email("shopper@example.com ").isValid)
     }
 
     @Test("A half-typed address is representable, just not valid")
     func holdsWhateverItIsGiven() {
-        // The text field binds to this, so it has to survive every keystroke on the way
-        // to a real address.
         let halfway = Email("shopper@exa")
 
         #expect(halfway.value == "shopper@exa")

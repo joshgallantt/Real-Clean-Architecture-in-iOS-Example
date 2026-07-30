@@ -1,6 +1,5 @@
-/// What subset of the catalog a request is asking for. Browsing everything is a
-/// first-class intent, not the absence of a category — the Home tab is built on it,
-/// and no category is involved anywhere in that flow.
+/// Evans, *Domain-Driven Design* (2003) — Making Implicit Concepts Explicit: browsing everything is
+/// an intent of its own, not the absence of a category.
 public enum CatalogFilter: Equatable, Hashable, Sendable {
     case all
     case search(SearchTerm)

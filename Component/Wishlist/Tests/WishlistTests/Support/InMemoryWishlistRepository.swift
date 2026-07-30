@@ -3,14 +3,14 @@ import Foundation
 import Product
 import Wishlist
 
-/// A working wishlist repository, not a stub with canned answers: it keeps what it is
-/// given and hands it back, so the use cases under test genuinely read, apply and save.
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: a working repository rather
+/// than a stub with canned answers, so the use cases under test genuinely read, apply and save.
+///
+/// Fowler, *PoEAA* (2002) — Repository.
 final class InMemoryWishlistRepository: WishlistRepository {
     private let subject: CurrentValueSubject<Wishlist, Never>
 
-    /// Every list handed over, in order, so a test can see whether a use case decided
-    /// to save at all.
     private(set) var saved: [Wishlist] = []
 
     init(_ wishlist: Wishlist = Wishlist()) {

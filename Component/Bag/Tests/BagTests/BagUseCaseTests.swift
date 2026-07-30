@@ -5,14 +5,11 @@ import Bag
 import Money
 import Product
 
-/// What each use case is for: naming one thing a shopper does, and sequencing it —
-/// read the bag, ask the bag to apply the change, keep the result. The rules about what
-/// the change means belong to `Bag` and are asserted in `BagChangeTests`; these assert
-/// that the right change is asked for and that the result is kept.
 @MainActor
 @Suite("Doing something to the bag")
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: what the use case sequences, and
+/// what it keeps.
 struct BagUseCaseTests {
-
     @Test("Choosing something saves a bag with it in")
     func addingSaves() {
         let repository = InMemoryBagRepository()
@@ -94,8 +91,6 @@ struct BagUseCaseTests {
         add(item(99, price: 1))
         add(item(7, price: 1))
 
-        // Adding something else changed the bag but not this line's count, so a product
-        // tile showing a badge for item 7 is not redrawn for it.
         #expect(seen == [0, 1, 2])
         cancellable.cancel()
     }

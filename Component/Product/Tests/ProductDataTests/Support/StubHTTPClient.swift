@@ -1,10 +1,6 @@
 import Foundation
 import Networking
 
-/// Stubs one exact request at a time and refuses anything it was not told about, so a
-/// test that stops making the request it claims to make fails loudly instead of
-/// quietly passing. Decodes the stubbed body itself, exactly as `URLSessionHTTPClient`
-/// does, so the repository's tests run the real parsing.
 final class StubHTTPClient: HTTPClient, @unchecked Sendable {
     enum StubError: Error, CustomStringConvertible {
         case noStubFor(URL)
@@ -73,8 +69,6 @@ final class StubHTTPClient: HTTPClient, @unchecked Sendable {
 extension URL {
     var requestPath: String { URLComponents(url: self, resolvingAgainstBaseURL: false)?.path ?? "" }
 
-    /// The query as an unordered set, so a reordering by `URLComponents` stays a
-    /// refactor rather than a failure.
     var requestQuery: [String: String] {
         let items = URLComponents(url: self, resolvingAgainstBaseURL: false)?.queryItems ?? []
         return Dictionary(uniqueKeysWithValues: items.map { ($0.name, $0.value ?? "") })

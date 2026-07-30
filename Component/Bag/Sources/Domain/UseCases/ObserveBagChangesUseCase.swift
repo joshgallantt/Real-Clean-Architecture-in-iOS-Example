@@ -1,11 +1,20 @@
 import Combine
 
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002) — Service
+/// Layer.
+///
+/// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces.
 public protocol ObserveBagChangesUseCase: Sendable {
-    /// What the shopper still needs to be told, and only what is still worth telling them.
     @MainActor
     func callAsFunction() -> AnyPublisher<BagChanges, Never>
 }
 
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: the rule about
+/// which notices are still worth telling is applied here, so a screen is handed news it can render
+/// as-is rather than being trusted to filter it. Deciding on read means a bag and a notice list
+/// that have drifted apart correct themselves instead of showing nonsense.
+///
+/// Evans, *Domain-Driven Design* (2003) — Side-Effect-Free Functions.
 public struct DefaultObserveBagChangesUseCase: ObserveBagChangesUseCase {
     private let repository: BagRepository
 
@@ -13,10 +22,6 @@ public struct DefaultObserveBagChangesUseCase: ObserveBagChangesUseCase {
         self.repository = repository
     }
 
-    /// Reads the bag alongside the notices, because whether a notice is worth mentioning
-    /// depends on both and neither one can answer it alone. Deciding here means a screen
-    /// is handed news it can show as-is, rather than being trusted to apply the rule —
-    /// which is how the rule ends up living in a view.
     @MainActor
     public func callAsFunction() -> AnyPublisher<BagChanges, Never> {
         repository.changesPublisher
@@ -26,15 +31,6 @@ public struct DefaultObserveBagChangesUseCase: ObserveBagChangesUseCase {
             .eraseToAnyPublisher()
     }
 
-    /// A price or a shortage is news about something the shopper is buying, so either one
-    /// about a line no longer in the bag is news about nothing. A product being gone is news
-    /// about something absent, so it only stands while it is absent — choose it again and
-    /// there is nothing to report.
-    ///
-    /// Decided when the notices are read rather than when they are written. The bag and the
-    /// notices are kept together but written one after the other, and a process that dies in
-    /// between would leave the pair disagreeing. Deciding on the way out means the
-    /// disagreement corrects itself instead of persisting.
     static func worthTelling(_ changes: BagChanges, about bag: Bag) -> BagChanges {
         BagChanges(
             changes.all.filter { change in

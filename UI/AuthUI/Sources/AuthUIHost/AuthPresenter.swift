@@ -3,23 +3,11 @@ import Session
 import SheetUI
 import AuthUI
 
-/// Default `AuthPresenting` implementation: runs the flow as a single sheet and resolves
-/// everyone waiting on it once the user completes it or dismisses it. Built on the generic
-/// `SheetPresenting` primitive, so it knows nothing about *how* sheets get presented — only
-/// what this flow is.
 @MainActor
 public final class AuthPresenter: AuthPresenting {
-    /// How the end of the flow is paced. The flow owns this, not the sheet: the sheet shows
-    /// the confirmation, the presenter decides how long it earns and when the screen is free
-    /// again.
     private enum Timing {
-        /// Long enough to register the greeting, short enough not to stand between the user
-        /// and what they were doing when they were asked to log in.
         static let confirmation: Duration = .seconds(1)
 
-        /// The system's sheet dismissal animation. Callers resume only once it has played
-        /// out, so what they do next — a snackbar, a navigation — lands on a settled screen
-        /// instead of racing the sheet off it.
         static let dismissal: Duration = .milliseconds(350)
     }
 
@@ -43,21 +31,16 @@ public final class AuthPresenter: AuthPresenting {
         self.getSession = getSession
     }
 
-    /// Opens on Log In, because that's the shorter road for the people most likely to be on
-    /// it, and creating an account is one tap from there.
     @discardableResult
     public func show(_ prompt: AuthenticationPrompt) async -> Bool {
         await authenticate(mode: .logIn, prompt: prompt)
     }
 
-    /// For a caller that already knows which form the user wants — a dedicated "Log In"
-    /// button. No prompt: the button they just pressed is the explanation.
     @discardableResult
     func logIn() async -> Bool {
         await authenticate(mode: .logIn, prompt: nil)
     }
 
-    /// See `logIn()`.
     @discardableResult
     func createAccount() async -> Bool {
         await authenticate(mode: .createAccount, prompt: nil)
@@ -96,8 +79,6 @@ public final class AuthPresenter: AuthPresenting {
         )
     }
 
-    /// The sheet is showing its confirmation by now. Leave it up long enough to be read,
-    /// take it away, and only then let the waiting callers carry on.
     private func authenticationSucceeded() {
         didAuthenticate = true
         confirmationTask = Task { [weak self] in
@@ -112,15 +93,11 @@ public final class AuthPresenter: AuthPresenting {
         }
     }
 
-    /// SwiftUI reports this once the sheet is already off screen, so there is nothing left
-    /// to wait out. Swiping the confirmation away early only skips the rest of its turn —
-    /// the user is authenticated either way.
     private func sheetWasDismissedByUser() {
         confirmationTask?.cancel()
         finish()
     }
 
-    /// Everyone waiting gets the same answer — the flow authenticated the user or it didn't.
     private func finish() {
         confirmationTask = nil
         let pending = waiting

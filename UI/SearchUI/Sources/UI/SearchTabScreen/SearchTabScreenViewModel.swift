@@ -4,6 +4,12 @@ import SearchHistory
 import SnackbarUI
 
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
+/// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
+/// never a repository, a store or a data source.
+///
+/// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
+/// a container that could resolve anything.
 public final class SearchTabScreenViewModel: ObservableObject {
     @Published var query: String = ""
     @Published var isSearchActive: Bool = false
@@ -44,13 +50,10 @@ public final class SearchTabScreenViewModel: ObservableObject {
         }
     }
 
-    /// Recorded here because searching is the act being recorded — not a results screen
-    /// rendering, which also fires on every back-and-forward revisit.
     func didSubmitSearch(_ term: SearchTerm) {
         Task { await recordSearch(term) }
     }
 
     func didSelectCategory(_ category: ProductCategory) {
-        // Any non-navigation side effects, e.g. analytics
     }
 }

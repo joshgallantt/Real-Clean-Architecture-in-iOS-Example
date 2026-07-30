@@ -1,11 +1,10 @@
 import Foundation
 
-/// What counts as an email address, in one place.
+/// Evans, *Domain-Driven Design* (2003) — Value Objects.
 ///
-/// Deliberately not a smart constructor: `Email("nonsense")` builds, and answers that it
-/// is not valid. A shopper halfway through typing has an invalid email and the app must
-/// hold it happily — refusing to represent it would mean the text field could not use
-/// this type, and the rule would be copied somewhere it could rot.
+/// Evans — Assertions: the rule is stated once, on the thing it is about. Deliberately lenient and
+/// non-failable — a half-typed address must be representable, or the text field cannot use this
+/// type and the rule gets copied somewhere it can rot.
 public struct Email: Equatable, Sendable {
     public let value: String
 
@@ -13,9 +12,6 @@ public struct Email: Equatable, Sendable {
         self.value = value
     }
 
-    /// Deliberately lenient. This can only ever guess — the sole way to know an address
-    /// is real is to send something to it — so it rejects what is obviously not an
-    /// address and lets the shop's own confirmation do the rest.
     public var isValid: Bool {
         let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
         guard trimmed == value, !trimmed.isEmpty else { return false }
