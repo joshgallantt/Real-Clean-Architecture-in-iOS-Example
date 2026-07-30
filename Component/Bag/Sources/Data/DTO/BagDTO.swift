@@ -3,32 +3,42 @@ import Bag
 import Money
 import Product
 
-/// Fowler, *PoEAA* (2002) — Data Transfer Object: the serialisation shape, kept out of the domain.
-/// It maps at the boundary, so a wire format change stops here.
+/// Fowler, *PoEAA* (2002), Ch. 15 — Data Transfer Object: the serialisation shape, kept out of the
+/// domain. It maps at the boundary, so a wire format change stops here.
 struct BagDTO: Codable, Sendable {
     let items: [BagItemDTO]
-    let pendingChanges: [BagChangeDTO]
+    let notices: [NoticeDTO]
 
-    init(bag: Bag, changes: BagChanges) {
-        self.items = bag.items.map(BagItemDTO.init(from:))
-        self.pendingChanges = changes.all.map(BagChangeDTO.init(from:))
+    /// The key on disk stays what it has always been. Renaming a property in Swift is not a reason
+    /// for a bag written by an older build to come back empty.
+    enum CodingKeys: String, CodingKey {
+        case items
+        case notices = "pendingChanges"
     }
 
-    func toDomain() -> (bag: Bag, changes: BagChanges) {
+    init(bag: Bag, notices: Notices) {
+        self.items = bag.items.map(BagItemDTO.init(from:))
+        self.notices = notices.all.map(NoticeDTO.init(from:))
+    }
+
+    func toDomain() -> (bag: Bag, notices: Notices) {
         (
             Bag(items: items.map { $0.toDomain() }),
-            BagChanges(pendingChanges.compactMap { $0.toDomain() })
+            Notices(notices.compactMap { $0.toDomain() })
         )
     }
 }
 
-/// Fowler, *PoEAA* (2002) — Data Transfer Object: the serialisation shape, kept out of the domain.
-/// It maps at the boundary, so a wire format change stops here.
+/// Fowler, *PoEAA* (2002), Ch. 15 — Data Transfer Object: the serialisation shape, kept out of the
+/// domain. It maps at the boundary, so a wire format change stops here.
 ///
 /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: a payload naming a kind
 /// this build no longer has stops at the boundary rather than failing the whole bag. Losing a
 /// notice is a small harm; losing the shopper's bag is not.
-struct BagChangeDTO: Codable, Sendable {
+struct NoticeDTO: Codable, Sendable {
+    /// Its own list, spelled out rather than shared with `Notice.Kind`. These names are on disk in
+    /// bags this app has already written, so they are a format to be kept rather than a spelling to
+    /// be refactored, and `storedKind(of:)` below is where the two are made to agree.
     enum Kind: String, Codable, Sendable {
         case priceWentUp
         case priceWentDown
@@ -53,36 +63,24 @@ struct BagChangeDTO: Codable, Sendable {
     let currencyCode: String?
     let available: Int?
 
-    init(from change: BagChange) {
-        self.productId = change.productId.rawValue
+    init(from notice: Notice) {
+        self.kind = Self.storedKind(of: notice.kind).rawValue
+        self.productId = notice.productId.rawValue
 
-        switch change {
-        case .priceWentUp(_, let from, let to):
-            self.kind = Kind.priceWentUp.rawValue
+        switch notice {
+        case .priceWentUp(_, let from, let to), .priceWentDown(_, let from, let to):
             self.fromMinorUnits = from.minorUnits
             self.toMinorUnits = to.minorUnits
             self.currencyCode = to.currency.code
             self.available = nil
-        case .priceWentDown(_, let from, let to):
-            self.kind = Kind.priceWentDown.rawValue
-            self.fromMinorUnits = from.minorUnits
-            self.toMinorUnits = to.minorUnits
-            self.currencyCode = to.currency.code
-            self.available = nil
+
         case .onlySomeLeft(_, let available):
-            self.kind = Kind.onlySomeLeft.rawValue
             self.fromMinorUnits = nil
             self.toMinorUnits = nil
             self.currencyCode = nil
             self.available = available
-        case .outOfStock:
-            self.kind = Kind.outOfStock.rawValue
-            self.fromMinorUnits = nil
-            self.toMinorUnits = nil
-            self.currencyCode = nil
-            self.available = nil
-        case .discontinued:
-            self.kind = Kind.discontinued.rawValue
+
+        case .outOfStock, .discontinued:
             self.fromMinorUnits = nil
             self.toMinorUnits = nil
             self.currencyCode = nil
@@ -90,7 +88,7 @@ struct BagChangeDTO: Codable, Sendable {
         }
     }
 
-    func toDomain() -> BagChange? {
+    func toDomain() -> Notice? {
         let id = ProductID(rawValue: productId)
 
         if kind == Kind.legacyGone { return .outOfStock(productId: id) }
@@ -111,6 +109,18 @@ struct BagChangeDTO: Codable, Sendable {
             return .outOfStock(productId: id)
         case .discontinued:
             return .discontinued(productId: id)
+        }
+    }
+
+    /// The one place the domain's list of notices and the one on disk are made to agree. A sixth
+    /// kind of notice fails to compile here until it has been given a name to be stored under.
+    private static func storedKind(of kind: Notice.Kind) -> Kind {
+        switch kind {
+        case .priceWentUp: .priceWentUp
+        case .priceWentDown: .priceWentDown
+        case .onlySomeLeft: .onlySomeLeft
+        case .outOfStock: .outOfStock
+        case .discontinued: .discontinued
         }
     }
 

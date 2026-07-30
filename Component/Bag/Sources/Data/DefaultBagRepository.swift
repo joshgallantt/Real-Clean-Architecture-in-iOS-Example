@@ -4,8 +4,8 @@ import Bag
 import Session
 
 @MainActor
-/// Evans, *Domain-Driven Design* (2003) — Repositories. Fowler, *PoEAA* (2002) — Repository: it
-/// keeps and hands back aggregates and decides nothing about what they mean.
+/// Evans, *Domain-Driven Design* (2003), Ch. 6 — Repositories. Fowler, *PoEAA* (2002), Ch. 13 —
+/// Repository: it keeps and hands back aggregates and decides nothing about what they mean.
 ///
 /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: takes an owner and a
 /// stream of owners, never a `Session`. It needs to know whose bag is live, not to understand
@@ -13,7 +13,7 @@ import Session
 public final class DefaultBagRepository: BagRepository {
     private let store: BagStore
     private let bagSubject: CurrentValueSubject<Bag, Never>
-    private let changesSubject: CurrentValueSubject<BagChanges, Never>
+    private let noticesSubject: CurrentValueSubject<Notices, Never>
     private var owner: Owner
     private var cancellables = Set<AnyCancellable>()
     private var pendingWrite: Task<Void, Never>?
@@ -28,7 +28,7 @@ public final class DefaultBagRepository: BagRepository {
 
         let kept = store.getBag(for: owner)
         self.bagSubject = CurrentValueSubject(kept.bag)
-        self.changesSubject = CurrentValueSubject(kept.changes)
+        self.noticesSubject = CurrentValueSubject(kept.notices)
 
         ownerPublisher
             .sink { [weak self] owner in
@@ -41,20 +41,20 @@ public final class DefaultBagRepository: BagRepository {
 
     public var bagPublisher: AnyPublisher<Bag, Never> { bagSubject.eraseToAnyPublisher() }
 
-    public var changes: BagChanges { changesSubject.value }
+    public var notices: Notices { noticesSubject.value }
 
-    public var changesPublisher: AnyPublisher<BagChanges, Never> { changesSubject.eraseToAnyPublisher() }
+    public var noticesPublisher: AnyPublisher<Notices, Never> { noticesSubject.eraseToAnyPublisher() }
 
-    public func save(bag: Bag, changes: BagChanges) {
+    public func save(bag: Bag, notices: Notices) {
         bagSubject.value = bag
-        changesSubject.value = changes
+        noticesSubject.value = notices
 
         let store = store
         let owner = owner
         let previous = pendingWrite
         pendingWrite = Task {
             await previous?.value
-            await store.setBag(bag, changes: changes, for: owner)
+            await store.setBag(bag, notices: notices, for: owner)
         }
     }
 
@@ -67,6 +67,6 @@ public final class DefaultBagRepository: BagRepository {
         self.owner = owner
         let kept = store.getBag(for: owner)
         bagSubject.value = kept.bag
-        changesSubject.value = kept.changes
+        noticesSubject.value = kept.notices
     }
 }

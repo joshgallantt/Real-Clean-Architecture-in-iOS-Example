@@ -73,7 +73,7 @@ Each module in this project has a single axis of change. A new screen design tou
 │   ├── Product/                # Product catalog (DummyJSON-backed)
 │   ├── SearchHistory/          # Per-user recent search history
 │   ├── Wishlist/               # Per-user wishlist, gated on authentication
-│   ├── Bag/                    # Per-shopper bag, and what the shop changed
+│   ├── Bag/                    # Per-shopper bag, and the notices the shop leaves on it
 │   └── StockAlert/             # Who asked to be told when something is back
 ├── UI/                         # Presentation packages
 │   ├── HomeUI/                 # Home tab
@@ -244,7 +244,7 @@ The full vocabulary of the application is discoverable by reading the domain alo
 | `Product` | `BrowseCatalogUseCase`, `ViewProductUseCase`, `LookUpProductsUseCase`, `BrowseCategoriesUseCase` |
 | `SearchHistory` | `GetSearchHistoryUseCase`, `RecordSearchUseCase`, `ClearSearchHistoryUseCase` |
 | `Wishlist` | `ObserveWishlistUseCase`, `ObserveProductIsWishlistedUseCase`, `AddProductToWishlistUseCase`, `RemoveProductFromWishlistUseCase` |
-| `Bag` | `ObserveBagUseCase`, `ObserveBagChangesUseCase`, `ObserveBagItemQuantityUseCase`, `AddItemToBagUseCase`, `SetBagItemQuantityUseCase`, `BringBagUpToDateUseCase`, `AcknowledgeBagChangeUseCase` |
+| `Bag` | `ObserveBagUseCase`, `ObserveNoticesUseCase`, `ObserveBagItemQuantityUseCase`, `AddItemToBagUseCase`, `SetBagItemQuantityUseCase`, `BringBagUpToDateUseCase`, `AcknowledgeNoticesUseCase` |
 
 Each name is something a shopper is trying to do. That is the test a use case name has to
 pass: `LookUpProductsUseCase` describes filling in the things on a list the shopper already
@@ -401,7 +401,7 @@ to ask.
 
 ### DTOs
 
-DTOs live in the data layer and never leak inward. `ProductDTO`, `ProductCategoryDTO`, `WishlistItemDTO`, `BagDTO`, `BagItemDTO`, `BagChangeDTO`, `SessionSnapshotDTO`, and `StoredUser` are the `Codable` types; each maps to a domain model at the repository boundary. Domain models carry no `Codable` conformance at all — serialisation is a storage detail, and making entities `Codable` silently couples the domain's shape to a wire format.
+DTOs live in the data layer and never leak inward. `ProductDTO`, `ProductCategoryDTO`, `WishlistItemDTO`, `BagDTO`, `BagItemDTO`, `NoticeDTO`, `SessionSnapshotDTO`, and `StoredUser` are the `Codable` types; each maps to a domain model at the repository boundary. Domain models carry no `Codable` conformance at all — serialisation is a storage detail, and making entities `Codable` silently couples the domain's shape to a wire format.
 
 ### Shared Networking
 

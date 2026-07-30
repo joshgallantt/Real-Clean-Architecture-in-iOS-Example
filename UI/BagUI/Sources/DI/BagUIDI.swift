@@ -13,30 +13,30 @@ import BagUI
 public struct BagUIDI {
     private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase
-    private let observeBagChanges: ObserveBagChangesUseCase
+    private let observeNotices: ObserveNoticesUseCase
     private let setBagItemQuantity: SetBagItemQuantityUseCase
     private let lookUpProducts: LookUpProductsUseCase
     private let bringBagUpToDate: BringBagUpToDateUseCase
-    private let acknowledgeBagChange: AcknowledgeBagChangeUseCase
+    private let acknowledgeNotices: AcknowledgeNoticesUseCase
     private let stockAlertButton: (ProductID) -> AnyView
 
     public init(
         navigation: BagNavigation,
         observeBag: ObserveBagUseCase,
-        observeBagChanges: ObserveBagChangesUseCase,
+        observeNotices: ObserveNoticesUseCase,
         setBagItemQuantity: SetBagItemQuantityUseCase,
         lookUpProducts: LookUpProductsUseCase,
         bringBagUpToDate: BringBagUpToDateUseCase,
-        acknowledgeBagChange: AcknowledgeBagChangeUseCase,
+        acknowledgeNotices: AcknowledgeNoticesUseCase,
         stockAlertButton: @escaping (ProductID) -> AnyView
     ) {
         self.navigation = navigation
         self.observeBag = observeBag
-        self.observeBagChanges = observeBagChanges
+        self.observeNotices = observeNotices
         self.setBagItemQuantity = setBagItemQuantity
         self.lookUpProducts = lookUpProducts
         self.bringBagUpToDate = bringBagUpToDate
-        self.acknowledgeBagChange = acknowledgeBagChange
+        self.acknowledgeNotices = acknowledgeNotices
         self.stockAlertButton = stockAlertButton
     }
 
@@ -45,11 +45,11 @@ public struct BagUIDI {
         BagScreenView(
             viewModel: BagScreenViewModel(
                 observeBag: observeBag,
-                observeBagChanges: observeBagChanges,
+                observeNotices: observeNotices,
                 lookUpProducts: lookUpProducts,
                 setBagItemQuantity: setBagItemQuantity,
                 bringBagUpToDate: bringBagUpToDate,
-                acknowledgeBagChange: acknowledgeBagChange
+                acknowledgeNotices: acknowledgeNotices
             ),
             navigation: navigation,
             stockAlertButton: stockAlertButton

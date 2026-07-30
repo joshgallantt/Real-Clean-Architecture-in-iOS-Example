@@ -23,7 +23,7 @@ final class Shopper {
     private var cancellables = Set<AnyCancellable>()
 
     private(set) var bag = Bag()
-    private(set) var news = BagChanges()
+    private(set) var news = Notices()
 
     init(in directory: URL = .newTemporaryDirectory, signedInAs userId: Int? = nil) {
         self.directory = directory
@@ -38,7 +38,7 @@ final class Shopper {
             .sink { [weak self] in self?.bag = $0 }
             .store(in: &cancellables)
 
-        di.observeBagChangesUseCase()
+        di.observeNoticesUseCase()
             .sink { [weak self] in self?.news = $0 }
             .store(in: &cancellables)
     }
@@ -60,7 +60,7 @@ final class Shopper {
     }
 
     func seen(productId: Int) {
-        di.acknowledgeBagChangeUseCase(productId: pid(productId))
+        di.acknowledgeNoticesUseCase(aboutProductId: pid(productId))
     }
 
     func signIn(asUserId userId: Int) {

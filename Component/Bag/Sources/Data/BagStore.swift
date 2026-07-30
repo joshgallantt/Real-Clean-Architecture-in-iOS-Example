@@ -2,13 +2,13 @@ import Foundation
 import Bag
 import Session
 
-/// Fowler, *PoEAA* (2002) — Gateway: wraps one external system behind a domain-shaped call.
+/// Fowler, *PoEAA* (2002), Ch. 18 — Gateway: wraps one external system behind a domain-shaped call.
 ///
 /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the outermost ring,
 /// replaceable without anything inward moving.
 public protocol BagStore: Sendable {
-    func getBag(for owner: Owner) -> (bag: Bag, changes: BagChanges)
-    func setBag(_ bag: Bag, changes: BagChanges, for owner: Owner) async
+    func getBag(for owner: Owner) -> (bag: Bag, notices: Notices)
+    func setBag(_ bag: Bag, notices: Notices, for owner: Owner) async
 }
 
 public struct FileBagStore: BagStore, @unchecked Sendable {
@@ -25,18 +25,18 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         return base.appending(path: "Bag", directoryHint: .isDirectory)
     }
 
-    public func getBag(for owner: Owner) -> (bag: Bag, changes: BagChanges) {
+    public func getBag(for owner: Owner) -> (bag: Bag, notices: Notices) {
         guard
             let data = try? Data(contentsOf: url(for: owner)),
             let dto = try? JSONDecoder().decode(BagDTO.self, from: data)
         else {
-            return (Bag(), BagChanges())
+            return (Bag(), Notices())
         }
         return dto.toDomain()
     }
 
-    public func setBag(_ bag: Bag, changes: BagChanges, for owner: Owner) async {
-        let dto = BagDTO(bag: bag, changes: changes)
+    public func setBag(_ bag: Bag, notices: Notices, for owner: Owner) async {
+        let dto = BagDTO(bag: bag, notices: notices)
         let directory = self.directory
         let url = url(for: owner)
 

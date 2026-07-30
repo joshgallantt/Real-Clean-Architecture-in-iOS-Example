@@ -91,11 +91,11 @@ struct PresentationAssembler {
         let bag = BagUIDI(
             navigation: navigator,
             observeBag: domain.bag.observeBagUseCase,
-            observeBagChanges: domain.bag.observeBagChangesUseCase,
+            observeNotices: domain.bag.observeNoticesUseCase,
             setBagItemQuantity: domain.bag.setBagItemQuantityUseCase,
             lookUpProducts: catalog.lookUpProducts,
             bringBagUpToDate: domain.bag.bringBagUpToDateUseCase,
-            acknowledgeBagChange: domain.bag.acknowledgeBagChangeUseCase,
+            acknowledgeNotices: domain.bag.acknowledgeNoticesUseCase,
             stockAlertButton: { id in AnyView(productActions.stockAlertButton(productId: id)) }
         )
         self.bag = bag

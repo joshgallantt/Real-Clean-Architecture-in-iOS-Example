@@ -41,7 +41,7 @@ struct ComingBackToTheBagTests {
 
         let returning = await shopper.leaveAndComeBack()
 
-        #expect(returning.news.priceMoves == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
+        #expect(returning.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
     }
 
     @Test("A burst of changes ends as the bag the shopper actually left")
