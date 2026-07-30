@@ -16,11 +16,9 @@ public final class BagScreenViewModel: ObservableObject {
     @Published private(set) var rows: [BagRow] = []
     @Published private(set) var outOfStockRows: [ChangedBagRow] = []
     @Published private(set) var discontinuedRows: [ChangedBagRow] = []
-    @Published private(set) var priceChangedRows: [ChangedBagRow] = []
+    @Published private(set) var priceIncreaseRows: [ChangedBagRow] = []
+    @Published private(set) var priceDecreaseRows: [ChangedBagRow] = []
     @Published private(set) var shortageRows: [ChangedBagRow] = []
-    @Published private(set) var isLoadingMore = false
-
-    private let pageSize = 30
 
     private let observeBag: ObserveBagUseCase
     private let observeBagChanges: ObserveBagChangesUseCase
@@ -34,7 +32,6 @@ public final class BagScreenViewModel: ObservableObject {
     private var bag = Bag()
     private var changes = BagChanges()
     private var catalog: [ProductID: Product] = [:]
-    private var loadedCount: Int
     private var lookupTask: Task<Void, Never>?
 
     /// Fowler, *PoEAA* (2002) — Money: always from the bag, never the catalog, so the total is
@@ -49,7 +46,8 @@ public final class BagScreenViewModel: ObservableObject {
         !outOfStockRows.isEmpty
             || !discontinuedRows.isEmpty
             || !shortageRows.isEmpty
-            || !priceChangedRows.isEmpty
+            || !priceIncreaseRows.isEmpty
+            || !priceDecreaseRows.isEmpty
     }
 
     var itemCountSummary: String {
@@ -72,31 +70,23 @@ public final class BagScreenViewModel: ObservableObject {
         self.bringBagUpToDate = bringBagUpToDate
         self.acknowledgeBagChange = acknowledgeBagChange
         self.snackbar = snackbar
-        self.loadedCount = pageSize
     }
 
     func onAppear() {
         if cancellables.isEmpty {
             subscribe()
         }
-        askTheShop(aboutEverythingVisible: true)
-    }
-
-    func onReachEnd() {
-        guard loadedCount < bag.items.count, !isLoadingMore else { return }
-        loadedCount += pageSize
-        render()
-        askTheShop(aboutEverythingVisible: false)
+        askTheShop()
     }
 
     func didChangeQuantity(productId: ProductID, quantity: Int) {
         setBagItemQuantity(productId: productId, to: quantity)
-        askTheShop(aboutEverythingVisible: true)
+        askTheShop()
     }
 
     func didSwipeToDelete(productId: ProductID) {
         setBagItemQuantity(productId: productId, to: 0)
-        askTheShop(aboutEverythingVisible: true)
+        askTheShop()
     }
 
     func didAcknowledgeChange(productId: ProductID) {
@@ -118,12 +108,12 @@ public final class BagScreenViewModel: ObservableObject {
         for item in bag.items {
             setBagItemQuantity(productId: item.id, to: 0)
         }
-        askTheShop(aboutEverythingVisible: true)
+        askTheShop()
     }
 
     func didRemoveChangedItem(productId: ProductID) {
         setBagItemQuantity(productId: productId, to: 0)
-        askTheShop(aboutEverythingVisible: true)
+        askTheShop()
     }
 
 
@@ -165,38 +155,38 @@ public final class BagScreenViewModel: ObservableObject {
     /// there is a moment where a product has left the bag and its notice has not yet arrived.
     /// Nothing is discarded on that edge; the set is only ever narrowed where both are settled.
     private var productsOnScreen: Set<ProductID> {
-        Set(bag.items.prefix(loadedCount).map(\.id))
-            .union(changes.all.map(\.productId))
+        Set(bag.items.map(\.id)).union(changes.all.map(\.productId))
     }
 
     private func render() {
-        rows = bag.items.prefix(loadedCount).map { item in
+        rows = bag.items.map { item in
             BagRow(item: item, name: catalog[item.id]?.title, imageURL: catalog[item.id]?.thumbnail)
         }
 
         outOfStockRows = changes.outOfStock.map(row(for:))
         discontinuedRows = changes.discontinued.map(row(for:))
-        priceChangedRows = changes.priceMoves.map(row(for:))
+        priceIncreaseRows = changes.priceIncreases.map(row(for:))
+        priceDecreaseRows = changes.priceDecreases.map(row(for:))
         shortageRows = changes.shortages.map(row(for:))
     }
 
-    private func askTheShop(aboutEverythingVisible refreshAll: Bool) {
+    /// The whole bag, every time, not a page of it.
+    ///
+    /// Asking page by page meant the bag caught up page by page: prices settled and sold-out lines
+    /// left only once a shopper had scrolled far enough to ask about them, so the total moved under
+    /// them as they scrolled. A total that changes while you read it is not a total. What a bag is
+    /// worth is a fact about all of it, so all of it is what gets asked about.
+    private func askTheShop() {
         lookupTask?.cancel()
 
-        let window = Array(bag.items.prefix(loadedCount))
         let onScreen = productsOnScreen
         catalog = catalog.filter { onScreen.contains($0.key) }
 
-        let ids = refreshAll ? Array(onScreen) : Array(onScreen).filter { catalog[$0] == nil }
-        guard !ids.isEmpty else {
-            isLoadingMore = false
-            return
-        }
+        guard !onScreen.isEmpty else { return }
 
-        isLoadingMore = rows.contains { $0.name == nil } && window.count > pageSize
         lookupTask = Task { [weak self] in
             guard let self else { return }
-            let result = await self.lookUpProducts(ids: ids)
+            let result = await self.lookUpProducts(ids: Array(onScreen))
             guard !Task.isCancelled else { return }
 
             if case .success(let products) = result {
@@ -206,7 +196,6 @@ public final class BagScreenViewModel: ObservableObject {
                 self.bringBagUpToDate(against: products.map(self.whatTheShopSays))
             }
 
-            self.isLoadingMore = false
             self.render()
         }
     }

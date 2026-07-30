@@ -27,10 +27,16 @@ struct BagRow: Identifiable, Equatable {
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: the notice already
 /// put into words, so the view holds no wording decisions.
 ///
-/// It does hold styling decisions, and `priceMove` is what lets it. A price move is worth seeing
-/// rather than reading — the old amount struck through, the new one coloured by which way it went —
-/// and a view cannot strike through half of a finished sentence. The words come from here and the
-/// emphasis from the view, which is the line between the two rather than a leak across it.
+/// Most notices have no words of their own. What happened to a row is what its section is for, and
+/// saying "out of stock" down a column of out-of-stock things is a sentence a shopper has to read
+/// past on every line to reach the one thing that differs — the product. So `detail` is filled in
+/// only where a row knows something its heading cannot: how many are left.
+///
+/// A price move is the other half of that. It is worth seeing rather than reading — the old amount
+/// struck through, the new one coloured by which way it went — and a view cannot strike through
+/// half of a finished sentence. So `priceMove` hands over the two amounts and the direction. The
+/// words come from here and the emphasis from the view, which is the line between the two rather
+/// than a leak across it.
 struct ChangedBagRow: Identifiable, Equatable {
     struct PriceMove: Equatable {
         let was: String
@@ -41,31 +47,25 @@ struct ChangedBagRow: Identifiable, Equatable {
     let id: ProductID
     let name: String?
     let imageURL: String?
-    let summary: String
+    let detail: String?
     let priceMove: PriceMove?
 
     init(change: BagChange, name: String?, imageURL: String?) {
         self.id = change.productId
         self.name = name
         self.imageURL = imageURL
-        self.summary = Self.summary(for: change)
+        self.detail = Self.detail(for: change)
         self.priceMove = Self.priceMove(for: change)
     }
 
-    private static func summary(for change: BagChange) -> String {
+    /// How many are left is the one thing a section heading cannot say, because it differs by row.
+    /// Everything else about these notices is said once, above them.
+    private static func detail(for change: BagChange) -> String? {
         switch change {
-        case .priceWentUp:
-            "The price went up while this was in your bag"
-        case .priceWentDown:
-            "Good news — this got cheaper"
         case .onlySomeLeft(_, let available):
-            available == 1
-                ? "Only 1 left, so we've made it 1"
-                : "Only \(available) left, so we've made it \(available)"
-        case .outOfStock:
-            "Out of stock — we'll have it back"
-        case .discontinued:
-            "The shop has stopped selling this"
+            available == 1 ? "Only 1 left" : "Only \(available) left"
+        case .priceWentUp, .priceWentDown, .outOfStock, .discontinued:
+            nil
         }
     }
 
