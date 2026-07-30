@@ -2,6 +2,7 @@ import Foundation
 import BagDI
 import SearchHistoryDI
 import SessionDI
+import StockAlertDI
 import WishlistDI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the second phase. Each
@@ -22,6 +23,7 @@ struct DomainAssembler {
     let searchHistory: SearchHistoryDI
     let wishlist: WishlistDI
     let bag: BagDI
+    let stockAlerts: StockAlertDI
 
     init(data: DataAssembler, catalog: Catalog) {
         self.catalog = catalog
@@ -46,6 +48,11 @@ struct DomainAssembler {
             getSession: session.getSessionUseCase,
             observeSession: session.observeSessionUseCase,
             store: data.bagStore
+        )
+        stockAlerts = StockAlertDI(
+            getSession: session.getSessionUseCase,
+            observeSession: session.observeSessionUseCase,
+            store: data.stockAlertStore
         )
     }
 }

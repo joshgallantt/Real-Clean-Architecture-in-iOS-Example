@@ -29,8 +29,10 @@
 		FADE000800000000000000A1 /* SnackbarUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000800000000000000A2 /* SnackbarUI */; };
 		FADE000900000000000000A1 /* SheetUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000900000000000000A2 /* SheetUI */; };
 		FADE001000000000000000A1 /* BagDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE001000000000000000A2 /* BagDI */; };
-		FADE001100000000000000A1 /* SharedUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE001100000000000000A2 /* SharedUIDI */; };
+		FADE001100000000000000A1 /* ProductActionsUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE001100000000000000A2 /* ProductActionsUIDI */; };
 		FADE002200000000000000B1 /* Money in Frameworks */ = {isa = PBXBuildFile; productRef = FADE002100000000000000B1 /* Money */; };
+		FADE009800000000000000A1 /* StockAlertData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009800000000000000A2 /* StockAlertData */; };
+		FADE009900000000000000A1 /* StockAlertDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009900000000000000A2 /* StockAlertDI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -82,13 +84,15 @@
 				FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */,
 				FADE000300000000000000A1 /* ProductUIDI in Frameworks */,
 				FADE000400000000000000A1 /* WishlistDI in Frameworks */,
+				FADE009900000000000000A1 /* StockAlertDI in Frameworks */,
+				FADE009800000000000000A1 /* StockAlertData in Frameworks */,
 				FADE000500000000000000A1 /* AuthUI in Frameworks */,
 				FADE000600000000000000A1 /* SnackbarUIDI in Frameworks */,
 				FADE000700000000000000A1 /* SheetUIDI in Frameworks */,
 				FADE000800000000000000A1 /* SnackbarUI in Frameworks */,
 				FADE000900000000000000A1 /* SheetUI in Frameworks */,
 				FADE001000000000000000A1 /* BagDI in Frameworks */,
-				FADE001100000000000000A1 /* SharedUIDI in Frameworks */,
+				FADE001100000000000000A1 /* ProductActionsUIDI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -151,13 +155,15 @@
 				FADE000200000000000000A2 /* OnboardingUIDI */,
 				FADE000300000000000000A2 /* ProductUIDI */,
 				FADE000400000000000000A2 /* WishlistDI */,
+				FADE009900000000000000A2 /* StockAlertDI */,
+				FADE009800000000000000A2 /* StockAlertData */,
 				FADE000500000000000000A2 /* AuthUI */,
 				FADE000600000000000000A2 /* SnackbarUIDI */,
 				FADE000700000000000000A2 /* SheetUIDI */,
 				FADE000800000000000000A2 /* SnackbarUI */,
 				FADE000900000000000000A2 /* SheetUI */,
 				FADE001000000000000000A2 /* BagDI */,
-				FADE001100000000000000A2 /* SharedUIDI */,
+				FADE001100000000000000A2 /* ProductActionsUIDI */,
 			);
 			productName = iPhone;
 			productReference = 1418DD6E2E3E53DC00191417 /* iPhone.app */;
@@ -501,13 +507,17 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Component/Bag;
 		};
-		FADE001100000000000000B1 /* XCLocalSwiftPackageReference "UI/SharedUI" */ = {
+		FADE001100000000000000B1 /* XCLocalSwiftPackageReference "UI/ProductActionsUI" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = UI/SharedUI;
+			relativePath = UI/ProductActionsUI;
 		};
 		FADE002000000000000000B1 /* XCLocalSwiftPackageReference "Library/Money" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Library/Money;
+		};
+		FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/StockAlert" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/StockAlert;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -622,15 +632,25 @@
 			package = FADE001000000000000000B1 /* XCLocalSwiftPackageReference "Component/Bag" */;
 			productName = BagDI;
 		};
-		FADE001100000000000000A2 /* SharedUIDI */ = {
+		FADE001100000000000000A2 /* ProductActionsUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = FADE001100000000000000B1 /* XCLocalSwiftPackageReference "UI/SharedUI" */;
-			productName = SharedUIDI;
+			package = FADE001100000000000000B1 /* XCLocalSwiftPackageReference "UI/ProductActionsUI" */;
+			productName = ProductActionsUIDI;
 		};
 		FADE002100000000000000B1 /* Money */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = FADE002000000000000000B1 /* XCLocalSwiftPackageReference "Library/Money" */;
 			productName = Money;
+		};
+		FADE009800000000000000A2 /* StockAlertData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/StockAlert" */;
+			productName = StockAlertData;
+		};
+		FADE009900000000000000A2 /* StockAlertDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/StockAlert" */;
+			productName = StockAlertDI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

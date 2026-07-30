@@ -6,6 +6,7 @@ import SearchUI
 import SearchUIDI
 import WishlistUI
 import BagUI
+import ProductActionsUI
 import ProductUIDI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: every route in one place, in
@@ -40,7 +41,7 @@ public enum Destination: Hashable {
     }
 }
 
-extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNavigation {
+extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNavigation, ProductActionsNavigation {
     func openCatalog(filter: CatalogFilter) {
         open(.catalog(filter))
     }

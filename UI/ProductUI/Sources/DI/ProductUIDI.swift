@@ -1,8 +1,7 @@
 import SwiftUI
 import Product
 import ProductUI
-import BagUIDI
-import SharedUIDI
+import ProductActionsUIDI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
 /// hierarchy and holds its collaborators.
@@ -13,21 +12,19 @@ import SharedUIDI
 /// layering exists to enforce.
 public struct ProductUIDI {
     private let viewProduct: ViewProductUseCase
-    private let bagUIDI: BagUIDI
-    private let sharedUIDI: SharedUIDI
+    private let productActionsUIDI: ProductActionsUIDI
 
-    public init(viewProduct: ViewProductUseCase, bagUIDI: BagUIDI, sharedUIDI: SharedUIDI) {
+    public init(viewProduct: ViewProductUseCase, productActionsUIDI: ProductActionsUIDI) {
         self.viewProduct = viewProduct
-        self.bagUIDI = bagUIDI
-        self.sharedUIDI = sharedUIDI
+        self.productActionsUIDI = productActionsUIDI
     }
 
     @MainActor
     public func detailView(id: ProductID) -> some View {
         ProductDetailsScreen(
             viewModel: ProductDetailsViewModel(id: id, viewProduct: viewProduct),
-            actionButton: { product in AnyView(bagUIDI.detailsButton(product: product)) },
-            wishlistButton: AnyView(sharedUIDI.wishlistButton(productId: id))
+            actionButton: { product in AnyView(productActionsUIDI.detailsActionButton(product: product)) },
+            wishlistButton: AnyView(productActionsUIDI.wishlistButton(productId: id))
         )
     }
 
@@ -35,8 +32,8 @@ public struct ProductUIDI {
     public func detailView(product: Product) -> some View {
         ProductDetailsScreen(
             viewModel: ProductDetailsViewModel(product: product),
-            actionButton: { product in AnyView(bagUIDI.detailsButton(product: product)) },
-            wishlistButton: AnyView(sharedUIDI.wishlistButton(productId: product.id))
+            actionButton: { product in AnyView(productActionsUIDI.detailsActionButton(product: product)) },
+            wishlistButton: AnyView(productActionsUIDI.wishlistButton(productId: product.id))
         )
     }
 }

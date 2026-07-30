@@ -15,58 +15,39 @@ public struct BagUIDI {
     private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase
     private let observeBagChanges: ObserveBagChangesUseCase
-    private let observeBagItemQuantity: ObserveBagItemQuantityUseCase
-    private let addItemToBag: AddItemToBagUseCase
     private let setBagItemQuantity: SetBagItemQuantityUseCase
     private let lookUpProducts: LookUpProductsUseCase
     private let bringBagUpToDate: BringBagUpToDateUseCase
     private let acknowledgeBagChange: AcknowledgeBagChangeUseCase
     private let snackbarPresenter: SnackbarPresenting
     private let wishlistButton: (ProductID) -> AnyView
+    private let stockAlertButton: (ProductID) -> AnyView
 
     public init(
         navigation: BagNavigation,
         observeBag: ObserveBagUseCase,
         observeBagChanges: ObserveBagChangesUseCase,
-        observeBagItemQuantity: ObserveBagItemQuantityUseCase,
-        addItemToBag: AddItemToBagUseCase,
         setBagItemQuantity: SetBagItemQuantityUseCase,
         lookUpProducts: LookUpProductsUseCase,
         bringBagUpToDate: BringBagUpToDateUseCase,
         acknowledgeBagChange: AcknowledgeBagChangeUseCase,
         snackbarPresenter: SnackbarPresenting,
-        wishlistButton: @escaping (ProductID) -> AnyView
+        wishlistButton: @escaping (ProductID) -> AnyView,
+        stockAlertButton: @escaping (ProductID) -> AnyView
     ) {
         self.navigation = navigation
         self.observeBag = observeBag
         self.observeBagChanges = observeBagChanges
-        self.observeBagItemQuantity = observeBagItemQuantity
-        self.addItemToBag = addItemToBag
         self.setBagItemQuantity = setBagItemQuantity
         self.lookUpProducts = lookUpProducts
         self.bringBagUpToDate = bringBagUpToDate
         self.acknowledgeBagChange = acknowledgeBagChange
         self.snackbarPresenter = snackbarPresenter
         self.wishlistButton = wishlistButton
+        self.stockAlertButton = stockAlertButton
     }
 
-    @MainActor
-    public func button(product: Product) -> some View {
-        BagButtonView(viewModel: makeButtonViewModel(product: product))
-    }
 
-    @MainActor
-    @ViewBuilder
-    public func detailsButton(product: Product) -> some View {
-        switch product.availability {
-        case .inStock:
-            AddToBagButton(viewModel: makeButtonViewModel(product: product))
-        case .outOfStock:
-            NotifyMeButton(product: product, snackbarPresenter: snackbarPresenter)
-        case .discontinued:
-            UnavailableButton()
-        }
-    }
 
     @MainActor
     public func mainView() -> some View {
@@ -81,18 +62,9 @@ public struct BagUIDI {
                 snackbar: snackbarPresenter
             ),
             navigation: navigation,
-            wishlistButton: wishlistButton
+            wishlistButton: wishlistButton,
+            stockAlertButton: stockAlertButton
         )
     }
 
-    @MainActor
-    private func makeButtonViewModel(product: Product) -> BagButtonViewModel {
-        BagButtonViewModel(
-            product: product,
-            observeBagItemQuantity: observeBagItemQuantity,
-            addItemToBag: addItemToBag,
-            navigation: navigation,
-            snackbarPresenter: snackbarPresenter
-        )
-    }
 }

@@ -40,7 +40,7 @@ public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
         let catalog = Dictionary(shopSays.map { ($0.productId, $0) }, uniquingKeysWith: { _, last in last })
         var keptItems: [BagItem] = []
         var news: [BagChange] = []
-        var gone = changes.noLongerAvailable
+        var gone = changes.gone
 
         for item in bag.items {
             guard let says = catalog[item.productId] else {
@@ -51,7 +51,11 @@ public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
 
             guard says.availability.isAvailable else {
                 if !gone.contains(where: { $0.productId == item.productId }) {
-                    gone.append(.noLongerAvailable(productId: item.productId))
+                    gone.append(
+                        says.availability == .discontinued
+                            ? .discontinued(productId: item.productId)
+                            : .outOfStock(productId: item.productId)
+                    )
                 }
                 continue
             }

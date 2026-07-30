@@ -13,14 +13,19 @@ public enum BagChange: Equatable, Sendable {
 
     case onlySomeLeft(productId: ProductID, available: Int)
 
-    case noLongerAvailable(productId: ProductID)
+    /// Two cases, not one with a reason attached, because a shopper reads them completely
+    /// differently: one is worth waiting for and the other is not. Collapsing them would let a
+    /// screen offer to tell somebody when a thing that is never coming back comes back.
+    case outOfStock(productId: ProductID)
+    case discontinued(productId: ProductID)
 
     public var productId: ProductID {
         switch self {
         case .priceWentUp(let id, _, _),
              .priceWentDown(let id, _, _),
              .onlySomeLeft(let id, _),
-             .noLongerAvailable(let id):
+             .outOfStock(let id),
+             .discontinued(let id):
             id
         }
     }
@@ -28,14 +33,14 @@ public enum BagChange: Equatable, Sendable {
     var isAboutAProductStillInTheBag: Bool {
         switch self {
         case .priceWentUp, .priceWentDown, .onlySomeLeft: true
-        case .noLongerAvailable: false
+        case .outOfStock, .discontinued: false
         }
     }
 
     var priceLastSeen: Money? {
         switch self {
         case .priceWentUp(_, let from, _), .priceWentDown(_, let from, _): from
-        case .onlySomeLeft, .noLongerAvailable: nil
+        case .onlySomeLeft, .outOfStock, .discontinued: nil
         }
     }
 

@@ -5,8 +5,7 @@ import Session
 import AuthUI
 import SnackbarUI
 import WishlistUI
-import BagUIDI
-import SharedUIDI
+import ProductActionsUIDI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
 /// hierarchy and holds its collaborators.
@@ -22,8 +21,7 @@ public struct WishlistUIDI {
     private let observeSession: ObserveSessionUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
-    private let bagUIDI: BagUIDI
-    private let sharedUIDI: SharedUIDI
+    private let productActionsUIDI: ProductActionsUIDI
 
     public init(
         navigation: WishlistNavigation,
@@ -32,8 +30,7 @@ public struct WishlistUIDI {
         observeSession: ObserveSessionUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
-        bagUIDI: BagUIDI,
-        sharedUIDI: SharedUIDI
+        productActionsUIDI: ProductActionsUIDI
     ) {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
@@ -41,13 +38,12 @@ public struct WishlistUIDI {
         self.observeSession = observeSession
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
-        self.bagUIDI = bagUIDI
-        self.sharedUIDI = sharedUIDI
+        self.productActionsUIDI = productActionsUIDI
     }
 
     @MainActor
     public func button(productId: ProductID) -> some View {
-        sharedUIDI.wishlistButton(productId: productId)
+        productActionsUIDI.wishlistButton(productId: productId)
     }
 
     @MainActor
@@ -61,7 +57,7 @@ public struct WishlistUIDI {
             ),
             navigation: navigation,
             wishlistButton: { productId in AnyView(button(productId: productId)) },
-            bagButton: { product in AnyView(bagUIDI.button(product: product)) },
+            bagButton: { product in AnyView(productActionsUIDI.cardActionButton(product: product)) },
             authPresenter: authPresenter
         )
     }

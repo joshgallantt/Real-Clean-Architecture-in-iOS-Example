@@ -11,12 +11,13 @@ import SnackbarUI
 ///
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
+///
 public final class BagButtonViewModel: ObservableObject {
     @Published private(set) var quantity = 0
 
     private let product: Product
     private let addItemToBag: AddItemToBagUseCase
-    private let navigation: BagNavigation
+    private let navigation: ProductActionsNavigation
     private let snackbarPresenter: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
 
@@ -24,7 +25,7 @@ public final class BagButtonViewModel: ObservableObject {
         product: Product,
         observeBagItemQuantity: ObserveBagItemQuantityUseCase,
         addItemToBag: AddItemToBagUseCase,
-        navigation: BagNavigation,
+        navigation: ProductActionsNavigation,
         snackbarPresenter: SnackbarPresenting
     ) {
         self.product = product
@@ -39,23 +40,13 @@ public final class BagButtonViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    /// `ProductActionsUIDI` only builds a bag button for something the shop can supply, so this is not a
+    /// second decision about which button to be. It is the one thing a bag button must never do:
+    /// put something the shop cannot supply into a shopper's bag. What to offer instead belongs to
+    /// `StockAlertButtonViewModel`, which can actually keep the promise it makes.
     func didTap() {
-        switch product.availability {
-        case .inStock:
-            addToBag()
-        case .outOfStock:
-            snackbarPresenter.show(Snackbar(
-                title: "Out of Stock",
-                message: "Open it to be told when it's back.",
-                icon: "shippingbox"
-            ))
-        case .discontinued:
-            snackbarPresenter.show(Snackbar(
-                title: "No Longer Available",
-                message: "This isn't sold any more.",
-                icon: "xmark.circle"
-            ))
-        }
+        guard product.availability.isAvailable else { return }
+        addToBag()
     }
 
     private func addToBag() {

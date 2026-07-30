@@ -73,15 +73,16 @@ Each module in this project has a single axis of change. A new screen design tou
 │   ├── Product/                # Product catalog (DummyJSON-backed)
 │   ├── SearchHistory/          # Per-user recent search history
 │   ├── Wishlist/               # Per-user wishlist, gated on authentication
-│   └── Bag/                    # Per-shopper bag, and what the shop changed
+│   ├── Bag/                    # Per-shopper bag, and what the shop changed
+│   └── StockAlert/             # Who asked to be told when something is back
 ├── UI/                         # Presentation packages
 │   ├── HomeUI/                 # Home tab
 │   ├── SearchUI/               # Search tab: categories, suggestions, results
 │   ├── WishlistUI/             # Wishlist tab
-│   ├── BagUI/                  # Bag tab, and the add-to-bag buttons
+│   ├── BagUI/                  # Bag tab
 │   ├── AccountUI/              # Account tab: profile, log in/out
 │   ├── ProductUI/              # Shared product UI: card, grid, details screen
-│   ├── SharedUI/               # UI needed by more than one feature — the wishlist button
+│   ├── ProductActionsUI/       # What a shopper can do to a product: save, buy, be told
 │   ├── OnboardingUI/           # First-run onboarding
 │   ├── AuthUI/                 # Authentication flow, exposed as a port
 │   ├── SheetUI/                # Generic sheet presentation primitive
@@ -474,9 +475,15 @@ Views bind to `@Published` properties and delegate all actions to the ViewModel.
 
 `ProductUI` is a UI package with no tab of its own. It owns the product card, the paginating product grid, and the product details screen — the things `SearchUI` and `WishlistUI` both need and neither should own. Its views take an `accessory` closure so a host feature can slot in, say, a wishlist button without `ProductUI` learning what a wishlist is.
 
-`SharedUI` is the same idea one level down: the wishlist button is needed by product cards, the wishlist screen and the bag's removed-items list, so it lives in a package all three may link. Putting it in `WishlistUI` would make `BagUI` depend on the wishlist feature to draw a heart.
+`ProductActionsUI` is the same idea one level down, and it is named for what it *is* rather than for who uses it. It holds the three things a shopper can do to a product — save it, buy it, be told when it is back — and the decision of which to offer for a given availability.
 
-**Cross-feature UI dependencies are allowed and intentional.** `SearchUI` imports `ProductUI`; `WishlistUI` imports `ProductUI`, `SharedUI` and `AuthUI`. What is not allowed is a UI package importing another component's *data* layer.
+They are not feature buttons that happen to be reused. A heart belongs to the product, not to the wishlist feature, and the set of them changes for exactly one reason: when what a shopper can do with a product changes. That is a single axis of change, which is the test for what belongs together.
+
+There is a mechanical reason too. `BagUI` renders the heart, in the removed-items list; `WishlistUI` renders the bag button, on every row. If each button lived in its own feature's package that is a cycle, and SwiftPM refuses to build it.
+
+A package named `SharedUI` would invite the opposite question — a name describing a *relationship* to other packages gives no criterion for what belongs inside, so eventually everything does. Named for the concept, the rule writes itself: if it is not something a shopper can do to a product, it does not go here.
+
+**Cross-feature UI dependencies are allowed and intentional.** `SearchUI` imports `ProductUI`; `WishlistUI` imports `ProductUI`, `ProductActionsUI` and `AuthUI`. What is not allowed is a UI package importing another component's *data* layer.
 
 ### Feature DI Containers
 
@@ -571,7 +578,7 @@ A feature says *why* it needs an account and awaits a yes or no. It does not kno
 
 Putting the previous two sections together produces the pattern that runs through the whole app: **the domain decides that authentication is required; the UI decides what to do about it.**
 
-**[`UI/SharedUI/Sources/UI/Buttons/WishlistButtonViewModel.swift`](UI/SharedUI/Sources/UI/Buttons/WishlistButtonViewModel.swift)**
+**[`UI/ProductActionsUI/Sources/UI/Buttons/WishlistButtonViewModel.swift`](UI/ProductActionsUI/Sources/UI/Buttons/WishlistButtonViewModel.swift)**
 ```swift
 switch await add(productId: productId) {
 case .success:
@@ -718,7 +725,7 @@ struct PresentationAssembler {
 
     let onboarding: OnboardingUIDI
     let auth: AuthUIDI
-    let shared: SharedUIDI
+    let productActions: ProductActionsUIDI
     let product: ProductUIDI
     let home: HomeUIDI
     let search: SearchUIDI
@@ -946,14 +953,15 @@ iPhone (App)
 ├── SheetUIDI    ──▶  SheetUI
 ├── SnackbarUIDI ──▶  SnackbarUI
 ├── AuthUIDI     ──▶  AuthUI, Session, SheetUI
-├── SharedUIDI   ──▶  SharedUI    ──▶  Wishlist, Product, SnackbarUI, AuthUI
+├── ProductActionsUIDI ──▶ ProductActionsUI ──▶ Wishlist, Bag, StockAlert, Product,
+│                                              SnackbarUI, AuthUI
 ├── ProductUIDI  ──▶  ProductUI   ──▶  Product
-│                ──▶  BagUIDI, SharedUIDI
+│                ──▶  ProductActionsUIDI
 ├── HomeUIDI     ──▶  HomeUI      ──▶  Product, Money, SnackbarUI
 ├── SearchUIDI   ──▶  SearchUI    ──▶  Product, Money, SearchHistory, ProductUI, SnackbarUI
 │                ──▶  WishlistUIDI, BagUIDI
 ├── WishlistUIDI ──▶  WishlistUI  ──▶  Wishlist, Product, Session, ProductUI, SnackbarUI, AuthUI
-│                ──▶  BagUIDI, SharedUIDI
+│                ──▶  ProductActionsUIDI
 ├── BagUIDI      ──▶  BagUI       ──▶  Bag, Product, Money, SnackbarUI
 └── AccountUIDI  ──▶  AccountUI   ──▶  Session
                  ──▶  AuthUIDI

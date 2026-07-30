@@ -4,6 +4,7 @@ import Bag
 import Money
 import Product
 import SnackbarUI
+@testable import BagUI
 
 @MainActor
 /// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: only two things are faked —
@@ -38,6 +39,9 @@ final class FakeShop: BagRepository {
     // MARK: - The real use cases, over this as their repository
 
     var observeBag: ObserveBagUseCase { DefaultObserveBagUseCase(repository: self) }
+    var observeBagItemQuantity: ObserveBagItemQuantityUseCase {
+        DefaultObserveBagItemQuantityUseCase(repository: self)
+    }
     var observeBagChanges: ObserveBagChangesUseCase { DefaultObserveBagChangesUseCase(repository: self) }
     var setBagItemQuantity: SetBagItemQuantityUseCase { DefaultSetBagItemQuantityUseCase(repository: self) }
     var bringUpToDate: BringBagUpToDateUseCase { DefaultBringBagUpToDateUseCase(repository: self) }
@@ -88,6 +92,17 @@ final class FakeShop: BagRepository {
         let shop: FakeShop
         init(shop: FakeShop) { self.shop = shop }
         func show(_ snackbar: Snackbar) { shop.record(snackbar) }
+    }
+}
+
+/// The app layer conforms `Navigator` to this. The bag screen only ever pushes product details, so
+/// that is all the test needs to know about.
+@MainActor
+final class StubNavigation: BagNavigation {
+    private(set) var openedProducts: [ProductID] = []
+
+    nonisolated func openProductDetails(id: ProductID) {
+        MainActor.assumeIsolated { openedProducts.append(id) }
     }
 }
 
