@@ -37,6 +37,18 @@ public struct Money: Equatable, Hashable, Sendable {
 // MARK: - Arithmetic
 
 extension Money {
+    /// Fowler, *PoEAA* (2002) — Money: nothing at all for an empty sequence, because there is no
+    /// currency in it to name an amount in.
+    ///
+    /// A static on `Money` rather than an extension on `Sequence`: the rule is about money, and
+    /// hanging it off every sequence in the language would put it a long way from the type it is
+    /// about.
+    public static func total(of amounts: some Sequence<Money>) -> Money? {
+        amounts.reduce(nil) { running, next in
+            running.map { $0 + next } ?? next
+        }
+    }
+
     public static func + (lhs: Money, rhs: Money) -> Money {
         precondition(
             lhs.currency == rhs.currency,
@@ -60,12 +72,3 @@ extension Money: Comparable {
     }
 }
 
-/// Fowler, *PoEAA* (2002) — Money: nothing at all for an empty sequence, because there is no
-/// currency in it to name an amount in.
-extension Sequence where Element == Money {
-    public func total() -> Money? {
-        reduce(nil) { running, next in
-            running.map { $0 + next } ?? next
-        }
-    }
-}

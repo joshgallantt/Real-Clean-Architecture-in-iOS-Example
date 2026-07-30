@@ -35,7 +35,7 @@ public struct Bag: Equatable, Sendable {
     /// Fowler, *PoEAA* (2002) — Money. Nothing at all when the bag is empty: there is no currency
     /// in an empty bag to name an amount in.
     public var total: Money? {
-        items.map(\.lineTotal).total()
+        Money.total(of: items.map(\.lineTotal))
     }
 
     public var itemCount: Int {

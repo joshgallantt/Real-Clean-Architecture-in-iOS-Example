@@ -95,7 +95,7 @@ final class AuthViewModel: ObservableObject {
                 confirmationMessage = greeting("Welcome back")
                 onAuthenticated()
             case .failure(let failure):
-                error = failure.userMessage
+                error = AuthenticationErrorMessages.message(for: failure)
             }
         case .createAccount:
             let result = await createAccountUseCase(
@@ -108,7 +108,7 @@ final class AuthViewModel: ObservableObject {
                 confirmationMessage = greeting("Welcome")
                 onAuthenticated()
             case .failure(let failure):
-                error = failure.userMessage
+                error = AuthenticationErrorMessages.message(for: failure)
             }
         }
     }
