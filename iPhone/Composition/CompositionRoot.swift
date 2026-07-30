@@ -1,25 +1,18 @@
 import SwiftUI
-import HomeUIDI
-import SearchUIDI
-import WishlistUIDI
-import BagUIDI
-import SharedUIDI
-import AccountUIDI
-import AuthUIDI
-import OnboardingUIDI
-import ProductUIDI
-import SnackbarUIDI
-import SheetUIDI
 import SessionDI
-import SessionData
-import SearchHistoryDI
-import SearchHistoryData
-import WishlistDI
-import BagDI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the composition root. Every
-/// concrete type in the app is named here and nowhere else, so swapping one is a change to this
-/// file alone. Its length tracks feature count, not complexity.
+/// concrete type in the app is named in one of its three phases and nowhere else, so swapping one
+/// is a change to this folder alone.
+///
+/// The phases are the layers the architecture already has — `DataAssembler` names the stores and
+/// clients, `DomainAssembler` builds the component containers over them, `PresentationAssembler`
+/// builds the features from use cases. Each is handed only the phase before it, so the wiring runs
+/// one way and no phase can reach forward into the next.
+///
+/// Seemann & van Deursen, *Dependency Injection* (2019) — Composition Root: still a single
+/// location. Three assemblers constructed here in one order are one composition root with its
+/// phases named, not three places where composition happens.
 ///
 /// Martin, Ch. 22 — The Clean Architecture: the outermost ring. Nothing inward knows it exists. Not
 /// unit tested — it is wiring, with no behaviour of its own.
@@ -30,159 +23,28 @@ import BagDI
 /// without this file knowing demos exist.
 @MainActor
 final class CompositionRoot {
-    /// The graph the app runs on. Swap the right-hand side for a demo's — see
-    /// `DemoCompositionRoot`. Both sides compile, so a demo cannot rot unnoticed and switching
-    /// one on is never a matter of uncommenting code.
-    static let shared = CompositionRoot(catalog: .live())
+    /// The graph the app runs on. Both catalogs compile whichever way `Demo.isOn` is set, so a
+    /// demo cannot rot unnoticed and switching one on is never a matter of uncommenting code.
+    static let shared = CompositionRoot(
+        catalog: Demo.isOn ? Demo.shopThatChangesItsMind() : .live()
+    )
 
-    // MARK: - Components
-    let sessionDI: SessionDI
-    let catalog: Catalog
-    let searchHistoryDI: SearchHistoryDI
-    let wishlistDI: WishlistDI
-    let bagDI: BagDI
-
-    // MARK: - Feature Navigation
-    let navigator: Navigator
-    let snackbarUIDI: SnackbarUIDI
-    let sheetUIDI: SheetUIDI
-
-    // MARK: - UIDI Properties
-    let onboardingUIDI: OnboardingUIDI
-    let authUIDI: AuthUIDI
-    let productUIDI: ProductUIDI
-    let homeUIDI: HomeUIDI
-    let searchUIDI: SearchUIDI
-    let wishlistUIDI: WishlistUIDI
-    let bagUIDI: BagUIDI
-    let accountUIDI: AccountUIDI
-
-    // MARK: - Views (created once to maintain state)
-    let homeView: AnyView
-    let searchView: AnyView
-    let wishlistView: AnyView
-    let bagView: AnyView
-    let accountView: AnyView
+    let data: DataAssembler
+    let domain: DomainAssembler
+    let presentation: PresentationAssembler
 
     init(catalog: Catalog) {
-        self.catalog = catalog
+        let data = DataAssembler()
+        let domain = DomainAssembler(data: data, catalog: catalog)
 
-        // MARK: Component DI
-        sessionDI = SessionDI(
-            sessionStore: DefaultSessionStore(),
-            authClient: FakeAuthClient(
-                userStore: UserDefaultsUserStore(defaults: .standard),
-                tokenLifetime: 60 * 60 * 24 * 7
-            )
-        )
-        searchHistoryDI = SearchHistoryDI(
-            store: UserDefaultsSearchHistoryStore(defaults: .standard),
-            getSession: sessionDI.getSessionUseCase,
-            observeSession: sessionDI.observeSessionUseCase
-        )
-        wishlistDI = WishlistDI(
-            getSession: sessionDI.getSessionUseCase,
-            observeSession: sessionDI.observeSessionUseCase,
-        )
-        bagDI = BagDI(
-            getSession: sessionDI.getSessionUseCase,
-            observeSession: sessionDI.observeSessionUseCase
-        )
-
-        // MARK: Snackbars
-        let snackbarDI = SnackbarUIDI()
-        self.snackbarUIDI = snackbarDI
-
-        // MARK: Sheet presentation
-        let sheetDI = SheetUIDI()
-        self.sheetUIDI = sheetDI
-
-        // MARK: UI Features
-        onboardingUIDI = OnboardingUIDI()
-        let authDI = AuthUIDI(
-            loginUseCase: sessionDI.loginUseCase,
-            createAccountUseCase: sessionDI.createAccountUseCase,
-            getSessionUseCase: sessionDI.getSessionUseCase,
-            sheetPresenting: sheetDI.presenter
-        )
-        authUIDI = authDI
-
-        // MARK: Navigation
-        navigator = Navigator(authPresenter: authDI.presenter)
-
-        let sharedUI = SharedUIDI(
-            observeProductIsWishlisted: wishlistDI.observeProductIsWishlistedUseCase,
-            addProductToWishlist: wishlistDI.addProductToWishlistUseCase,
-            removeProductFromWishlist: wishlistDI.removeProductFromWishlistUseCase,
-            authPresenter: authDI.presenter,
-            snackbarPresenter: snackbarDI.presenter
-        )
-
-        let bagUI = BagUIDI(
-            navigation: navigator,
-            observeBag: bagDI.observeBagUseCase,
-            observeBagChanges: bagDI.observeBagChangesUseCase,
-            observeBagItemQuantity: bagDI.observeBagItemQuantityUseCase,
-            addItemToBag: bagDI.addItemToBagUseCase,
-            setBagItemQuantity: bagDI.setBagItemQuantityUseCase,
-            lookUpProducts: catalog.lookUpProducts,
-            bringBagUpToDate: bagDI.bringBagUpToDateUseCase,
-            acknowledgeBagChange: bagDI.acknowledgeBagChangeUseCase,
-            snackbarPresenter: snackbarDI.presenter,
-            wishlistButton: { id in AnyView(sharedUI.wishlistButton(productId: id)) }
-        )
-        bagUIDI = bagUI
-        let wishlistUI = WishlistUIDI(
-            navigation: navigator,
-            observeWishlist: wishlistDI.observeWishlistUseCase,
-            lookUpProducts: catalog.lookUpProducts,
-            observeSession: sessionDI.observeSessionUseCase,
-            authPresenter: authDI.presenter,
-            snackbarPresenter: snackbarDI.presenter,
-            bagUIDI: bagUI,
-            sharedUIDI: sharedUI
-        )
-        wishlistUIDI = wishlistUI
-        productUIDI = ProductUIDI(
-            viewProduct: catalog.viewProduct,
-            bagUIDI: bagUI,
-            sharedUIDI: sharedUI
-        )
-        homeUIDI = HomeUIDI(
-            navigation: navigator,
-            browseCatalog: catalog.browseCatalog,
-            snackbar: snackbarDI.presenter
-        )
-        searchUIDI = SearchUIDI(
-            navigation: navigator,
-            browseCatalog: catalog.browseCatalog,
-            browseCategories: catalog.browseCategories,
-            getSearchHistory: searchHistoryDI.getSearchHistoryUseCase,
-            recordSearch: searchHistoryDI.recordSearchUseCase,
-            clearSearchHistory: searchHistoryDI.clearSearchHistoryUseCase,
-            snackbarPresenter: snackbarDI.presenter,
-            wishlistUIDI: wishlistUI,
-            bagUIDI: bagUI
-        )
-        accountUIDI = AccountUIDI(
-            getSession: sessionDI.getSessionUseCase,
-            observeSession: sessionDI.observeSessionUseCase,
-            logoutUseCase: sessionDI.logoutUseCase,
-            authUIDI: authDI
-        )
-
-        // MARK: Create views once to maintain state across tab switches
-        homeView = AnyView(homeUIDI.mainView())
-        searchView = AnyView(searchUIDI.mainView())
-        wishlistView = AnyView(wishlistUIDI.mainView())
-        bagView = AnyView(bagUIDI.mainView())
-        accountView = AnyView(accountUIDI.mainView())
+        self.data = data
+        self.domain = domain
+        self.presentation = PresentationAssembler(domain: domain)
     }
 
     // MARK: - Root
 
-    @MainActor
     func makeMainViewModel() -> MainViewModel {
-        MainViewModel(getSession: sessionDI.getSessionUseCase)
+        MainViewModel(getSession: domain.session.getSessionUseCase)
     }
 }

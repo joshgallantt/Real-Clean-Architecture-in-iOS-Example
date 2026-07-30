@@ -12,8 +12,8 @@ import Product
 enum DemoCatalogMischief {
     nonisolated static func meddle(with product: Product) -> Product {
         let price = switch product.id.rawValue % 3 {
-        case 0: product.price.scaled(by: 1.2)
-        case 1: product.price.scaled(by: 0.8)
+        case 0: scaled(product.price, by: 1.2)
+        case 1: scaled(product.price, by: 0.8)
         default: product.price
         }
 
@@ -66,8 +66,6 @@ struct DemoViewProductUseCase: ViewProductUseCase {
     }
 }
 
-private extension Money {
-    nonisolated func scaled(by factor: Double) -> Money {
-        Money(minorUnits: Int((Double(minorUnits) * factor).rounded()), currency: currency)
-    }
+private nonisolated func scaled(_ amount: Money, by factor: Double) -> Money {
+    Money(minorUnits: Int((Double(amount.minorUnits) * factor).rounded()), currency: amount.currency)
 }

@@ -15,7 +15,7 @@ struct Main: App {
                 case .splash:
                     SplashView()
                 case .welcome:
-                    CompositionRoot.shared.authUIDI.welcomeView(
+                    CompositionRoot.shared.presentation.auth.welcomeView(
                         onContinueAsGuest: { viewModel.continueAsGuest() },
                         onAuthenticated: { viewModel.authenticationFinished() }
                     )
@@ -23,22 +23,22 @@ struct Main: App {
                     .padding(.top, 160)
                     .ignoresSafeArea(edges: .top)
                 case .onboarding:
-                    CompositionRoot.shared.onboardingUIDI.onboardingView(
+                    CompositionRoot.shared.presentation.onboarding.onboardingView(
                         onFinish: { viewModel.continueAsGuest() }
                     )
                 case .main:
                     TabScreen(
-                        navigator: CompositionRoot.shared.navigator,
-                        snackbarPresenter: CompositionRoot.shared.snackbarUIDI.presenter,
-                        homeView: CompositionRoot.shared.homeView,
-                        searchView: CompositionRoot.shared.searchView,
-                        wishlistView: CompositionRoot.shared.wishlistView,
-                        bagView: CompositionRoot.shared.bagView,
-                        accountView: CompositionRoot.shared.accountView
+                        navigator: CompositionRoot.shared.presentation.navigator,
+                        snackbarPresenter: CompositionRoot.shared.presentation.snackbar.presenter,
+                        homeView: CompositionRoot.shared.presentation.homeView,
+                        searchView: CompositionRoot.shared.presentation.searchView,
+                        wishlistView: CompositionRoot.shared.presentation.wishlistView,
+                        bagView: CompositionRoot.shared.presentation.bagView,
+                        accountView: CompositionRoot.shared.presentation.accountView
                     )
                 }
             }
-            .sheetHost(CompositionRoot.shared.sheetUIDI.presenter)
+            .sheetHost(CompositionRoot.shared.presentation.sheet.presenter)
             .task {
                 await viewModel.onAppear()
             }

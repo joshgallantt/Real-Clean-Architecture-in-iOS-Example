@@ -167,21 +167,19 @@ public final class BagScreenViewModel: ObservableObject {
                 for product in products {
                     self.catalog[product.id] = product
                 }
-                self.bringBagUpToDate(against: products.map(ShopSays.init))
+                self.bringBagUpToDate(against: products.map(self.whatTheShopSays))
             }
 
             self.isLoadingMore = false
             self.render()
         }
     }
-}
 
-/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the Interface Adapters
-/// ring converting the catalog's format into the one the bag's use case wants. The screen fetches
-/// products for names and thumbnails anyway; this is the same answer, narrowed.
-private extension ShopSays {
-    init(_ product: Product) {
-        self.init(
+    /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the Interface Adapters
+    /// ring converting the catalog's format into the one the bag's use case wants. The screen
+    /// fetches products for names and thumbnails anyway; this is the same answer, narrowed.
+    private func whatTheShopSays(about product: Product) -> ShopSays {
+        ShopSays(
             productId: product.id,
             price: product.price,
             availability: product.availability

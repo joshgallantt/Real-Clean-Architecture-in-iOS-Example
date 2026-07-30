@@ -90,7 +90,7 @@ Each module in this project has a single axis of change. A new screen design tou
 │   ├── Networking/             # Shared HTTP client, no domain dependencies
 │   └── Money/                  # Exact amounts with their currency, no domain dependencies
 └── iPhone/                     # Application layer — composition root
-    ├── Composition/            # CompositionRoot + Catalog, and the demo's second root
+    ├── Composition/            # CompositionRoot + its three assemblers, Catalog, and the demo's second root
     ├── Navigation/             # Navigator + Destination
     └── Main/                   # App entry point, phases, tab screen
 ```
@@ -107,9 +107,10 @@ The app has five tabs. **Home** and **Search** browse the real [DummyJSON](https
 
 ```
 ┌──────────────────────────────────────────┐
-│          Application Layer               │  Composition root. Wires all
-│    iPhone/CompositionRoot, Navigator      │  dependencies and chooses every
-│                                          │  concrete type. Pure wiring.
+│          Application Layer               │  Composition root, in three
+│  iPhone/ CompositionRoot — Data, Domain  │  phases. Wires all dependencies
+│  and Presentation assemblers, Navigator  │  and chooses every concrete
+│                                          │  type. Pure wiring.
 ├──────────────────────────────────────────┤
 │          Presentation Layer              │  MVVM. Views are passive.
 │       *UI feature modules                │  ViewModels hold UI state and
@@ -455,13 +456,15 @@ final class AuthViewModel: ObservableObject {
     func logIn() async {
         switch await loginUseCase(email: Email(email), password: Password(password)) {
         case .success: onAuthenticated()
-        case .failure(let failure): error = failure.userMessage
+        case .failure(let failure): error = AuthenticationErrorMessages.message(for: failure)
         }
     }
 }
 ```
 
-The raw text a person types becomes an `Email` and a `Password` here, at the edge — that is the only place a loose string is allowed, and the types are deliberately lenient so a half-typed address is still representable while it is being typed. `userMessage` is an extension on the domain's `LoginError` declared inside `AuthUI` — the domain says *what* failed, presentation decides *how to say it*. Copy changes never touch `Session`.
+The raw text a person types becomes an `Email` and a `Password` here, at the edge — that is the only place a loose string is allowed, and the types are deliberately lenient so a half-typed address is still representable while it is being typed. `AuthenticationErrorMessages` lives inside `AuthUI` — the domain says *what* failed, presentation decides *how to say it*. Copy changes never touch `Session`.
+
+It is a type of its own rather than an extension on `LoginError`, and that is deliberate: `LoginError` is declared in another module, and behaviour bolted onto it from here would not be visible to anyone reading it. Extensions that reach across a module boundary hide a type's real surface area from the file that declares it. The rule this codebase follows is that an extension may only sit beside the type it extends — every one outside a test does.
 
 ### Views
 
@@ -603,90 +606,129 @@ The application layer is the composition root — the single place where all con
 > *"A Composition Root is a (preferably) unique location in an application where modules are composed together."*
 > — Mark Seemann & Steven van Deursen, *Dependency Injection: Principles, Practices, and Patterns* (2019)
 
-**Why a composition root?** If each type constructs its own dependencies, no single place in the codebase represents how the application is wired. Wiring bugs are invisible until runtime and require searching the whole codebase to fix. The composition root makes the dependency graph explicit, visible, and located in one file. It is the only place aware of all concrete types simultaneously.
+**Why a composition root?** If each type constructs its own dependencies, no single place in the codebase represents how the application is wired. Wiring bugs are invisible until runtime and require searching the whole codebase to fix. The composition root makes the dependency graph explicit, visible, and located in one place. It is the only part of the app aware of all concrete types simultaneously.
 
 The application layer is intentionally not unit tested — it contains no logic, only wiring.
 
-**Demos are a second composition root, not commented-out code.** The catalog reaches
-`CompositionRoot` as a `Catalog` — a set of use case protocols — so a demo supplies a different one
-and nothing in the composition root changes. `DemoCompositionRoot.shopThatChangesItsMind()` wraps the
-real use cases in decorators that move prices and sell things out, which is how the bag's
-catching-up behaviour can be shown without waiting for a real shop to change its mind.
+**Demos are a different catalog, not commented-out code.** The catalog reaches `CompositionRoot` as
+a `Catalog` — a set of use case protocols — so a demo supplies a different one and nothing in the
+composition root changes. `Demo.shopThatChangesItsMind()` wraps the real use cases in decorators
+that move prices and sell things out, which is how the bag's catching-up behaviour can be shown
+without waiting for a real shop to change its mind.
 
 The point is that *both arrangements compile at all times*. A demo switched on by uncommenting lines
 does not compile in its off state, so nothing checks it still works, and the only thing keeping it
-out of a release is that somebody reads a warning. Here it is one line, type-checked either way:
+out of a release is that somebody reads a warning. Here it is one flag, type-checked either way:
 
 ```swift
-static let shared = CompositionRoot(catalog: .live())
-// or, to demo:
-static let shared = CompositionRoot(catalog: DemoCompositionRoot.shopThatChangesItsMind())
+// Demo.swift
+enum Demo {
+    static let isOn = false     // ← the whole switch
+}
+
+// CompositionRoot.swift
+static let shared = CompositionRoot(
+    catalog: Demo.isOn ? Demo.shopThatChangesItsMind() : .live()
+)
 ```
 
 Nothing below the app layer knows a demo is possible. `Component/Bag` sees ordinary catalog answers
 and reacts exactly as it would in production — which is the Liskov Substitution Principle earning its
 keep, and the reason the demo is trustworthy as a demonstration at all.
 
-### Dependency Injection Container
+### Three Assemblers, One Root
+
+The composition root is assembled in three phases, named for the three layers the architecture already has.
 
 **[`iPhone/Composition/CompositionRoot.swift`](iPhone/Composition/CompositionRoot.swift)**
 ```swift
 @MainActor
 final class CompositionRoot {
-    static let shared = CompositionRoot(catalog: .live())
+    static let shared = CompositionRoot(
+        catalog: Demo.isOn ? Demo.shopThatChangesItsMind() : .live()
+    )
 
-    // Components
-    let sessionDI: SessionDI
-    let catalog: Catalog
-    let searchHistoryDI: SearchHistoryDI
-    let wishlistDI: WishlistDI
-    let bagDI: BagDI
+    let data: DataAssembler
+    let domain: DomainAssembler
+    let presentation: PresentationAssembler
 
-    // Cross-cutting presentation
-    let navigator: Navigator
-    let snackbarUIDI: SnackbarUIDI
-    let sheetUIDI: SheetUIDI
+    init(catalog: Catalog) {
+        let data = DataAssembler()
+        let domain = DomainAssembler(data: data, catalog: catalog)
 
-    // Features
-    let onboardingUIDI: OnboardingUIDI
-    let authUIDI: AuthUIDI
-    let productUIDI: ProductUIDI
-    let homeUIDI: HomeUIDI
-    let searchUIDI: SearchUIDI
-    let wishlistUIDI: WishlistUIDI
-    let bagUIDI: BagUIDI
-    let accountUIDI: AccountUIDI
-
-    // Tab views created once to preserve SwiftUI state across tab switches
-    let homeView, searchView, wishlistView, bagView, accountView: AnyView
+        self.data = data
+        self.domain = domain
+        self.presentation = PresentationAssembler(domain: domain)
+    }
 }
 ```
 
-This is the only file that links the `*Data` products, because it is the only place that names concrete infrastructure:
+Each phase is handed only the phase before it. `DomainAssembler` cannot reach the presentation layer it is about to be used to build, and `DataAssembler` cannot reach either — so the wiring runs one way and the reading order is the construction order.
+
+This is still **one** composition root in Seemann's sense: a single location where modules are composed. Three assemblers constructed here, in one order, are one root with its phases named — not three places where composition happens. Nothing else in the app may build any of them.
+
+**[`iPhone/Composition/DataAssembler.swift`](iPhone/Composition/DataAssembler.swift)** — every concrete store and client, and nothing else:
 
 ```swift
-sessionDI = SessionDI(
-    sessionStore: DefaultSessionStore(),
-    authClient: FakeAuthClient(
-        userStore: UserDefaultsUserStore(defaults: .standard),
-        tokenLifetime: 60 * 60 * 24 * 7
-    )
-)
-searchHistoryDI = SearchHistoryDI(
-    store: UserDefaultsSearchHistoryStore(defaults: .standard),
-    getSession: sessionDI.getSessionUseCase
-)
+@MainActor
+struct DataAssembler {
+    let sessionStore: SessionStore
+    let authClient: AuthClient
+    let searchHistoryStore: SearchHistoryStore
+    let wishlistStore: WishlistStore
+    let bagStore: BagStore
+
+    static let signInLasts: TimeInterval = 60 * 60 * 24 * 7
+}
 ```
 
-…and the catalog arrives already built, from `Catalog.live()`:
+How long a sign-in lasts, the choice of `UserDefaults`, the choice of a file on disk — all decided *here*, and readable as one list. Martin calls this out directly in Chapter 30: the database is a detail. Giving the details their own phase is what makes them a list you can read rather than a handful of lines scattered through a longer initialiser.
+
+**[`iPhone/Composition/DomainAssembler.swift`](iPhone/Composition/DomainAssembler.swift)** — the component containers, built over those stores:
 
 ```swift
-Catalog(ProductDI(client: DummyJSONProductClient(httpClient: URLSessionHTTPClient(session: .shared))))
+@MainActor
+struct DomainAssembler {
+    let session: SessionDI
+    let catalog: Catalog
+    let searchHistory: SearchHistoryDI
+    let wishlist: WishlistDI
+    let bag: BagDI
+
+    init(data: DataAssembler, catalog: Catalog) { ... }
+}
 ```
 
-Token lifetime, the choice of `UserDefaults`, the choice of a file on disk, and the choice of DummyJSON are all decisions made *here* — none of them appear in a domain, presentation, or navigation file. Swapping any of them is a one-line change in one file.
+`Catalog` is passed in rather than built from `DataAssembler`, because a demo substitutes a whole catalog of decorated use cases. That is a *domain*-level substitution, not a choice of backend, so it does not belong to the data phase — and it arrives from outside for the same reason it always did.
 
-Tab views are instantiated once at startup and held by `CompositionRoot`. If `TabScreen` called `homeUIDI.mainView()` on each render, SwiftUI would create a new view identity on every tab switch, destroying all `@State`, scroll positions, and in-flight async tasks.
+**[`iPhone/Composition/PresentationAssembler.swift`](iPhone/Composition/PresentationAssembler.swift)** — the feature containers and the tab views, from use cases alone:
+
+```swift
+@MainActor
+struct PresentationAssembler {
+    let navigator: Navigator
+    let snackbar: SnackbarUIDI
+    let sheet: SheetUIDI
+
+    let onboarding: OnboardingUIDI
+    let auth: AuthUIDI
+    let shared: SharedUIDI
+    let product: ProductUIDI
+    let home: HomeUIDI
+    let search: SearchUIDI
+    let wishlist: WishlistUIDI
+    let bag: BagUIDI
+    let account: AccountUIDI
+
+    let homeView, searchView, wishlistView, bagView, accountView: AnyView
+
+    init(domain: DomainAssembler) { ... }
+}
+```
+
+This phase does not decompose further, and the code says why: the sheet host must exist before the auth flow that presents on it, the auth flow before the navigator that gates on it, and the shared wishlist button before the two features that render one. Presentation depends on presentation. Splitting it again would mean inventing an order the graph does not have.
+
+Tab views are instantiated once at startup and held here. If `TabScreen` called `home.mainView()` on each render, SwiftUI would create a new view identity on every tab switch, destroying all `@State`, scroll positions, and in-flight async tasks.
 
 ### Component DI Container
 
@@ -736,7 +778,7 @@ Both guards are the same rule stated twice: whatever the splash was waiting for,
 
 ```swift
 TabScreen(navigator: ..., snackbarPresenter: ..., homeView: ..., /* ... */)
-    .sheetHost(CompositionRoot.shared.sheetUIDI.presenter)
+    .sheetHost(CompositionRoot.shared.presentation.sheet.presenter)
 ```
 
 `.snackbarHost(_:)` is attached inside `TabScreen` so snackbars sit above the tab bar. The hosts are the only place the app knows sheets and snackbars exist as SwiftUI constructs.
@@ -786,11 +828,11 @@ public enum Destination: Hashable {
     func makeView() -> some View {
         switch self {
         case .catalog(let filter):
-            CompositionRoot.shared.searchUIDI.catalogResultsView(filter: filter)
+            CompositionRoot.shared.presentation.search.catalogResultsView(filter: filter)
         case .productDetails(.id(let id)):
-            CompositionRoot.shared.productUIDI.detailView(id: id)
+            CompositionRoot.shared.presentation.product.detailView(id: id)
         case .productDetails(.product(let product)):
-            CompositionRoot.shared.productUIDI.detailView(product: product)
+            CompositionRoot.shared.presentation.product.detailView(product: product)
         }
     }
 }

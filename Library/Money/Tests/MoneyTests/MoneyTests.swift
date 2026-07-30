@@ -12,10 +12,10 @@ struct MoneyTests {
 
     @Test
     func addingPricesIsExact() {
-        let total = [
+        let total = Money.total(of: [
             Money(amount: 9.99, currency: .usd),
             Money(amount: 49.99, currency: .usd)
-        ].total()
+        ])
 
         #expect(total == Money(minorUnits: 5998, currency: .usd))
     }
@@ -58,14 +58,14 @@ struct MoneyTests {
 
     @Test
     func nothingHasNoTotal() {
-        #expect([Money]().total() == nil)
+        #expect(Money.total(of: [Money]()) == nil)
     }
 
     @Test
     func oneAmountTotalsToItself() {
         let only = Money(amount: 3.50, currency: .usd)
 
-        #expect([only].total() == only)
+        #expect(Money.total(of: [only]) == only)
     }
 
     // MARK: - Comparison
