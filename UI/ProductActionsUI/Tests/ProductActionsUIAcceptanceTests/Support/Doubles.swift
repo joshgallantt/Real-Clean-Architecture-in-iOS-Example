@@ -12,16 +12,16 @@ import SnackbarUI
 @MainActor
 final class InMemoryBagRepository: BagRepository {
     private let bagSubject = CurrentValueSubject<Bag, Never>(Bag())
-    private let changesSubject = CurrentValueSubject<BagChanges, Never>(BagChanges())
+    private let noticesSubject = CurrentValueSubject<Notices, Never>(Notices())
 
     var bag: Bag { bagSubject.value }
     var bagPublisher: AnyPublisher<Bag, Never> { bagSubject.eraseToAnyPublisher() }
-    var changes: BagChanges { changesSubject.value }
-    var changesPublisher: AnyPublisher<BagChanges, Never> { changesSubject.eraseToAnyPublisher() }
+    var notices: Notices { noticesSubject.value }
+    var noticesPublisher: AnyPublisher<Notices, Never> { noticesSubject.eraseToAnyPublisher() }
 
-    func save(bag: Bag, changes: BagChanges) {
+    func save(bag: Bag, notices: Notices) {
         bagSubject.value = bag
-        changesSubject.value = changes
+        noticesSubject.value = notices
     }
 }
 

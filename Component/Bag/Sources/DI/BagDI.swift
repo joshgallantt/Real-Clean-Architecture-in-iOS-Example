@@ -14,12 +14,12 @@ public struct BagDI {
     private let repository: BagRepository
 
     public let observeBagUseCase: ObserveBagUseCase
-    public let observeBagChangesUseCase: ObserveBagChangesUseCase
+    public let observeNoticesUseCase: ObserveNoticesUseCase
     public let observeBagItemQuantityUseCase: ObserveBagItemQuantityUseCase
     public let addItemToBagUseCase: AddItemToBagUseCase
     public let setBagItemQuantityUseCase: SetBagItemQuantityUseCase
     public let bringBagUpToDateUseCase: BringBagUpToDateUseCase
-    public let acknowledgeBagChangeUseCase: AcknowledgeBagChangeUseCase
+    public let acknowledgeNoticesUseCase: AcknowledgeNoticesUseCase
 
     @MainActor
     public init(
@@ -27,7 +27,7 @@ public struct BagDI {
         observeSession: ObserveSessionUseCase,
         store: BagStore = FileBagStore()
     ) {
-        /// Evans, *Domain-Driven Design* (2003) — Bounded Context: turning a session into an owner
+        /// Evans, *Domain-Driven Design* (2003), Ch. 14 — Bounded Context: turning a session into an owner
         /// happens here, once, at the wiring boundary. What the repository receives is who the bag
         /// belongs to.
         let repository = DefaultBagRepository(
@@ -41,11 +41,11 @@ public struct BagDI {
         self.repository = repository
 
         self.observeBagUseCase = DefaultObserveBagUseCase(repository: repository)
-        self.observeBagChangesUseCase = DefaultObserveBagChangesUseCase(repository: repository)
+        self.observeNoticesUseCase = DefaultObserveNoticesUseCase(repository: repository)
         self.observeBagItemQuantityUseCase = DefaultObserveBagItemQuantityUseCase(repository: repository)
         self.addItemToBagUseCase = DefaultAddItemToBagUseCase(repository: repository)
         self.setBagItemQuantityUseCase = DefaultSetBagItemQuantityUseCase(repository: repository)
         self.bringBagUpToDateUseCase = DefaultBringBagUpToDateUseCase(repository: repository)
-        self.acknowledgeBagChangeUseCase = DefaultAcknowledgeBagChangeUseCase(repository: repository)
+        self.acknowledgeNoticesUseCase = DefaultAcknowledgeNoticesUseCase(repository: repository)
     }
 }

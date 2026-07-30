@@ -19,20 +19,20 @@ public final class BagScreenViewModel: ObservableObject {
     @Published private(set) var noticeSections: [NoticeSection] = []
 
     private let observeBag: ObserveBagUseCase
-    private let observeBagChanges: ObserveBagChangesUseCase
+    private let observeNotices: ObserveNoticesUseCase
     private let lookUpProducts: LookUpProductsUseCase
     private let setBagItemQuantity: SetBagItemQuantityUseCase
     private let bringBagUpToDate: BringBagUpToDateUseCase
-    private let acknowledgeBagChange: AcknowledgeBagChangeUseCase
+    private let acknowledgeNotices: AcknowledgeNoticesUseCase
 
     private var cancellables = Set<AnyCancellable>()
     private var bag = Bag()
-    private var changes = BagChanges()
+    private var news = Notices()
     private var catalog: [ProductID: Product] = [:]
     private var lookupTask: Task<Void, Never>?
 
-    /// Fowler, *PoEAA* (2002) — Money: always from the bag, never the catalog, so the total is
-    /// right whether or not anything loaded.
+    /// Fowler, *PoEAA* (2002), Ch. 18 — Money: always from the bag, never the catalog, so the total
+    /// is right whether or not anything loaded.
     var total: Money? { bag.total }
 
     var isEmpty: Bool { bag.isEmpty }
@@ -41,7 +41,7 @@ public final class BagScreenViewModel: ObservableObject {
     /// not an empty screen — the notices are the reason it emptied.
     var hasNews: Bool { !noticeSections.isEmpty }
 
-    func notices(in kind: NoticeSection.Kind) -> [NoticeRow] {
+    func notices(in kind: Notice.Kind) -> [NoticeRow] {
         noticeSections.first { $0.kind == kind }?.rows ?? []
     }
 
@@ -51,18 +51,18 @@ public final class BagScreenViewModel: ObservableObject {
 
     public init(
         observeBag: ObserveBagUseCase,
-        observeBagChanges: ObserveBagChangesUseCase,
+        observeNotices: ObserveNoticesUseCase,
         lookUpProducts: LookUpProductsUseCase,
         setBagItemQuantity: SetBagItemQuantityUseCase,
         bringBagUpToDate: BringBagUpToDateUseCase,
-        acknowledgeBagChange: AcknowledgeBagChangeUseCase
+        acknowledgeNotices: AcknowledgeNoticesUseCase
     ) {
         self.observeBag = observeBag
-        self.observeBagChanges = observeBagChanges
+        self.observeNotices = observeNotices
         self.lookUpProducts = lookUpProducts
         self.setBagItemQuantity = setBagItemQuantity
         self.bringBagUpToDate = bringBagUpToDate
-        self.acknowledgeBagChange = acknowledgeBagChange
+        self.acknowledgeNotices = acknowledgeNotices
     }
 
     func onAppear() {
@@ -90,9 +90,9 @@ public final class BagScreenViewModel: ObservableObject {
     /// section, so a section is what this is told. It used to be handed the rows themselves, read
     /// back off the property they came from — which let a caller pair one section's button with
     /// another section's contents, and said nothing a reader would recognise.
-    func didAcceptAll(_ kind: NoticeSection.Kind) {
+    func didAcceptAll(_ kind: Notice.Kind) {
         for row in notices(in: kind) {
-            acknowledgeBagChange(productId: row.id)
+            acknowledgeNotices(aboutProductId: row.id)
         }
     }
 
@@ -110,37 +110,22 @@ public final class BagScreenViewModel: ObservableObject {
         askTheShop()
     }
 
-
-    private func rows(for changes: [BagChange]) -> [NoticeRow] {
-        changes.map { change in
-            NoticeRow(
-                change: change,
-                name: catalog[change.productId]?.title,
-                imageURL: catalog[change.productId]?.thumbnail
-            )
-        }
-    }
-
     // MARK: -
 
     private func subscribe() {
         observeBag()
             .sink { [weak self] bag in
-                self?.bagChanged(bag)
-            }
-            .store(in: &cancellables)
-
-        observeBagChanges()
-            .sink { [weak self] changes in
-                self?.changes = changes
+                self?.bag = bag
                 self?.render()
             }
             .store(in: &cancellables)
-    }
 
-    private func bagChanged(_ bag: Bag) {
-        self.bag = bag
-        render()
+        observeNotices()
+            .sink { [weak self] news in
+                self?.news = news
+                self?.render()
+            }
+            .store(in: &cancellables)
     }
 
     /// Every product on screen: what is in the bag, and what the notices are about. The two are not
@@ -151,7 +136,7 @@ public final class BagScreenViewModel: ObservableObject {
     /// there is a moment where a product has left the bag and its notice has not yet arrived.
     /// Nothing is discarded on that edge; the set is only ever narrowed where both are settled.
     private var productsOnScreen: Set<ProductID> {
-        Set(bag.items.map(\.id)).union(changes.all.map(\.productId))
+        Set(bag.items.map(\.id)).union(news.all.map(\.productId))
     }
 
     private func render() {
@@ -159,16 +144,19 @@ public final class BagScreenViewModel: ObservableObject {
             BagRow(item: item, name: catalog[item.id]?.title, imageURL: catalog[item.id]?.thumbnail)
         }
 
-        /// The order the sections are read in, decided once and here. It runs worst-first: what has
-        /// gone for good, then what has gone for now, then what there is not enough of, then what
-        /// costs more, and last the one piece of good news.
-        noticeSections = [
-            NoticeSection(.discontinued, rows: rows(for: changes.discontinued)),
-            NoticeSection(.outOfStock, rows: rows(for: changes.outOfStock)),
-            NoticeSection(.shortage, rows: rows(for: changes.shortages)),
-            NoticeSection(.priceIncrease, rows: rows(for: changes.priceIncreases)),
-            NoticeSection(.priceDecrease, rows: rows(for: changes.priceDecreases))
-        ].filter { !$0.rows.isEmpty }
+        noticeSections = NoticeSection.readingOrder
+            .map { kind in NoticeSection(kind, rows: noticeRows(for: news.of(kind))) }
+            .filter { !$0.rows.isEmpty }
+    }
+
+    private func noticeRows(for notices: [Notice]) -> [NoticeRow] {
+        notices.map { notice in
+            NoticeRow(
+                notice: notice,
+                name: catalog[notice.productId]?.title,
+                imageURL: catalog[notice.productId]?.thumbnail
+            )
+        }
     }
 
     /// The whole bag, every time, not a page of it.

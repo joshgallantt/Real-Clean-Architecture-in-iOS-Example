@@ -6,8 +6,8 @@ import Combine
 /// notice still holds against a given bag is decided on read, so a write that tears corrects
 /// itself.
 ///
-/// Evans, *Domain-Driven Design* (2003) — Repositories. Fowler, *PoEAA* (2002) — Repository;
-/// Separated Interface.
+/// Evans, *Domain-Driven Design* (2003), Ch. 6 — Repositories. Fowler, *PoEAA* (2002), Ch. 13 —
+/// Repository; Ch. 18 — Separated Interface.
 public protocol BagRepository: Sendable {
     @MainActor
     var bag: Bag { get }
@@ -16,11 +16,11 @@ public protocol BagRepository: Sendable {
     var bagPublisher: AnyPublisher<Bag, Never> { get }
 
     @MainActor
-    var changes: BagChanges { get }
+    var notices: Notices { get }
 
     @MainActor
-    var changesPublisher: AnyPublisher<BagChanges, Never> { get }
+    var noticesPublisher: AnyPublisher<Notices, Never> { get }
 
     @MainActor
-    func save(bag: Bag, changes: BagChanges)
+    func save(bag: Bag, notices: Notices)
 }

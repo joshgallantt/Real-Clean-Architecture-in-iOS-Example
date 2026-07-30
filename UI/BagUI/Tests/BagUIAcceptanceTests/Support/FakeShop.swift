@@ -10,26 +10,26 @@ import Product
 /// where the bag is kept and what the catalog answers. The use cases the screen is handed are the
 /// real ones, built on this as their repository.
 ///
-/// Fowler, *PoEAA* (2002) — Repository; Gateway.
+/// Fowler, *PoEAA* (2002), Ch. 13 — Repository; Ch. 18 — Gateway.
 final class FakeShop: BagRepository {
     private let catalogLock = NSLock()
     private let bagSubject: CurrentValueSubject<Bag, Never>
-    private let changesSubject: CurrentValueSubject<BagChanges, Never>
+    private let noticesSubject: CurrentValueSubject<Notices, Never>
     private nonisolated(unsafe) var _lookups: [[ProductID]] = []
     private nonisolated(unsafe) var _catalog: [Product]
 
     nonisolated var lookups: [[ProductID]] { catalogLock.withLock { _lookups } }
     var currentBag: Bag { bagSubject.value }
-    var currentChanges: BagChanges { changesSubject.value }
+    var currentNotices: Notices { noticesSubject.value }
 
     nonisolated var catalog: [Product] {
         get { catalogLock.withLock { _catalog } }
         set { catalogLock.withLock { _catalog = newValue } }
     }
 
-    init(bag: Bag = Bag(), changes: BagChanges = BagChanges(), catalog: [Product] = []) {
+    init(bag: Bag = Bag(), notices: Notices = Notices(), catalog: [Product] = []) {
         self.bagSubject = CurrentValueSubject(bag)
-        self.changesSubject = CurrentValueSubject(changes)
+        self.noticesSubject = CurrentValueSubject(notices)
         self._catalog = catalog
     }
 
@@ -39,10 +39,10 @@ final class FakeShop: BagRepository {
     var observeBagItemQuantity: ObserveBagItemQuantityUseCase {
         DefaultObserveBagItemQuantityUseCase(repository: self)
     }
-    var observeBagChanges: ObserveBagChangesUseCase { DefaultObserveBagChangesUseCase(repository: self) }
+    var observeNotices: ObserveNoticesUseCase { DefaultObserveNoticesUseCase(repository: self) }
     var setBagItemQuantity: SetBagItemQuantityUseCase { DefaultSetBagItemQuantityUseCase(repository: self) }
     var bringUpToDate: BringBagUpToDateUseCase { DefaultBringBagUpToDateUseCase(repository: self) }
-    var acknowledge: AcknowledgeBagChangeUseCase { DefaultAcknowledgeBagChangeUseCase(repository: self) }
+    var acknowledge: AcknowledgeNoticesUseCase { DefaultAcknowledgeNoticesUseCase(repository: self) }
     var addItemToBag: AddItemToBagUseCase { DefaultAddItemToBagUseCase(repository: self) }
 
     nonisolated var lookUpProducts: LookUpProductsUseCase { Lookup(shop: self) }
@@ -55,12 +55,12 @@ final class FakeShop: BagRepository {
 
     var bag: Bag { bagSubject.value }
     var bagPublisher: AnyPublisher<Bag, Never> { bagSubject.eraseToAnyPublisher() }
-    var changes: BagChanges { changesSubject.value }
-    var changesPublisher: AnyPublisher<BagChanges, Never> { changesSubject.eraseToAnyPublisher() }
+    var notices: Notices { noticesSubject.value }
+    var noticesPublisher: AnyPublisher<Notices, Never> { noticesSubject.eraseToAnyPublisher() }
 
-    func save(bag: Bag, changes: BagChanges) {
+    func save(bag: Bag, notices: Notices) {
         bagSubject.send(bag)
-        changesSubject.send(changes)
+        noticesSubject.send(notices)
     }
 
     // MARK: -

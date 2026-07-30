@@ -6,7 +6,7 @@ import Product
 
 @MainActor
 @Suite("Being told what the shop changed")
-/// Evans, *Domain-Driven Design* (2003) — Ubiquitous Language: what the shopper is *told*, in the
+/// Evans, *Domain-Driven Design* (2003), Ch. 2 — Ubiquitous Language: what the shopper is *told*, in the
 /// words they would be told it. Whether a notice is worth telling depends on the bag it is about,
 /// so it is asserted where both are visible — through the same use cases the bag screen is given.
 struct BeingToldWhatChangedTests {
@@ -28,7 +28,7 @@ struct BeingToldWhatChangedTests {
 
         shopper.shopSays(shopSells(1, at: 12.99))
 
-        #expect(shopper.news.priceMoves == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
+        #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
         #expect(shopper.bag.total == usd(12.99))
     }
 
@@ -39,7 +39,7 @@ struct BeingToldWhatChangedTests {
 
         shopper.shopSays(shopSells(1, at: 4.99))
 
-        #expect(shopper.news.priceMoves == [.priceWentDown(productId: pid(1), from: usd(9.99), to: usd(4.99))])
+        #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentDown(productId: pid(1), from: usd(9.99), to: usd(4.99))])
         #expect(shopper.bag.total == usd(4.99))
     }
 
@@ -50,7 +50,7 @@ struct BeingToldWhatChangedTests {
 
         shopper.shopSays(shopHasSoldOutOf(1))
 
-        #expect(shopper.news.outOfStock == [.outOfStock(productId: pid(1))])
+        #expect(shopper.news.of(.outOfStock) == [.outOfStock(productId: pid(1))])
         #expect(shopper.bag.isEmpty)
     }
 
@@ -61,8 +61,8 @@ struct BeingToldWhatChangedTests {
 
         shopper.shopSays(shopHasDiscontinued(1))
 
-        #expect(shopper.news.discontinued == [.discontinued(productId: pid(1))])
-        #expect(shopper.news.outOfStock.isEmpty)
+        #expect(shopper.news.of(.discontinued) == [.discontinued(productId: pid(1))])
+        #expect(shopper.news.of(.outOfStock).isEmpty)
         #expect(shopper.bag.isEmpty)
     }
 
@@ -74,8 +74,8 @@ struct BeingToldWhatChangedTests {
 
         shopper.shopSays(shopHasSoldOutOf(1), shopHasDiscontinued(2))
 
-        #expect(shopper.news.outOfStock == [.outOfStock(productId: pid(1))])
-        #expect(shopper.news.discontinued == [.discontinued(productId: pid(2))])
+        #expect(shopper.news.of(.outOfStock) == [.outOfStock(productId: pid(1))])
+        #expect(shopper.news.of(.discontinued) == [.discontinued(productId: pid(2))])
         #expect(shopper.news.gone.count == 2)
         #expect(shopper.bag.isEmpty)
     }
@@ -112,7 +112,7 @@ struct BeingToldWhatChangedTests {
 
         #expect(shopper.bag.isEmpty)
         #expect(shopper.bag.total == nil)
-        #expect(Set(shopper.news.outOfStock.map(\.productId)) == [pid(1), pid(2)])
+        #expect(Set(shopper.news.of(.outOfStock).map(\.productId)) == [pid(1), pid(2)])
     }
 
     @Test("Price moves and disappearances are kept apart, because they are told apart")
@@ -123,8 +123,8 @@ struct BeingToldWhatChangedTests {
 
         shopper.shopSays(shopHasSoldOutOf(1), shopSells(2, at: 59.99))
 
-        #expect(shopper.news.outOfStock == [.outOfStock(productId: pid(1))])
-        #expect(shopper.news.priceMoves == [.priceWentUp(productId: pid(2), from: usd(49.99), to: usd(59.99))])
+        #expect(shopper.news.of(.outOfStock) == [.outOfStock(productId: pid(1))])
+        #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(2), from: usd(49.99), to: usd(59.99))])
         #expect(shopper.bag.items.map(\.id) == [pid(2)])
     }
 
@@ -142,8 +142,8 @@ struct BeingToldWhatChangedTests {
             shopHasSoldOutOf(4)
         )
 
-        #expect(Set(shopper.news.outOfStock.map(\.productId)) == [pid(2), pid(4)])
-        #expect(shopper.news.priceMoves == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
+        #expect(Set(shopper.news.of(.outOfStock).map(\.productId)) == [pid(2), pid(4)])
+        #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
         #expect(Set(shopper.bag.items.map(\.id)) == [pid(1), pid(3)])
     }
 
@@ -171,7 +171,7 @@ struct MoreThanTheShopHasTests {
 
         #expect(shopper.bag.quantity(of: pid(1)) == 2)
         #expect(shopper.bag.total == usd(20))
-        #expect(shopper.news.shortages == [.onlySomeLeft(productId: pid(1), available: 2)])
+        #expect(shopper.news.of(.onlySomeLeft) == [.onlySomeLeft(productId: pid(1), available: 2)])
     }
 
     @Test("Asking for exactly what the shop has is not a shortage")
@@ -194,8 +194,8 @@ struct MoreThanTheShopHasTests {
 
         shopper.shopSays(shopSells(1, at: 12, remaining: 2))
 
-        #expect(shopper.news.priceMoves == [.priceWentUp(productId: pid(1), from: usd(10), to: usd(12))])
-        #expect(shopper.news.shortages == [.onlySomeLeft(productId: pid(1), available: 2)])
+        #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(10), to: usd(12))])
+        #expect(shopper.news.of(.onlySomeLeft) == [.onlySomeLeft(productId: pid(1), available: 2)])
         #expect(shopper.bag.total == usd(24))
     }
 
@@ -208,7 +208,7 @@ struct MoreThanTheShopHasTests {
         shopper.shopSays(shopSells(1, at: 12, remaining: 2))
         shopper.shopSays(shopSells(1, at: 15, remaining: 2))
 
-        #expect(shopper.news.priceMoves == [.priceWentUp(productId: pid(1), from: usd(10), to: usd(15))])
+        #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(10), to: usd(15))])
     }
 }
 
@@ -223,7 +223,7 @@ struct NewsThatPilesUpTests {
         shopper.shopSays(shopSells(1, at: 12))
         shopper.shopSays(shopSells(1, at: 15))
 
-        #expect(shopper.news.priceMoves == [.priceWentUp(productId: pid(1), from: usd(10), to: usd(15))])
+        #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(10), to: usd(15))])
         #expect(shopper.bag.total == usd(15))
     }
 
@@ -247,7 +247,7 @@ struct NewsThatPilesUpTests {
         shopper.shopSays(shopSells(1, at: 12))
         shopper.shopSays(shopSells(1, at: 8))
 
-        #expect(shopper.news.priceMoves == [.priceWentDown(productId: pid(1), from: usd(10), to: usd(8))])
+        #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentDown(productId: pid(1), from: usd(10), to: usd(8))])
     }
 
     @Test("News survives a catch-up that did not cover that product")
@@ -258,7 +258,7 @@ struct NewsThatPilesUpTests {
 
         shopper.shopSays()
 
-        #expect(shopper.news.priceMoves == [.priceWentUp(productId: pid(1), from: usd(10), to: usd(12))])
+        #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(10), to: usd(12))])
     }
 
     @Test("Being told twice that something has gone is still one piece of news")
@@ -269,7 +269,7 @@ struct NewsThatPilesUpTests {
         shopper.shopSays(shopHasSoldOutOf(1))
         shopper.shopSays(shopHasSoldOutOf(1))
 
-        #expect(shopper.news.outOfStock == [.outOfStock(productId: pid(1))])
+        #expect(shopper.news.of(.outOfStock) == [.outOfStock(productId: pid(1))])
     }
 
     @Test("Saying they have seen it clears the notice without touching the bag")
@@ -293,7 +293,7 @@ struct NewsThatPilesUpTests {
 
         shopper.shopSays(shopSells(1, at: 15))
 
-        #expect(shopper.news.priceMoves == [.priceWentUp(productId: pid(1), from: usd(12), to: usd(15))])
+        #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(12), to: usd(15))])
     }
 
     @Test("Saying one product has been seen leaves the others still waiting")
@@ -305,7 +305,7 @@ struct NewsThatPilesUpTests {
 
         shopper.seen(productId: 2)
 
-        #expect(shopper.news.outOfStock == [.outOfStock(productId: pid(1))])
+        #expect(shopper.news.of(.outOfStock) == [.outOfStock(productId: pid(1))])
     }
 
     @Test("Choosing something again spends the news that it had gone")
