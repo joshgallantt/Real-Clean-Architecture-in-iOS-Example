@@ -124,16 +124,7 @@ public struct BagScreenView: View {
     private var priceIncreaseSection: some View {
         Section {
             ForEach(viewModel.priceIncreaseRows) { row in
-                noticeRow(row) {
-                    /// A shopper who agreed to one price and is being asked for a higher one needs
-                    /// a way out of it without hunting for the line again.
-                    Button("Remove", role: .destructive) {
-                        viewModel.didRemoveChangedItem(productId: row.id)
-                    }
-                    .buttonStyle(.bordered)
-                    .controlSize(.small)
-                    .buttonBorderShape(.capsule)
-                }
+                noticeRow(row, accessory: { removeFromBagButton(row.id) })
             }
         } header: {
             sectionHeader(
@@ -167,6 +158,31 @@ public struct BagScreenView: View {
                 Button("Okay") { viewModel.didAcceptAll(viewModel.priceDecreaseRows) }
             }
         }
+    }
+
+    /// A shopper who agreed to one price and is being asked for a higher one needs a way out of it
+    /// without hunting the bag for the line again. It takes the bell's shape because it stands
+    /// where the bell stands and is tapped the same way — once, on the right of a row, and the row
+    /// is dealt with — and a capsule reading "Remove" among circles was the odd one out.
+    ///
+    /// `bag.badge.minus` rather than an X. An X on a notice reads as dismissing the notice, which
+    /// is what Okay above it already does, and the two are not the same: one keeps the product at
+    /// the new price and the other gives it back. Red because this is the only accessory on the
+    /// screen that takes something away.
+    private func removeFromBagButton(_ id: ProductID) -> some View {
+        Button {
+            UIImpactFeedbackGenerator(style: .light).impactOccurred()
+            viewModel.didRemoveChangedItem(productId: id)
+        } label: {
+            Image(systemName: "bag.badge.minus")
+                .font(.subheadline.weight(.bold))
+                .foregroundStyle(.red)
+                .frame(width: 32, height: 32)
+                .background(.ultraThinMaterial, in: Circle())
+        }
+        .buttonStyle(.plain)
+        .contentShape(Circle())
+        .accessibilityLabel("Remove from bag")
     }
 
     /// One row for every notice, so a shopper reads them the same way wherever they appear. What
