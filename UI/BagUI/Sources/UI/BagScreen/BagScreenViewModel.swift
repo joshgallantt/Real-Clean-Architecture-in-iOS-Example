@@ -43,6 +43,19 @@ public final class BagScreenViewModel: ObservableObject {
 
     var isEmpty: Bool { bag.isEmpty }
 
+    /// Whether there is anything to tell the shopper. An empty bag with notices still waiting is
+    /// not an empty screen — the notices are the reason it emptied.
+    var hasNews: Bool {
+        !outOfStockRows.isEmpty
+            || !discontinuedRows.isEmpty
+            || !shortageRows.isEmpty
+            || !priceChangedRows.isEmpty
+    }
+
+    var itemCountSummary: String {
+        bag.itemCount == 1 ? "1 item" : "\(bag.itemCount) items"
+    }
+
     public init(
         observeBag: ObserveBagUseCase,
         observeBagChanges: ObserveBagChangesUseCase,
