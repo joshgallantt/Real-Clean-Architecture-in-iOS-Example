@@ -32,9 +32,9 @@ public struct BagDI {
         /// belongs to.
         let repository = DefaultBagRepository(
             store: store,
-            owner: BagOwner(getSession()),
+            owner: Owner(getSession()),
             ownerPublisher: observeSession()
-                .map(BagOwner.init)
+                .map(Owner.init)
                 .removeDuplicates()
                 .eraseToAnyPublisher()
         )

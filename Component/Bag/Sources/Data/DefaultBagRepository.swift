@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import Bag
+import Session
 
 @MainActor
 /// Evans, *Domain-Driven Design* (2003) — Repositories. Fowler, *PoEAA* (2002) — Repository: it
@@ -13,14 +14,14 @@ public final class DefaultBagRepository: BagRepository {
     private let store: BagStore
     private let bagSubject: CurrentValueSubject<Bag, Never>
     private let changesSubject: CurrentValueSubject<BagChanges, Never>
-    private var owner: BagOwner
+    private var owner: Owner
     private var cancellables = Set<AnyCancellable>()
     private var pendingWrite: Task<Void, Never>?
 
     public init(
         store: BagStore,
-        owner: BagOwner,
-        ownerPublisher: AnyPublisher<BagOwner, Never>
+        owner: Owner,
+        ownerPublisher: AnyPublisher<Owner, Never>
     ) {
         self.store = store
         self.owner = owner
@@ -61,7 +62,7 @@ public final class DefaultBagRepository: BagRepository {
         await pendingWrite?.value
     }
 
-    private func switchOwner(to owner: BagOwner) {
+    private func switchOwner(to owner: Owner) {
         guard owner != self.owner else { return }
         self.owner = owner
         let kept = store.getBag(for: owner)

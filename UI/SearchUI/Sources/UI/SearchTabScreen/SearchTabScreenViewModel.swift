@@ -51,7 +51,7 @@ public final class SearchTabScreenViewModel: ObservableObject {
     }
 
     func didSubmitSearch(_ term: SearchTerm) {
-        Task { await recordSearch(term) }
+        recordSearch(term)
     }
 
     func didSelectCategory(_ category: ProductCategory) {

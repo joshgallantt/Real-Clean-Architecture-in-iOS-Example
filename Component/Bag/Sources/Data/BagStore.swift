@@ -1,13 +1,14 @@
 import Foundation
 import Bag
+import Session
 
 /// Fowler, *PoEAA* (2002) — Gateway: wraps one external system behind a domain-shaped call.
 ///
 /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the outermost ring,
 /// replaceable without anything inward moving.
 public protocol BagStore: Sendable {
-    func getBag(for owner: BagOwner) -> (bag: Bag, changes: BagChanges)
-    func setBag(_ bag: Bag, changes: BagChanges, for owner: BagOwner) async
+    func getBag(for owner: Owner) -> (bag: Bag, changes: BagChanges)
+    func setBag(_ bag: Bag, changes: BagChanges, for owner: Owner) async
 }
 
 public struct FileBagStore: BagStore, @unchecked Sendable {
@@ -24,7 +25,7 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         return base.appending(path: "Bag", directoryHint: .isDirectory)
     }
 
-    public func getBag(for owner: BagOwner) -> (bag: Bag, changes: BagChanges) {
+    public func getBag(for owner: Owner) -> (bag: Bag, changes: BagChanges) {
         guard
             let data = try? Data(contentsOf: url(for: owner)),
             let dto = try? JSONDecoder().decode(BagDTO.self, from: data)
@@ -34,7 +35,7 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         return dto.toDomain()
     }
 
-    public func setBag(_ bag: Bag, changes: BagChanges, for owner: BagOwner) async {
+    public func setBag(_ bag: Bag, changes: BagChanges, for owner: Owner) async {
         let dto = BagDTO(bag: bag, changes: changes)
         let directory = self.directory
         let url = url(for: owner)
@@ -50,16 +51,16 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         try? data.write(to: url, options: .atomic)
     }
 
-    private func url(for owner: BagOwner) -> URL {
+    private func url(for owner: Owner) -> URL {
         directory.appending(path: "\(Self.filename(for: owner)).json", directoryHint: .notDirectory)
     }
 
     /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: what something is
     /// filed under is the storage layer's business. The only place an owner becomes a string.
-    private static func filename(for owner: BagOwner) -> String {
+    private static func filename(for owner: Owner) -> String {
         switch owner {
         case .guest: "guest"
-        case .shopper(let id): String(id.rawValue)
+        case .signedIn(let id): String(id.rawValue)
         }
     }
 }

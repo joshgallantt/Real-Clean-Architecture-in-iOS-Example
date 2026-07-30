@@ -4,8 +4,8 @@ import Foundation
 /// optional, and saying so in the type is the point. Two loose strings leave that intent invisible
 /// and the rule applied to whichever half the author had in mind.
 ///
-/// Evans — Value Objects. Fowler, *PoEAA* (2002) — Special Case: absence is `nil`, not a blank to
-/// be checked for at every use.
+/// Evans — Value Objects. Absence is `nil` rather than a blank, so no caller has to decide what an
+/// empty string meant.
 public struct PersonName: Equatable, Sendable {
     public let first: String
     public let last: String?

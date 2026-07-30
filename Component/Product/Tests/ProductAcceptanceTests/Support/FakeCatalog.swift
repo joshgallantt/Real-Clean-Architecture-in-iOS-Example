@@ -5,10 +5,18 @@ import Networking
 /// DTO decoding and the use cases are all the real implementations. A journey that passes here is
 /// one the app can complete.
 final class FakeCatalog: HTTPClient, @unchecked Sendable {
+    /// The ways a shop can fail to answer, as a shopper would meet them: no signal, the shop
+    /// itself broken, or an answer the app cannot make sense of.
+    enum Trouble {
+        case noSignal
+        case shopIsBroken
+        case answersNonsense
+    }
+
     private let lock = NSLock()
     private let items: [CatalogItem]
     private let categories: [CategoryPayload]
-    private var isOffline = false
+    private var trouble: Trouble?
 
     init(
         items: [CatalogItem] = CatalogItem.sampleCatalog,
@@ -18,7 +26,9 @@ final class FakeCatalog: HTTPClient, @unchecked Sendable {
         self.categories = categories
     }
 
-    func goOffline() { lock.withLock { isOffline = true } }
+    func goOffline() { runInto(.noSignal) }
+
+    func runInto(_ trouble: Trouble) { lock.withLock { self.trouble = trouble } }
 
     func get<T: Decodable>(_ url: URL) async throws -> T {
         let components = URLComponents(url: url, resolvingAgainstBaseURL: false)
@@ -27,7 +37,12 @@ final class FakeCatalog: HTTPClient, @unchecked Sendable {
             uniqueKeysWithValues: (components?.queryItems ?? []).map { ($0.name, $0.value ?? "") }
         )
 
-        if lock.withLock({ isOffline }) { throw HTTPClientError.transport }
+        switch lock.withLock({ trouble }) {
+        case .noSignal: throw HTTPClientError.transport
+        case .shopIsBroken: throw HTTPClientError.server(statusCode: 500)
+        case .answersNonsense: return try JSONDecoder().decode(T.self, from: Data("{}".utf8))
+        case .none: break
+        }
 
         let data = try Self.respond(path: path, query: query, items: items, categories: categories)
         return try JSONDecoder().decode(T.self, from: data)

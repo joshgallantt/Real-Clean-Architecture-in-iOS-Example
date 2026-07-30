@@ -5,10 +5,10 @@ import Product
 /// three things about a product. Taking `Product` would make it depend on seven more it never
 /// reads, each a reason to recompile and a reason it could only ever be satisfied by the catalog.
 ///
-/// Evans, *Domain-Driven Design* (2003) — Bounded Context; Anticorruption Layer: the translated
-/// form at the boundary between Catalog and Bag. `ProductID` and `Availability` are imported
-/// unchanged rather than restated, because identity and availability mean the same thing in both
-/// contexts and a second definition would be a second answer.
+/// Evans, *Domain-Driven Design* (2003) — Bounded Context: what the Bag asks of the Catalog, in the
+/// Bag's own terms. Evans — Shared Kernel: `ProductID` and `Availability` are imported unchanged
+/// rather than restated, because identity and availability mean the same thing in both contexts and
+/// a second definition would be a second answer.
 ///
 /// Evans — Value Objects.
 public struct ShopSays: Equatable, Sendable {

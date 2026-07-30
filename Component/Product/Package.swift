@@ -51,22 +51,6 @@ let package = Package(
             path: "Sources/DI"
         ),
         .testTarget(
-            name: "ProductTests",
-            dependencies: [
-                "Product",
-                .product(name: "Money", package: "Money")
-            ],
-            path: "Tests/ProductTests"
-        ),
-        .testTarget(
-            name: "ProductDataTests",
-            dependencies: [
-                "ProductData",
-                .product(name: "Money", package: "Money")
-            ],
-            path: "Tests/ProductDataTests"
-        ),
-        .testTarget(
             name: "ProductAcceptanceTests",
             dependencies: [
                 "ProductDI",

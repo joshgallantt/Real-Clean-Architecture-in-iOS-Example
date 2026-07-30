@@ -61,6 +61,33 @@ struct ShoppingTheCatalogTests {
         #expect(results.success?.map(\.title) == ["Annibale Colombo Bed", "Annibale Colombo Sofa"])
     }
 
+    @Test("Spaces either side of what they typed are not part of what they searched for")
+    func searchIgnoresSurroundingSpace() async {
+        let shop = Shop()
+
+        let padded = await shop.search("  Annibale  ")
+
+        #expect(padded.success?.map(\.title) == ["Annibale Colombo Bed", "Annibale Colombo Sofa"])
+    }
+
+    @Test("Tapping search with nothing typed searches for nothing")
+    func searchesForNothing() async {
+        let shop = Shop()
+
+        #expect(await shop.search("   ").success == [])
+    }
+
+    @Test("A product the shop lists without a brand is still a product")
+    func productWithoutABrand() async throws {
+        let shop = Shop(catalog: FakeCatalog(items: [
+            CatalogItem(id: 1, title: "Annibale Colombo Bed", category: "furniture", brand: nil)
+        ]))
+
+        let product = try #require(await shop.open(productId: 1).success)
+
+        #expect(product.title == "Annibale Colombo Bed")
+    }
+
     @Test("A shopper opens a product from the grid and sees its details")
     func opensAProduct() async {
         let shop = Shop()
@@ -119,5 +146,85 @@ struct ShoppingTheCatalogTests {
 
         #expect(beforeLosingSignal.success?.count == 3)
         #expect(afterLosingSignal == .failure(.unavailable))
+    }
+
+    @Test(
+        "Every way the shop can fail to answer reads the same to a shopper: it is not available",
+        arguments: [FakeCatalog.Trouble.noSignal, .shopIsBroken, .answersNonsense]
+    )
+    func troubleReadsAsUnavailable(_ trouble: FakeCatalog.Trouble) async {
+        let shop = Shop()
+        shop.catalog.runInto(trouble)
+
+        #expect(await shop.browse() == .failure(.unavailable))
+        #expect(await shop.categories() == .failure(.unavailable))
+    }
+
+    @Test("A product the shop no longer lists is gone, which is not the same as being unreachable")
+    func productIsGone() async {
+        let shop = Shop()
+
+        #expect(await shop.open(productId: 999) == .failure(.notFound))
+
+        shop.catalog.goOffline()
+        #expect(await shop.open(productId: 1) == .failure(.unavailable))
+    }
+}
+
+@Suite("Coming back to a list of things the shopper saved")
+/// The bag and the wishlist keep ids, not products. Filling that list back in is where a shop that
+/// has moved on since is met, so what a shopper sees when it has is decided here.
+struct FillingInASavedListTests {
+    @Test("A list of nothing needs nothing from the shop")
+    func nothingSaved() async {
+        let shop = Shop()
+
+        #expect(await shop.products(withIds: []).success == [])
+    }
+
+    @Test("The list comes back in the order the shopper saved it, not the order the shop answered")
+    func keepsTheShoppersOrder() async {
+        let shop = Shop()
+
+        let products = await shop.products(withIds: [6, 1, 8])
+
+        #expect(products.success?.map(\.title) == [
+            "Dolce Shine Eau de",
+            "Mascara Lash Princess",
+            "Annibale Colombo Sofa"
+        ])
+    }
+
+    @Test("Something delisted since the shopper saved it drops out, and the rest still arrive")
+    func delistedDropsOut() async {
+        let shop = Shop()
+
+        let products = await shop.products(withIds: [1, 999, 8])
+
+        #expect(products.success?.map(\.title) == ["Mascara Lash Princess", "Annibale Colombo Sofa"])
+    }
+
+    @Test("A list of nothing but delisted things is an empty list, not a broken one")
+    func everythingDelisted() async {
+        let shop = Shop()
+
+        #expect(await shop.products(withIds: [998, 999]).success == [])
+    }
+
+    @Test("One product the shopper cannot be told about fails the list rather than quietly shortening it")
+    func oneUnreachableFailsTheList() async {
+        let shop = Shop()
+        shop.catalog.goOffline()
+
+        #expect(await shop.products(withIds: [1, 8]) == .failure(.unavailable))
+    }
+
+    @Test("A saved list longer than a page comes back in full")
+    func longerThanAPage() async {
+        let shop = Shop()
+
+        let products = await shop.products(withIds: Array(1...8).reversed())
+
+        #expect(products.success?.map(\.id.rawValue) == Array(1...8).reversed())
     }
 }

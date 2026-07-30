@@ -2,9 +2,11 @@ import Foundation
 import Testing
 @testable import Money
 
-/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the domain is tested with no
-/// repository, no store and no simulator in the room. Anything here that needed one would not be a
-/// domain rule.
+@Suite("Amounts of money")
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary. The only tests in the repo not
+/// written as a shopper's journey, because `Money` is a `Library/` with no shopper: it ships
+/// independently of this app and owes its guarantee — exact arithmetic — to whoever links it. What
+/// a shopper notices about money is asserted where they would notice it, in the bag.
 struct MoneyTests {
     // MARK: - Exactness, which is the whole reason this type exists
 

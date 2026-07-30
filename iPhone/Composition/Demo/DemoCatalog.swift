@@ -42,7 +42,6 @@ enum DemoCatalogMischief {
 
 // MARK: - Decorators
 
-/// Martin, Ch. 9 — Liskov Substitution Principle.
 struct DemoBrowseCatalogUseCase: BrowseCatalogUseCase {
     let wrapped: BrowseCatalogUseCase
 
@@ -51,7 +50,6 @@ struct DemoBrowseCatalogUseCase: BrowseCatalogUseCase {
     }
 }
 
-/// Martin, Ch. 9 — Liskov Substitution Principle.
 struct DemoLookUpProductsUseCase: LookUpProductsUseCase {
     let wrapped: LookUpProductsUseCase
 
@@ -60,7 +58,6 @@ struct DemoLookUpProductsUseCase: LookUpProductsUseCase {
     }
 }
 
-/// Martin, Ch. 9 — Liskov Substitution Principle.
 struct DemoViewProductUseCase: ViewProductUseCase {
     let wrapped: ViewProductUseCase
 

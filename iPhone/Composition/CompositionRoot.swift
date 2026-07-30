@@ -77,7 +77,8 @@ final class CompositionRoot {
         )
         searchHistoryDI = SearchHistoryDI(
             store: UserDefaultsSearchHistoryStore(defaults: .standard),
-            getSession: sessionDI.getSessionUseCase
+            getSession: sessionDI.getSessionUseCase,
+            observeSession: sessionDI.observeSessionUseCase
         )
         wishlistDI = WishlistDI(
             getSession: sessionDI.getSessionUseCase,

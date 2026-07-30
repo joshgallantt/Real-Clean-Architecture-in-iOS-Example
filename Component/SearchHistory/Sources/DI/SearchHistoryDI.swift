@@ -1,3 +1,4 @@
+import Combine
 import SearchHistory
 import SearchHistoryData
 import Session
@@ -13,8 +14,23 @@ public struct SearchHistoryDI {
     public let recordSearchUseCase: RecordSearchUseCase
     public let clearSearchHistoryUseCase: ClearSearchHistoryUseCase
 
-    public init(store: SearchHistoryStore, getSession: GetSessionUseCase) {
-        let repository = DefaultSearchHistoryRepository(store: store, getSession: getSession)
+    @MainActor
+    public init(
+        store: SearchHistoryStore,
+        getSession: GetSessionUseCase,
+        observeSession: ObserveSessionUseCase
+    ) {
+        /// Evans, *Domain-Driven Design* (2003) — Bounded Context: turning a session into an owner
+        /// happens here, once, at the wiring boundary. What the repository receives is whose
+        /// history it is keeping.
+        let repository = DefaultSearchHistoryRepository(
+            store: store,
+            owner: Owner(getSession()),
+            ownerPublisher: observeSession()
+                .map(Owner.init)
+                .removeDuplicates()
+                .eraseToAnyPublisher()
+        )
         self.getSearchHistoryUseCase = DefaultGetSearchHistoryUseCase(repository: repository)
         self.recordSearchUseCase = DefaultRecordSearchUseCase(repository: repository)
         self.clearSearchHistoryUseCase = DefaultClearSearchHistoryUseCase(repository: repository)

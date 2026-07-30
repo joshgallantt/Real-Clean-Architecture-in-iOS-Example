@@ -3,7 +3,8 @@
 ///
 /// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces.
 public protocol GetSearchHistoryUseCase: Sendable {
-    func callAsFunction() async -> SearchHistory
+    @MainActor
+    func callAsFunction() -> SearchHistory
 }
 
 public struct DefaultGetSearchHistoryUseCase: GetSearchHistoryUseCase {
@@ -13,7 +14,8 @@ public struct DefaultGetSearchHistoryUseCase: GetSearchHistoryUseCase {
         self.repository = repository
     }
 
-    public func callAsFunction() async -> SearchHistory {
-        await repository.history()
+    @MainActor
+    public func callAsFunction() -> SearchHistory {
+        repository.history()
     }
 }

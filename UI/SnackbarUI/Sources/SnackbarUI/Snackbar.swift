@@ -14,6 +14,6 @@ public struct Snackbar {
     }
 
     public var displayDuration: Duration {
-        action == nil ? .seconds(3) : .seconds(3)
+        .seconds(3)
     }
 }

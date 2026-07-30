@@ -3,6 +3,9 @@
 /// Evans, *Domain-Driven Design* (2003) — Repositories. Fowler, *PoEAA* (2002) — Repository;
 /// Separated Interface.
 public protocol SearchHistoryRepository: Sendable {
-    func history() async -> SearchHistory
-    func save(_ history: SearchHistory) async
+    @MainActor
+    func history() -> SearchHistory
+
+    @MainActor
+    func save(_ history: SearchHistory)
 }
