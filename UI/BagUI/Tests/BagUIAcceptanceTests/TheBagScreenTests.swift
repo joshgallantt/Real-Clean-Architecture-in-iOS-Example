@@ -37,8 +37,8 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        #expect(viewModel.outOfStockRows.first?.name == "Product 1")
-        #expect(viewModel.outOfStockRows.first?.imageURL != nil)
+        #expect(viewModel.notices(in: .outOfStock).first?.name == "Product 1")
+        #expect(viewModel.notices(in: .outOfStock).first?.imageURL != nil)
     }
 
     @Test("A notice waiting from a previous visit still says what it is about")
@@ -53,8 +53,8 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        #expect(viewModel.outOfStockRows.map(\.id) == [pid(7)])
-        #expect(viewModel.outOfStockRows.first?.name == "Product 7")
+        #expect(viewModel.notices(in: .outOfStock).map(\.id) == [pid(7)])
+        #expect(viewModel.notices(in: .outOfStock).first?.name == "Product 7")
     }
 
     @Test("A price notice about something still in the bag keeps its name too")
@@ -65,7 +65,7 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        #expect(viewModel.priceIncreaseRows.first?.name == "Product 1")
+        #expect(viewModel.notices(in: .priceIncrease).first?.name == "Product 1")
     }
 
     @Test("Opening the bag asks the shop about everything in it")
@@ -104,8 +104,8 @@ struct BagScreenViewModelTests {
         await settle(shop, untilAskedTimes: 2)
 
         #expect(shop.currentChanges.priceMoves == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
-        #expect(viewModel.priceIncreaseRows.map(\.id) == [pid(1)])
-        #expect(viewModel.outOfStockRows.isEmpty)
+        #expect(viewModel.notices(in: .priceIncrease).map(\.id) == [pid(1)])
+        #expect(viewModel.notices(in: .outOfStock).isEmpty)
         #expect(viewModel.total == usd(12.99))
     }
 
@@ -132,7 +132,7 @@ struct BagScreenViewModelTests {
         await settle(shop)
 
         #expect(shop.currentBag.isEmpty)
-        #expect(viewModel.outOfStockRows.map(\.id) == [pid(1)])
+        #expect(viewModel.notices(in: .outOfStock).map(\.id) == [pid(1)])
         #expect(viewModel.rows.isEmpty)
         #expect(viewModel.isEmpty)
     }
@@ -151,8 +151,8 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        #expect(viewModel.outOfStockRows.map(\.id) == [pid(1)])
-        #expect(viewModel.discontinuedRows.map(\.id) == [pid(2)])
+        #expect(viewModel.notices(in: .outOfStock).map(\.id) == [pid(1)])
+        #expect(viewModel.notices(in: .discontinued).map(\.id) == [pid(2)])
         #expect(viewModel.isEmpty)
     }
 
@@ -179,14 +179,17 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        #expect(viewModel.outOfStockRows.first?.detail == nil)
-        #expect(viewModel.discontinuedRows.first?.detail == nil)
-        #expect(viewModel.priceIncreaseRows.first?.detail == nil)
+        #expect(viewModel.notices(in: .outOfStock).first?.says == .nothing)
+        #expect(viewModel.notices(in: .discontinued).first?.says == .nothing)
 
-        // How many are left is the one thing the heading above cannot say.
-        #expect(Set(viewModel.shortageRows.compactMap(\.detail)) == ["Only 2 left", "Only 1 left"])
-        #expect(viewModel.priceIncreaseRows.first?.priceMove != nil)
-        #expect(viewModel.outOfStockRows.first?.priceMove == nil)
+        // How many are left, and what it costs now, are the two things a heading cannot say.
+        let shortages = viewModel.notices(in: .shortage).map(\.says)
+        #expect(shortages.contains(.howManyLeft("Only 2 left")))
+        #expect(shortages.contains(.howManyLeft("Only 1 left")))
+
+        #expect(viewModel.notices(in: .priceIncrease).first?.says == .priceMoved(
+            NoticeRow.PriceMove(was: usd(5).formatted(), now: usd(8).formatted(), isCheaper: false)
+        ))
     }
 
     @Test("A price move carries both amounts and which way it went, so the screen can show it")
@@ -201,12 +204,13 @@ struct BagScreenViewModelTests {
         await settle(dearer)
         await settle(cheaper)
 
-        let wentUp = dearerScreen.priceIncreaseRows.first?.priceMove
-        #expect(wentUp?.was == usd(9.99).formatted())
-        #expect(wentUp?.now == usd(12.99).formatted())
-        #expect(wentUp?.isCheaper == false)
+        #expect(dearerScreen.notices(in: .priceIncrease).first?.says == .priceMoved(
+            NoticeRow.PriceMove(was: usd(9.99).formatted(), now: usd(12.99).formatted(), isCheaper: false)
+        ))
 
-        #expect(cheaperScreen.priceDecreaseRows.first?.priceMove?.isCheaper == true)
+        #expect(cheaperScreen.notices(in: .priceDecrease).first?.says == .priceMoved(
+            NoticeRow.PriceMove(was: usd(9.99).formatted(), now: usd(4.99).formatted(), isCheaper: true)
+        ))
     }
 
     @Test("A bag emptied by the shop still shows why, rather than looking like an empty bag")
@@ -227,13 +231,13 @@ struct BagScreenViewModelTests {
         let viewModel = makeViewModel(shop: shop)
         viewModel.onAppear()
         await settle(shop)
-        #expect(viewModel.priceIncreaseRows.map(\.id) == [pid(1)])
+        #expect(viewModel.notices(in: .priceIncrease).map(\.id) == [pid(1)])
 
         viewModel.didRemoveChangedItem(productId: pid(1))
         await settle(shop, untilAskedTimes: 2)
 
         #expect(shop.currentBag.isEmpty)
-        #expect(viewModel.priceIncreaseRows.isEmpty)
+        #expect(viewModel.notices(in: .priceIncrease).isEmpty)
     }
 
     @Test("A rise and a drop are listed apart, because only one of them asks anything of a shopper")
@@ -247,8 +251,8 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        #expect(viewModel.priceIncreaseRows.map(\.id) == [pid(1)])
-        #expect(viewModel.priceDecreaseRows.map(\.id) == [pid(2)])
+        #expect(viewModel.notices(in: .priceIncrease).map(\.id) == [pid(1)])
+        #expect(viewModel.notices(in: .priceDecrease).map(\.id) == [pid(2)])
     }
 
     @Test("Accepting the rises leaves the drops alone")
@@ -261,10 +265,10 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        viewModel.didAcceptAll(viewModel.priceIncreaseRows)
+        viewModel.didAcceptAll(.priceIncrease)
 
-        #expect(viewModel.priceIncreaseRows.isEmpty)
-        #expect(viewModel.priceDecreaseRows.map(\.id) == [pid(2)])
+        #expect(viewModel.notices(in: .priceIncrease).isEmpty)
+        #expect(viewModel.notices(in: .priceDecrease).map(\.id) == [pid(2)])
     }
 
     @Test("Availability is a yes-or-no to a bag, whatever the count happens to be")
@@ -324,13 +328,13 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
         let asksSoFar = shop.lookups.count
-        #expect(viewModel.priceIncreaseRows.count == 1)
+        #expect(viewModel.notices(in: .priceIncrease).count == 1)
 
-        viewModel.didAcceptAll(viewModel.priceIncreaseRows)
+        viewModel.didAcceptAll(.priceIncrease)
         await settle(shop)
 
         #expect(shop.lookups.count == asksSoFar)
-        #expect(viewModel.priceIncreaseRows.isEmpty)
+        #expect(viewModel.notices(in: .priceIncrease).isEmpty)
     }
 
 
@@ -399,11 +403,11 @@ struct DealingWithAWholeSectionTests {
         let viewModel = makeViewModel(shop: shop)
         viewModel.onAppear()
         await settle(shop)
-        #expect(viewModel.outOfStockRows.count == 2)
+        #expect(viewModel.notices(in: .outOfStock).count == 2)
 
-        viewModel.didAcceptAll(viewModel.outOfStockRows)
+        viewModel.didAcceptAll(.outOfStock)
 
-        #expect(viewModel.outOfStockRows.isEmpty)
+        #expect(viewModel.notices(in: .outOfStock).isEmpty)
     }
 
     @Test("Accepting every price move leaves the bag itself alone, at the new prices")
@@ -415,11 +419,11 @@ struct DealingWithAWholeSectionTests {
         let viewModel = makeViewModel(shop: shop)
         viewModel.onAppear()
         await settle(shop)
-        #expect(viewModel.priceIncreaseRows.count == 2)
+        #expect(viewModel.notices(in: .priceIncrease).count == 2)
 
-        viewModel.didAcceptAll(viewModel.priceIncreaseRows)
+        viewModel.didAcceptAll(.priceIncrease)
 
-        #expect(viewModel.priceIncreaseRows.isEmpty)
+        #expect(viewModel.notices(in: .priceIncrease).isEmpty)
         #expect(viewModel.rows.count == 2)
         #expect(viewModel.total == usd(19.99))
     }
@@ -437,10 +441,10 @@ struct DealingWithAWholeSectionTests {
         viewModel.onAppear()
         await settle(shop)
 
-        viewModel.didAcceptAll(viewModel.priceIncreaseRows)
+        viewModel.didAcceptAll(.priceIncrease)
 
-        #expect(viewModel.priceIncreaseRows.isEmpty)
-        #expect(viewModel.outOfStockRows.map(\.id) == [pid(2)])
+        #expect(viewModel.notices(in: .priceIncrease).isEmpty)
+        #expect(viewModel.notices(in: .outOfStock).map(\.id) == [pid(2)])
     }
 
     @Test("A shopper empties their whole bag and it is empty, and worth nothing at all")

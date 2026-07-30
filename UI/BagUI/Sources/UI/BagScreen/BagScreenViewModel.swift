@@ -13,11 +13,10 @@ import Product
 /// a container that could resolve anything.
 public final class BagScreenViewModel: ObservableObject {
     @Published private(set) var rows: [BagRow] = []
-    @Published private(set) var outOfStockRows: [ChangedBagRow] = []
-    @Published private(set) var discontinuedRows: [ChangedBagRow] = []
-    @Published private(set) var priceIncreaseRows: [ChangedBagRow] = []
-    @Published private(set) var priceDecreaseRows: [ChangedBagRow] = []
-    @Published private(set) var shortageRows: [ChangedBagRow] = []
+
+    /// Only the sections with something in them, in the order they are read. Five published arrays
+    /// and an if-statement each is what this replaced; the view now draws whatever it is given.
+    @Published private(set) var noticeSections: [NoticeSection] = []
 
     private let observeBag: ObserveBagUseCase
     private let observeBagChanges: ObserveBagChangesUseCase
@@ -40,12 +39,10 @@ public final class BagScreenViewModel: ObservableObject {
 
     /// Whether there is anything to tell the shopper. An empty bag with notices still waiting is
     /// not an empty screen — the notices are the reason it emptied.
-    var hasNews: Bool {
-        !outOfStockRows.isEmpty
-            || !discontinuedRows.isEmpty
-            || !shortageRows.isEmpty
-            || !priceIncreaseRows.isEmpty
-            || !priceDecreaseRows.isEmpty
+    var hasNews: Bool { !noticeSections.isEmpty }
+
+    func notices(in kind: NoticeSection.Kind) -> [NoticeRow] {
+        noticeSections.first { $0.kind == kind }?.rows ?? []
     }
 
     var itemCountSummary: String {
@@ -88,8 +85,13 @@ public final class BagScreenViewModel: ObservableObject {
     /// Acknowledging is by product, not by notice — "Okay" has always meant "I have seen what
     /// happened to this one". So accepting a whole section clears anything else outstanding about
     /// the same product, which is the same thing tapping each Okay in turn would have done.
-    func didAcceptAll(_ rows: [ChangedBagRow]) {
-        for row in rows {
+    ///
+    /// Evans, *Domain-Driven Design* (2003), Ch. 2 — Ubiquitous Language: the shopper accepts a
+    /// section, so a section is what this is told. It used to be handed the rows themselves, read
+    /// back off the property they came from — which let a caller pair one section's button with
+    /// another section's contents, and said nothing a reader would recognise.
+    func didAcceptAll(_ kind: NoticeSection.Kind) {
+        for row in notices(in: kind) {
             acknowledgeBagChange(productId: row.id)
         }
     }
@@ -109,12 +111,14 @@ public final class BagScreenViewModel: ObservableObject {
     }
 
 
-    private func row(for change: BagChange) -> ChangedBagRow {
-        ChangedBagRow(
-            change: change,
-            name: catalog[change.productId]?.title,
-            imageURL: catalog[change.productId]?.thumbnail
-        )
+    private func rows(for changes: [BagChange]) -> [NoticeRow] {
+        changes.map { change in
+            NoticeRow(
+                change: change,
+                name: catalog[change.productId]?.title,
+                imageURL: catalog[change.productId]?.thumbnail
+            )
+        }
     }
 
     // MARK: -
@@ -155,11 +159,16 @@ public final class BagScreenViewModel: ObservableObject {
             BagRow(item: item, name: catalog[item.id]?.title, imageURL: catalog[item.id]?.thumbnail)
         }
 
-        outOfStockRows = changes.outOfStock.map(row(for:))
-        discontinuedRows = changes.discontinued.map(row(for:))
-        priceIncreaseRows = changes.priceIncreases.map(row(for:))
-        priceDecreaseRows = changes.priceDecreases.map(row(for:))
-        shortageRows = changes.shortages.map(row(for:))
+        /// The order the sections are read in, decided once and here. It runs worst-first: what has
+        /// gone for good, then what has gone for now, then what there is not enough of, then what
+        /// costs more, and last the one piece of good news.
+        noticeSections = [
+            NoticeSection(.discontinued, rows: rows(for: changes.discontinued)),
+            NoticeSection(.outOfStock, rows: rows(for: changes.outOfStock)),
+            NoticeSection(.shortage, rows: rows(for: changes.shortages)),
+            NoticeSection(.priceIncrease, rows: rows(for: changes.priceIncreases)),
+            NoticeSection(.priceDecrease, rows: rows(for: changes.priceDecreases))
+        ].filter { !$0.rows.isEmpty }
     }
 
     /// The whole bag, every time, not a page of it.

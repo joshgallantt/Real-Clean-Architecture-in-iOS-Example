@@ -38,11 +38,7 @@ public struct BagScreenView: View {
                 )
             } else {
                 List {
-                    if !viewModel.discontinuedRows.isEmpty { discontinuedSection }
-                    if !viewModel.outOfStockRows.isEmpty { outOfStockSection }
-                    if !viewModel.shortageRows.isEmpty { shortageSection }
-                    if !viewModel.priceIncreaseRows.isEmpty { priceIncreaseSection }
-                    if !viewModel.priceDecreaseRows.isEmpty { priceDecreaseSection }
+                    ForEach(viewModel.noticeSections) { noticeSection($0) }
                     if !viewModel.isEmpty { bagSection }
                 }
                 .listStyle(.insetGrouped)
@@ -64,104 +60,44 @@ public struct BagScreenView: View {
         }
     }
     
-    // MARK: - Gone for good
+    // MARK: - What the shop changed
 
-    /// No bell, because there is nothing to wait for. Nothing else either: every action this app
-    /// has is a way of getting one of these eventually, and offering any of them here would be
-    /// offering something the shop cannot honour. So the row says what it was and stops.
-    private var discontinuedSection: some View {
+    /// Every notice section, drawn the same way. What one is called, what it says for itself and
+    /// what it offers arrive as data — the view has no list of them and gains nothing when there is
+    /// a sixth.
+    private func noticeSection(_ section: NoticeSection) -> some View {
         Section {
-            ForEach(viewModel.discontinuedRows) { row in
-                noticeRow(row, accessory: { EmptyView() })
+            ForEach(section.rows) { row in
+                noticeRow(row, accessory: section.accessory)
             }
         } header: {
             sectionHeader(
-                "No Longer Available",
-                icon: "xmark.circle",
-                tint: .secondary,
-                description: "Discontinued. Sad - yes, but we thought you should know."
+                section.title,
+                icon: section.icon,
+                tint: color(section.tint),
+                description: section.description
             ) {
-                Button("Okay") { viewModel.didAcceptAll(viewModel.discontinuedRows) }
+                Button("Okay") { viewModel.didAcceptAll(section.kind) }
             }
         }
     }
 
-    // MARK: - Gone, but coming back
-
-    private var outOfStockSection: some View {
-        Section {
-            ForEach(viewModel.outOfStockRows) { row in
-                noticeRow(row, accessory: { stockAlertButton(row.id) })
-            }
-        } header: {
-            sectionHeader(
-                "Out Of Stock",
-                icon: "shippingbox",
-                tint: .orange,
-                description: "Sold out for now, so they've hopped out of your bag. Tap the bell and we'll ping you the moment they're back."
-            ) {
-                Button("Okay") { viewModel.didAcceptAll(viewModel.outOfStockRows) }
-            }
+    /// The one thing about a section the view really does decide. A presenter naming `Color` would
+    /// need SwiftUI, and a presenter that imports SwiftUI has started becoming a view.
+    private func color(_ tint: NoticeSection.Tint) -> Color {
+        switch tint {
+        case .quiet: .secondary
+        case .warning: .orange
+        case .good: .accentColor
         }
     }
 
-    // MARK: - Not enough left
-
-    private var shortageSection: some View {
-        Section {
-            ForEach(viewModel.shortageRows) { row in
-                noticeRow(row, accessory: { EmptyView() })
-            }
-        } header: {
-            sectionHeader(
-                "Not Enough Left",
-                icon: "exclamationmark.triangle",
-                tint: .orange,
-                description: "Going fast. We've matched these to whatever's still on the shelf."
-            ) {
-                Button("Okay") { viewModel.didAcceptAll(viewModel.shortageRows) }
-            }
-        }
-    }
-
-    // MARK: - Costing more
-
-    private var priceIncreaseSection: some View {
-        Section {
-            ForEach(viewModel.priceIncreaseRows) { row in
-                noticeRow(row, accessory: { removeFromBagButton(row.id) })
-            }
-        } header: {
-            sectionHeader(
-                "Price Increases",
-                icon: "arrow.up.circle",
-                tint: .orange,
-                description: "Prices went up on these. Rude, we know. Keep them or take them out — your call."
-            ) {
-                Button("Okay") { viewModel.didAcceptAll(viewModel.priceIncreaseRows) }
-            }
-        }
-    }
-
-    // MARK: - Costing less
-
-    /// No Remove. Nobody has ever wanted out of a discount, and offering it here would read as
-    /// though something were wrong with it — which is the whole reason this is its own section
-    /// rather than half of a "Prices Changed" one asking for a decision about good news.
-    private var priceDecreaseSection: some View {
-        Section {
-            ForEach(viewModel.priceDecreaseRows) { row in
-                noticeRow(row, accessory: { EmptyView() })
-            }
-        } header: {
-            sectionHeader(
-                "Price Decreases",
-                icon: "arrow.down.circle",
-                tint: .accentColor,
-                description: "Good news, these got cheaper. You're welcome — the lower price is already in your total."
-            ) {
-                Button("Okay") { viewModel.didAcceptAll(viewModel.priceDecreaseRows) }
-            }
+    @ViewBuilder
+    private func accessoryButton(_ accessory: NoticeSection.Accessory, for id: ProductID) -> some View {
+        switch accessory {
+        case .nothing: EmptyView()
+        case .tellMeWhenItIsBack: stockAlertButton(id)
+        case .removeFromBag: removeFromBagButton(id)
         }
     }
 
@@ -190,16 +126,10 @@ public struct BagScreenView: View {
         .accessibilityLabel("Remove from bag")
     }
 
-    /// One row for every notice, so a shopper reads them the same way wherever they appear. What
-    /// differs between sections is the accessory: a bell where waiting is worth something, a way
-    /// out where the line is still in the bag at a price nobody agreed to, nothing anywhere else.
-    ///
-    /// What a row says is only ever what its heading has not already said. Most say nothing at all,
-    /// and are a picture and a name — which is what a shopper came to this section to find out.
-    private func noticeRow<Accessory: View>(
-        _ row: ChangedBagRow,
-        @ViewBuilder accessory: () -> Accessory
-    ) -> some View {
+    /// One row for every notice, so a shopper reads them the same way wherever they appear. What a
+    /// row says is only ever what its heading has not already said, and most say nothing at all —
+    /// they are a picture and a name, which is what a shopper opened the section to find out.
+    private func noticeRow(_ row: NoticeRow, accessory: NoticeSection.Accessory) -> some View {
         HStack(spacing: 12) {
             thumbnail(url: row.imageURL)
 
@@ -209,21 +139,24 @@ public struct BagScreenView: View {
                     .lineLimit(2)
                     .redacted(reason: row.name == nil ? .placeholder : [])
 
-                if let move = row.priceMove {
-                    priceMove(move)
-                }
+                switch row.says {
+                case .nothing:
+                    EmptyView()
 
-                if let detail = row.detail {
-                    Text(detail)
+                case .howManyLeft(let howMany):
+                    Text(howMany)
                         .font(.footnote)
                         .foregroundStyle(.secondary)
                         .fixedSize(horizontal: false, vertical: true)
+
+                case .priceMoved(let move):
+                    priceMove(move)
                 }
             }
 
             Spacer(minLength: 0)
 
-            accessory()
+            accessoryButton(accessory, for: row.id)
         }
         .padding(.vertical, 6)
     }
@@ -237,7 +170,7 @@ public struct BagScreenView: View {
     /// is the one thing a price may never ask of anybody. So neither amount can wrap or truncate:
     /// when the line runs out they take a second one together, in the same order, still reading
     /// old-then-new.
-    private func priceMove(_ move: ChangedBagRow.PriceMove) -> some View {
+    private func priceMove(_ move: NoticeRow.PriceMove) -> some View {
         ViewThatFits(in: .horizontal) {
             HStack(spacing: 6) {
                 oldAmount(move)
@@ -260,7 +193,7 @@ public struct BagScreenView: View {
 
     /// `fixedSize` is what makes the fallback happen. Left to itself a `Text` would rather wrap than
     /// report that it does not fit, so nothing above would ever measure as too wide.
-    private func oldAmount(_ move: ChangedBagRow.PriceMove) -> some View {
+    private func oldAmount(_ move: NoticeRow.PriceMove) -> some View {
         Text(move.was)
             .strikethrough()
             .foregroundStyle(.secondary)
@@ -268,13 +201,13 @@ public struct BagScreenView: View {
             .fixedSize()
     }
 
-    private func direction(_ move: ChangedBagRow.PriceMove) -> some View {
+    private func direction(_ move: NoticeRow.PriceMove) -> some View {
         Image(systemName: move.isCheaper ? "arrow.down" : "arrow.up")
             .font(.caption2.weight(.bold))
             .foregroundStyle(move.isCheaper ? Color.accentColor : .orange)
     }
 
-    private func newAmount(_ move: ChangedBagRow.PriceMove) -> some View {
+    private func newAmount(_ move: NoticeRow.PriceMove) -> some View {
         Text(move.now)
             .fontWeight(.semibold)
             .foregroundStyle(move.isCheaper ? Color.accentColor : .orange)
