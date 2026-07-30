@@ -85,10 +85,6 @@ public final class BagScreenViewModel: ObservableObject {
         askTheShop()
     }
 
-    func didAcknowledgeChange(productId: ProductID) {
-        acknowledgeBagChange(productId: productId)
-    }
-
     /// Acknowledging is by product, not by notice — "Okay" has always meant "I have seen what
     /// happened to this one". So accepting a whole section clears anything else outstanding about
     /// the same product, which is the same thing tapping each Okay in turn would have done.

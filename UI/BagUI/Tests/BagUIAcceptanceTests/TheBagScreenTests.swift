@@ -317,7 +317,7 @@ struct BagScreenViewModelTests {
         #expect(shop.lookups.count == 2)
     }
 
-    @Test("Saying a change has been seen clears it without going back to the shop")
+    @Test("Tapping Okay clears the notice without going back to the shop")
     func acknowledgingDoesNotAsk() async {
         let shop = makeShop(catalog: [.fixture(id: 1, price: 12.99)])
         let viewModel = makeViewModel(shop: shop)
@@ -326,7 +326,7 @@ struct BagScreenViewModelTests {
         let asksSoFar = shop.lookups.count
         #expect(viewModel.priceIncreaseRows.count == 1)
 
-        viewModel.didAcknowledgeChange(productId: pid(1))
+        viewModel.didAcceptAll(viewModel.priceIncreaseRows)
         await settle(shop)
 
         #expect(shop.lookups.count == asksSoFar)
