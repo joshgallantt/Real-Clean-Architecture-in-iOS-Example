@@ -17,7 +17,7 @@ public final class WishlistButtonViewModel: ObservableObject {
 
     public init(
         productId: Int,
-        productIsWishlisted: ProductIsWishlistedUseCase,
+        observeProductIsWishlisted: ObserveProductIsWishlistedUseCase,
         addProductToWishlist: AddProductToWishlistUseCase,
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
         authPresenter: AuthPresenting,
@@ -29,7 +29,7 @@ public final class WishlistButtonViewModel: ObservableObject {
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
 
-        productIsWishlisted(productId: productId)
+        observeProductIsWishlisted(productId: productId)
             .sink { [weak self] value in
                 self?.isInWishlist = value
             }

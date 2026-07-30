@@ -41,7 +41,7 @@ final class FakeShop: @unchecked Sendable {
     var observeBagChanges: ObserveBagChangesUseCase { ObserveChanges(shop: self) }
     var getProductsByIds: GetProductsByIdsUseCase { Lookup(shop: self) }
     var setBagItemQuantity: SetBagItemQuantityUseCase { SetQuantity(shop: self) }
-    var reconcile: ReconcileBagUseCase { Reconcile(shop: self) }
+    var reconcile: BringBagUpToDateUseCase { Reconcile(shop: self) }
     var acknowledge: AcknowledgeBagChangeUseCase { Acknowledge(shop: self) }
     @MainActor var snackbar: SnackbarPresenting { Presenter(shop: self) }
 
@@ -100,10 +100,10 @@ final class FakeShop: @unchecked Sendable {
         }
     }
 
-    private struct Reconcile: ReconcileBagUseCase {
+    private struct Reconcile: BringBagUpToDateUseCase {
         let shop: FakeShop
         @MainActor func callAsFunction(prices: [Int: Double], inStock: [Int: Bool]) {
-            let caughtUp = BagReconciliation.catchUp(
+            let caughtUp = BagReconciliation.reconcile(
                 bag: shop.bag, changes: shop.changes, prices: prices, inStock: inStock
             )
             guard caughtUp.bag != shop.bag || caughtUp.changes != shop.changes else { return }

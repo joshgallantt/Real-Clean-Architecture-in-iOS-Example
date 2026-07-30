@@ -1,11 +1,11 @@
 import Combine
 
-public protocol BagItemQuantityUseCase: Sendable {
+public protocol ObserveBagItemQuantityUseCase: Sendable {
     @MainActor
     func callAsFunction(itemId: Int) -> AnyPublisher<Int, Never>
 }
 
-public struct DefaultBagItemQuantityUseCase: BagItemQuantityUseCase {
+public struct DefaultObserveObserveBagItemQuantityUseCase: ObserveBagItemQuantityUseCase {
     private let repository: BagRepository
 
     public init(repository: BagRepository) {

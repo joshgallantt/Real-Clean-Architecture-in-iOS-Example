@@ -16,7 +16,7 @@ public final class BagButtonViewModel: ObservableObject {
 
     public init(
         product: Product,
-        bagItemQuantity: BagItemQuantityUseCase,
+        observeBagItemQuantity: ObserveBagItemQuantityUseCase,
         addItemToBag: AddItemToBagUseCase,
         navigation: BagNavigation,
         snackbarPresenter: SnackbarPresenting
@@ -26,7 +26,7 @@ public final class BagButtonViewModel: ObservableObject {
         self.navigation = navigation
         self.snackbarPresenter = snackbarPresenter
 
-        bagItemQuantity(itemId: product.id)
+        observeBagItemQuantity(itemId: product.id)
             .sink { [weak self] value in
                 self?.quantity = value
             }

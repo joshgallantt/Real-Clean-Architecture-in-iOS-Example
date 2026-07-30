@@ -65,7 +65,7 @@ struct WishlistUseCaseTests {
     @Test("Whether one product is saved ignores the rest of the list moving around it")
     func watchingOneProduct() async {
         let repository = InMemoryWishlistRepository()
-        let isSaved = DefaultProductIsWishlistedUseCase(repository: repository)
+        let isSaved = DefaultObserveObserveProductIsWishlistedUseCase(repository: repository)
         let save = DefaultAddProductToWishlistUseCase(repository: repository, getSession: StubGetSession(signedIn: true))
         var seen: [Bool] = []
         let cancellable = isSaved(productId: 7).sink { seen.append($0) }

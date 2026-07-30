@@ -15,7 +15,7 @@ struct BagReconciliationTests {
 
     @Test("A shop that says nothing has changed nothing")
     func nothingChanged() {
-        let caughtUp = BagReconciliation.catchUp(
+        let caughtUp = BagReconciliation.reconcile(
             bag: bag, changes: BagChanges(),
             prices: [1: 9.99, 2: 49.99], inStock: [1: true, 2: true]
         )
@@ -26,7 +26,7 @@ struct BagReconciliationTests {
 
     @Test("A price that went up is applied, and recorded so the shopper can be told")
     func priceWentUp() {
-        let caughtUp = BagReconciliation.catchUp(bag: bag, changes: BagChanges(), prices: [1: 12.99])
+        let caughtUp = BagReconciliation.reconcile(bag: bag, changes: BagChanges(), prices: [1: 12.99])
 
         #expect(caughtUp.changes.priceChanges == [.priceWentUp(itemId: 1, from: 9.99, to: 12.99)])
         #expect(caughtUp.bag.total.cents == 4999 + 2598)
@@ -34,7 +34,7 @@ struct BagReconciliationTests {
 
     @Test("A price that went down is applied too — the shopper should get the better one")
     func priceWentDown() {
-        let caughtUp = BagReconciliation.catchUp(bag: bag, changes: BagChanges(), prices: [1: 4.99])
+        let caughtUp = BagReconciliation.reconcile(bag: bag, changes: BagChanges(), prices: [1: 4.99])
 
         #expect(caughtUp.changes.priceChanges == [.priceWentDown(itemId: 1, from: 9.99, to: 4.99)])
         #expect(caughtUp.bag.total.cents == 4999 + 998)
@@ -42,7 +42,7 @@ struct BagReconciliationTests {
 
     @Test("Something out of stock leaves the bag, and the shopper is told it went")
     func outOfStock() {
-        let caughtUp = BagReconciliation.catchUp(bag: bag, changes: BagChanges(), inStock: [1: false])
+        let caughtUp = BagReconciliation.reconcile(bag: bag, changes: BagChanges(), inStock: [1: false])
 
         // A bag is what the shopper is going to buy, and a line that cannot be bought
         // does not belong in it.
@@ -55,7 +55,7 @@ struct BagReconciliationTests {
     func silenceIsNotAnAnswer() {
         // A lookup that covered only part of the bag, or failed for one product, must
         // never read as "that product is gone".
-        let caughtUp = BagReconciliation.catchUp(
+        let caughtUp = BagReconciliation.reconcile(
             bag: bag, changes: BagChanges(),
             prices: [2: 49.99], inStock: [2: true]
         )
@@ -66,8 +66,8 @@ struct BagReconciliationTests {
 
     @Test("Prices and stock arrive separately, and either alone is enough to act on")
     func factsAreIndependent() {
-        let pricedOnly = BagReconciliation.catchUp(bag: bag, changes: BagChanges(), prices: [1: 12.99])
-        let stockOnly = BagReconciliation.catchUp(bag: bag, changes: BagChanges(), inStock: [1: false])
+        let pricedOnly = BagReconciliation.reconcile(bag: bag, changes: BagChanges(), prices: [1: 12.99])
+        let stockOnly = BagReconciliation.reconcile(bag: bag, changes: BagChanges(), inStock: [1: false])
 
         #expect(pricedOnly.changes.priceChanges == [.priceWentUp(itemId: 1, from: 9.99, to: 12.99)])
         #expect(pricedOnly.bag.items.map(\.id) == bag.items.map(\.id))
@@ -77,7 +77,7 @@ struct BagReconciliationTests {
 
     @Test("What a line's price did on the way out is not news")
     func repricedAndOutOfStock() {
-        let caughtUp = BagReconciliation.catchUp(
+        let caughtUp = BagReconciliation.reconcile(
             bag: bag, changes: BagChanges(),
             prices: [1: 12.99], inStock: [1: false]
         )
@@ -90,7 +90,7 @@ struct BagReconciliationTests {
 
     @Test("A bag emptied by the shop is empty, and says why")
     func everythingOutOfStock() {
-        let caughtUp = BagReconciliation.catchUp(
+        let caughtUp = BagReconciliation.reconcile(
             bag: bag, changes: BagChanges(),
             inStock: [1: false, 2: false]
         )
@@ -102,7 +102,7 @@ struct BagReconciliationTests {
 
     @Test("Removals and price changes are kept apart, because they are told apart")
     func changesAreSeparable() {
-        let caughtUp = BagReconciliation.catchUp(
+        let caughtUp = BagReconciliation.reconcile(
             bag: bag, changes: BagChanges(),
             prices: [2: 59.99], inStock: [1: false, 2: true]
         )
@@ -121,7 +121,7 @@ struct BagReconciliationTests {
             BagItem(id: 4, quantity: 1, lastKnownPrice: 5.99, dateAdded: .now)
         ])
 
-        let caughtUp = BagReconciliation.catchUp(
+        let caughtUp = BagReconciliation.reconcile(
             bag: bag, changes: BagChanges(),
             prices: [1: 12.99, 2: 39.99, 3: 19.99],
             inStock: [1: true, 2: false, 3: true, 4: false]
@@ -134,7 +134,7 @@ struct BagReconciliationTests {
 
     @Test("Catching up an empty bag is a quiet no-op")
     func emptyBag() {
-        let caughtUp = BagReconciliation.catchUp(bag: Bag(), changes: BagChanges(), inStock: [1: false])
+        let caughtUp = BagReconciliation.reconcile(bag: Bag(), changes: BagChanges(), inStock: [1: false])
 
         #expect(caughtUp.bag.isEmpty)
         #expect(caughtUp.changes.isEmpty)
@@ -147,12 +147,12 @@ struct PendingChangeTests {
 
     private let bag = Bag(items: [BagItem(id: 1, quantity: 1, lastKnownPrice: 10)])
 
-    private func catchUp(
+    private func reconcile(
         _ state: (bag: Bag, changes: BagChanges),
         prices: [Int: Double] = [:],
         inStock: [Int: Bool] = [:]
     ) -> (bag: Bag, changes: BagChanges) {
-        BagReconciliation.catchUp(
+        BagReconciliation.reconcile(
             bag: state.bag, changes: state.changes,
             prices: prices, inStock: inStock
         )
@@ -160,8 +160,8 @@ struct PendingChangeTests {
 
     @Test("A price that moves twice before the shopper looks reads as one move from what they knew")
     func twoMovesReadAsOne() {
-        let once = catchUp((bag, BagChanges()), prices: [1: 12])
-        let twice = catchUp(once, prices: [1: 15])
+        let once = reconcile((bag, BagChanges()), prices: [1: 12])
+        let twice = reconcile(once, prices: [1: 15])
 
         #expect(twice.changes.priceChanges == [.priceWentUp(itemId: 1, from: 10, to: 15)])
         #expect(twice.bag.total.cents == 1500)
@@ -169,7 +169,7 @@ struct PendingChangeTests {
 
     @Test("A price that moves up and back down again is no longer news")
     func moveAndMoveBack() {
-        let back = catchUp(catchUp((bag, BagChanges()), prices: [1: 12]), prices: [1: 10])
+        let back = reconcile(reconcile((bag, BagChanges()), prices: [1: 12]), prices: [1: 10])
 
         #expect(back.changes.isEmpty)
         #expect(back.bag.total.cents == 1000)
@@ -177,24 +177,24 @@ struct PendingChangeTests {
 
     @Test("A price that crosses back over reverses which way it is reported")
     func moveUpThenBelow() {
-        let below = catchUp(catchUp((bag, BagChanges()), prices: [1: 12]), prices: [1: 8])
+        let below = reconcile(reconcile((bag, BagChanges()), prices: [1: 12]), prices: [1: 8])
 
         #expect(below.changes.priceChanges == [.priceWentDown(itemId: 1, from: 10, to: 8)])
     }
 
     @Test("A pending price change survives a catch-up that did not cover that product")
     func survivesAPartialLookup() {
-        let moved = catchUp((bag, BagChanges()), prices: [1: 12])
+        let moved = reconcile((bag, BagChanges()), prices: [1: 12])
 
-        let partial = catchUp(moved)
+        let partial = reconcile(moved)
 
         #expect(partial.changes.priceChanges == [.priceWentUp(itemId: 1, from: 10, to: 12)])
     }
 
     @Test("Being told twice that something has gone is still one warning")
     func removalIsNotRepeated() {
-        let gone = catchUp((bag, BagChanges()), inStock: [1: false])
-        let again = catchUp(gone, inStock: [1: false])
+        let gone = reconcile((bag, BagChanges()), inStock: [1: false])
+        let again = reconcile(gone, inStock: [1: false])
 
         #expect(again.changes.removals == [.outOfStock(itemId: 1)])
     }
@@ -203,7 +203,7 @@ struct PendingChangeTests {
     func removalWarningSurvives() {
         // The whole point is to explain a bag that is now shorter, so it cannot be
         // dropped for the very reason it exists.
-        let gone = catchUp((bag, BagChanges()), inStock: [1: false])
+        let gone = reconcile((bag, BagChanges()), inStock: [1: false])
 
         #expect(gone.bag.isEmpty)
         #expect(gone.changes.removals == [.outOfStock(itemId: 1)])
@@ -211,17 +211,17 @@ struct PendingChangeTests {
 
     @Test("Saying it has been seen clears it, and the next move starts from there")
     func acknowledging() {
-        let moved = catchUp((bag, BagChanges()), prices: [1: 12])
+        let moved = reconcile((bag, BagChanges()), prices: [1: 12])
         let seen = (moved.bag, moved.changes.acknowledging(itemId: 1))
 
         #expect(seen.1.isEmpty)
-        #expect(catchUp(seen, prices: [1: 15]).changes.priceChanges
+        #expect(reconcile(seen, prices: [1: 15]).changes.priceChanges
             == [.priceWentUp(itemId: 1, from: 12, to: 15)])
     }
 
     @Test("Saying one product has been seen leaves the others still waiting")
     func acknowledgingOne() {
-        let both = catchUp(
+        let both = reconcile(
             (Bag(items: [
                 BagItem(id: 1, lastKnownPrice: 10, dateAdded: .distantPast),
                 BagItem(id: 2, lastKnownPrice: 20, dateAdded: .now)

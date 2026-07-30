@@ -5,20 +5,20 @@ import SnackbarUI
 import SharedUI
 
 public struct SharedUIDI {
-    private let productIsWishlisted: ProductIsWishlistedUseCase
+    private let observeProductIsWishlisted: ObserveProductIsWishlistedUseCase
     private let addProductToWishlist: AddProductToWishlistUseCase
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
 
     public init(
-        productIsWishlisted: ProductIsWishlistedUseCase,
+        observeProductIsWishlisted: ObserveProductIsWishlistedUseCase,
         addProductToWishlist: AddProductToWishlistUseCase,
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting
     ) {
-        self.productIsWishlisted = productIsWishlisted
+        self.observeProductIsWishlisted = observeProductIsWishlisted
         self.addProductToWishlist = addProductToWishlist
         self.removeProductFromWishlist = removeProductFromWishlist
         self.authPresenter = authPresenter
@@ -30,7 +30,7 @@ public struct SharedUIDI {
         WishlistButtonView(
             viewModel: WishlistButtonViewModel(
                 productId: productId,
-                productIsWishlisted: productIsWishlisted,
+                observeProductIsWishlisted: observeProductIsWishlisted,
                 addProductToWishlist: addProductToWishlist,
                 removeProductFromWishlist: removeProductFromWishlist,
                 authPresenter: authPresenter,

@@ -1,11 +1,11 @@
 import Combine
 
-public protocol ProductIsWishlistedUseCase: Sendable {
+public protocol ObserveProductIsWishlistedUseCase: Sendable {
     @MainActor
     func callAsFunction(productId: Int) -> AnyPublisher<Bool, Never>
 }
 
-public struct DefaultProductIsWishlistedUseCase: ProductIsWishlistedUseCase {
+public struct DefaultObserveObserveProductIsWishlistedUseCase: ObserveProductIsWishlistedUseCase {
     private let repository: WishlistRepository
 
     public init(repository: WishlistRepository) {

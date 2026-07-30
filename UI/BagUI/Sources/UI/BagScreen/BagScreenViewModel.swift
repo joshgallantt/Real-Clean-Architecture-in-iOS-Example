@@ -17,7 +17,7 @@ public final class BagScreenViewModel: ObservableObject {
     private let observeBagChanges: ObserveBagChangesUseCase
     private let getProductsByIds: GetProductsByIdsUseCase
     private let setBagItemQuantity: SetBagItemQuantityUseCase
-    private let reconcileBag: ReconcileBagUseCase
+    private let bringBagUpToDate: BringBagUpToDateUseCase
     private let acknowledgeBagChange: AcknowledgeBagChangeUseCase
     private let snackbar: SnackbarPresenting
 
@@ -39,7 +39,7 @@ public final class BagScreenViewModel: ObservableObject {
         observeBagChanges: ObserveBagChangesUseCase,
         getProductsByIds: GetProductsByIdsUseCase,
         setBagItemQuantity: SetBagItemQuantityUseCase,
-        reconcileBag: ReconcileBagUseCase,
+        bringBagUpToDate: BringBagUpToDateUseCase,
         acknowledgeBagChange: AcknowledgeBagChangeUseCase,
         snackbar: SnackbarPresenting
     ) {
@@ -47,7 +47,7 @@ public final class BagScreenViewModel: ObservableObject {
         self.observeBagChanges = observeBagChanges
         self.getProductsByIds = getProductsByIds
         self.setBagItemQuantity = setBagItemQuantity
-        self.reconcileBag = reconcileBag
+        self.bringBagUpToDate = bringBagUpToDate
         self.acknowledgeBagChange = acknowledgeBagChange
         self.snackbar = snackbar
         self.loadedCount = pageSize
@@ -186,7 +186,7 @@ public final class BagScreenViewModel: ObservableObject {
                 for product in products {
                     self.catalog[product.id] = product
                 }
-                self.catchUp(with: products)
+                self.bringUpToDate(against: products)
             }
 
             self.isLoadingMore = false
@@ -197,8 +197,8 @@ public final class BagScreenViewModel: ObservableObject {
     /// The catalog's answer becomes the two facts the bag understands. Stock is a count
     /// to the shop and a yes-or-no to a bag, and the translation happens here rather
     /// than letting the bag learn what a `Product` is.
-    private func catchUp(with products: [Product]) {
-        reconcileBag(
+    private func bringUpToDate(against products: [Product]) {
+        bringBagUpToDate(
             prices: Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0.price) }),
             inStock: Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0.stock > 0) })
         )

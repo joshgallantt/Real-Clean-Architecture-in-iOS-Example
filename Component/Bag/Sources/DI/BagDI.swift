@@ -9,10 +9,10 @@ public struct BagDI {
 
     public let observeBagUseCase: ObserveBagUseCase
     public let observeBagChangesUseCase: ObserveBagChangesUseCase
-    public let bagItemQuantityUseCase: BagItemQuantityUseCase
+    public let observeBagItemQuantityUseCase: ObserveBagItemQuantityUseCase
     public let addItemToBagUseCase: AddItemToBagUseCase
     public let setBagItemQuantityUseCase: SetBagItemQuantityUseCase
-    public let reconcileBagUseCase: ReconcileBagUseCase
+    public let bringBagUpToDateUseCase: BringBagUpToDateUseCase
     public let acknowledgeBagChangeUseCase: AcknowledgeBagChangeUseCase
 
     @MainActor
@@ -30,10 +30,10 @@ public struct BagDI {
 
         self.observeBagUseCase = DefaultObserveBagUseCase(repository: repository)
         self.observeBagChangesUseCase = DefaultObserveBagChangesUseCase(repository: repository)
-        self.bagItemQuantityUseCase = DefaultBagItemQuantityUseCase(repository: repository)
+        self.observeBagItemQuantityUseCase = DefaultObserveObserveBagItemQuantityUseCase(repository: repository)
         self.addItemToBagUseCase = DefaultAddItemToBagUseCase(repository: repository)
         self.setBagItemQuantityUseCase = DefaultSetBagItemQuantityUseCase(repository: repository)
-        self.reconcileBagUseCase = DefaultReconcileBagUseCase(repository: repository)
+        self.bringBagUpToDateUseCase = DefaultBringBagUpToDateUseCase(repository: repository)
         self.acknowledgeBagChangeUseCase = DefaultAcknowledgeBagChangeUseCase(repository: repository)
     }
 
