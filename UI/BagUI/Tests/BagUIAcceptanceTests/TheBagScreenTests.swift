@@ -172,7 +172,55 @@ struct BagScreenViewModelTests {
         await settle(shop)
 
         #expect(viewModel.outOfStockRows.first?.summary == "Out of stock — we'll have it back")
-        #expect(viewModel.discontinuedRows.first?.summary == "No longer sold")
+        #expect(viewModel.discontinuedRows.first?.summary == "The shop has stopped selling this")
+        #expect(viewModel.outOfStockRows.first?.priceMove == nil)
+    }
+
+    @Test("A price move carries both amounts and which way it went, so the screen can show it")
+    func priceMoveCarriesBothAmounts() async {
+        let dearer = makeShop(catalog: [.fixture(id: 1, price: 12.99)])
+        let dearerScreen = makeViewModel(shop: dearer)
+        let cheaper = makeShop(catalog: [.fixture(id: 1, price: 4.99)])
+        let cheaperScreen = makeViewModel(shop: cheaper)
+
+        dearerScreen.onAppear()
+        cheaperScreen.onAppear()
+        await settle(dearer)
+        await settle(cheaper)
+
+        let wentUp = dearerScreen.priceChangedRows.first?.priceMove
+        #expect(wentUp?.was == usd(9.99).formatted())
+        #expect(wentUp?.now == usd(12.99).formatted())
+        #expect(wentUp?.isCheaper == false)
+
+        #expect(cheaperScreen.priceChangedRows.first?.priceMove?.isCheaper == true)
+    }
+
+    @Test("A bag emptied by the shop still shows why, rather than looking like an empty bag")
+    func emptiedByTheShopStillExplains() async {
+        let shop = makeShop(catalog: [.fixture(id: 1, availability: .outOfStock)])
+        let viewModel = makeViewModel(shop: shop)
+
+        viewModel.onAppear()
+        await settle(shop)
+
+        #expect(viewModel.isEmpty)
+        #expect(viewModel.hasNews)
+    }
+
+    @Test("A shopper who will not pay the new price takes it out, and it goes with its notice")
+    func removesSomethingThatWentUp() async {
+        let shop = makeShop(catalog: [.fixture(id: 1, price: 12.99)])
+        let viewModel = makeViewModel(shop: shop)
+        viewModel.onAppear()
+        await settle(shop)
+        #expect(viewModel.priceChangedRows.map(\.id) == [pid(1)])
+
+        viewModel.didRemoveChangedItem(productId: pid(1))
+        await settle(shop, untilAskedTimes: 2)
+
+        #expect(shop.currentBag.isEmpty)
+        #expect(viewModel.priceChangedRows.isEmpty)
     }
 
     @Test("Availability is a yes-or-no to a bag, whatever the count happens to be")
