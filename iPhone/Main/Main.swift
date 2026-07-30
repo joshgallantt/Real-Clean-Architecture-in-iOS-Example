@@ -6,7 +6,7 @@ import SnackbarUIDI
 
 @main
 struct Main: App {
-    @StateObject private var viewModel = Injector.shared.makeMainViewModel()
+    @StateObject private var viewModel = CompositionRoot.shared.makeMainViewModel()
 
     var body: some Scene {
         WindowGroup {
@@ -15,7 +15,7 @@ struct Main: App {
                 case .splash:
                     SplashView()
                 case .welcome:
-                    Injector.shared.authUIDI.welcomeView(
+                    CompositionRoot.shared.authUIDI.welcomeView(
                         onContinueAsGuest: { viewModel.continueAsGuest() },
                         onAuthenticated: { viewModel.authenticationFinished() }
                     )
@@ -23,22 +23,22 @@ struct Main: App {
                     .padding(.top, 160)
                     .ignoresSafeArea(edges: .top)
                 case .onboarding:
-                    Injector.shared.onboardingUIDI.onboardingView(
+                    CompositionRoot.shared.onboardingUIDI.onboardingView(
                         onFinish: { viewModel.continueAsGuest() }
                     )
                 case .main:
                     TabScreen(
-                        navigator: Injector.shared.navigator,
-                        snackbarPresenter: Injector.shared.snackbarUIDI.presenter,
-                        homeView: Injector.shared.homeView,
-                        searchView: Injector.shared.searchView,
-                        wishlistView: Injector.shared.wishlistView,
-                        bagView: Injector.shared.bagView,
-                        accountView: Injector.shared.accountView
+                        navigator: CompositionRoot.shared.navigator,
+                        snackbarPresenter: CompositionRoot.shared.snackbarUIDI.presenter,
+                        homeView: CompositionRoot.shared.homeView,
+                        searchView: CompositionRoot.shared.searchView,
+                        wishlistView: CompositionRoot.shared.wishlistView,
+                        bagView: CompositionRoot.shared.bagView,
+                        accountView: CompositionRoot.shared.accountView
                     )
                 }
             }
-            .sheetHost(Injector.shared.sheetUIDI.presenter)
+            .sheetHost(CompositionRoot.shared.sheetUIDI.presenter)
             .task {
                 await viewModel.onAppear()
             }

@@ -87,7 +87,7 @@ Each module in this project has a single axis of change. A new screen design tou
 ├── Library/
 │   └── Networking/             # Shared HTTP client, no domain dependencies
 └── iPhone/                     # Application layer — composition root
-    ├── Composition/Injector.swift
+    ├── Composition/CompositionRoot.swift
     ├── Navigation/             # Navigator + Destination
     └── Main/                   # App entry point, phases, tab screen
 ```
@@ -105,7 +105,7 @@ The app has five tabs. **Home** and **Search** browse the real [DummyJSON](https
 ```
 ┌──────────────────────────────────────────┐
 │          Application Layer               │  Composition root. Wires all
-│       iPhone/Injector, Navigator         │  dependencies and chooses every
+│    iPhone/CompositionRoot, Navigator      │  dependencies and chooses every
 │                                          │  concrete type. Pure wiring.
 ├──────────────────────────────────────────┤
 │          Presentation Layer              │  MVVM. Views are passive.
@@ -467,7 +467,7 @@ Views bind to `@Published` properties and delegate all actions to the ViewModel.
 
 Each feature module exposes a DI container that constructs its view hierarchy. The container accepts its dependencies through its initialiser — navigation protocols, presentation ports, and individual use cases.
 
-**Why per-feature DI containers?** A monolithic injector that constructs every view in the app conflates the wiring of unrelated features. Per-feature containers mean each feature constructs its own objects. The application-level `Injector` assembles the containers; the containers assemble the views.
+**Why per-feature DI containers?** A monolithic injector that constructs every view in the app conflates the wiring of unrelated features. Per-feature containers mean each feature constructs its own objects. The application-level `CompositionRoot` assembles the containers; the containers assemble the views.
 
 **[`UI/HomeUI/Sources/DI/HomeUIDI.swift`](UI/HomeUI/Sources/DI/HomeUIDI.swift)**
 ```swift
@@ -595,17 +595,37 @@ The application layer is the composition root — the single place where all con
 
 The application layer is intentionally not unit tested — it contains no logic, only wiring.
 
+**Demos are a second composition root, not commented-out code.** The catalog reaches
+`CompositionRoot` as a `Catalog` — a set of use case protocols — so a demo supplies a different one
+and nothing in the composition root changes. `DemoCompositionRoot.shopThatChangesItsMind()` wraps the
+real use cases in decorators that move prices and sell things out, which is how the bag's
+catching-up behaviour can be shown without waiting for a real shop to change its mind.
+
+The point is that *both arrangements compile at all times*. A demo switched on by uncommenting lines
+does not compile in its off state, so nothing checks it still works, and the only thing keeping it
+out of a release is that somebody reads a warning. Here it is one line, type-checked either way:
+
+```swift
+static let shared = CompositionRoot(catalog: .live())
+// or, to demo:
+static let shared = CompositionRoot(catalog: DemoCompositionRoot.shopThatChangesItsMind())
+```
+
+Nothing below the app layer knows a demo is possible. `Component/Bag` sees ordinary catalog answers
+and reacts exactly as it would in production — which is the Liskov Substitution Principle earning its
+keep, and the reason the demo is trustworthy as a demonstration at all.
+
 ### Dependency Injection Container
 
-**[`iPhone/Composition/Injector.swift`](iPhone/Composition/Injector.swift)**
+**[`iPhone/Composition/CompositionRoot.swift`](iPhone/Composition/CompositionRoot.swift)**
 ```swift
 @MainActor
-final class Injector {
-    static let shared = Injector()
+final class CompositionRoot {
+    static let shared = CompositionRoot(catalog: .live())
 
     // Components
     let sessionDI: SessionDI
-    let productDI: ProductDI
+    let catalog: Catalog
     let searchHistoryDI: SearchHistoryDI
     let wishlistDI: WishlistDI
 
@@ -644,7 +664,7 @@ productDI = ProductDI(client: DummyJSONProductClient(httpClient: URLSessionHTTPC
 
 Token lifetime, the choice of `UserDefaults`, and the choice of DummyJSON are all decisions made *here* — none of them appear in a domain, presentation, or navigation file. Swapping any of them is a one-line change in one file.
 
-Tab views are instantiated once at startup and held by `Injector`. If `TabScreen` called `homeUIDI.mainView()` on each render, SwiftUI would create a new view identity on every tab switch, destroying all `@State`, scroll positions, and in-flight async tasks.
+Tab views are instantiated once at startup and held by `CompositionRoot`. If `TabScreen` called `homeUIDI.mainView()` on each render, SwiftUI would create a new view identity on every tab switch, destroying all `@State`, scroll positions, and in-flight async tasks.
 
 ### Component DI Container
 
@@ -691,7 +711,7 @@ final class MainViewModel: ObservableObject {
 
 ```swift
 TabScreen(navigator: ..., snackbarPresenter: ..., homeView: ..., /* ... */)
-    .sheetHost(Injector.shared.sheetUIDI.presenter)
+    .sheetHost(CompositionRoot.shared.sheetUIDI.presenter)
 ```
 
 `.snackbarHost(_:)` is attached inside `TabScreen` so snackbars sit above the tab bar. The hosts are the only place the app knows sheets and snackbars exist as SwiftUI constructs.
@@ -737,9 +757,9 @@ public enum Destination: Hashable {
     @ViewBuilder
     func makeView() -> some View {
         switch self {
-        case .searchResults(let query):     Injector.shared.searchUIDI.searchResultsView(query: query)
-        case .categoryResults(let category): Injector.shared.searchUIDI.categoryResultsView(category: category)
-        case .productDetails(let id):        Injector.shared.productUIDI.detailView(id: id)
+        case .searchResults(let query):     CompositionRoot.shared.searchUIDI.searchResultsView(query: query)
+        case .categoryResults(let category): CompositionRoot.shared.searchUIDI.categoryResultsView(category: category)
+        case .productDetails(let id):        CompositionRoot.shared.productUIDI.detailView(id: id)
         }
     }
 }

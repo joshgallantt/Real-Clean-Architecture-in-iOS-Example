@@ -12,16 +12,11 @@ import SnackbarUIDI
 import SheetUIDI
 import SessionDI
 import SessionData
-import Product
-import ProductDI
-import ProductData
 import SearchHistoryDI
 import SearchHistoryData
 import WishlistDI
 import BagDI
-import Networking
 
-@MainActor
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the composition root. Every
 /// concrete type in the app is named here and nowhere else, so swapping one is a change to this
 /// file alone. Its length tracks feature count, not complexity.
@@ -31,13 +26,18 @@ import Networking
 ///
 /// Fowler, *Inversion of Control Containers and the Dependency Injection Pattern* (2004) —
 /// Dependency Injection, not a Service Locator: collaborators are handed in through initialisers
-/// rather than looked up.
-final class Injector {
-    static let shared = Injector()
+/// rather than looked up. `Catalog` arrives the same way, which is what lets a demo vary it
+/// without this file knowing demos exist.
+@MainActor
+final class CompositionRoot {
+    /// The graph the app runs on. Swap the right-hand side for a demo's — see
+    /// `DemoCompositionRoot`. Both sides compile, so a demo cannot rot unnoticed and switching
+    /// one on is never a matter of uncommenting code.
+    static let shared = CompositionRoot(catalog: .live())
 
     // MARK: - Components
     let sessionDI: SessionDI
-    let productDI: ProductDI
+    let catalog: Catalog
     let searchHistoryDI: SearchHistoryDI
     let wishlistDI: WishlistDI
     let bagDI: BagDI
@@ -64,7 +64,9 @@ final class Injector {
     let bagView: AnyView
     let accountView: AnyView
 
-    private init() {
+    init(catalog: Catalog) {
+        self.catalog = catalog
+
         // MARK: Component DI
         sessionDI = SessionDI(
             sessionStore: DefaultSessionStore(),
@@ -73,12 +75,6 @@ final class Injector {
                 tokenLifetime: 60 * 60 * 24 * 7
             )
         )
-        productDI = ProductDI(client: DummyJSONProductClient(httpClient: URLSessionHTTPClient(session: .shared)))
-
-        let browseCatalog: BrowseCatalogUseCase = productDI.browseCatalogUseCase
-        let lookUpProducts: LookUpProductsUseCase = productDI.lookUpProductsUseCase
-        let viewProduct: ViewProductUseCase = productDI.viewProductUseCase
-
         searchHistoryDI = SearchHistoryDI(
             store: UserDefaultsSearchHistoryStore(defaults: .standard),
             getSession: sessionDI.getSessionUseCase
@@ -128,7 +124,7 @@ final class Injector {
             observeBagItemQuantity: bagDI.observeBagItemQuantityUseCase,
             addItemToBag: bagDI.addItemToBagUseCase,
             setBagItemQuantity: bagDI.setBagItemQuantityUseCase,
-            lookUpProducts: lookUpProducts,
+            lookUpProducts: catalog.lookUpProducts,
             bringBagUpToDate: bagDI.bringBagUpToDateUseCase,
             acknowledgeBagChange: bagDI.acknowledgeBagChangeUseCase,
             snackbarPresenter: snackbarDI.presenter,
@@ -138,7 +134,7 @@ final class Injector {
         let wishlistUI = WishlistUIDI(
             navigation: navigator,
             observeWishlist: wishlistDI.observeWishlistUseCase,
-            lookUpProducts: lookUpProducts,
+            lookUpProducts: catalog.lookUpProducts,
             observeSession: sessionDI.observeSessionUseCase,
             authPresenter: authDI.presenter,
             snackbarPresenter: snackbarDI.presenter,
@@ -147,19 +143,19 @@ final class Injector {
         )
         wishlistUIDI = wishlistUI
         productUIDI = ProductUIDI(
-            viewProduct: viewProduct,
+            viewProduct: catalog.viewProduct,
             bagUIDI: bagUI,
             sharedUIDI: sharedUI
         )
         homeUIDI = HomeUIDI(
             navigation: navigator,
-            browseCatalog: browseCatalog,
+            browseCatalog: catalog.browseCatalog,
             snackbar: snackbarDI.presenter
         )
         searchUIDI = SearchUIDI(
             navigation: navigator,
-            browseCatalog: browseCatalog,
-            browseCategories: productDI.browseCategoriesUseCase,
+            browseCatalog: catalog.browseCatalog,
+            browseCategories: catalog.browseCategories,
             getSearchHistory: searchHistoryDI.getSearchHistoryUseCase,
             recordSearch: searchHistoryDI.recordSearchUseCase,
             clearSearchHistory: searchHistoryDI.clearSearchHistoryUseCase,
