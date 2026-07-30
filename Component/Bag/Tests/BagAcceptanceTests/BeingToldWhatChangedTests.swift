@@ -50,18 +50,33 @@ struct BeingToldWhatChangedTests {
 
         shopper.shopSays(shopHasSoldOutOf(1))
 
-        #expect(shopper.news.noLongerAvailable == [.noLongerAvailable(productId: pid(1))])
+        #expect(shopper.news.outOfStock == [.outOfStock(productId: pid(1))])
         #expect(shopper.bag.isEmpty)
     }
 
-    @Test("Something the shop has stopped selling goes the same way as something sold out")
+    @Test("Something the shop has stopped selling leaves the bag too, but is told apart from a sell-out")
     func discontinued() {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
 
         shopper.shopSays(shopHasDiscontinued(1))
 
-        #expect(shopper.news.noLongerAvailable == [.noLongerAvailable(productId: pid(1))])
+        #expect(shopper.news.discontinued == [.discontinued(productId: pid(1))])
+        #expect(shopper.news.outOfStock.isEmpty)
+        #expect(shopper.bag.isEmpty)
+    }
+
+    @Test("A sell-out and a discontinuation are not the same news, because they are not the same to a shopper")
+    func toldApart() {
+        let shopper = Shopper()
+        shopper.choose(productId: 1, atPrice: 9.99)
+        shopper.choose(productId: 2, atPrice: 5)
+
+        shopper.shopSays(shopHasSoldOutOf(1), shopHasDiscontinued(2))
+
+        #expect(shopper.news.outOfStock == [.outOfStock(productId: pid(1))])
+        #expect(shopper.news.discontinued == [.discontinued(productId: pid(2))])
+        #expect(shopper.news.gone.count == 2)
         #expect(shopper.bag.isEmpty)
     }
 
@@ -72,7 +87,7 @@ struct BeingToldWhatChangedTests {
 
         shopper.shopSays(ShopSays(productId: pid(1), price: usd(12.99), availability: .outOfStock))
 
-        #expect(shopper.news.all == [.noLongerAvailable(productId: pid(1))])
+        #expect(shopper.news.all == [.outOfStock(productId: pid(1))])
     }
 
     @Test("A product the shop was not asked about is left exactly as it was")
@@ -97,7 +112,7 @@ struct BeingToldWhatChangedTests {
 
         #expect(shopper.bag.isEmpty)
         #expect(shopper.bag.total == nil)
-        #expect(Set(shopper.news.noLongerAvailable.map(\.productId)) == [pid(1), pid(2)])
+        #expect(Set(shopper.news.outOfStock.map(\.productId)) == [pid(1), pid(2)])
     }
 
     @Test("Price moves and disappearances are kept apart, because they are told apart")
@@ -108,7 +123,7 @@ struct BeingToldWhatChangedTests {
 
         shopper.shopSays(shopHasSoldOutOf(1), shopSells(2, at: 59.99))
 
-        #expect(shopper.news.noLongerAvailable == [.noLongerAvailable(productId: pid(1))])
+        #expect(shopper.news.outOfStock == [.outOfStock(productId: pid(1))])
         #expect(shopper.news.priceMoves == [.priceWentUp(productId: pid(2), from: usd(49.99), to: usd(59.99))])
         #expect(shopper.bag.items.map(\.id) == [pid(2)])
     }
@@ -127,7 +142,7 @@ struct BeingToldWhatChangedTests {
             shopHasSoldOutOf(4)
         )
 
-        #expect(Set(shopper.news.noLongerAvailable.map(\.productId)) == [pid(2), pid(4)])
+        #expect(Set(shopper.news.outOfStock.map(\.productId)) == [pid(2), pid(4)])
         #expect(shopper.news.priceMoves == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
         #expect(Set(shopper.bag.items.map(\.id)) == [pid(1), pid(3)])
     }
@@ -254,7 +269,7 @@ struct NewsThatPilesUpTests {
         shopper.shopSays(shopHasSoldOutOf(1))
         shopper.shopSays(shopHasSoldOutOf(1))
 
-        #expect(shopper.news.noLongerAvailable == [.noLongerAvailable(productId: pid(1))])
+        #expect(shopper.news.outOfStock == [.outOfStock(productId: pid(1))])
     }
 
     @Test("Saying they have seen it clears the notice without touching the bag")
@@ -290,7 +305,7 @@ struct NewsThatPilesUpTests {
 
         shopper.seen(productId: 2)
 
-        #expect(shopper.news.noLongerAvailable == [.noLongerAvailable(productId: pid(1))])
+        #expect(shopper.news.outOfStock == [.outOfStock(productId: pid(1))])
     }
 
     @Test("Choosing something again spends the news that it had gone")

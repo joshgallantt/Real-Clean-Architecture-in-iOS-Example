@@ -19,8 +19,7 @@ let package = Package(
     dependencies: [
         .package(path: "../../Component/Product"),
         .package(path: "../../Library/Money"),
-        .package(path: "../BagUI"),
-        .package(path: "../SharedUI"),
+        .package(path: "../ProductActionsUI"),
         .package(url: "https://github.com/onevcat/Kingfisher.git", from: "8.0.0")
     ],
     targets: [
@@ -41,8 +40,7 @@ let package = Package(
                 "ProductUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
-                .product(name: "BagUIDI", package: "BagUI"),
-                .product(name: "SharedUIDI", package: "SharedUI")
+                .product(name: "ProductActionsUIDI", package: "ProductActionsUI")
             ],
             path: "Sources/DI"
         )

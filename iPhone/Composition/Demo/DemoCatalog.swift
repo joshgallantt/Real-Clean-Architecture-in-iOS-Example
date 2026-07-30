@@ -40,15 +40,8 @@ enum DemoCatalogMischief {
     }
 }
 
-// MARK: - Decorators
+// MARK: - Decorator
 
-struct DemoBrowseCatalogUseCase: BrowseCatalogUseCase {
-    let wrapped: BrowseCatalogUseCase
-
-    func callAsFunction(matching query: CatalogQuery) async -> Result<[Product], ProductError> {
-        await wrapped(matching: query).map { $0.map(DemoCatalogMischief.meddle) }
-    }
-}
 
 struct DemoLookUpProductsUseCase: LookUpProductsUseCase {
     let wrapped: LookUpProductsUseCase
@@ -58,13 +51,6 @@ struct DemoLookUpProductsUseCase: LookUpProductsUseCase {
     }
 }
 
-struct DemoViewProductUseCase: ViewProductUseCase {
-    let wrapped: ViewProductUseCase
-
-    func callAsFunction(id: ProductID) async -> Result<Product, ProductError> {
-        await wrapped(id: id).map(DemoCatalogMischief.meddle)
-    }
-}
 
 private nonisolated func scaled(_ amount: Money, by factor: Double) -> Money {
     Money(minorUnits: Int((Double(amount.minorUnits) * factor).rounded()), currency: amount.currency)

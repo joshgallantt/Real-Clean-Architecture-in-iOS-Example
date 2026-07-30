@@ -33,7 +33,14 @@ struct BagChangeDTO: Codable, Sendable {
         case priceWentUp
         case priceWentDown
         case onlySomeLeft
-        case noLongerAvailable
+        case outOfStock
+        case discontinued
+
+        /// What "it has gone" was called before the two ways of going were told apart. A bag
+        /// written by an older build still reads, and its notice becomes the recoverable one —
+        /// offering to tell a shopper about something already back is a smaller wrong than
+        /// promising word about something that will never return.
+        static let legacyGone = "noLongerAvailable"
     }
 
     /// Held as its raw form, not as `Kind`. Decoding straight into the enum throws on a kind this
@@ -68,8 +75,14 @@ struct BagChangeDTO: Codable, Sendable {
             self.toMinorUnits = nil
             self.currencyCode = nil
             self.available = available
-        case .noLongerAvailable:
-            self.kind = Kind.noLongerAvailable.rawValue
+        case .outOfStock:
+            self.kind = Kind.outOfStock.rawValue
+            self.fromMinorUnits = nil
+            self.toMinorUnits = nil
+            self.currencyCode = nil
+            self.available = nil
+        case .discontinued:
+            self.kind = Kind.discontinued.rawValue
             self.fromMinorUnits = nil
             self.toMinorUnits = nil
             self.currencyCode = nil
@@ -79,6 +92,8 @@ struct BagChangeDTO: Codable, Sendable {
 
     func toDomain() -> BagChange? {
         let id = ProductID(rawValue: productId)
+
+        if kind == Kind.legacyGone { return .outOfStock(productId: id) }
 
         switch Kind(rawValue: kind) {
         case .none:
@@ -92,8 +107,10 @@ struct BagChangeDTO: Codable, Sendable {
         case .onlySomeLeft:
             guard let available else { return nil }
             return .onlySomeLeft(productId: id, available: available)
-        case .noLongerAvailable:
-            return .noLongerAvailable(productId: id)
+        case .outOfStock:
+            return .outOfStock(productId: id)
+        case .discontinued:
+            return .discontinued(productId: id)
         }
     }
 

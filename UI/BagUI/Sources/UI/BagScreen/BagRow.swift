@@ -47,8 +47,10 @@ struct ChangedBagRow: Identifiable, Equatable {
             available == 1
                 ? "Only 1 left — we updated your bag"
                 : "Only \(available) left — we updated your bag"
-        case .noLongerAvailable:
-            "No longer available"
+        case .outOfStock:
+            "Out of stock — we'll have it back"
+        case .discontinued:
+            "No longer sold"
         }
     }
 }

@@ -9,5 +9,4 @@ import Product
 /// one protocol per feature, so nothing depends on another feature's routes.
 public protocol BagNavigation: AnyObject {
     func openProductDetails(id: ProductID)
-    func switchToBagTab()
 }

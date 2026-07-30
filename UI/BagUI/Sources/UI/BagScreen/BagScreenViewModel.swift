@@ -14,7 +14,8 @@ import SnackbarUI
 /// a container that could resolve anything.
 public final class BagScreenViewModel: ObservableObject {
     @Published private(set) var rows: [BagRow] = []
-    @Published private(set) var removedRows: [ChangedBagRow] = []
+    @Published private(set) var outOfStockRows: [ChangedBagRow] = []
+    @Published private(set) var discontinuedRows: [ChangedBagRow] = []
     @Published private(set) var priceChangedRows: [ChangedBagRow] = []
     @Published private(set) var shortageRows: [ChangedBagRow] = []
     @Published private(set) var isLoadingMore = false
@@ -89,19 +90,29 @@ public final class BagScreenViewModel: ObservableObject {
         acknowledgeBagChange(productId: productId)
     }
 
+    /// Acknowledging is by product, not by notice — "Okay" has always meant "I have seen what
+    /// happened to this one". So accepting a whole section clears anything else outstanding about
+    /// the same product, which is the same thing tapping each Okay in turn would have done.
+    func didAcceptAll(_ rows: [ChangedBagRow]) {
+        for row in rows {
+            acknowledgeBagChange(productId: row.id)
+        }
+    }
+
+    /// The shopper empties their own bag. Every line goes the way a single swipe sends one, so
+    /// there is no second path through the domain to keep in step with the first.
+    func didRemoveEverything() {
+        for item in bag.items {
+            setBagItemQuantity(productId: item.id, to: 0)
+        }
+        askTheShop(aboutEverythingVisible: true)
+    }
+
     func didRemoveChangedItem(productId: ProductID) {
         setBagItemQuantity(productId: productId, to: 0)
         askTheShop(aboutEverythingVisible: true)
     }
 
-    func didAskToBeNotified(productId: ProductID) {
-        acknowledgeBagChange(productId: productId)
-        snackbar.show(Snackbar(
-            title: "We'll Let You Know",
-            message: "You'll hear from us when this is back in stock.",
-            icon: "bell.fill"
-        ))
-    }
 
     private func row(for change: BagChange) -> ChangedBagRow {
         ChangedBagRow(
@@ -130,11 +141,19 @@ public final class BagScreenViewModel: ObservableObject {
 
     private func bagChanged(_ bag: Bag) {
         self.bag = bag
-
-        let ids = Set(bag.items.map(\.id))
-        catalog = catalog.filter { ids.contains($0.key) }
-
         render()
+    }
+
+    /// Every product on screen: what is in the bag, and what the notices are about. The two are not
+    /// the same set — a notice that something has gone outlives the line it refers to, which is the
+    /// whole point of it — so a screen that keeps only what the bag holds cannot say what it was.
+    ///
+    /// The bag and the notices reach this screen on two publishers and land one after the other, so
+    /// there is a moment where a product has left the bag and its notice has not yet arrived.
+    /// Nothing is discarded on that edge; the set is only ever narrowed where both are settled.
+    private var productsOnScreen: Set<ProductID> {
+        Set(bag.items.prefix(loadedCount).map(\.id))
+            .union(changes.all.map(\.productId))
     }
 
     private func render() {
@@ -142,7 +161,8 @@ public final class BagScreenViewModel: ObservableObject {
             BagRow(item: item, name: catalog[item.id]?.title, imageURL: catalog[item.id]?.thumbnail)
         }
 
-        removedRows = changes.noLongerAvailable.map(row(for:))
+        outOfStockRows = changes.outOfStock.map(row(for:))
+        discontinuedRows = changes.discontinued.map(row(for:))
         priceChangedRows = changes.priceMoves.map(row(for:))
         shortageRows = changes.shortages.map(row(for:))
     }
@@ -151,7 +171,10 @@ public final class BagScreenViewModel: ObservableObject {
         lookupTask?.cancel()
 
         let window = Array(bag.items.prefix(loadedCount))
-        let ids = refreshAll ? window.map(\.id) : window.map(\.id).filter { catalog[$0] == nil }
+        let onScreen = productsOnScreen
+        catalog = catalog.filter { onScreen.contains($0.key) }
+
+        let ids = refreshAll ? Array(onScreen) : Array(onScreen).filter { catalog[$0] == nil }
         guard !ids.isEmpty else {
             isLoadingMore = false
             return

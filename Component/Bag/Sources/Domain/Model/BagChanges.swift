@@ -14,7 +14,18 @@ public struct BagChanges: Equatable, Sendable {
 
     public var isEmpty: Bool { all.isEmpty }
 
-    public var noLongerAvailable: [BagChange] { all.filter { !$0.isAboutAProductStillInTheBag } }
+    /// Everything that has left the bag, whichever way it went.
+    public var gone: [BagChange] { all.filter { !$0.isAboutAProductStillInTheBag } }
+
+    /// The shop has run out and expects it back — worth waiting for.
+    public var outOfStock: [BagChange] {
+        all.filter { if case .outOfStock = $0 { true } else { false } }
+    }
+
+    /// The shop has stopped selling it — nothing to wait for.
+    public var discontinued: [BagChange] {
+        all.filter { if case .discontinued = $0 { true } else { false } }
+    }
 
     public var priceMoves: [BagChange] { all.filter(\.isPriceMove) }
 

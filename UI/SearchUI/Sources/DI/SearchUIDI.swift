@@ -4,7 +4,7 @@ import Product
 import SearchHistory
 import SnackbarUI
 import WishlistUIDI
-import BagUIDI
+import ProductActionsUIDI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
 /// hierarchy and holds its collaborators.
@@ -22,7 +22,7 @@ public struct SearchUIDI {
     private let clearSearchHistory: ClearSearchHistoryUseCase
     private let snackbarPresenter: SnackbarPresenting
     private let wishlistUIDI: WishlistUIDI
-    private let bagUIDI: BagUIDI
+    private let productActionsUIDI: ProductActionsUIDI
 
     public init(
         navigation: SearchNavigation,
@@ -33,7 +33,7 @@ public struct SearchUIDI {
         clearSearchHistory: ClearSearchHistoryUseCase,
         snackbarPresenter: SnackbarPresenting,
         wishlistUIDI: WishlistUIDI,
-        bagUIDI: BagUIDI
+        productActionsUIDI: ProductActionsUIDI
     ) {
         self.navigation = navigation
         self.browseCatalog = browseCatalog
@@ -43,7 +43,7 @@ public struct SearchUIDI {
         self.clearSearchHistory = clearSearchHistory
         self.snackbarPresenter = snackbarPresenter
         self.wishlistUIDI = wishlistUIDI
-        self.bagUIDI = bagUIDI
+        self.productActionsUIDI = productActionsUIDI
     }
 
     @MainActor
@@ -73,7 +73,7 @@ public struct SearchUIDI {
             ),
             navigation: navigation,
             wishlistButton: { id in AnyView(wishlistUIDI.button(productId: id)) },
-            bagButton: { product in AnyView(bagUIDI.button(product: product)) }
+            bagButton: { product in AnyView(productActionsUIDI.cardActionButton(product: product)) }
         )
     }
 }

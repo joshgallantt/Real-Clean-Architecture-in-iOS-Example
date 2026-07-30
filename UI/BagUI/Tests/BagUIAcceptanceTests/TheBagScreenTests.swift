@@ -24,9 +24,49 @@ struct BagScreenViewModelTests {
 
     private func makeShop(
         items: [BagItem] = [bagItem(1, price: 9.99)],
+        changes: BagChanges = BagChanges(),
         catalog: [Product] = [.fixture(id: 1)]
     ) -> FakeShop {
-        FakeShop(bag: Bag(items: items), catalog: catalog)
+        FakeShop(bag: Bag(items: items), changes: changes, catalog: catalog)
+    }
+
+    @Test("Something the shop has run out of still shows what it was")
+    func outOfStockRowsKeepTheirNames() async {
+        let shop = makeShop(catalog: [.fixture(id: 1, availability: .outOfStock)])
+        let viewModel = makeViewModel(shop: shop)
+
+        viewModel.onAppear()
+        await settle(shop)
+
+        #expect(viewModel.outOfStockRows.first?.name == "Product 1")
+        #expect(viewModel.outOfStockRows.first?.imageURL != nil)
+    }
+
+    @Test("A notice waiting from a previous visit still says what it is about")
+    func noticesFromLastTimeAreNamed() async {
+        let shop = makeShop(
+            items: [],
+            changes: BagChanges([.outOfStock(productId: pid(7))]),
+            catalog: [.fixture(id: 7, availability: .outOfStock)]
+        )
+        let viewModel = makeViewModel(shop: shop)
+
+        viewModel.onAppear()
+        await settle(shop)
+
+        #expect(viewModel.outOfStockRows.map(\.id) == [pid(7)])
+        #expect(viewModel.outOfStockRows.first?.name == "Product 7")
+    }
+
+    @Test("A price notice about something still in the bag keeps its name too")
+    func priceNoticesAreNamed() async {
+        let shop = makeShop(catalog: [.fixture(id: 1, price: 19.99)])
+        let viewModel = makeViewModel(shop: shop)
+
+        viewModel.onAppear()
+        await settle(shop)
+
+        #expect(viewModel.priceChangedRows.first?.name == "Product 1")
     }
 
     @Test("Opening the bag asks the shop about everything in it")
@@ -66,7 +106,7 @@ struct BagScreenViewModelTests {
 
         #expect(shop.currentChanges.priceMoves == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
         #expect(viewModel.priceChangedRows.map(\.id) == [pid(1)])
-        #expect(viewModel.removedRows.isEmpty)
+        #expect(viewModel.outOfStockRows.isEmpty)
         #expect(viewModel.total == usd(12.99))
     }
 
@@ -84,7 +124,7 @@ struct BagScreenViewModelTests {
         #expect(shop.lookups.count == 2)
     }
 
-    @Test("Something out of stock leaves the bag and is listed as removed")
+    @Test("Something out of stock leaves the bag and is listed as out of stock")
     func outOfStockIsRemoved() async {
         let shop = makeShop(catalog: [.fixture(id: 1, availability: .outOfStock)])
         let viewModel = makeViewModel(shop: shop)
@@ -93,9 +133,46 @@ struct BagScreenViewModelTests {
         await settle(shop)
 
         #expect(shop.currentBag.isEmpty)
-        #expect(viewModel.removedRows.map(\.id) == [pid(1)])
+        #expect(viewModel.outOfStockRows.map(\.id) == [pid(1)])
         #expect(viewModel.rows.isEmpty)
         #expect(viewModel.isEmpty)
+    }
+
+    @Test("Something the shop has stopped selling is listed apart, where no bell is offered")
+    func discontinuedIsItsOwnSection() async {
+        let shop = makeShop(
+            items: [bagItem(1, price: 9.99), bagItem(2, price: 5)],
+            catalog: [
+                .fixture(id: 1, availability: .outOfStock),
+                .fixture(id: 2, availability: .discontinued)
+            ]
+        )
+        let viewModel = makeViewModel(shop: shop)
+
+        viewModel.onAppear()
+        await settle(shop)
+
+        #expect(viewModel.outOfStockRows.map(\.id) == [pid(1)])
+        #expect(viewModel.discontinuedRows.map(\.id) == [pid(2)])
+        #expect(viewModel.isEmpty)
+    }
+
+    @Test("Each is said in its own words, so a shopper knows which is worth waiting for")
+    func eachIsSaidInItsOwnWords() async {
+        let shop = makeShop(
+            items: [bagItem(1, price: 9.99), bagItem(2, price: 5)],
+            catalog: [
+                .fixture(id: 1, availability: .outOfStock),
+                .fixture(id: 2, availability: .discontinued)
+            ]
+        )
+        let viewModel = makeViewModel(shop: shop)
+
+        viewModel.onAppear()
+        await settle(shop)
+
+        #expect(viewModel.outOfStockRows.first?.summary == "Out of stock — we'll have it back")
+        #expect(viewModel.discontinuedRows.first?.summary == "No longer sold")
     }
 
     @Test("Availability is a yes-or-no to a bag, whatever the count happens to be")
@@ -111,7 +188,7 @@ struct BagScreenViewModelTests {
         await settle(none)
 
         #expect(plenty.currentChanges.isEmpty)
-        #expect(none.currentChanges.noLongerAvailable == [.noLongerAvailable(productId: pid(1))])
+        #expect(none.currentChanges.outOfStock == [.outOfStock(productId: pid(1))])
     }
 
     @Test("Changing how many asks again")
@@ -164,20 +241,6 @@ struct BagScreenViewModelTests {
         #expect(viewModel.priceChangedRows.isEmpty)
     }
 
-    @Test("Asking to be notified clears the row and says so")
-    func notifyMe() async {
-        let shop = makeShop(catalog: [.fixture(id: 1, availability: .outOfStock)])
-        let viewModel = makeViewModel(shop: shop)
-        viewModel.onAppear()
-        await settle(shop)
-        #expect(viewModel.removedRows.count == 1)
-
-        viewModel.didAskToBeNotified(productId: pid(1))
-        await settle(shop)
-
-        #expect(viewModel.removedRows.isEmpty)
-        #expect(shop.shownSnackbars.map(\.title) == ["We'll Let You Know"])
-    }
 
     @Test("A shop that answers with nothing leaves the bag exactly as it was")
     func catalogSilenceIsHarmless() async {
@@ -213,6 +276,111 @@ struct BagScreenViewModelTests {
         await settle(shop)
 
         #expect(viewModel.rows.first?.name == "Product 1")
+    }
+}
+
+@MainActor
+@Suite("Dealing with a whole section at once", .serialized)
+/// A shopper who has been away a while comes back to a screenful of notices. Clearing them one tap
+/// at a time is the same work the shop made for them; each section can be accepted in one go.
+struct DealingWithAWholeSectionTests {
+    private func makeViewModel(shop: FakeShop) -> BagScreenViewModel {
+        BagScreenViewModel(
+            observeBag: shop.observeBag,
+            observeBagChanges: shop.observeBagChanges,
+            lookUpProducts: shop.lookUpProducts,
+            setBagItemQuantity: shop.setBagItemQuantity,
+            bringBagUpToDate: shop.bringUpToDate,
+            acknowledgeBagChange: shop.acknowledge,
+            snackbar: shop.snackbar
+        )
+    }
+
+    @Test("Accepting everything that has gone clears the whole section in one tap")
+    func acceptsAllRemoved() async {
+        let shop = FakeShop(
+            bag: Bag(items: [bagItem(1, price: 9.99), bagItem(2, price: 5)]),
+            catalog: [
+                .fixture(id: 1, availability: .outOfStock),
+                .fixture(id: 2, availability: .outOfStock)
+            ]
+        )
+        let viewModel = makeViewModel(shop: shop)
+        viewModel.onAppear()
+        await settle(shop)
+        #expect(viewModel.outOfStockRows.count == 2)
+
+        viewModel.didAcceptAll(viewModel.outOfStockRows)
+
+        #expect(viewModel.outOfStockRows.isEmpty)
+    }
+
+    @Test("Accepting every price move leaves the bag itself alone, at the new prices")
+    func acceptsAllPriceChanges() async {
+        let shop = FakeShop(
+            bag: Bag(items: [bagItem(1, price: 9.99), bagItem(2, price: 5)]),
+            catalog: [.fixture(id: 1, price: 12.99), .fixture(id: 2, price: 7)]
+        )
+        let viewModel = makeViewModel(shop: shop)
+        viewModel.onAppear()
+        await settle(shop)
+        #expect(viewModel.priceChangedRows.count == 2)
+
+        viewModel.didAcceptAll(viewModel.priceChangedRows)
+
+        #expect(viewModel.priceChangedRows.isEmpty)
+        #expect(viewModel.rows.count == 2)
+        #expect(viewModel.total == usd(19.99))
+    }
+
+    @Test("Accepting one section leaves the others still waiting")
+    func acceptingOneSectionLeavesTheRest() async {
+        let shop = FakeShop(
+            bag: Bag(items: [bagItem(1, price: 9.99), bagItem(2, price: 5)]),
+            catalog: [
+                .fixture(id: 1, price: 12.99),
+                .fixture(id: 2, availability: .outOfStock)
+            ]
+        )
+        let viewModel = makeViewModel(shop: shop)
+        viewModel.onAppear()
+        await settle(shop)
+
+        viewModel.didAcceptAll(viewModel.priceChangedRows)
+
+        #expect(viewModel.priceChangedRows.isEmpty)
+        #expect(viewModel.outOfStockRows.map(\.id) == [pid(2)])
+    }
+
+    @Test("A shopper empties their whole bag and it is empty, and worth nothing at all")
+    func removesEverything() async {
+        let shop = FakeShop(
+            bag: Bag(items: [bagItem(1, price: 9.99), bagItem(2, price: 5)]),
+            catalog: [.fixture(id: 1), .fixture(id: 2)]
+        )
+        let viewModel = makeViewModel(shop: shop)
+        viewModel.onAppear()
+        await settle(shop)
+
+        viewModel.didRemoveEverything()
+        await settle(shop, untilAskedTimes: 2)
+
+        #expect(shop.currentBag.isEmpty)
+        #expect(viewModel.rows.isEmpty)
+        #expect(viewModel.isEmpty)
+        #expect(viewModel.total == nil)
+    }
+
+    @Test("Emptying a bag that is already empty asks nothing of anybody")
+    func removingEverythingFromNothing() async {
+        let shop = FakeShop(bag: Bag(), catalog: [])
+        let viewModel = makeViewModel(shop: shop)
+        viewModel.onAppear()
+        await settle(shop)
+
+        viewModel.didRemoveEverything()
+
+        #expect(shop.currentBag.isEmpty)
     }
 }
 

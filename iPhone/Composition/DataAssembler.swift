@@ -2,6 +2,7 @@ import Foundation
 import BagData
 import SearchHistoryData
 import SessionData
+import StockAlertData
 import WishlistData
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the first of the composition
@@ -21,6 +22,7 @@ struct DataAssembler {
     let searchHistoryStore: SearchHistoryStore
     let wishlistStore: WishlistStore
     let bagStore: BagStore
+    let stockAlertStore: StockAlertStore
 
     /// A sign-in outlives the app being closed, but not indefinitely.
     static let signInLasts: TimeInterval = 60 * 60 * 24 * 7
@@ -34,5 +36,6 @@ struct DataAssembler {
         searchHistoryStore = UserDefaultsSearchHistoryStore(defaults: defaults)
         wishlistStore = FileWishlistStore()
         bagStore = FileBagStore()
+        stockAlertStore = FileStockAlertStore()
     }
 }

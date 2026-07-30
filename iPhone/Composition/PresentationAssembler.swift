@@ -2,6 +2,7 @@ import SwiftUI
 import BagDI
 import SearchHistoryDI
 import SessionDI
+import StockAlertDI
 import WishlistDI
 import AccountUIDI
 import AuthUIDI
@@ -10,7 +11,7 @@ import HomeUIDI
 import OnboardingUIDI
 import ProductUIDI
 import SearchUIDI
-import SharedUIDI
+import ProductActionsUIDI
 import SheetUIDI
 import SnackbarUIDI
 import WishlistUIDI
@@ -33,7 +34,7 @@ struct PresentationAssembler {
 
     let onboarding: OnboardingUIDI
     let auth: AuthUIDI
-    let shared: SharedUIDI
+    let productActions: ProductActionsUIDI
     let product: ProductUIDI
     let home: HomeUIDI
     let search: SearchUIDI
@@ -72,27 +73,32 @@ struct PresentationAssembler {
         let navigator = Navigator(authPresenter: auth.presenter)
         self.navigator = navigator
 
-        let shared = SharedUIDI(
+        let productActions = ProductActionsUIDI(
+            navigation: navigator,
             observeProductIsWishlisted: domain.wishlist.observeProductIsWishlistedUseCase,
             addProductToWishlist: domain.wishlist.addProductToWishlistUseCase,
             removeProductFromWishlist: domain.wishlist.removeProductFromWishlistUseCase,
+            observeBagItemQuantity: domain.bag.observeBagItemQuantityUseCase,
+            addItemToBag: domain.bag.addItemToBagUseCase,
+            observeWaitingForProduct: domain.stockAlerts.observeWaitingForProductUseCase,
+            askToBeToldWhenBack: domain.stockAlerts.askToBeToldWhenBackUseCase,
+            stopBeingToldWhenBack: domain.stockAlerts.stopBeingToldWhenBackUseCase,
             authPresenter: auth.presenter,
             snackbarPresenter: snackbar.presenter
         )
-        self.shared = shared
+        self.productActions = productActions
 
         let bag = BagUIDI(
             navigation: navigator,
             observeBag: domain.bag.observeBagUseCase,
             observeBagChanges: domain.bag.observeBagChangesUseCase,
-            observeBagItemQuantity: domain.bag.observeBagItemQuantityUseCase,
-            addItemToBag: domain.bag.addItemToBagUseCase,
             setBagItemQuantity: domain.bag.setBagItemQuantityUseCase,
             lookUpProducts: catalog.lookUpProducts,
             bringBagUpToDate: domain.bag.bringBagUpToDateUseCase,
             acknowledgeBagChange: domain.bag.acknowledgeBagChangeUseCase,
             snackbarPresenter: snackbar.presenter,
-            wishlistButton: { id in AnyView(shared.wishlistButton(productId: id)) }
+            wishlistButton: { id in AnyView(productActions.wishlistButton(productId: id)) },
+            stockAlertButton: { id in AnyView(productActions.stockAlertButton(productId: id)) }
         )
         self.bag = bag
 
@@ -103,15 +109,13 @@ struct PresentationAssembler {
             observeSession: session.observeSessionUseCase,
             authPresenter: auth.presenter,
             snackbarPresenter: snackbar.presenter,
-            bagUIDI: bag,
-            sharedUIDI: shared
+            productActionsUIDI: productActions
         )
         self.wishlist = wishlist
 
         product = ProductUIDI(
             viewProduct: catalog.viewProduct,
-            bagUIDI: bag,
-            sharedUIDI: shared
+            productActionsUIDI: productActions
         )
         home = HomeUIDI(
             navigation: navigator,
@@ -127,7 +131,7 @@ struct PresentationAssembler {
             clearSearchHistory: domain.searchHistory.clearSearchHistoryUseCase,
             snackbarPresenter: snackbar.presenter,
             wishlistUIDI: wishlist,
-            bagUIDI: bag
+            productActionsUIDI: productActions
         )
         self.search = search
 
