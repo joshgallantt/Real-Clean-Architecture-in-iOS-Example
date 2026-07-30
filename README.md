@@ -579,7 +579,7 @@ case .success:
         title: "Added to Wishlist",
         message: "Find it any time in your wishlist.",
         icon: "heart.fill",
-        action: .undo { Task { await remove(productId: productId) } }
+        action: undo(by: { await remove(productId: productId) }, sayingSoIfItCannot: snackbarPresenter)
     ))
 case .failure(.unauthenticated):
     guard await authPresenter.show(AuthenticationPrompt(
@@ -588,10 +588,16 @@ case .failure(.unauthenticated):
         icon: "heart.fill"
     )) else { return }
     await self.add()          // authenticated now — resume what they asked for
+case .failure(.unavailable):
+    snackbarPresenter.show(Snackbar(title: "Couldn't Add to Wishlist", ..., action: .retry { ... }))
 }
 ```
 
-The switch is exhaustive over a domain error with exactly one case, which is the point: `WishlistError` names the one thing that can stop a shopper changing their wishlist, so there is no `default:` arm quietly swallowing a failure nobody thought about.
+`WishlistError` has two cases and no more: the shopper is not signed in, or the change could not be kept. A disk that would not write, a request that never arrived and an unreadable payload all arrive as `.unavailable`, because they are one fact to a shopper — their wishlist did not change — and nothing in the domain would do anything different with the distinction. Telling them apart here would be the transport's vocabulary leaking inward.
+
+The switch is exhaustive, which is the point: there is no `default:` arm quietly swallowing a failure nobody thought about, and adding a third case would stop the build at every screen that has to decide what to say about it.
+
+**Nothing in this path is `@discardableResult`.** An operation that can fail for a reason the shopper needs telling about must not be silently ignorable — so the undo closures, which are the only callers that used to drop the answer, now report it too. A shopper whose sign-in ends between saving something and tapping Undo would otherwise watch the snackbar disappear as though it had worked.
 
 The ViewModel never asks "is the user logged in?" before acting. It attempts the operation, and authentication becomes a *retryable failure* rather than a precondition scattered across every call site. The user's original intent is preserved across the entire detour: tap heart → prompt → create account → item saved, with no second tap.
 

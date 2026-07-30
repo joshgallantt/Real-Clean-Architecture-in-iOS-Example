@@ -69,21 +69,10 @@ final class Saver {
 
     // MARK: - Leaving and coming back
 
-    func leaveAndComeBack() async -> Saver {
-        await writesToSettle()
-        return Saver(in: directory, signedInAs: signedInUserId)
-    }
-
-    func writesToSettle() async {
-        let onDisk = FileWishlistStore(
-            directory: directory,
-            legacyDefaults: UserDefaults(suiteName: UUID().uuidString)!
-        )
-        let owner = Owner(sessions.value)
-        guard case .signedIn(let id) = owner else { return }
-        for _ in 0..<100 where onDisk.getItems(for: id).map(\.productId) != wishlist.items.map(\.productId) {
-            try? await Task.sleep(for: .milliseconds(10))
-        }
+    /// No waiting for anything to settle: a save is not done until what it saved is kept, so by
+    /// the time `save` has returned there is nothing in flight to wait for.
+    func leaveAndComeBack() -> Saver {
+        Saver(in: directory, signedInAs: signedInUserId)
     }
 
     private var signedInUserId: Int? {
@@ -124,6 +113,15 @@ private struct StubObserveSession: ObserveSessionUseCase, @unchecked Sendable {
 extension URL {
     static var newTemporaryDirectory: URL {
         FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
+    }
+
+    /// Somewhere the wishlist genuinely cannot be written: a directory that cannot be created,
+    /// because the path it would sit under is a file. A real failure rather than a fake store —
+    /// the store under test is the one that ships.
+    static func unwritableDirectory() throws -> URL {
+        let file = FileManager.default.temporaryDirectory.appending(path: UUID().uuidString)
+        try Data("not a directory".utf8).write(to: file)
+        return file.appending(path: "wishlist", directoryHint: .isDirectory)
     }
 }
 

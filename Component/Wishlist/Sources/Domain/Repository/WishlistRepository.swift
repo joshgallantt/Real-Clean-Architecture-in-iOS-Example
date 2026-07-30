@@ -11,6 +11,8 @@ public protocol WishlistRepository: Sendable {
     @MainActor
     var wishlistPublisher: AnyPublisher<Wishlist, Never> { get }
 
+    /// Throws when the list could not be kept, so a caller cannot report a change that did not
+    /// happen. What is published is what was kept.
     @MainActor
-    func save(_ wishlist: Wishlist)
+    func save(_ wishlist: Wishlist) async throws
 }

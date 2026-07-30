@@ -8,7 +8,10 @@ import Wishlist
 /// replaceable without anything inward moving.
 public protocol WishlistStore: Sendable {
     func getItems(for owner: UserID?) -> [WishlistItem]
-    func setItems(_ items: [WishlistItem], for owner: UserID?) async
+
+    /// Throws when the list could not be kept. What went wrong is the store's business; that it
+    /// did not happen is the domain's.
+    func setItems(_ items: [WishlistItem], for owner: UserID?) async throws
 }
 
 public struct FileWishlistStore: WishlistStore, @unchecked Sendable {
@@ -38,14 +41,14 @@ public struct FileWishlistStore: WishlistStore, @unchecked Sendable {
         return migrateLegacyItems(forUserKey: key)
     }
 
-    public func setItems(_ items: [WishlistItem], for owner: UserID?) async {
+    public func setItems(_ items: [WishlistItem], for owner: UserID?) async throws {
         guard let key = Self.filename(for: owner) else { return }
         let dtos = items.map(WishlistItemDTO.init(from:))
         let directory = self.directory
         let url = url(for: key)
 
-        await Task.detached(priority: .utility) {
-            Self.write(dtos, to: url, in: directory)
+        try await Task.detached(priority: .utility) {
+            try Self.write(dtos, to: url, in: directory)
         }.value
     }
 
@@ -70,14 +73,16 @@ public struct FileWishlistStore: WishlistStore, @unchecked Sendable {
             return []
         }
 
-        Self.write(dtos, to: url(for: userKey), in: directory)
+        // A migration that cannot be written is still a list that can be read. The shopper gets
+        // their wishlist; the copy forward is retried on their next visit.
+        try? Self.write(dtos, to: url(for: userKey), in: directory)
         return dtos.map { $0.toDomain() }
     }
 
-    private static func write(_ dtos: [WishlistItemDTO], to url: URL, in directory: URL) {
-        guard let data = try? JSONEncoder().encode(dtos) else { return }
-        try? FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
-        try? data.write(to: url, options: .atomic)
+    private static func write(_ dtos: [WishlistItemDTO], to url: URL, in directory: URL) throws {
+        let data = try JSONEncoder().encode(dtos)
+        try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
+        try data.write(to: url, options: .atomic)
     }
 
     private func url(for userKey: String) -> URL {
