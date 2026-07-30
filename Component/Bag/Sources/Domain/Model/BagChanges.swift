@@ -6,9 +6,9 @@
 /// about something that has *left* the bag, so it could not live inside it without the
 /// bag holding a reference to something outside itself.
 ///
-/// It also changes for different reasons and at different times: the bag changes when
-/// the shopper shops, this changes when the shop changes its mind and when the shopper
-/// says they have seen it.
+/// It also changes for different reasons and at different times: the bag changes when the
+/// shopper shops, this changes when the shop changes its mind and when the shopper says
+/// they have seen it.
 public struct BagChanges: Equatable, Sendable {
     public let all: [BagChange]
 
@@ -19,27 +19,27 @@ public struct BagChanges: Equatable, Sendable {
     public var isEmpty: Bool { all.isEmpty }
 
     /// Products the shop can no longer supply. No longer in the bag.
-    public var removals: [BagChange] { all.filter { !$0.isPriceChange } }
+    public var noLongerAvailable: [BagChange] { all.filter { !$0.isAboutAProductStillInTheBag } }
 
     /// Products still in the bag, at a price the shopper has not seen yet.
-    public var priceChanges: [BagChange] { all.filter(\.isPriceChange) }
+    public var priceMoves: [BagChange] { all.filter(\.isAboutAProductStillInTheBag) }
 
-    public func changes(forItemId id: Int) -> [BagChange] {
-        all.filter { $0.itemId == id }
+    public func about(productId: Int) -> [BagChange] {
+        all.filter { $0.productId == productId }
     }
 
     /// The price this shopper last saw and dismissed, so a later move can be measured
     /// from what they know rather than from the last time anyone asked the shop.
-    public func priceLastSeen(forItemId id: Int) -> Double? {
-        all.first { $0.itemId == id && $0.isPriceChange }?.priceLastSeen
+    public func priceLastSeen(forProductId productId: Int) -> Double? {
+        all.first { $0.productId == productId && $0.isAboutAProductStillInTheBag }?.priceLastSeen
     }
 
     /// The shopper has seen whatever happened to this product.
-    public func acknowledging(itemId: Int) -> BagChanges {
-        BagChanges(all.filter { $0.itemId != itemId })
+    public func acknowledging(productId: Int) -> BagChanges {
+        BagChanges(all.filter { $0.productId != productId })
     }
 
-    public func acknowledgingAll() -> BagChanges {
+    public func acknowledgingEverything() -> BagChanges {
         BagChanges()
     }
 }

@@ -19,8 +19,8 @@ struct BagCostTests {
     @Test("The total is each line's last known price times how many the shopper took")
     func total() {
         let bag = Bag(items: [
-            BagItem(id: 1, quantity: 2, lastKnownPrice: 9.99),
-            BagItem(id: 2, quantity: 1, lastKnownPrice: 2499.99)
+            BagItem(productId: 1, quantity: 2, lastKnownPrice: 9.99),
+            BagItem(productId: 2, quantity: 1, lastKnownPrice: 2499.99)
         ])
 
         #expect(bag.total.cents == 251997)
@@ -30,7 +30,7 @@ struct BagCostTests {
     func totalNeedsNothingFetched() {
         // No names, no pictures, no catalog: the bag keeps the last prices it was
         // shown, so it can still say what it is worth.
-        let bag = Bag(items: [BagItem(id: 1, quantity: 3, lastKnownPrice: 4.99)])
+        let bag = Bag(items: [BagItem(productId: 1, quantity: 3, lastKnownPrice: 4.99)])
 
         #expect(bag.total.cents == 1497)
     }
@@ -38,8 +38,8 @@ struct BagCostTests {
     @Test("Taking three of one thing counts as three items, not one")
     func itemCount() {
         let bag = Bag(items: [
-            BagItem(id: 1, quantity: 3, lastKnownPrice: 9.99),
-            BagItem(id: 2, quantity: 2, lastKnownPrice: 12.99)
+            BagItem(productId: 1, quantity: 3, lastKnownPrice: 9.99),
+            BagItem(productId: 2, quantity: 2, lastKnownPrice: 12.99)
         ])
 
         #expect(bag.itemCount == 5)
@@ -47,10 +47,10 @@ struct BagCostTests {
 
     @Test("A bag can say how many of something it holds, including none")
     func quantityForItem() {
-        let bag = Bag(items: [BagItem(id: 1, quantity: 3, lastKnownPrice: 9.99)])
+        let bag = Bag(items: [BagItem(productId: 1, quantity: 3, lastKnownPrice: 9.99)])
 
-        #expect(bag.quantity(forItemId: 1) == 3)
-        #expect(bag.quantity(forItemId: 99) == 0)
+        #expect(bag.quantity(of: 1) == 3)
+        #expect(bag.quantity(of: 99) == 0)
     }
 }
 
@@ -59,7 +59,7 @@ struct BagChangeTests {
 
     @Test("Choosing something new puts it in the bag")
     func addingSomethingNew() {
-        let bag = Bag().adding(BagItem(id: 1, lastKnownPrice: 9.99))
+        let bag = Bag().adding(BagItem(productId: 1, lastKnownPrice: 9.99))
 
         #expect(bag.items.map(\.id) == [1])
         #expect(bag.total.cents == 999)
@@ -68,18 +68,18 @@ struct BagChangeTests {
     @Test("Choosing something already in the bag takes another of it, rather than listing it twice")
     func addingSomethingAlreadyThere() {
         let bag = Bag()
-            .adding(BagItem(id: 1, lastKnownPrice: 9.99))
-            .adding(BagItem(id: 1, lastKnownPrice: 9.99))
+            .adding(BagItem(productId: 1, lastKnownPrice: 9.99))
+            .adding(BagItem(productId: 1, lastKnownPrice: 9.99))
 
         #expect(bag.items.count == 1)
-        #expect(bag.quantity(forItemId: 1) == 2)
+        #expect(bag.quantity(of: 1) == 2)
     }
 
     @Test("Taking another at today's price moves the whole line to today's price")
     func addingAgainReprices() {
         let bag = Bag()
-            .adding(BagItem(id: 1, lastKnownPrice: 4.99))
-            .adding(BagItem(id: 1, lastKnownPrice: 9.99))
+            .adding(BagItem(productId: 1, lastKnownPrice: 4.99))
+            .adding(BagItem(productId: 1, lastKnownPrice: 9.99))
 
         // The alternative leaves the shopper paying last week's price for both, which
         // is wrong in whichever direction the price moved.
@@ -90,16 +90,16 @@ struct BagChangeTests {
     @Test("The newest thing chosen sits at the top of the bag")
     func newestFirst() {
         let bag = Bag()
-            .adding(BagItem(id: 1, lastKnownPrice: 1, dateAdded: .distantPast))
-            .adding(BagItem(id: 2, lastKnownPrice: 2, dateAdded: .now))
+            .adding(BagItem(productId: 1, lastKnownPrice: 1, dateAdded: .distantPast))
+            .adding(BagItem(productId: 2, lastKnownPrice: 2, dateAdded: .now))
 
         #expect(bag.items.map(\.id) == [2, 1])
     }
 
     @Test("A bag handed its lines in any order still holds them newest first")
     func ordersWhateverItIsGiven() {
-        let older = BagItem(id: 1, lastKnownPrice: 1, dateAdded: .distantPast)
-        let newer = BagItem(id: 2, lastKnownPrice: 2, dateAdded: .now)
+        let older = BagItem(productId: 1, lastKnownPrice: 1, dateAdded: .distantPast)
+        let newer = BagItem(productId: 2, lastKnownPrice: 2, dateAdded: .now)
 
         #expect(Bag(items: [older, newer]).items.map(\.id) == [2, 1])
     }
@@ -107,8 +107,8 @@ struct BagChangeTests {
     @Test("Asking for none of something is how a shopper puts it back")
     func zeroQuantityRemoves() {
         let bag = Bag()
-            .adding(BagItem(id: 1, lastKnownPrice: 9.99))
-            .changingQuantity(ofItemId: 1, to: 0)
+            .adding(BagItem(productId: 1, lastKnownPrice: 9.99))
+            .changingQuantity(of: 1, to: 0)
 
         #expect(bag.isEmpty)
     }
@@ -116,32 +116,32 @@ struct BagChangeTests {
     @Test("Changing a quantity leaves the price alone")
     func quantityChangeKeepsPrice() {
         let bag = Bag()
-            .adding(BagItem(id: 1, lastKnownPrice: 4.99))
-            .changingQuantity(ofItemId: 1, to: 3)
+            .adding(BagItem(productId: 1, lastKnownPrice: 4.99))
+            .changingQuantity(of: 1, to: 3)
 
         #expect(bag.total.cents == 1497)
     }
 
     @Test("Changing the quantity of something not in the bag changes nothing")
     func quantityChangeForAbsentItem() {
-        let bag = Bag().adding(BagItem(id: 1, lastKnownPrice: 9.99))
+        let bag = Bag().adding(BagItem(productId: 1, lastKnownPrice: 9.99))
 
-        #expect(bag.changingQuantity(ofItemId: 99, to: 5) == bag)
+        #expect(bag.changingQuantity(of: 99, to: 5) == bag)
     }
 
     @Test("Putting something back leaves the rest of the bag alone")
     func removingLeavesTheRest() {
         let bag = Bag()
-            .adding(BagItem(id: 1, lastKnownPrice: 1))
-            .adding(BagItem(id: 2, lastKnownPrice: 2))
+            .adding(BagItem(productId: 1, lastKnownPrice: 1))
+            .adding(BagItem(productId: 2, lastKnownPrice: 2))
 
-        #expect(bag.removing(itemId: 1).items.map(\.id) == [2])
+        #expect(bag.removing(productId: 1).items.map(\.id) == [2])
     }
 
     @Test("Putting back something that was never in the bag changes nothing")
     func removingSomethingAbsent() {
-        let bag = Bag().adding(BagItem(id: 1, lastKnownPrice: 1))
+        let bag = Bag().adding(BagItem(productId: 1, lastKnownPrice: 1))
 
-        #expect(bag.removing(itemId: 99) == bag)
+        #expect(bag.removing(productId: 99) == bag)
     }
 }

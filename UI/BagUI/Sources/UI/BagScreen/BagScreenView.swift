@@ -77,12 +77,12 @@ public struct BagScreenView: View {
 
                     HStack(spacing: 12) {
                         Button("Okay") {
-                            viewModel.didAcknowledgeChange(itemId: removed.id)
+                            viewModel.didAcknowledgeChange(productId: removed.id)
                         }
                         .buttonStyle(.bordered)
 
                         Button("Notify Me") {
-                            viewModel.didAskToBeNotified(itemId: removed.id)
+                            viewModel.didAskToBeNotified(productId: removed.id)
                         }
                         .buttonStyle(.bordered)
                     }
@@ -120,12 +120,12 @@ public struct BagScreenView: View {
 
                     HStack(spacing: 12) {
                         Button("Okay") {
-                            viewModel.didAcknowledgeChange(itemId: changed.id)
+                            viewModel.didAcknowledgeChange(productId: changed.id)
                         }
                         .buttonStyle(.bordered)
 
                         Button("Remove", role: .destructive) {
-                            viewModel.didRemoveChangedItem(itemId: changed.id)
+                            viewModel.didRemoveChangedItem(productId: changed.id)
                         }
                         .buttonStyle(.bordered)
                     }
@@ -149,7 +149,7 @@ public struct BagScreenView: View {
                 self.row(for: row)
                     .swipeActions {
                         Button("Remove", role: .destructive) {
-                            viewModel.didSwipeToDelete(itemId: row.id)
+                            viewModel.didSwipeToDelete(productId: row.id)
                         }
                     }
                     .onAppear {
@@ -196,7 +196,7 @@ public struct BagScreenView: View {
                     get: { row.quantity },
                     set: {
                         UISelectionFeedbackGenerator().selectionChanged()
-                        viewModel.didChangeQuantity(itemId: row.id, quantity: $0)
+                        viewModel.didChangeQuantity(productId: row.id, quantity: $0)
                     }
                 ),
                 in: 1...99

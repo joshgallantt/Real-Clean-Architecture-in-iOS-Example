@@ -74,32 +74,32 @@ public final class BagScreenViewModel: ObservableObject {
         askTheShop(aboutEverythingVisible: false)
     }
 
-    func didChangeQuantity(itemId: Int, quantity: Int) {
-        setBagItemQuantity(itemId: itemId, to: quantity)
+    func didChangeQuantity(productId: Int, quantity: Int) {
+        setBagItemQuantity(productId: productId, to: quantity)
         askTheShop(aboutEverythingVisible: true)
     }
 
     // Wanting none of something is the same thing as taking it out, so the bag is told
     // once, in one way.
-    func didSwipeToDelete(itemId: Int) {
-        setBagItemQuantity(itemId: itemId, to: 0)
+    func didSwipeToDelete(productId: Int) {
+        setBagItemQuantity(productId: productId, to: 0)
         askTheShop(aboutEverythingVisible: true)
     }
 
-    func didAcknowledgeChange(itemId: Int) {
-        acknowledgeBagChange(itemId: itemId)
+    func didAcknowledgeChange(productId: Int) {
+        acknowledgeBagChange(productId: productId)
     }
 
-    func didRemoveChangedItem(itemId: Int) {
-        setBagItemQuantity(itemId: itemId, to: 0)
+    func didRemoveChangedItem(productId: Int) {
+        setBagItemQuantity(productId: productId, to: 0)
         askTheShop(aboutEverythingVisible: true)
     }
 
     /// Stubbed until there is a push notification system to register with. It dismisses
     /// the row so the shopper is not left with a button that appears to do nothing, and
     /// says what it will eventually mean.
-    func didAskToBeNotified(itemId: Int) {
-        acknowledgeBagChange(itemId: itemId)
+    func didAskToBeNotified(productId: Int) {
+        acknowledgeBagChange(productId: productId)
         snackbar.show(Snackbar(
             title: "We'll Let You Know",
             message: "You'll hear from us when this is back in stock.",
@@ -110,8 +110,8 @@ public final class BagScreenViewModel: ObservableObject {
     private func row(for change: BagChange) -> ChangedBagRow {
         ChangedBagRow(
             change: change,
-            name: catalog[change.itemId]?.title,
-            imageURL: catalog[change.itemId]?.thumbnail
+            name: catalog[change.productId]?.title,
+            imageURL: catalog[change.productId]?.thumbnail
         )
     }
 
@@ -156,9 +156,9 @@ public final class BagScreenViewModel: ObservableObject {
         // What is worth saying depends on both, so the domain is asked rather than the
         // screen deciding: a price notice for a line no longer in the bag, or a removal
         // notice for one the shopper has chosen again, is not news.
-        let worthSaying = BagReconciliation.applicable(changes, to: bag)
-        removedRows = worthSaying.removals.map(row(for:))
-        priceChangedRows = worthSaying.priceChanges.map(row(for:))
+        let worthSaying = BagReconciliation.worthTelling(changes, about: bag)
+        removedRows = worthSaying.noLongerAvailable.map(row(for:))
+        priceChangedRows = worthSaying.priceMoves.map(row(for:))
     }
 
     /// - Parameter aboutEverythingVisible: ask again about lines already looked up, so
@@ -186,21 +186,11 @@ public final class BagScreenViewModel: ObservableObject {
                 for product in products {
                     self.catalog[product.id] = product
                 }
-                self.bringUpToDate(against: products)
+                self.bringBagUpToDate(against: products)
             }
 
             self.isLoadingMore = false
             self.render()
         }
-    }
-
-    /// The catalog's answer becomes the two facts the bag understands. Stock is a count
-    /// to the shop and a yes-or-no to a bag, and the translation happens here rather
-    /// than letting the bag learn what a `Product` is.
-    private func bringUpToDate(against products: [Product]) {
-        bringBagUpToDate(
-            prices: Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0.price) }),
-            inStock: Dictionary(uniqueKeysWithValues: products.map { ($0.id, $0.stock > 0) })
-        )
     }
 }

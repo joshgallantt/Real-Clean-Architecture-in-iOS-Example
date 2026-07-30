@@ -16,7 +16,7 @@ struct BagUseCaseTests {
         let repository = InMemoryBagRepository()
         let add = DefaultAddItemToBagUseCase(repository: repository)
 
-        add(BagItem(id: 1, lastKnownPrice: 9.99))
+        add(BagItem(productId: 1, lastKnownPrice: 9.99))
 
         #expect(repository.saved.count == 1)
         #expect(repository.bag.items.map(\.id) == [1])
@@ -24,10 +24,10 @@ struct BagUseCaseTests {
 
     @Test("Choosing builds on the bag the shopper already has, rather than replacing it")
     func addingReadsBeforeItWrites() {
-        let repository = InMemoryBagRepository(Bag(items: [BagItem(id: 1, lastKnownPrice: 1)]))
+        let repository = InMemoryBagRepository(Bag(items: [BagItem(productId: 1, lastKnownPrice: 1)]))
         let add = DefaultAddItemToBagUseCase(repository: repository)
 
-        add(BagItem(id: 2, lastKnownPrice: 2))
+        add(BagItem(productId: 2, lastKnownPrice: 2))
 
         #expect(repository.bag.items.map(\.id).sorted() == [1, 2])
     }
@@ -35,32 +35,32 @@ struct BagUseCaseTests {
     @Test("Putting something back is asking for none of it, and saves a bag without it")
     func askingForNoneRemoves() {
         let repository = InMemoryBagRepository(Bag(items: [
-            BagItem(id: 1, lastKnownPrice: 1),
-            BagItem(id: 2, lastKnownPrice: 2)
+            BagItem(productId: 1, lastKnownPrice: 1),
+            BagItem(productId: 2, lastKnownPrice: 2)
         ]))
         let setQuantity = DefaultSetBagItemQuantityUseCase(repository: repository)
 
-        setQuantity(itemId: 1, to: 0)
+        setQuantity(productId: 1, to: 0)
 
         #expect(repository.bag.items.map(\.id) == [2])
     }
 
     @Test("Changing how many saves a bag with the new count")
     func changingQuantitySaves() {
-        let repository = InMemoryBagRepository(Bag(items: [BagItem(id: 1, lastKnownPrice: 4.99)]))
+        let repository = InMemoryBagRepository(Bag(items: [BagItem(productId: 1, lastKnownPrice: 4.99)]))
         let setQuantity = DefaultSetBagItemQuantityUseCase(repository: repository)
 
-        setQuantity(itemId: 1, to: 3)
+        setQuantity(productId: 1, to: 3)
 
         #expect(repository.bag.total.cents == 1497)
     }
 
     @Test("Asking about something that isn't in the bag saves nothing at all")
     func settingQuantityOfAbsentItem() {
-        let repository = InMemoryBagRepository(Bag(items: [BagItem(id: 1, lastKnownPrice: 1)]))
+        let repository = InMemoryBagRepository(Bag(items: [BagItem(productId: 1, lastKnownPrice: 1)]))
         let setQuantity = DefaultSetBagItemQuantityUseCase(repository: repository)
 
-        setQuantity(itemId: 99, to: 5)
+        setQuantity(productId: 99, to: 5)
 
         #expect(repository.bag.items.map(\.id) == [1])
     }
@@ -73,8 +73,8 @@ struct BagUseCaseTests {
         var seen: [Int] = []
         let cancellable = observe().sink { seen.append($0.itemCount) }
 
-        add(BagItem(id: 1, lastKnownPrice: 1))
-        add(BagItem(id: 1, lastKnownPrice: 1))
+        add(BagItem(productId: 1, lastKnownPrice: 1))
+        add(BagItem(productId: 1, lastKnownPrice: 1))
 
         #expect(seen == [0, 1, 2])
         cancellable.cancel()
@@ -83,14 +83,14 @@ struct BagUseCaseTests {
     @Test("Watching one line's count ignores the rest of the bag moving around it")
     func watchingOneQuantity() {
         let repository = InMemoryBagRepository()
-        let quantity = DefaultObserveObserveBagItemQuantityUseCase(repository: repository)
+        let quantity = DefaultObserveBagItemQuantityUseCase(repository: repository)
         let add = DefaultAddItemToBagUseCase(repository: repository)
         var seen: [Int] = []
-        let cancellable = quantity(itemId: 7).sink { seen.append($0) }
+        let cancellable = quantity(productId: 7).sink { seen.append($0) }
 
-        add(BagItem(id: 7, lastKnownPrice: 1))
-        add(BagItem(id: 99, lastKnownPrice: 1))
-        add(BagItem(id: 7, lastKnownPrice: 1))
+        add(BagItem(productId: 7, lastKnownPrice: 1))
+        add(BagItem(productId: 99, lastKnownPrice: 1))
+        add(BagItem(productId: 7, lastKnownPrice: 1))
 
         // Adding something else changed the bag but not this line's count, so a product
         // tile showing a badge for item 7 is not redrawn for it.

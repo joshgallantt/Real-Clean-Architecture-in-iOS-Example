@@ -32,15 +32,15 @@ final class Shopper {
     }
 
     func choose(productId: Int, atPrice price: Double) {
-        di.addItemToBagUseCase(BagItem(id: productId, lastKnownPrice: price))
+        di.addItemToBagUseCase(BagItem(productId: productId, lastKnownPrice: price))
     }
 
     func changeQuantity(ofProductId productId: Int, to quantity: Int) {
-        di.setBagItemQuantityUseCase(itemId: productId, to: quantity)
+        di.setBagItemQuantityUseCase(productId: productId, to: quantity)
     }
 
     func remove(productId: Int) {
-        di.setBagItemQuantityUseCase(itemId: productId, to: 0)
+        di.setBagItemQuantityUseCase(productId: productId, to: 0)
     }
 
     func signIn(asUserId userId: Int) {

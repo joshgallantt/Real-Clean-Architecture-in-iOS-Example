@@ -21,12 +21,14 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../Product"),
         .package(path: "../Session")
     ],
     targets: [
         .target(
             name: "Bag",
             dependencies: [
+                .product(name: "Product", package: "Product"),
                 .product(name: "Session", package: "Session")
             ],
             path: "Sources",
@@ -54,7 +56,10 @@ let package = Package(
         ),
         .testTarget(
             name: "BagTests",
-            dependencies: ["Bag"],
+            dependencies: [
+                "Bag",
+                .product(name: "Product", package: "Product")
+            ],
             path: "Tests/BagTests"
         ),
         .testTarget(
