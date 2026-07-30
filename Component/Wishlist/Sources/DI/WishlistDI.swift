@@ -8,7 +8,7 @@ public struct WishlistDI {
     private let repository: WishlistRepository
 
     public let observeWishlistUseCase: ObserveWishlistUseCase
-    public let productIsWishlistedUseCase: ProductIsWishlistedUseCase
+    public let observeProductIsWishlistedUseCase: ObserveProductIsWishlistedUseCase
     public let addProductToWishlistUseCase: AddProductToWishlistUseCase
     public let removeProductFromWishlistUseCase: RemoveProductFromWishlistUseCase
 
@@ -26,7 +26,7 @@ public struct WishlistDI {
         self.repository = repository
 
         self.observeWishlistUseCase = DefaultObserveWishlistUseCase(repository: repository)
-        self.productIsWishlistedUseCase = DefaultProductIsWishlistedUseCase(repository: repository)
+        self.observeProductIsWishlistedUseCase = DefaultObserveObserveProductIsWishlistedUseCase(repository: repository)
         self.addProductToWishlistUseCase = DefaultAddProductToWishlistUseCase(
             repository: repository,
             getSession: getSession

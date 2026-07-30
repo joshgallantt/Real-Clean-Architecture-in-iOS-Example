@@ -123,7 +123,7 @@ final class Injector {
         navigator = Navigator(authPresenter: authDI.presenter)
 
         let sharedUI = SharedUIDI(
-            productIsWishlisted: wishlistDI.productIsWishlistedUseCase,
+            observeProductIsWishlisted: wishlistDI.observeProductIsWishlistedUseCase,
             addProductToWishlist: wishlistDI.addProductToWishlistUseCase,
             removeProductFromWishlist: wishlistDI.removeProductFromWishlistUseCase,
             authPresenter: authDI.presenter,
@@ -134,11 +134,11 @@ final class Injector {
             navigation: navigator,
             observeBag: bagDI.observeBagUseCase,
             observeBagChanges: bagDI.observeBagChangesUseCase,
-            bagItemQuantity: bagDI.bagItemQuantityUseCase,
+            observeBagItemQuantity: bagDI.observeBagItemQuantityUseCase,
             addItemToBag: bagDI.addItemToBagUseCase,
             setBagItemQuantity: bagDI.setBagItemQuantityUseCase,
             getProductsByIds: getProductsByIds,
-            reconcileBag: bagDI.reconcileBagUseCase,
+            bringBagUpToDate: bagDI.bringBagUpToDateUseCase,
             acknowledgeBagChange: bagDI.acknowledgeBagChangeUseCase,
             snackbarPresenter: snackbarDI.presenter,
             wishlistButton: { id in AnyView(sharedUI.wishlistButton(productId: id)) }

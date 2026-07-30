@@ -8,11 +8,11 @@ public struct BagUIDI {
     private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase
     private let observeBagChanges: ObserveBagChangesUseCase
-    private let bagItemQuantity: BagItemQuantityUseCase
+    private let observeBagItemQuantity: ObserveBagItemQuantityUseCase
     private let addItemToBag: AddItemToBagUseCase
     private let setBagItemQuantity: SetBagItemQuantityUseCase
     private let getProductsByIds: GetProductsByIdsUseCase
-    private let reconcileBag: ReconcileBagUseCase
+    private let bringBagUpToDate: BringBagUpToDateUseCase
     private let acknowledgeBagChange: AcknowledgeBagChangeUseCase
     private let snackbarPresenter: SnackbarPresenting
     private let wishlistButton: (Int) -> AnyView
@@ -21,11 +21,11 @@ public struct BagUIDI {
         navigation: BagNavigation,
         observeBag: ObserveBagUseCase,
         observeBagChanges: ObserveBagChangesUseCase,
-        bagItemQuantity: BagItemQuantityUseCase,
+        observeBagItemQuantity: ObserveBagItemQuantityUseCase,
         addItemToBag: AddItemToBagUseCase,
         setBagItemQuantity: SetBagItemQuantityUseCase,
         getProductsByIds: GetProductsByIdsUseCase,
-        reconcileBag: ReconcileBagUseCase,
+        bringBagUpToDate: BringBagUpToDateUseCase,
         acknowledgeBagChange: AcknowledgeBagChangeUseCase,
         snackbarPresenter: SnackbarPresenting,
         wishlistButton: @escaping (Int) -> AnyView
@@ -33,11 +33,11 @@ public struct BagUIDI {
         self.navigation = navigation
         self.observeBag = observeBag
         self.observeBagChanges = observeBagChanges
-        self.bagItemQuantity = bagItemQuantity
+        self.observeBagItemQuantity = observeBagItemQuantity
         self.addItemToBag = addItemToBag
         self.setBagItemQuantity = setBagItemQuantity
         self.getProductsByIds = getProductsByIds
-        self.reconcileBag = reconcileBag
+        self.bringBagUpToDate = bringBagUpToDate
         self.acknowledgeBagChange = acknowledgeBagChange
         self.snackbarPresenter = snackbarPresenter
         self.wishlistButton = wishlistButton
@@ -70,7 +70,7 @@ public struct BagUIDI {
                 observeBagChanges: observeBagChanges,
                 getProductsByIds: getProductsByIds,
                 setBagItemQuantity: setBagItemQuantity,
-                reconcileBag: reconcileBag,
+                bringBagUpToDate: bringBagUpToDate,
                 acknowledgeBagChange: acknowledgeBagChange,
                 snackbar: snackbarPresenter
             ),
@@ -83,7 +83,7 @@ public struct BagUIDI {
     private func makeButtonViewModel(product: Product) -> BagButtonViewModel {
         BagButtonViewModel(
             product: product,
-            bagItemQuantity: bagItemQuantity,
+            observeBagItemQuantity: observeBagItemQuantity,
             addItemToBag: addItemToBag,
             navigation: navigation,
             snackbarPresenter: snackbarPresenter

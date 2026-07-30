@@ -83,7 +83,7 @@ struct BagUseCaseTests {
     @Test("Watching one line's count ignores the rest of the bag moving around it")
     func watchingOneQuantity() {
         let repository = InMemoryBagRepository()
-        let quantity = DefaultBagItemQuantityUseCase(repository: repository)
+        let quantity = DefaultObserveObserveBagItemQuantityUseCase(repository: repository)
         let add = DefaultAddItemToBagUseCase(repository: repository)
         var seen: [Int] = []
         let cancellable = quantity(itemId: 7).sink { seen.append($0) }

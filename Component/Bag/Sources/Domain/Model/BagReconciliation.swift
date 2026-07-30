@@ -14,7 +14,7 @@ public enum BagReconciliation {
     ///   - prices: what the shop is asking now, for however many products were looked up.
     ///   - inStock: whether each can be supplied. Silence about a product means the
     ///     lookup did not cover it, never that it is gone.
-    public static func catchUp(
+    public static func reconcile(
         bag: Bag,
         changes: BagChanges,
         prices: [Int: Double] = [:],

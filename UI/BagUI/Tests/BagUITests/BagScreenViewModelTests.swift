@@ -20,7 +20,7 @@ struct BagScreenViewModelTests {
             observeBagChanges: shop.observeBagChanges,
             getProductsByIds: shop.getProductsByIds,
             setBagItemQuantity: shop.setBagItemQuantity,
-            reconcileBag: shop.reconcile,
+            bringBagUpToDate: shop.reconcile,
             acknowledgeBagChange: shop.acknowledge,
             snackbar: shop.snackbar
         )
