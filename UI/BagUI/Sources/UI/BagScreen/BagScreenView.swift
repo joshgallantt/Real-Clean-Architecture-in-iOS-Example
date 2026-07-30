@@ -33,10 +33,11 @@ public struct BagScreenView: View {
                 )
             } else {
                 List {
-                    if !viewModel.outOfStockRows.isEmpty { outOfStockSection }
                     if !viewModel.discontinuedRows.isEmpty { discontinuedSection }
+                    if !viewModel.outOfStockRows.isEmpty { outOfStockSection }
                     if !viewModel.shortageRows.isEmpty { shortageSection }
-                    if !viewModel.priceChangedRows.isEmpty { priceChangedSection }
+                    if !viewModel.priceIncreaseRows.isEmpty { priceIncreaseSection }
+                    if !viewModel.priceDecreaseRows.isEmpty { priceDecreaseSection }
                     if !viewModel.isEmpty { bagSection }
                 }
                 .listStyle(.insetGrouped)
@@ -57,6 +58,28 @@ public struct BagScreenView: View {
             Text("This empties your bag. It cannot be undone.")
         }
     }
+    
+    // MARK: - Gone for good
+
+    /// No bell, because there is nothing to wait for. Nothing else either: every action this app
+    /// has is a way of getting one of these eventually, and offering any of them here would be
+    /// offering something the shop cannot honour. So the row says what it was and stops.
+    private var discontinuedSection: some View {
+        Section {
+            ForEach(viewModel.discontinuedRows) { row in
+                noticeRow(row, accessory: { EmptyView() })
+            }
+        } header: {
+            sectionHeader(
+                "No Longer Available",
+                icon: "xmark.circle",
+                tint: .secondary,
+                description: "Discontinued. Sad - yes, but we thought you should know."
+            ) {
+                Button("Okay") { viewModel.didAcceptAll(viewModel.discontinuedRows) }
+            }
+        }
+    }
 
     // MARK: - Gone, but coming back
 
@@ -70,30 +93,9 @@ public struct BagScreenView: View {
                 "Out Of Stock",
                 icon: "shippingbox",
                 tint: .orange,
-                description: "We can't supply these right now, so they've left your bag. Tap the bell and we'll tell you when they're back."
+                description: "Sold out for now, so they've hopped out of your bag. Tap the bell and we'll ping you the moment they're back."
             ) {
                 Button("Okay") { viewModel.didAcceptAll(viewModel.outOfStockRows) }
-            }
-        }
-    }
-
-    // MARK: - Gone for good
-
-    /// No bell. There is nothing to wait for, so the only thing to offer is the wishlist, in case
-    /// the shopper wants to remember what it was.
-    private var discontinuedSection: some View {
-        Section {
-            ForEach(viewModel.discontinuedRows) { row in
-                noticeRow(row, accessory: { wishlistButton(row.id) })
-            }
-        } header: {
-            sectionHeader(
-                "No Longer Available",
-                icon: "xmark.circle",
-                tint: .secondary,
-                description: "The shop has stopped selling these, so they've left your bag."
-            ) {
-                Button("Okay") { viewModel.didAcceptAll(viewModel.discontinuedRows) }
             }
         }
     }
@@ -110,48 +112,69 @@ public struct BagScreenView: View {
                 "Not Enough Left",
                 icon: "exclamationmark.triangle",
                 tint: .orange,
-                description: "These are still in your bag, at the most we can supply."
+                description: "Going fast. We've matched these to whatever's still on the shelf."
             ) {
                 Button("Okay") { viewModel.didAcceptAll(viewModel.shortageRows) }
             }
         }
     }
 
-    // MARK: - Price changes
+    // MARK: - Costing more
 
-    private var priceChangedSection: some View {
+    private var priceIncreaseSection: some View {
         Section {
-            ForEach(viewModel.priceChangedRows) { row in
+            ForEach(viewModel.priceIncreaseRows) { row in
                 noticeRow(row) {
-                    /// Only where the price went up. A shopper who agreed to one price and is being
-                    /// asked for a higher one needs a way out of it without hunting for the line
-                    /// again — but nobody has ever wanted out of a discount, and offering it there
-                    /// would read as if something were wrong.
-                    if row.priceMove?.isCheaper == false {
-                        Button("Remove", role: .destructive) {
-                            viewModel.didRemoveChangedItem(productId: row.id)
-                        }
-                        .buttonStyle(.bordered)
-                        .controlSize(.small)
-                        .buttonBorderShape(.capsule)
+                    /// A shopper who agreed to one price and is being asked for a higher one needs
+                    /// a way out of it without hunting for the line again.
+                    Button("Remove", role: .destructive) {
+                        viewModel.didRemoveChangedItem(productId: row.id)
                     }
+                    .buttonStyle(.bordered)
+                    .controlSize(.small)
+                    .buttonBorderShape(.capsule)
                 }
             }
         } header: {
             sectionHeader(
-                "Prices Changed",
-                icon: "tag",
-                tint: .accentColor,
-                description: "These are still in your bag, at the new price. Remove anything you no longer want at it."
+                "Price Increases",
+                icon: "arrow.up.circle",
+                tint: .orange,
+                description: "Prices went up on these. Rude, we know. Keep them or take them out — your call."
             ) {
-                Button("Okay") { viewModel.didAcceptAll(viewModel.priceChangedRows) }
+                Button("Okay") { viewModel.didAcceptAll(viewModel.priceIncreaseRows) }
+            }
+        }
+    }
+
+    // MARK: - Costing less
+
+    /// No Remove. Nobody has ever wanted out of a discount, and offering it here would read as
+    /// though something were wrong with it — which is the whole reason this is its own section
+    /// rather than half of a "Prices Changed" one asking for a decision about good news.
+    private var priceDecreaseSection: some View {
+        Section {
+            ForEach(viewModel.priceDecreaseRows) { row in
+                noticeRow(row, accessory: { EmptyView() })
+            }
+        } header: {
+            sectionHeader(
+                "Price Decreases",
+                icon: "arrow.down.circle",
+                tint: .accentColor,
+                description: "Good news, these got cheaper. You're welcome — the lower price is already in your total."
+            ) {
+                Button("Okay") { viewModel.didAcceptAll(viewModel.priceDecreaseRows) }
             }
         }
     }
 
     /// One row for every notice, so a shopper reads them the same way wherever they appear. What
-    /// differs between sections is the accessory: a bell where waiting is worth something, a heart
-    /// where it is not, nothing where the line is still in the bag.
+    /// differs between sections is the accessory: a bell where waiting is worth something, a way
+    /// out where the line is still in the bag at a price nobody agreed to, nothing anywhere else.
+    ///
+    /// What a row says is only ever what its heading has not already said. Most say nothing at all,
+    /// and are a picture and a name — which is what a shopper came to this section to find out.
     private func noticeRow<Accessory: View>(
         _ row: ChangedBagRow,
         @ViewBuilder accessory: () -> Accessory
@@ -169,10 +192,12 @@ public struct BagScreenView: View {
                     priceMove(move)
                 }
 
-                Text(row.summary)
-                    .font(.footnote)
-                    .foregroundStyle(.secondary)
-                    .fixedSize(horizontal: false, vertical: true)
+                if let detail = row.detail {
+                    Text(detail)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             }
 
             Spacer(minLength: 0)
@@ -185,22 +210,55 @@ public struct BagScreenView: View {
     /// The old amount struck through and the new one coloured, because a shopper takes in "less
     /// than it was" faster than they read it. Down is the accent colour rather than green: green
     /// against red reads as a gain or a loss, and a cheaper price is neither — it is just better.
+    ///
+    /// Two amounts and an arrow sit on one line until a product is expensive enough that they do
+    /// not. An amount that wraps is broken mid-number and has to be reassembled to be read, which
+    /// is the one thing a price may never ask of anybody. So neither amount can wrap or truncate:
+    /// when the line runs out they take a second one together, in the same order, still reading
+    /// old-then-new.
     private func priceMove(_ move: ChangedBagRow.PriceMove) -> some View {
-        HStack(spacing: 6) {
-            Text(move.was)
-                .strikethrough()
-                .foregroundStyle(.secondary)
+        ViewThatFits(in: .horizontal) {
+            HStack(spacing: 6) {
+                oldAmount(move)
+                direction(move)
+                newAmount(move)
+            }
 
-            Image(systemName: move.isCheaper ? "arrow.down" : "arrow.up")
-                .font(.caption2.weight(.bold))
-                .foregroundStyle(move.isCheaper ? Color.accentColor : .orange)
+            VStack(alignment: .leading, spacing: 2) {
+                oldAmount(move)
 
-            Text(move.now)
-                .fontWeight(.semibold)
-                .foregroundStyle(move.isCheaper ? Color.accentColor : .orange)
+                HStack(spacing: 6) {
+                    direction(move)
+                    newAmount(move)
+                }
+            }
         }
         .font(.subheadline)
         .monospacedDigit()
+    }
+
+    /// `fixedSize` is what makes the fallback happen. Left to itself a `Text` would rather wrap than
+    /// report that it does not fit, so nothing above would ever measure as too wide.
+    private func oldAmount(_ move: ChangedBagRow.PriceMove) -> some View {
+        Text(move.was)
+            .strikethrough()
+            .foregroundStyle(.secondary)
+            .lineLimit(1)
+            .fixedSize()
+    }
+
+    private func direction(_ move: ChangedBagRow.PriceMove) -> some View {
+        Image(systemName: move.isCheaper ? "arrow.down" : "arrow.up")
+            .font(.caption2.weight(.bold))
+            .foregroundStyle(move.isCheaper ? Color.accentColor : .orange)
+    }
+
+    private func newAmount(_ move: ChangedBagRow.PriceMove) -> some View {
+        Text(move.now)
+            .fontWeight(.semibold)
+            .foregroundStyle(move.isCheaper ? Color.accentColor : .orange)
+            .lineLimit(1)
+            .fixedSize()
     }
 
     // MARK: - The bag itself
@@ -214,20 +272,13 @@ public struct BagScreenView: View {
                             viewModel.didSwipeToDelete(productId: row.id)
                         }
                     }
-                    .onAppear {
-                        if row.id == viewModel.rows.last?.id { viewModel.onReachEnd() }
-                    }
-            }
-
-            if viewModel.isLoadingMore {
-                ProgressView().frame(maxWidth: .infinity)
             }
         } header: {
             sectionHeader(
                 "Your Bag",
                 icon: "bag",
                 tint: .accentColor,
-                description: viewModel.itemCountSummary
+                description: "The good stuff. Swipe to drop a line, or start over."
             ) {
                 Button("Remove All", role: .destructive) { isConfirmingRemoveAll = true }
             }

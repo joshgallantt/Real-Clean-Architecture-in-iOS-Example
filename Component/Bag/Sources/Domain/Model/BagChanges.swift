@@ -29,6 +29,17 @@ public struct BagChanges: Equatable, Sendable {
 
     public var priceMoves: [BagChange] { all.filter(\.isPriceMove) }
 
+    /// Told apart because a shopper does not read them the same way. One is a thing to decide
+    /// about and the other is not, and a section that mixed them would ask for a decision about
+    /// good news.
+    public var priceIncreases: [BagChange] {
+        all.filter { if case .priceWentUp = $0 { true } else { false } }
+    }
+
+    public var priceDecreases: [BagChange] {
+        all.filter { if case .priceWentDown = $0 { true } else { false } }
+    }
+
     public var shortages: [BagChange] {
         all.filter { if case .onlySomeLeft = $0 { true } else { false } }
     }
