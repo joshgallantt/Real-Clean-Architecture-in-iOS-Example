@@ -284,4 +284,15 @@ struct FillingInASavedListTests {
 
         #expect(products.success?.map(\.id.rawValue) == Array(1...8).reversed())
     }
+
+    @Test("A list far longer than the shop is asked about at once still comes back whole, and in order")
+    func longerThanTheShopIsAskedAtOnce() async {
+        let many = (1...60).map { CatalogItem(id: $0, title: "Product \($0)", category: "beauty") }
+        let shop = Shop(catalog: FakeCatalog(items: many))
+
+        let wanted = Array((1...60).reversed())
+        let products = await shop.products(withIds: wanted)
+
+        #expect(products.success?.map(\.id.rawValue) == wanted)
+    }
 }
