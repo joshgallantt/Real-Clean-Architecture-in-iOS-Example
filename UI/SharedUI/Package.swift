@@ -18,6 +18,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../Component/Wishlist"),
+        .package(path: "../../Component/Product"),
         .package(path: "../AuthUI"),
         .package(path: "../SnackbarUI")
     ],
@@ -26,6 +27,7 @@ let package = Package(
             name: "SharedUI",
             dependencies: [
                 .product(name: "Wishlist", package: "Wishlist"),
+                .product(name: "Product", package: "Product"),
                 .product(name: "AuthUI", package: "AuthUI"),
                 .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
@@ -38,6 +40,7 @@ let package = Package(
             dependencies: [
                 "SharedUI",
                 .product(name: "Wishlist", package: "Wishlist"),
+                .product(name: "Product", package: "Product"),
                 .product(name: "AuthUI", package: "AuthUI"),
                 .product(name: "SnackbarUI", package: "SnackbarUI")
             ],

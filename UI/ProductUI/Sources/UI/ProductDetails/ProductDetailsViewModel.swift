@@ -7,12 +7,12 @@ public final class ProductDetailsViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var loadFailed = false
 
-    private let id: Int
-    private let getProduct: GetProductUseCase?
+    private let id: ProductID
+    private let viewProduct: ViewProductUseCase?
 
-    public init(id: Int, getProduct: GetProductUseCase) {
+    public init(id: ProductID, viewProduct: ViewProductUseCase) {
         self.id = id
-        self.getProduct = getProduct
+        self.viewProduct = viewProduct
     }
 
     // Skips the fetch entirely: the caller already holds the full model (e.g.
@@ -20,15 +20,15 @@ public final class ProductDetailsViewModel: ObservableObject {
     public init(product: Product) {
         self.id = product.id
         self.product = product
-        self.getProduct = nil
+        self.viewProduct = nil
     }
 
     func onAppear() async {
-        guard product == nil, let getProduct else { return }
+        guard product == nil, let viewProduct else { return }
         isLoading = true
         defer { isLoading = false }
 
-        switch await getProduct(id: id) {
+        switch await viewProduct(id: id) {
         case .success(let value):
             product = value
             loadFailed = false

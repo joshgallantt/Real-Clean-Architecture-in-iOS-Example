@@ -15,27 +15,28 @@ struct Shop {
     }
 
     func browse(page: Int = 0, pageSize: Int = 30) async -> Result<[Product], ProductError> {
-        await di.getProductsUseCase(matching: .all(page: page, pageSize: pageSize))
+        await di.browseCatalogUseCase(matching: .all(page: page, pageSize: pageSize))
     }
 
     func search(_ text: String, page: Int = 0, pageSize: Int = 30) async -> Result<[Product], ProductError> {
-        await di.getProductsUseCase(matching: .search(text, page: page, pageSize: pageSize))
+        guard let term = SearchTerm(text) else { return .success([]) }
+        return await di.browseCatalogUseCase(matching: .search(term, page: page, pageSize: pageSize))
     }
 
     func browse(_ category: ProductCategory, page: Int = 0, pageSize: Int = 30) async -> Result<[Product], ProductError> {
-        await di.getProductsUseCase(matching: .category(category, page: page, pageSize: pageSize))
+        await di.browseCatalogUseCase(matching: .category(category, page: page, pageSize: pageSize))
     }
 
     func categories() async -> Result<[ProductCategory], ProductError> {
-        await di.getCategoriesUseCase()
+        await di.browseCategoriesUseCase()
     }
 
     func open(productId: Int) async -> Result<Product, ProductError> {
-        await di.getProductUseCase(id: productId)
+        await di.viewProductUseCase(id: ProductID(rawValue: productId))
     }
 
     func products(withIds ids: [Int]) async -> Result<[Product], ProductError> {
-        await di.getProductsByIdsUseCase(ids: ids)
+        await di.lookUpProductsUseCase(ids: ids.map { ProductID(rawValue: $0) })
     }
 }
 

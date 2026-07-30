@@ -18,7 +18,7 @@ import SharedUIDI
 public struct WishlistUIDI {
     private let navigation: WishlistNavigation
     private let observeWishlist: ObserveWishlistUseCase
-    private let getProductsByIds: GetProductsByIdsUseCase
+    private let lookUpProducts: LookUpProductsUseCase
     private let observeSession: ObserveSessionUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
@@ -28,7 +28,7 @@ public struct WishlistUIDI {
     public init(
         navigation: WishlistNavigation,
         observeWishlist: ObserveWishlistUseCase,
-        getProductsByIds: GetProductsByIdsUseCase,
+        lookUpProducts: LookUpProductsUseCase,
         observeSession: ObserveSessionUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
@@ -37,7 +37,7 @@ public struct WishlistUIDI {
     ) {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
-        self.getProductsByIds = getProductsByIds
+        self.lookUpProducts = lookUpProducts
         self.observeSession = observeSession
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
@@ -46,7 +46,7 @@ public struct WishlistUIDI {
     }
 
     @MainActor
-    public func button(productId: Int) -> some View {
+    public func button(productId: ProductID) -> some View {
         sharedUIDI.wishlistButton(productId: productId)
     }
 
@@ -55,7 +55,7 @@ public struct WishlistUIDI {
         WishlistScreenView(
             viewModel: WishlistScreenViewModel(
                 observeWishlist: observeWishlist,
-                getProductsByIds: getProductsByIds,
+                lookUpProducts: lookUpProducts,
                 observeSession: observeSession,
                 snackbar: snackbarPresenter
             ),

@@ -2,11 +2,11 @@ import Foundation
 import Bag
 
 public protocol BagStore: Sendable {
-    func getBag(forUserKey userKey: String) -> (bag: Bag, changes: BagChanges)
-    func setBag(_ bag: Bag, changes: BagChanges, forUserKey userKey: String) async
+    func getBag(for owner: BagOwner) -> (bag: Bag, changes: BagChanges)
+    func setBag(_ bag: Bag, changes: BagChanges, for owner: BagOwner) async
 }
 
-// Reads are synchronous because they happen once per user switch, and seeding the
+// Reads are synchronous because they happen once per owner switch, and seeding the
 // repository asynchronously would flash an empty bag on launch. Writes happen on every
 // change and re-encode everything, so they go off the main thread.
 public struct FileBagStore: BagStore, @unchecked Sendable {
@@ -23,9 +23,9 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         return base.appending(path: "Bag", directoryHint: .isDirectory)
     }
 
-    public func getBag(forUserKey userKey: String) -> (bag: Bag, changes: BagChanges) {
+    public func getBag(for owner: BagOwner) -> (bag: Bag, changes: BagChanges) {
         guard
-            let data = try? Data(contentsOf: url(for: userKey)),
+            let data = try? Data(contentsOf: url(for: owner)),
             let dto = try? JSONDecoder().decode(BagDTO.self, from: data)
         else {
             return (Bag(), BagChanges())
@@ -33,10 +33,10 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         return dto.toDomain()
     }
 
-    public func setBag(_ bag: Bag, changes: BagChanges, forUserKey userKey: String) async {
+    public func setBag(_ bag: Bag, changes: BagChanges, for owner: BagOwner) async {
         let dto = BagDTO(bag: bag, changes: changes)
         let directory = self.directory
-        let url = url(for: userKey)
+        let url = url(for: owner)
 
         await Task.detached(priority: .utility) {
             Self.write(dto, to: url, in: directory)
@@ -49,7 +49,16 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         try? data.write(to: url, options: .atomic)
     }
 
-    private func url(for userKey: String) -> URL {
-        directory.appending(path: "\(userKey).json", directoryHint: .notDirectory)
+    private func url(for owner: BagOwner) -> URL {
+        directory.appending(path: "\(Self.filename(for: owner)).json", directoryHint: .notDirectory)
+    }
+
+    /// What a bag is filed under. The only place an owner turns back into a string, and the
+    /// spellings are the ones already on disk so bags kept by earlier builds still load.
+    private static func filename(for owner: BagOwner) -> String {
+        switch owner {
+        case .guest: "guest"
+        case .shopper(let id): String(id.rawValue)
+        }
     }
 }

@@ -1,6 +1,6 @@
 import Foundation
 import Product
-import Search
+import SearchHistory
 import SnackbarUI
 
 @MainActor
@@ -9,16 +9,16 @@ public final class SearchTabScreenViewModel: ObservableObject {
     @Published var isSearchActive: Bool = false
     @Published private(set) var categories: [ProductCategory] = []
 
-    private let getCategories: GetCategoriesUseCase
+    private let browseCategories: BrowseCategoriesUseCase
     private let recordSearch: RecordSearchUseCase
     private let snackbar: SnackbarPresenting
 
     public init(
-        getCategories: GetCategoriesUseCase,
+        browseCategories: BrowseCategoriesUseCase,
         recordSearch: RecordSearchUseCase,
         snackbar: SnackbarPresenting
     ) {
-        self.getCategories = getCategories
+        self.browseCategories = browseCategories
         self.recordSearch = recordSearch
         self.snackbar = snackbar
     }
@@ -29,7 +29,7 @@ public final class SearchTabScreenViewModel: ObservableObject {
     }
 
     private func loadCategories() async {
-        switch await getCategories() {
+        switch await browseCategories() {
         case .success(let value):
             categories = value
         case .failure:
@@ -46,8 +46,8 @@ public final class SearchTabScreenViewModel: ObservableObject {
 
     /// Recorded here because searching is the act being recorded — not a results screen
     /// rendering, which also fires on every back-and-forward revisit.
-    func didSubmitSearch(_ query: String) {
-        Task { await recordSearch(query) }
+    func didSubmitSearch(_ term: SearchTerm) {
+        Task { await recordSearch(term) }
     }
 
     func didSelectCategory(_ category: ProductCategory) {

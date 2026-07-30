@@ -3,6 +3,6 @@
 /// and no category is involved anywhere in that flow.
 public enum CatalogFilter: Equatable, Hashable, Sendable {
     case all
-    case search(String)
+    case search(SearchTerm)
     case category(ProductCategory)
 }

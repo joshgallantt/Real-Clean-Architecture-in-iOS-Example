@@ -15,23 +15,23 @@ public final class WishlistScreenViewModel: ObservableObject {
     private let pageSize = 30
 
     private let observeWishlist: ObserveWishlistUseCase
-    private let getProductsByIds: GetProductsByIdsUseCase
+    private let lookUpProducts: LookUpProductsUseCase
     private let observeSession: ObserveSessionUseCase
     private let snackbar: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
     private var wishlist = Wishlist()
-    private var cache: [Int: Product] = [:]
+    private var cache: [ProductID: Product] = [:]
     private var loadedCount: Int
     private var hydrationTask: Task<Void, Never>?
 
     public init(
         observeWishlist: ObserveWishlistUseCase,
-        getProductsByIds: GetProductsByIdsUseCase,
+        lookUpProducts: LookUpProductsUseCase,
         observeSession: ObserveSessionUseCase,
         snackbar: SnackbarPresenting
     ) {
         self.observeWishlist = observeWishlist
-        self.getProductsByIds = getProductsByIds
+        self.lookUpProducts = lookUpProducts
         self.observeSession = observeSession
         self.snackbar = snackbar
         self.loadedCount = pageSize
@@ -56,7 +56,7 @@ public final class WishlistScreenViewModel: ObservableObject {
     }
 
     func onReachEnd() {
-        guard loadedCount < wishlist.count, !isLoading, !isLoadingMore else { return }
+        guard loadedCount < wishlist.itemCount, !isLoading, !isLoadingMore else { return }
         loadedCount += pageSize
         hydrate(isPaging: true)
     }
@@ -93,7 +93,7 @@ public final class WishlistScreenViewModel: ObservableObject {
 
         hydrationTask = Task { [weak self] in
             guard let self else { return }
-            let result = await self.getProductsByIds(ids: missing)
+            let result = await self.lookUpProducts(ids: missing)
             guard !Task.isCancelled else { return }
 
             switch result {

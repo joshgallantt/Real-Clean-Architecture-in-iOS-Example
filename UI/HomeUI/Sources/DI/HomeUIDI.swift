@@ -5,19 +5,19 @@ import SnackbarUI
 
 public struct HomeUIDI {
     private let navigation: HomeNavigation
-    private let getProducts: GetProductsUseCase
+    private let browseCatalog: BrowseCatalogUseCase
     private let snackbar: SnackbarPresenting
 
-    public init(navigation: HomeNavigation, getProducts: GetProductsUseCase, snackbar: SnackbarPresenting) {
+    public init(navigation: HomeNavigation, browseCatalog: BrowseCatalogUseCase, snackbar: SnackbarPresenting) {
         self.navigation = navigation
-        self.getProducts = getProducts
+        self.browseCatalog = browseCatalog
         self.snackbar = snackbar
     }
 
     @MainActor
     public func mainView() -> some View {
         HomeScreenView(
-            viewModel: HomeScreenViewModel(getProducts: getProducts, snackbar: snackbar),
+            viewModel: HomeScreenViewModel(browseCatalog: browseCatalog, snackbar: snackbar),
             navigation: navigation
         )
     }

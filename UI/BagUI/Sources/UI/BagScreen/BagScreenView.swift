@@ -1,16 +1,17 @@
 import SwiftUI
 import UIKit
 import Kingfisher
+import Product
 
 public struct BagScreenView: View {
     @ObservedObject var viewModel: BagScreenViewModel
     let navigation: BagNavigation
-    let wishlistButton: (Int) -> AnyView
+    let wishlistButton: (ProductID) -> AnyView
 
     public init(
         viewModel: BagScreenViewModel,
         navigation: BagNavigation,
-        wishlistButton: @escaping (Int) -> AnyView = { _ in AnyView(EmptyView()) }
+        wishlistButton: @escaping (ProductID) -> AnyView = { _ in AnyView(EmptyView()) }
     ) {
         self.viewModel = viewModel
         self.navigation = navigation
@@ -31,6 +32,10 @@ public struct BagScreenView: View {
                     // shopper was away. Neither is the bag; the bag is the last section.
                     if !viewModel.removedRows.isEmpty {
                         removedSection
+                    }
+
+                    if !viewModel.shortageRows.isEmpty {
+                        shortageSection
                     }
 
                     if !viewModel.priceChangedRows.isEmpty {
@@ -103,42 +108,62 @@ public struct BagScreenView: View {
     private var priceChangedSection: some View {
         Section {
             ForEach(viewModel.priceChangedRows) { changed in
-                VStack(alignment: .leading, spacing: 10) {
-                    HStack(spacing: 12) {
-                        thumbnail(url: changed.imageURL)
-
-                        VStack(alignment: .leading, spacing: 4) {
-                            Text(changed.name ?? " ")
-                                .font(.subheadline.weight(.semibold))
-                                .lineLimit(2)
-                                .redacted(reason: changed.name == nil ? .placeholder : [])
-                            Text(changed.summary)
-                                .font(.footnote)
-                                .foregroundStyle(.secondary)
-                        }
-                    }
-
-                    HStack(spacing: 12) {
-                        Button("Okay") {
-                            viewModel.didAcknowledgeChange(productId: changed.id)
-                        }
-                        .buttonStyle(.bordered)
-
-                        Button("Remove", role: .destructive) {
-                            viewModel.didRemoveChangedItem(productId: changed.id)
-                        }
-                        .buttonStyle(.bordered)
-                    }
-                    .controlSize(.small)
-                    .buttonBorderShape(.capsule)
-                }
-                .padding(.vertical, 4)
+                changedRow(changed)
             }
         } header: {
             sectionHeader("Prices Changed", icon: "tag")
         } footer: {
             Text("These are still in your bag, at the new price.")
         }
+    }
+
+    // MARK: - Not enough left
+
+    private var shortageSection: some View {
+        Section {
+            ForEach(viewModel.shortageRows) { changed in
+                changedRow(changed)
+            }
+        } header: {
+            sectionHeader("Not Enough Left", icon: "exclamationmark.triangle")
+        } footer: {
+            Text("These are still in your bag, at the most we can supply.")
+        }
+    }
+
+    /// One notice, whichever kind it is. The words are already decided; what a shopper can
+    /// do about it — say they have seen it, or take it out — is the same either way.
+    private func changedRow(_ changed: ChangedBagRow) -> some View {
+        VStack(alignment: .leading, spacing: 10) {
+            HStack(spacing: 12) {
+                thumbnail(url: changed.imageURL)
+
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(changed.name ?? " ")
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(2)
+                        .redacted(reason: changed.name == nil ? .placeholder : [])
+                    Text(changed.summary)
+                        .font(.footnote)
+                        .foregroundStyle(.secondary)
+                }
+            }
+
+            HStack(spacing: 12) {
+                Button("Okay") {
+                    viewModel.didAcknowledgeChange(productId: changed.id)
+                }
+                .buttonStyle(.bordered)
+
+                Button("Remove", role: .destructive) {
+                    viewModel.didRemoveChangedItem(productId: changed.id)
+                }
+                .buttonStyle(.bordered)
+            }
+            .controlSize(.small)
+            .buttonBorderShape(.capsule)
+        }
+        .padding(.vertical, 4)
     }
 
     // MARK: - The bag itself
@@ -181,7 +206,7 @@ public struct BagScreenView: View {
                             .font(.subheadline.weight(.semibold))
                             .lineLimit(2)
                             .redacted(reason: row.name == nil ? .placeholder : [])
-                        Text(row.lastKnownPrice, format: .currency(code: "USD"))
+                        Text(row.lastKnownPrice.formatted())
                             .font(.footnote)
                             .foregroundStyle(.secondary)
                     }
@@ -239,7 +264,9 @@ public struct BagScreenView: View {
             Text("Total")
                 .font(.headline)
             Spacer()
-            Text(viewModel.total, format: .currency(code: "USD"))
+            // Only reached when the bag is not empty, which is exactly when there is a
+            // currency in it to name an amount in.
+            Text(viewModel.total?.formatted() ?? "")
                 .font(.headline)
         }
         .padding()

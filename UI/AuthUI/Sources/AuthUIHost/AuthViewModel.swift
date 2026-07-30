@@ -86,7 +86,7 @@ final class AuthViewModel: ObservableObject {
 
         switch mode {
         case .logIn:
-            switch await loginUseCase(email: email, password: password) {
+            switch await loginUseCase(email: Email(email), password: Password(password)) {
             case .success:
                 confirmationMessage = greeting("Welcome back")
                 onAuthenticated()
@@ -95,10 +95,9 @@ final class AuthViewModel: ObservableObject {
             }
         case .createAccount:
             let result = await createAccountUseCase(
-                firstName: firstName,
-                lastName: lastName,
-                email: email,
-                password: password
+                name: PersonName(first: firstName, last: lastName),
+                email: Email(email),
+                password: Password(password)
             )
             switch result {
             case .success:
@@ -111,8 +110,7 @@ final class AuthViewModel: ObservableObject {
     }
 
     private func greeting(_ lead: String) -> String {
-        guard let name = getSession().user?.firstName.trimmingCharacters(in: .whitespacesAndNewlines),
-              !name.isEmpty else {
+        guard let name = getSession().user?.name.first, !name.isEmpty else {
             return "\(lead)."
         }
         return "\(lead), \(name)."

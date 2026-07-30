@@ -3,8 +3,8 @@ import Networking
 import Product
 
 public protocol ProductClient: Sendable {
-    func fetchProducts(query: ProductQuery) async throws -> [ProductDTO]
-    func fetchProduct(id: Int) async throws -> ProductDTO
+    func fetchProducts(query: CatalogQuery) async throws -> [ProductDTO]
+    func fetchProduct(id: ProductID) async throws -> ProductDTO
     func fetchCategories() async throws -> [ProductCategoryDTO]
 }
 
@@ -16,7 +16,7 @@ public struct DummyJSONProductClient: ProductClient {
         self.httpClient = httpClient
     }
 
-    public func fetchProducts(query: ProductQuery) async throws -> [ProductDTO] {
+    public func fetchProducts(query: CatalogQuery) async throws -> [ProductDTO] {
         let path: String
         var queryItems = [
             URLQueryItem(name: "limit", value: String(query.pageSize)),
@@ -28,9 +28,9 @@ public struct DummyJSONProductClient: ProductClient {
         switch query.filter {
         case .all:
             path = "products"
-        case .search(let text):
+        case .search(let term):
             path = "products/search"
-            queryItems.append(URLQueryItem(name: "q", value: text))
+            queryItems.append(URLQueryItem(name: "q", value: term.text))
         case .category(let category):
             path = "products/category/\(category.id.rawValue)"
         }
@@ -41,8 +41,8 @@ public struct DummyJSONProductClient: ProductClient {
         return response.products
     }
 
-    public func fetchProduct(id: Int) async throws -> ProductDTO {
-        try await httpClient.get(baseURL.appendingPathComponent("products/\(id)"))
+    public func fetchProduct(id: ProductID) async throws -> ProductDTO {
+        try await httpClient.get(baseURL.appendingPathComponent("products/\(id.rawValue)"))
     }
 
     public func fetchCategories() async throws -> [ProductCategoryDTO] {

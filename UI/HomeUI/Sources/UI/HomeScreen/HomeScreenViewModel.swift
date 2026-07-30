@@ -8,11 +8,11 @@ public final class HomeScreenViewModel: ObservableObject {
     @Published private(set) var products: [Product] = []
     @Published private(set) var isLoading = false
 
-    private let getProducts: GetProductsUseCase
+    private let browseCatalog: BrowseCatalogUseCase
     private let snackbar: SnackbarPresenting
 
-    public init(getProducts: GetProductsUseCase, snackbar: SnackbarPresenting) {
-        self.getProducts = getProducts
+    public init(browseCatalog: BrowseCatalogUseCase, snackbar: SnackbarPresenting) {
+        self.browseCatalog = browseCatalog
         self.snackbar = snackbar
     }
 
@@ -25,7 +25,7 @@ public final class HomeScreenViewModel: ObservableObject {
         isLoading = true
         defer { isLoading = false }
 
-        switch await getProducts(matching: .all(page: 0, pageSize: 30)) {
+        switch await browseCatalog(matching: .all(page: 0, pageSize: 30)) {
         case .success(let value):
             products = value
         case .failure:

@@ -1,12 +1,16 @@
 import Foundation
+import Session
 import Wishlist
 
+/// A wishlist belongs to a signed-in shopper. `nil` is nobody signed in, which has no
+/// wishlist to read and nowhere to write one — a guest cannot save anything in the first
+/// place, so there is no such file and never was.
 public protocol WishlistStore: Sendable {
-    func getItems(forUserKey userKey: String) -> [WishlistItem]
-    func setItems(_ items: [WishlistItem], forUserKey userKey: String) async
+    func getItems(for owner: UserID?) -> [WishlistItem]
+    func setItems(_ items: [WishlistItem], for owner: UserID?) async
 }
 
-// Reads are synchronous because they happen once per user switch, and seeding the
+// Reads are synchronous because they happen once per owner switch, and seeding the
 // repository asynchronously would flash empty hearts on launch. Writes happen on
 // every toggle and re-encode the whole list, so they go off the main thread.
 public struct FileWishlistStore: WishlistStore, @unchecked Sendable {
@@ -28,17 +32,19 @@ public struct FileWishlistStore: WishlistStore, @unchecked Sendable {
         return base.appending(path: "Wishlist", directoryHint: .isDirectory)
     }
 
-    public func getItems(forUserKey userKey: String) -> [WishlistItem] {
-        if let items = readFile(forUserKey: userKey) {
+    public func getItems(for owner: UserID?) -> [WishlistItem] {
+        guard let key = Self.filename(for: owner) else { return [] }
+        if let items = readFile(forUserKey: key) {
             return items
         }
-        return migrateLegacyItems(forUserKey: userKey)
+        return migrateLegacyItems(forUserKey: key)
     }
 
-    public func setItems(_ items: [WishlistItem], forUserKey userKey: String) async {
+    public func setItems(_ items: [WishlistItem], for owner: UserID?) async {
+        guard let key = Self.filename(for: owner) else { return }
         let dtos = items.map(WishlistItemDTO.init(from:))
         let directory = self.directory
-        let url = url(for: userKey)
+        let url = url(for: key)
 
         await Task.detached(priority: .utility) {
             Self.write(dtos, to: url, in: directory)
@@ -81,5 +87,11 @@ public struct FileWishlistStore: WishlistStore, @unchecked Sendable {
 
     private func url(for userKey: String) -> URL {
         directory.appending(path: "\(userKey).json", directoryHint: .notDirectory)
+    }
+
+    /// What a wishlist is filed under. The only place an owner turns back into a string, and
+    /// the spelling is the one already on disk so lists kept by earlier builds still load.
+    private static func filename(for owner: UserID?) -> String? {
+        owner.map { String($0.rawValue) }
     }
 }

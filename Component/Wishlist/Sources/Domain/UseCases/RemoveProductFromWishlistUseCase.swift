@@ -1,9 +1,10 @@
+import Product
 import Session
 
 public protocol RemoveProductFromWishlistUseCase: Sendable {
     @MainActor
     @discardableResult
-    func callAsFunction(productId: Int) async -> Result<Void, WishlistError>
+    func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError>
 }
 
 public struct DefaultRemoveProductFromWishlistUseCase: RemoveProductFromWishlistUseCase {
@@ -17,7 +18,7 @@ public struct DefaultRemoveProductFromWishlistUseCase: RemoveProductFromWishlist
 
     @MainActor
     @discardableResult
-    public func callAsFunction(productId: Int) async -> Result<Void, WishlistError> {
+    public func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError> {
         guard getSession().isLoggedIn else {
             return .failure(.unauthenticated)
         }

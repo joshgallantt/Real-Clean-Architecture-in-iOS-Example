@@ -1,29 +1,33 @@
 import Combine
 import Foundation
+import Session
 import Wishlist
 
-/// Holds the current wishlist, keeps it on disk, swaps it when the shopper changes, and
+/// Holds the current wishlist, keeps it on disk, swaps it when the owner changes, and
 /// tells anyone watching. It decides nothing about what a wishlist is or how one changes.
+///
+/// Takes owners rather than sessions. Who is signed in is not this layer's concern; whose
+/// list is the live one is.
 @MainActor
 public final class DefaultWishlistRepository: WishlistRepository {
     private let store: WishlistStore
     private let subject: CurrentValueSubject<Wishlist, Never>
-    private var userKey: String
+    private var owner: UserID?
     private var cancellables = Set<AnyCancellable>()
     private var pendingWrite: Task<Void, Never>?
 
     public init(
         store: WishlistStore,
-        userKey: String,
-        userKeyPublisher: AnyPublisher<String, Never>
+        owner: UserID?,
+        ownerPublisher: AnyPublisher<UserID?, Never>
     ) {
         self.store = store
-        self.userKey = userKey
-        self.subject = CurrentValueSubject(Wishlist(items: store.getItems(forUserKey: userKey)))
+        self.owner = owner
+        self.subject = CurrentValueSubject(Wishlist(items: store.getItems(for: owner)))
 
-        userKeyPublisher
-            .sink { [weak self] key in
-                self?.switchUser(to: key)
+        ownerPublisher
+            .sink { [weak self] owner in
+                self?.switchOwner(to: owner)
             }
             .store(in: &cancellables)
     }
@@ -43,12 +47,12 @@ public final class DefaultWishlistRepository: WishlistRepository {
         subject.value = wishlist
 
         let store = store
-        let userKey = userKey
+        let owner = owner
         let items = wishlist.items
         let previous = pendingWrite
         pendingWrite = Task {
             await previous?.value
-            await store.setItems(items, forUserKey: userKey)
+            await store.setItems(items, for: owner)
         }
     }
 
@@ -56,9 +60,9 @@ public final class DefaultWishlistRepository: WishlistRepository {
         await pendingWrite?.value
     }
 
-    private func switchUser(to key: String) {
-        guard key != userKey else { return }
-        userKey = key
-        subject.value = Wishlist(items: store.getItems(forUserKey: key))
+    private func switchOwner(to owner: UserID?) {
+        guard owner != self.owner else { return }
+        self.owner = owner
+        subject.value = Wishlist(items: store.getItems(for: owner))
     }
 }

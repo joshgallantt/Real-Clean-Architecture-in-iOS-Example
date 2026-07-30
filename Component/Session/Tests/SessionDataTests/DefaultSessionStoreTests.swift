@@ -32,7 +32,7 @@ struct DefaultSessionStoreTests {
 
         let nextLaunch = DefaultSessionStore(defaults: defaults)
 
-        #expect(nextLaunch.session.user?.email == "shopper@example.com")
+        #expect(nextLaunch.session.user?.email == Email("shopper@example.com"))
         #expect(nextLaunch.authToken?.value == "token")
     }
 
@@ -92,18 +92,26 @@ struct DefaultSessionStoreTests {
         store.setUser(.fixture(), token: .fixture())
 
         store.setUser(
-            User(id: 2, email: "other@example.com", firstName: "Grace", lastName: "Hopper"),
+            User(
+                id: UserID(rawValue: 2),
+                email: Email("other@example.com"),
+                name: PersonName(first: "Grace", last: "Hopper")
+            ),
             token: AuthToken(value: "other", expiresAt: Date().addingTimeInterval(3600))
         )
 
-        #expect(store.session.user?.id == 2)
+        #expect(store.session.user?.id == UserID(rawValue: 2))
         #expect(store.authToken?.value == "other")
     }
 }
 
 private extension User {
     static func fixture() -> User {
-        User(id: 1, email: "shopper@example.com", firstName: "Ada", lastName: "Lovelace")
+        User(
+            id: UserID(rawValue: 1),
+            email: Email("shopper@example.com"),
+            name: PersonName(first: "Ada", last: "Lovelace")
+        )
     }
 }
 

@@ -1,4 +1,5 @@
 import Foundation
+import Product
 
 /// The products a shopper has saved to come back to.
 ///
@@ -12,29 +13,32 @@ import Foundation
 public struct Wishlist: Equatable, Sendable {
     public let items: [WishlistItem]
 
-    /// Newest first is the list's own order, so it is established here rather than
-    /// trusted from whatever handed the entries over.
+    /// Each product appears once, and newest first is the list's own order — both
+    /// established here rather than trusted from whatever handed the entries over.
     public init(items: [WishlistItem] = []) {
-        self.items = items.sorted { $0.dateAdded > $1.dateAdded }
+        var seen: Set<ProductID> = []
+        self.items = items
+            .filter { seen.insert($0.productId).inserted }
+            .sorted { $0.dateAdded > $1.dateAdded }
     }
 
     public var isEmpty: Bool { items.isEmpty }
 
-    public var count: Int { items.count }
+    public var itemCount: Int { items.count }
 
-    public func contains(productId: Int) -> Bool {
-        items.contains { $0.id == productId }
+    public func contains(productId: ProductID) -> Bool {
+        items.contains { $0.productId == productId }
     }
 
     /// Saving something already saved changes nothing, and in particular does not move
     /// it to the top: the shopper saved it when they saved it.
     public func adding(_ item: WishlistItem) -> Wishlist {
-        guard !contains(productId: item.id) else { return self }
+        guard !contains(productId: item.productId) else { return self }
         return Wishlist(items: items + [item])
     }
 
-    public func removing(productId: Int) -> Wishlist {
+    public func removing(productId: ProductID) -> Wishlist {
         guard contains(productId: productId) else { return self }
-        return Wishlist(items: items.filter { $0.id != productId })
+        return Wishlist(items: items.filter { $0.productId != productId })
     }
 }

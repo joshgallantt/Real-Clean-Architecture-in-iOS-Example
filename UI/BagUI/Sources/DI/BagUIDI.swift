@@ -11,11 +11,11 @@ public struct BagUIDI {
     private let observeBagItemQuantity: ObserveBagItemQuantityUseCase
     private let addItemToBag: AddItemToBagUseCase
     private let setBagItemQuantity: SetBagItemQuantityUseCase
-    private let getProductsByIds: GetProductsByIdsUseCase
+    private let lookUpProducts: LookUpProductsUseCase
     private let bringBagUpToDate: BringBagUpToDateUseCase
     private let acknowledgeBagChange: AcknowledgeBagChangeUseCase
     private let snackbarPresenter: SnackbarPresenting
-    private let wishlistButton: (Int) -> AnyView
+    private let wishlistButton: (ProductID) -> AnyView
 
     public init(
         navigation: BagNavigation,
@@ -24,11 +24,11 @@ public struct BagUIDI {
         observeBagItemQuantity: ObserveBagItemQuantityUseCase,
         addItemToBag: AddItemToBagUseCase,
         setBagItemQuantity: SetBagItemQuantityUseCase,
-        getProductsByIds: GetProductsByIdsUseCase,
+        lookUpProducts: LookUpProductsUseCase,
         bringBagUpToDate: BringBagUpToDateUseCase,
         acknowledgeBagChange: AcknowledgeBagChangeUseCase,
         snackbarPresenter: SnackbarPresenting,
-        wishlistButton: @escaping (Int) -> AnyView
+        wishlistButton: @escaping (ProductID) -> AnyView
     ) {
         self.navigation = navigation
         self.observeBag = observeBag
@@ -36,7 +36,7 @@ public struct BagUIDI {
         self.observeBagItemQuantity = observeBagItemQuantity
         self.addItemToBag = addItemToBag
         self.setBagItemQuantity = setBagItemQuantity
-        self.getProductsByIds = getProductsByIds
+        self.lookUpProducts = lookUpProducts
         self.bringBagUpToDate = bringBagUpToDate
         self.acknowledgeBagChange = acknowledgeBagChange
         self.snackbarPresenter = snackbarPresenter
@@ -53,11 +53,12 @@ public struct BagUIDI {
     @MainActor
     @ViewBuilder
     public func detailsButton(product: Product) -> some View {
-        if product.isInStock {
+        switch product.availability {
+        case .inStock:
             AddToBagButton(viewModel: makeButtonViewModel(product: product))
-        } else if product.willRestock {
+        case .outOfStock:
             NotifyMeButton(product: product, snackbarPresenter: snackbarPresenter)
-        } else {
+        case .discontinued:
             UnavailableButton()
         }
     }
@@ -68,7 +69,7 @@ public struct BagUIDI {
             viewModel: BagScreenViewModel(
                 observeBag: observeBag,
                 observeBagChanges: observeBagChanges,
-                getProductsByIds: getProductsByIds,
+                lookUpProducts: lookUpProducts,
                 setBagItemQuantity: setBagItemQuantity,
                 bringBagUpToDate: bringBagUpToDate,
                 acknowledgeBagChange: acknowledgeBagChange,

@@ -9,23 +9,23 @@ public final class CatalogResultsViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var isLoadingMore = false
 
-    private let getProducts: GetProductsUseCase
+    private let browseCatalog: BrowseCatalogUseCase
     private let snackbar: SnackbarPresenting
 
     private let pageSize = 30
     private var page = 0
     private var hasMore = true
 
-    public init(filter: CatalogFilter, getProducts: GetProductsUseCase, snackbar: SnackbarPresenting) {
+    public init(filter: CatalogFilter, browseCatalog: BrowseCatalogUseCase, snackbar: SnackbarPresenting) {
         self.filter = filter
-        self.getProducts = getProducts
+        self.browseCatalog = browseCatalog
         self.snackbar = snackbar
     }
 
     var title: String {
         switch filter {
         case .all: "All Products"
-        case .search(let text): text
+        case .search(let term): term.text
         case .category(let category): category.name
         }
     }
@@ -33,8 +33,8 @@ public final class CatalogResultsViewModel: ObservableObject {
     /// Only a search has an empty state worth naming — an empty category or an empty
     /// catalog is a backend anomaly, not something to explain to the user.
     var emptySearchText: String? {
-        guard case .search(let text) = filter else { return nil }
-        return text
+        guard case .search(let term) = filter else { return nil }
+        return term.text
     }
 
     func onAppear() async {
@@ -56,7 +56,7 @@ public final class CatalogResultsViewModel: ObservableObject {
     private func load(reset: Bool) async {
         let nextPage = reset ? 0 : page + 1
 
-        switch await getProducts(matching: ProductQuery(filter: filter, page: nextPage, pageSize: pageSize)) {
+        switch await browseCatalog(matching: CatalogQuery(filter: filter, page: nextPage, pageSize: pageSize)) {
         case .success(let value):
             results = reset ? value : results + value
             page = nextPage

@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import Product
 import Wishlist
 import AuthUI
 import SnackbarUI
@@ -8,7 +9,7 @@ import SnackbarUI
 public final class WishlistButtonViewModel: ObservableObject {
     @Published private(set) var isInWishlist = false
 
-    private let productId: Int
+    private let productId: ProductID
     private let addProductToWishlist: AddProductToWishlistUseCase
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
     private let authPresenter: AuthPresenting
@@ -16,7 +17,7 @@ public final class WishlistButtonViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     public init(
-        productId: Int,
+        productId: ProductID,
         observeProductIsWishlisted: ObserveProductIsWishlistedUseCase,
         addProductToWishlist: AddProductToWishlistUseCase,
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,

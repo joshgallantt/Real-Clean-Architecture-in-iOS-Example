@@ -66,15 +66,15 @@ public struct ProductDetailsScreen: View {
             }
 
             HStack(spacing: 16) {
-                Text(product.price, format: .currency(code: "USD"))
+                Text(product.price.formatted())
                     .font(.title3.weight(.semibold))
                 Label(String(format: "%.1f", product.rating), systemImage: "star.fill")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                 Spacer()
-                Text(product.stock > 0 ? "In stock" : "Out of stock")
+                Text(availabilityText(product.availability))
                     .font(.caption.weight(.medium))
-                    .foregroundStyle(product.stock > 0 ? .green : .red)
+                    .foregroundStyle(product.availability.isAvailable ? .green : .red)
             }
 
             actionButton(product)
@@ -85,4 +85,16 @@ public struct ProductDetailsScreen: View {
         }
         .padding()
     }
+
+    /// The shop's answer put into words. Which words depend on which of the three states it
+    /// is in, and the state is the domain's to say — the screen does not work it out from a
+    /// count and a flag.
+    private func availabilityText(_ availability: Availability) -> String {
+        switch availability {
+        case .inStock: "In stock"
+        case .outOfStock: "Out of stock"
+        case .discontinued: "No longer available"
+        }
+    }
+
 }

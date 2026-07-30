@@ -1,10 +1,3 @@
-//
-//  DefaultSessionRepository.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 14/07/2025.
-//
-
 import Combine
 import Foundation
 import Session
@@ -26,44 +19,27 @@ public struct DefaultSessionRepository: SessionRepository {
         self.authClient = authClient
     }
 
-    public func login(email: String, password: String) async -> Result<Void, LoginError> {
-        let result = await authClient.login(email: email, password: password)
-        switch result {
+    public func login(email: Email, password: Password) async -> Result<Void, LoginError> {
+        switch await authClient.login(email: email, password: password) {
         case let .success((user, token)):
             await sessionStore.setUser(user, token: token)
             return .success(())
         case .failure(let error):
-            return .failure(mapAuthClientErrorToLoginError(error))
+            return .failure(Self.loginError(from: error))
         }
     }
 
     public func createAccount(
-        firstName: String,
-        lastName: String,
-        email: String,
-        password: String
+        name: PersonName,
+        email: Email,
+        password: Password
     ) async -> Result<Void, CreateAccountError> {
-        let result = await authClient.createAccount(
-            firstName: firstName,
-            lastName: lastName,
-            email: email,
-            password: password
-        )
-        switch result {
+        switch await authClient.createAccount(name: name, email: email, password: password) {
         case let .success((user, token)):
             await sessionStore.setUser(user, token: token)
             return .success(())
         case .failure(let error):
-            return .failure(mapAuthClientErrorToCreateAccountError(error))
-        }
-    }
-
-    private func mapAuthClientErrorToCreateAccountError(_ error: AuthClientError) -> CreateAccountError {
-        switch error {
-        case .emailAlreadyInUse:
-            return .emailAlreadyInUse
-        case .invalidCredentials, .networkFailure, .unknown:
-            return .unknown
+            return .failure(Self.createAccountError(from: error))
         }
     }
 
@@ -72,12 +48,23 @@ public struct DefaultSessionRepository: SessionRepository {
         await sessionStore.clear()
     }
 
-    private func mapAuthClientErrorToLoginError(_ error: AuthClientError) -> LoginError {
+    // The auth client's vocabulary becomes the domain's. Anything that is not a specific,
+    // actionable answer is the shop not having answered.
+    private static func createAccountError(from error: AuthClientError) -> CreateAccountError {
+        switch error {
+        case .emailAlreadyInUse:
+            .emailAlreadyInUse
+        case .invalidCredentials, .networkFailure, .unknown:
+            .unavailable
+        }
+    }
+
+    private static func loginError(from error: AuthClientError) -> LoginError {
         switch error {
         case .invalidCredentials:
-            return .invalidCredentials
+            .invalidCredentials
         case .emailAlreadyInUse, .networkFailure, .unknown:
-            return .unknown
+            .unavailable
         }
     }
 }

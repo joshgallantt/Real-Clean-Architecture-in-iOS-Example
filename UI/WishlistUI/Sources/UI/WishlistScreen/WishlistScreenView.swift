@@ -6,14 +6,14 @@ import AuthUI
 public struct WishlistScreenView: View {
     @ObservedObject var viewModel: WishlistScreenViewModel
     let navigation: WishlistNavigation
-    let wishlistButton: (Int) -> AnyView
+    let wishlistButton: (ProductID) -> AnyView
     let bagButton: (Product) -> AnyView
     let authPresenter: AuthPresenting
 
     public init(
         viewModel: WishlistScreenViewModel,
         navigation: WishlistNavigation,
-        wishlistButton: @escaping (Int) -> AnyView,
+        wishlistButton: @escaping (ProductID) -> AnyView,
         bagButton: @escaping (Product) -> AnyView,
         authPresenter: AuthPresenting
     ) {

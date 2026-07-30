@@ -1,4 +1,5 @@
 import SwiftUI
+import Product
 import Wishlist
 import AuthUI
 import SnackbarUI
@@ -26,7 +27,7 @@ public struct SharedUIDI {
     }
 
     @MainActor
-    public func wishlistButton(productId: Int) -> some View {
+    public func wishlistButton(productId: ProductID) -> some View {
         WishlistButtonView(
             viewModel: WishlistButtonViewModel(
                 productId: productId,

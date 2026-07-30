@@ -8,7 +8,7 @@ public struct DefaultProductRepository: ProductRepository {
         self.client = client
     }
 
-    public func getProducts(matching query: ProductQuery) async -> Result<[Product], ProductError> {
+    public func getProducts(matching query: CatalogQuery) async -> Result<[Product], ProductError> {
         do {
             let dtos = try await client.fetchProducts(query: query)
             return .success(dtos.map { $0.toDomain() })
@@ -21,11 +21,11 @@ public struct DefaultProductRepository: ProductRepository {
     // A product that 404s has been delisted since its id was stored and is simply gone;
     // any other failure means the set could not be assembled, and a short list would be
     // indistinguishable from the shopper having chosen fewer things.
-    public func getProducts(ids: [Int]) async -> Result<[Product], ProductError> {
+    public func getProducts(ids: [ProductID]) async -> Result<[Product], ProductError> {
         guard !ids.isEmpty else { return .success([]) }
 
         let client = self.client
-        let fetched = await withTaskGroup(of: (Int, Result<Product, ProductError>).self) { group in
+        let fetched = await withTaskGroup(of: (ProductID, Result<Product, ProductError>).self) { group in
             for id in ids {
                 group.addTask {
                     do {
@@ -36,7 +36,7 @@ public struct DefaultProductRepository: ProductRepository {
                 }
             }
 
-            var results: [Int: Result<Product, ProductError>] = [:]
+            var results: [ProductID: Result<Product, ProductError>] = [:]
             for await (id, result) in group {
                 results[id] = result
             }
@@ -54,7 +54,7 @@ public struct DefaultProductRepository: ProductRepository {
         })
     }
 
-    public func getProduct(id: Int) async -> Result<Product, ProductError> {
+    public func getProduct(id: ProductID) async -> Result<Product, ProductError> {
         do {
             let dto = try await client.fetchProduct(id: id)
             return .success(dto.toDomain())
@@ -76,7 +76,7 @@ public struct DefaultProductRepository: ProductRepository {
     // us a product is genuinely gone; a timeout, a 500 and an unreadable payload are
     // all the same thing to a shopper — the app could not get what it asked for.
     private static func productError(from error: Error) -> ProductError {
-        guard case .server(404) = error as? HTTPClientError else { return .networkFailure }
+        guard case .server(404) = error as? HTTPClientError else { return .unavailable }
         return .notFound
     }
 }

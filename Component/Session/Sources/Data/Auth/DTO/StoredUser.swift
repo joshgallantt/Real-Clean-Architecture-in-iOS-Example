@@ -1,10 +1,3 @@
-//
-//  StoredUser.swift
-//  Session
-//
-//  Created by Josh Gallant on 25/07/2026.
-//
-
 public struct StoredUser: Codable, Sendable {
     public let id: Int
     public let email: String

@@ -14,9 +14,9 @@ struct SigningInTests {
         let repository = RecordingSessionRepository()
         let logIn = DefaultLoginUseCase(sessionRepository: repository)
 
-        _ = await logIn(email: "shopper@example.com", password: "hunter2!!")
+        _ = await logIn(email: Email("shopper@example.com"), password: Password("hunter2!!"))
 
-        #expect(await repository.loginAttempts.map(\.email) == ["shopper@example.com"])
+        #expect(await repository.loginAttempts.map(\.email) == [Email("shopper@example.com")])
     }
 
     @Test("An address that is not an address is refused before the shop is troubled")
@@ -24,7 +24,7 @@ struct SigningInTests {
         let repository = RecordingSessionRepository()
         let logIn = DefaultLoginUseCase(sessionRepository: repository)
 
-        let result = await logIn(email: "shopper", password: "hunter2!!")
+        let result = await logIn(email: Email("shopper"), password: Password("hunter2!!"))
 
         #expect(result.failure == .invalidEmail)
         #expect(await repository.loginAttempts.isEmpty)
@@ -35,7 +35,7 @@ struct SigningInTests {
         let repository = RecordingSessionRepository()
         let logIn = DefaultLoginUseCase(sessionRepository: repository)
 
-        let result = await logIn(email: "shopper@example.com", password: tooShort)
+        let result = await logIn(email: Email("shopper@example.com"), password: Password(tooShort))
 
         #expect(result.failure == .invalidPassword)
         #expect(await repository.loginAttempts.isEmpty)
@@ -46,7 +46,7 @@ struct SigningInTests {
         let repository = RecordingSessionRepository()
         let logIn = DefaultLoginUseCase(sessionRepository: repository)
 
-        #expect(await logIn(email: "", password: "").failure == .invalidEmail)
+        #expect(await logIn(email: Email(""), password: Password("")).failure == .invalidEmail)
     }
 
     @Test("The shop's own refusal is passed on unchanged")
@@ -55,7 +55,7 @@ struct SigningInTests {
         await repository.stub(login: .failure(.invalidCredentials))
         let logIn = DefaultLoginUseCase(sessionRepository: repository)
 
-        let result = await logIn(email: "shopper@example.com", password: "hunter2!!")
+        let result = await logIn(email: Email("shopper@example.com"), password: Password("hunter2!!"))
 
         #expect(result.failure == .invalidCredentials)
     }
@@ -70,13 +70,12 @@ struct CreatingAnAccountTests {
         let createAccount = DefaultCreateAccountUseCase(sessionRepository: repository)
 
         _ = await createAccount(
-            firstName: "Ada",
-            lastName: "Lovelace",
-            email: "ada@example.com",
-            password: "hunter2!!"
+            name: PersonName(first: "Ada", last: "Lovelace"),
+            email: Email("ada@example.com"),
+            password: Password("hunter2!!")
         )
 
-        #expect(await repository.createAccountAttempts.map(\.email) == ["ada@example.com"])
+        #expect(await repository.createAccountAttempts.map(\.email) == [Email("ada@example.com")])
     }
 
     @Test("A shopper with no name given is asked for one")
@@ -85,10 +84,9 @@ struct CreatingAnAccountTests {
         let createAccount = DefaultCreateAccountUseCase(sessionRepository: repository)
 
         let result = await createAccount(
-            firstName: "   ",
-            lastName: "",
-            email: "ada@example.com",
-            password: "hunter2!!"
+            name: PersonName(first: "   ", last: ""),
+            email: Email("ada@example.com"),
+            password: Password("hunter2!!")
         )
 
         #expect(result.failure == .nameIsMissing)
@@ -101,13 +99,20 @@ struct CreatingAnAccountTests {
         let createAccount = DefaultCreateAccountUseCase(sessionRepository: repository)
 
         let result = await createAccount(
-            firstName: "Prince",
-            lastName: "",
-            email: "prince@example.com",
-            password: "hunter2!!"
+            name: PersonName(first: "Prince", last: ""),
+            email: Email("prince@example.com"),
+            password: Password("hunter2!!")
         )
 
         #expect(result.failure == nil)
+    }
+
+    @Test("Having no last name is absence, not an empty one to be checked for elsewhere")
+    func noLastNameIsAbsent() {
+        #expect(PersonName(first: "Prince", last: "").last == nil)
+        #expect(PersonName(first: "Prince", last: "   ").last == nil)
+        #expect(PersonName(first: "Prince", last: nil).full == "Prince")
+        #expect(PersonName(first: "Ada", last: "Lovelace").full == "Ada Lovelace")
     }
 
     @Test("The same address and password rules apply as when signing in", arguments: [
@@ -119,14 +124,27 @@ struct CreatingAnAccountTests {
         let createAccount = DefaultCreateAccountUseCase(sessionRepository: repository)
 
         let result = await createAccount(
-            firstName: "Ada",
-            lastName: "",
-            email: email,
-            password: password
+            name: PersonName(first: "Ada", last: nil),
+            email: Email(email),
+            password: Password(password)
         )
 
         #expect(result.failure == expected)
         #expect(await repository.createAccountAttempts.isEmpty)
+    }
+
+    @Test("The name is checked first, so a shopper is told one thing at a time")
+    func nameIsCheckedFirst() async {
+        let repository = RecordingSessionRepository()
+        let createAccount = DefaultCreateAccountUseCase(sessionRepository: repository)
+
+        let result = await createAccount(
+            name: PersonName(first: "", last: nil),
+            email: Email("nonsense"),
+            password: Password("")
+        )
+
+        #expect(result.failure == .nameIsMissing)
     }
 }
 
@@ -137,8 +155,8 @@ struct CreatingAnAccountTests {
 private let tooShort = String(repeating: "a", count: Password.minimumLength - 1)
 
 private actor RecordingSessionRepository: SessionRepository {
-    private(set) var loginAttempts: [(email: String, password: String)] = []
-    private(set) var createAccountAttempts: [(email: String, password: String)] = []
+    private(set) var loginAttempts: [(email: Email, password: Password)] = []
+    private(set) var createAccountAttempts: [(email: Email, password: Password)] = []
 
     private var loginResult: Result<Void, LoginError> = .success(())
     private var createAccountResult: Result<Void, CreateAccountError> = .success(())
@@ -151,16 +169,15 @@ private actor RecordingSessionRepository: SessionRepository {
 
     nonisolated var currentSession: Session { .guest }
 
-    func login(email: String, password: String) async -> Result<Void, LoginError> {
+    func login(email: Email, password: Password) async -> Result<Void, LoginError> {
         loginAttempts.append((email, password))
         return loginResult
     }
 
     func createAccount(
-        firstName: String,
-        lastName: String,
-        email: String,
-        password: String
+        name: PersonName,
+        email: Email,
+        password: Password
     ) async -> Result<Void, CreateAccountError> {
         createAccountAttempts.append((email, password))
         return createAccountResult

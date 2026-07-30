@@ -140,13 +140,17 @@ Entities are the core business objects. They are immutable, framework-independen
 
 **[`Component/Session/Sources/Domain/Model/User.swift`](Component/Session/Sources/Domain/Model/User.swift)**
 ```swift
-public struct User: Equatable, Sendable {
-    public let id: Int
-    public let email: String
-    public let firstName: String
-    public let lastName: String
+public struct User: Equatable, Sendable, Identifiable {
+    public let id: UserID
+    public let email: Email
+    public let name: PersonName
 }
 ```
+
+Every field is a type rather than a `String` or an `Int`. `UserID` cannot be passed where a
+`ProductID` was meant. `Email` has been past the rule about what an address is, which a
+`String` has not. `PersonName` says out loud that a last name is optional — plenty of people
+have one name — instead of leaving that intent in a test.
 
 Authentication state is modelled as a sum type rather than an optional user plus a boolean flag — the two-field version admits states that cannot exist ("logged in, no user"), and the enum does not.
 
@@ -161,17 +165,39 @@ public enum Session: Equatable, Sendable {
 }
 ```
 
-`CategorySlug` is a similarly deliberate choice: a raw `String` category is interchangeable with a title, a search term, or a product name, and the compiler cannot tell you when they get crossed. Wrapping it removes a whole class of bug.
+`CategoryID` and `ProductID` are similarly deliberate: a raw `String` category is
+interchangeable with a title, a search term, or a product name, and a raw `Int` product id is
+interchangeable with a user id or a quantity. The compiler cannot tell you when those get
+crossed. Wrapping them removes a whole class of bug — and identity is the one part of another
+aggregate a context may safely hold, which is exactly why it is worth a type.
 
 **[`Component/Product/Sources/Domain/Model/Product.swift`](Component/Product/Sources/Domain/Model/Product.swift)**
 ```swift
-public struct Product: Equatable, Sendable, Identifiable {
-    public let id: Int
+public struct Product: Equatable, Hashable, Sendable, Identifiable {
+    public let id: ProductID
     public let title: String
     public let description: String
-    public let category: CategorySlug
-    public let price: Double
-    // ...discountPercentage, rating, stock, brand, thumbnail, images
+    public let category: CategoryID
+    public let price: Money
+    public let availability: Availability
+    // ...rating, brand, thumbnail, images
+}
+```
+
+`price` is `Money`, not `Double`. A price like 9.99 has no exact binary representation, so
+totals built by adding them drift and two amounts that should be equal compare unequal —
+which matters beyond tidiness here, because whether a shopper is *told* a price moved is
+decided by comparing two amounts. `Money` counts whole minor units and carries its currency.
+
+`availability` is one idea, not a stock count plus a will-it-return flag. The flag is only
+meaningful when the count is zero, so every caller has to know that to read either, and
+callers end up rebuilding the same three states in their own way:
+
+```swift
+public enum Availability: Equatable, Hashable, Sendable {
+    case inStock(remaining: Int)
+    case outOfStock      // the shop expects to have it again
+    case discontinued    // the shop is not selling it any more
 }
 ```
 
@@ -210,9 +236,16 @@ The full vocabulary of the application is discoverable by reading the domain alo
 | Component | Use cases |
 | --- | --- |
 | `Session` | `LoginUseCase`, `CreateAccountUseCase`, `LogoutUseCase`, `GetSessionUseCase`, `ObserveSessionUseCase`, `UserIsLoggedInUseCase` |
-| `Product` | `GetProductsUseCase`, `GetProductUseCase`, `GetCategoriesUseCase` |
-| `Search` | `GetSearchHistoryUseCase`, `RecordSearchUseCase`, `ClearSearchHistoryUseCase` |
-| `Wishlist` | `ObserveWishlistUseCase`, `ProductIsWishlistedUseCase`, `AddProductToWishlistUseCase`, `RemoveProductFromWishlistUseCase` |
+| `Product` | `BrowseCatalogUseCase`, `ViewProductUseCase`, `LookUpProductsUseCase`, `BrowseCategoriesUseCase` |
+| `SearchHistory` | `GetSearchHistoryUseCase`, `RecordSearchUseCase`, `ClearSearchHistoryUseCase` |
+| `Wishlist` | `ObserveWishlistUseCase`, `ObserveProductIsWishlistedUseCase`, `AddProductToWishlistUseCase`, `RemoveProductFromWishlistUseCase` |
+| `Bag` | `ObserveBagUseCase`, `ObserveBagChangesUseCase`, `ObserveBagItemQuantityUseCase`, `AddItemToBagUseCase`, `SetBagItemQuantityUseCase`, `BringBagUpToDateUseCase`, `AcknowledgeBagChangeUseCase` |
+
+Each name is something a shopper is trying to do. That is the test a use case name has to
+pass: `LookUpProductsUseCase` describes filling in the things on a list the shopper already
+has; `getProductsByIds` would only describe the query it happens to need. When the use case
+layer is named after the repository's methods, the layer whose job is to enumerate the
+application's intentions ends up enumerating its data access instead.
 
 ### Use Cases Composing Use Cases
 
@@ -245,8 +278,8 @@ public protocol SessionRepository: Sendable {
     @MainActor var sessionPublisher: AnyPublisher<Session, Never> { get }
     @MainActor var currentSession: Session { get }
 
-    func login(email: String, password: String) async -> Result<Void, LoginError>
-    func createAccount(firstName: String, lastName: String, email: String, password: String) async -> Result<Void, CreateAccountError>
+    func login(email: Email, password: Password) async -> Result<Void, LoginError>
+    func createAccount(name: PersonName, email: Email, password: Password) async -> Result<Void, CreateAccountError>
     func logout() async
 }
 ```
@@ -292,8 +325,8 @@ Data sources are protocol-driven. `DefaultSessionRepository` is tested by inject
 **[`Component/Session/Sources/Data/Auth/AuthClient.swift`](Component/Session/Sources/Data/Auth/AuthClient.swift)**
 ```swift
 public protocol AuthClient: Sendable {
-    func login(email: String, password: String) async -> Result<(User, AuthToken), AuthClientError>
-    func createAccount(firstName: String, lastName: String, email: String, password: String) async -> Result<(User, AuthToken), AuthClientError>
+    func login(email: Email, password: Password) async -> Result<(User, AuthToken), AuthClientError>
+    func createAccount(name: PersonName, email: Email, password: Password) async -> Result<(User, AuthToken), AuthClientError>
     func logout() async -> Result<Void, AuthClientError>
 }
 ```
@@ -318,18 +351,41 @@ public protocol SessionStore: AnyObject, Sendable {
 
 ### User-Scoped Storage
 
-Both `Wishlist` and `Search` persist per user, keyed by user id with `"guest"` as the key for an anonymous session. `DefaultWishlistRepository` subscribes to a user-key publisher derived from the session and swaps its in-memory list when the key changes, so logging out reveals the guest wishlist and logging back in restores the account's own.
+`Bag`, `Wishlist` and `SearchHistory` each persist per shopper. What they are keyed *by* is a
+type, not a string: a repeated `"guest"` literal has to be spelled the same way in every
+feature that builds one, and nothing keeps those spellings honest.
 
-**[`Component/Wishlist/Sources/Data/DefaultWishlistRepository.swift`](Component/Wishlist/Sources/Data/DefaultWishlistRepository.swift)**
+**[`Component/Bag/Sources/Domain/Model/BagOwner.swift`](Component/Bag/Sources/Domain/Model/BagOwner.swift)**
 ```swift
-private func switchUser(to key: String) {
-    guard key != userKey else { return }
-    userKey = key
-    subject.value = store.getItems(forUserKey: key)
+public enum BagOwner: Equatable, Hashable, Sendable {
+    case guest
+    case shopper(UserID)
+
+    public init(_ session: Session) { ... }
 }
 ```
 
-Note what the repository is *given*: a user key and a stream of user keys — not a `Session`, and not a session use case. It needs to partition storage, not to understand identity. `WishlistDI` performs that translation at the wiring boundary, which keeps `Wishlist`'s data layer testable with a plain `CurrentValueSubject<String, Never>`.
+A guest has a real bag — that is the whole point of letting someone shop before signing in —
+so being nobody in particular is one of the cases rather than the absence of one. A wishlist is
+different: a guest cannot save anything, so its owner is a `UserID?` and the guest case does
+not exist to be handled. The two types differ because the two rules differ.
+
+**[`Component/Bag/Sources/Data/DefaultBagRepository.swift`](Component/Bag/Sources/Data/DefaultBagRepository.swift)**
+```swift
+private func switchOwner(to owner: BagOwner) {
+    guard owner != self.owner else { return }
+    self.owner = owner
+    let kept = store.getBag(for: owner)
+    bagSubject.value = kept.bag
+    changesSubject.value = kept.changes
+}
+```
+
+Note what the repository is *given*: an owner and a stream of owners — not a `Session`, and not
+a session use case. It needs to know whose bag is live, not to understand identity. `BagDI`
+performs that translation once at the wiring boundary, and what a bag is *filed under* is the
+storage layer's business — the only place an owner turns back into a string is the code that
+picks a filename.
 
 ### DTOs
 
@@ -417,7 +473,7 @@ Each feature module exposes a DI container that constructs its view hierarchy. T
 ```swift
 public struct HomeUIDI {
     private let navigation: HomeNavigation
-    private let getProducts: GetProductsUseCase
+    private let browseCatalog: BrowseCatalogUseCase
     private let snackbar: SnackbarPresenting
 
     @MainActor
@@ -550,7 +606,7 @@ final class Injector {
     // Components
     let sessionDI: SessionDI
     let productDI: ProductDI
-    let searchDI: SearchDI
+    let searchHistoryDI: SearchHistoryDI
     let wishlistDI: WishlistDI
 
     // Cross-cutting presentation
@@ -654,8 +710,8 @@ Navigation protocols invert this. Each feature declares the navigation capabilit
 ```swift
 public protocol SearchNavigation: AnyObject {
     func openSearchResults(query: String)
-    func openCategoryResults(category: CategorySlug)
-    func openProductDetails(id: Int)
+    func openCategoryResults(category: CategoryID)
+    func openProductDetails(id: ProductID)
 }
 ```
 
@@ -669,8 +725,8 @@ public protocol SearchNavigation: AnyObject {
 ```swift
 public enum Destination: Hashable {
     case searchResults(query: String)
-    case categoryResults(category: CategorySlug)
-    case productDetails(id: Int)
+    case categoryResults(category: CategoryID)
+    case productDetails(id: ProductID)
 
     var requiresAuthentication: Bool {
         switch self {
@@ -751,7 +807,7 @@ Worked examples live in [`Component/Wishlist/Tests`](Component/Wishlist/Tests/Wi
 iPhone (App)
 ├── SessionDI    ──▶  Session ◀── SessionData
 ├── ProductDI    ──▶  Product ◀── ProductData  ──▶  Networking
-├── SearchDI     ──▶  Search  ◀── SearchData   ──▶  Session
+├── SearchHistoryDI ──▶ SearchHistory ◀── SearchHistoryData ──▶ Session
 ├── WishlistDI   ──▶  Wishlist ──▶ Session
 │                ◀──  WishlistData
 ├── SheetUIDI    ──▶  SheetUI

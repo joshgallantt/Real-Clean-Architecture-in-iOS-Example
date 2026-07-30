@@ -19,6 +19,7 @@ let package = Package(
     dependencies: [
         .package(path: "../../Component/Wishlist"),
         .package(path: "../../Component/Product"),
+        .package(path: "../../Library/Money"),
         .package(path: "../../Component/Session"),
         .package(path: "../ProductUI"),
         .package(path: "../SnackbarUI"),
@@ -32,6 +33,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Wishlist", package: "Wishlist"),
                 .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
                 .product(name: "ProductUI", package: "ProductUI"),
                 .product(name: "SnackbarUI", package: "SnackbarUI"),
@@ -47,6 +49,7 @@ let package = Package(
                 "WishlistUI",
                 .product(name: "Wishlist", package: "Wishlist"),
                 .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
                 .product(name: "SnackbarUI", package: "SnackbarUI"),
                 .product(name: "AuthUI", package: "AuthUI"),

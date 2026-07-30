@@ -8,7 +8,7 @@ extension LoginError {
         case .invalidEmail: "Enter a valid email address."
         case .invalidPassword: "Passwords are at least \(Password.minimumLength) characters."
         case .invalidCredentials: "Invalid email or password."
-        case .unknown: "An unknown error occurred. Please try again later."
+        case .unavailable: "We couldn't reach the shop. Please try again."
         }
     }
 }
@@ -20,7 +20,7 @@ extension CreateAccountError {
         case .invalidEmail: "Enter a valid email address."
         case .invalidPassword: "Passwords are at least \(Password.minimumLength) characters."
         case .emailAlreadyInUse: "An account with this email already exists."
-        case .unknown: "Something went wrong. Please try again."
+        case .unavailable: "We couldn't reach the shop. Please try again."
         }
     }
 }

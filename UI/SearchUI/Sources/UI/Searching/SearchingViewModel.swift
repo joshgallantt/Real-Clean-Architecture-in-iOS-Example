@@ -1,6 +1,6 @@
 import Foundation
 import Product
-import Search
+import SearchHistory
 
 @MainActor
 public final class SearchingViewModel: ObservableObject {
@@ -10,28 +10,29 @@ public final class SearchingViewModel: ObservableObject {
 
     private let getSearchHistory: GetSearchHistoryUseCase
     private let clearSearchHistory: ClearSearchHistoryUseCase
-    private let getProducts: GetProductsUseCase
+    private let browseCatalog: BrowseCatalogUseCase
     private var searchTask: Task<Void, Never>?
 
     public init(
         getSearchHistory: GetSearchHistoryUseCase,
         clearSearchHistory: ClearSearchHistoryUseCase,
-        getProducts: GetProductsUseCase
+        browseCatalog: BrowseCatalogUseCase
     ) {
         self.getSearchHistory = getSearchHistory
         self.clearSearchHistory = clearSearchHistory
-        self.getProducts = getProducts
+        self.browseCatalog = browseCatalog
     }
 
     func onAppear() async {
         history = await getSearchHistory()
     }
 
-    func queryChanged(_ query: String) {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
+    /// What the shopper has typed so far. Whether that is a search at all is `SearchTerm`'s
+    /// to say, so this does not trim and does not check for blank.
+    func queryChanged(_ typed: String) {
         searchTask?.cancel()
 
-        guard !trimmed.isEmpty else {
+        guard let term = SearchTerm(typed) else {
             suggestions = []
             return
         }
@@ -43,7 +44,7 @@ public final class SearchingViewModel: ObservableObject {
             isSuggesting = true
             defer { isSuggesting = false }
 
-            if case .success(let products) = await getProducts(matching: .search(trimmed, page: 0, pageSize: 10)) {
+            if case .success(let products) = await browseCatalog(matching: .search(term, page: 0, pageSize: 10)) {
                 guard !Task.isCancelled else { return }
                 suggestions = products
             }

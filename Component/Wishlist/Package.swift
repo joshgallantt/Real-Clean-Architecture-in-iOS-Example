@@ -21,13 +21,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../Session")
+        .package(path: "../Session"),
+        .package(path: "../Product")
     ],
     targets: [
         .target(
             name: "Wishlist",
             dependencies: [
-                .product(name: "Session", package: "Session")
+                .product(name: "Session", package: "Session"),
+                .product(name: "Product", package: "Product")
             ],
             path: "Sources",
             exclude: ["DI", "Data"],
@@ -37,7 +39,8 @@ let package = Package(
             name: "WishlistData",
             dependencies: [
                 "Wishlist",
-                .product(name: "Session", package: "Session")
+                .product(name: "Session", package: "Session"),
+                .product(name: "Product", package: "Product")
             ],
             path: "Sources",
             exclude: ["Domain", "DI"],
@@ -48,7 +51,8 @@ let package = Package(
             dependencies: [
                 "Wishlist",
                 "WishlistData",
-                .product(name: "Session", package: "Session")
+                .product(name: "Session", package: "Session"),
+                .product(name: "Product", package: "Product")
             ],
             path: "Sources/DI"
         ),
@@ -56,20 +60,26 @@ let package = Package(
             name: "WishlistTests",
             dependencies: [
                 "Wishlist",
-                .product(name: "Session", package: "Session")
+                .product(name: "Session", package: "Session"),
+                .product(name: "Product", package: "Product")
             ],
             path: "Tests/WishlistTests"
         ),
         .testTarget(
             name: "WishlistDataTests",
-            dependencies: ["WishlistData"],
+            dependencies: [
+                "WishlistData",
+                .product(name: "Session", package: "Session"),
+                .product(name: "Product", package: "Product")
+            ],
             path: "Tests/WishlistDataTests"
         ),
         .testTarget(
             name: "WishlistAcceptanceTests",
             dependencies: [
                 "WishlistDI",
-                .product(name: "Session", package: "Session")
+                .product(name: "Session", package: "Session"),
+                .product(name: "Product", package: "Product")
             ],
             path: "Tests/WishlistAcceptanceTests"
         )

@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import Product
 import Wishlist
 
 /// A working wishlist repository, not a stub with canned answers: it keeps what it is
@@ -24,4 +25,10 @@ final class InMemoryWishlistRepository: WishlistRepository {
         saved.append(wishlist)
         subject.value = wishlist
     }
+}
+
+// MARK: - Fixtures
+
+func pid(_ value: Int) -> ProductID {
+    ProductID(rawValue: value)
 }

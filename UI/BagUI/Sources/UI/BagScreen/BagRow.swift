@@ -1,5 +1,7 @@
 import Foundation
 import Bag
+import Money
+import Product
 
 /// One line as the screen needs it: what the bag knows joined to what the catalog
 /// knows. Purely a rendering concern — a headless bag has no use for it, which is why
@@ -8,9 +10,9 @@ import Bag
 /// `name` and `imageURL` are optional because the catalog may not have answered yet, or
 /// at all. The row still renders, and it still costs what it costs.
 struct BagRow: Identifiable, Equatable {
-    let id: Int
+    let id: ProductID
     let quantity: Int
-    let lastKnownPrice: Double
+    let lastKnownPrice: Money
     let name: String?
     let imageURL: String?
 
@@ -25,7 +27,7 @@ struct BagRow: Identifiable, Equatable {
 
 /// A line the shopper needs to be told about, with the change already put into words.
 struct ChangedBagRow: Identifiable, Equatable {
-    let id: Int
+    let id: ProductID
     let name: String?
     let imageURL: String?
     let summary: String
@@ -40,15 +42,15 @@ struct ChangedBagRow: Identifiable, Equatable {
     private static func summary(for change: BagChange) -> String {
         switch change {
         case .priceWentUp(_, let from, let to):
-            "Price went up from \(money(from)) to \(money(to))"
+            "Price went up from \(from.formatted()) to \(to.formatted())"
         case .priceWentDown(_, let from, let to):
-            "Price dropped from \(money(from)) to \(money(to))"
+            "Price dropped from \(from.formatted()) to \(to.formatted())"
+        case .onlySomeLeft(_, let available):
+            available == 1
+                ? "Only 1 left — we updated your bag"
+                : "Only \(available) left — we updated your bag"
         case .noLongerAvailable:
             "No longer available"
         }
-    }
-
-    private static func money(_ value: Double) -> String {
-        value.formatted(.currency(code: "USD"))
     }
 }

@@ -5,20 +5,20 @@ import BagUIDI
 import SharedUIDI
 
 public struct ProductUIDI {
-    private let getProduct: GetProductUseCase
+    private let viewProduct: ViewProductUseCase
     private let bagUIDI: BagUIDI
     private let sharedUIDI: SharedUIDI
 
-    public init(getProduct: GetProductUseCase, bagUIDI: BagUIDI, sharedUIDI: SharedUIDI) {
-        self.getProduct = getProduct
+    public init(viewProduct: ViewProductUseCase, bagUIDI: BagUIDI, sharedUIDI: SharedUIDI) {
+        self.viewProduct = viewProduct
         self.bagUIDI = bagUIDI
         self.sharedUIDI = sharedUIDI
     }
 
     @MainActor
-    public func detailView(id: Int) -> some View {
+    public func detailView(id: ProductID) -> some View {
         ProductDetailsScreen(
-            viewModel: ProductDetailsViewModel(id: id, getProduct: getProduct),
+            viewModel: ProductDetailsViewModel(id: id, viewProduct: viewProduct),
             actionButton: { product in AnyView(bagUIDI.detailsButton(product: product)) },
             wishlistButton: AnyView(sharedUIDI.wishlistButton(productId: id))
         )

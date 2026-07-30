@@ -26,7 +26,7 @@ public struct HomeScreenView: View {
 
                     VStack(alignment: .leading) {
                         Text(product.title).font(.headline)
-                        Text(product.price, format: .currency(code: "USD"))
+                        Text(product.price.formatted())
                             .font(.subheadline)
                             .foregroundStyle(.secondary)
                     }
