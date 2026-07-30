@@ -16,7 +16,7 @@ public struct DefaultAddItemToBagUseCase: AddItemToBagUseCase {
     public func callAsFunction(_ item: BagItem) {
         repository.save(
             bag: repository.bag.adding(item),
-            changes: repository.changes.acknowledging(itemId: item.id)
+            changes: repository.changes.acknowledging(productId: item.productId)
         )
     }
 }

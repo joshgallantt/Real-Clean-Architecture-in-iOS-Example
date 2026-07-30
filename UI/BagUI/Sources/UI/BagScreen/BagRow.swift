@@ -31,7 +31,7 @@ struct ChangedBagRow: Identifiable, Equatable {
     let summary: String
 
     init(change: BagChange, name: String?, imageURL: String?) {
-        self.id = change.itemId
+        self.id = change.productId
         self.name = name
         self.imageURL = imageURL
         self.summary = Self.summary(for: change)
@@ -43,8 +43,8 @@ struct ChangedBagRow: Identifiable, Equatable {
             "Price went up from \(money(from)) to \(money(to))"
         case .priceWentDown(_, let from, let to):
             "Price dropped from \(money(from)) to \(money(to))"
-        case .outOfStock:
-            "Out of stock"
+        case .noLongerAvailable:
+            "No longer available"
         }
     }
 

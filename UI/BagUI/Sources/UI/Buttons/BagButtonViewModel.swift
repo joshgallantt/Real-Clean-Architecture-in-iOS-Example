@@ -26,7 +26,7 @@ public final class BagButtonViewModel: ObservableObject {
         self.navigation = navigation
         self.snackbarPresenter = snackbarPresenter
 
-        observeBagItemQuantity(itemId: product.id)
+        observeBagItemQuantity(productId: product.id)
             .sink { [weak self] value in
                 self?.quantity = value
             }
@@ -54,7 +54,7 @@ public final class BagButtonViewModel: ObservableObject {
             return
         }
 
-        addItemToBag(BagItem(id: product.id, lastKnownPrice: product.price))
+        addItemToBag(BagItem(productId: product.id, lastKnownPrice: product.price))
 
         let navigation = navigation
         snackbarPresenter.show(Snackbar(

@@ -30,7 +30,7 @@ public struct BagDI {
 
         self.observeBagUseCase = DefaultObserveBagUseCase(repository: repository)
         self.observeBagChangesUseCase = DefaultObserveBagChangesUseCase(repository: repository)
-        self.observeBagItemQuantityUseCase = DefaultObserveObserveBagItemQuantityUseCase(repository: repository)
+        self.observeBagItemQuantityUseCase = DefaultObserveBagItemQuantityUseCase(repository: repository)
         self.addItemToBagUseCase = DefaultAddItemToBagUseCase(repository: repository)
         self.setBagItemQuantityUseCase = DefaultSetBagItemQuantityUseCase(repository: repository)
         self.bringBagUpToDateUseCase = DefaultBringBagUpToDateUseCase(repository: repository)

@@ -25,16 +25,16 @@ struct BagChangeDTO: Codable, Sendable {
     enum Kind: String, Codable, Sendable {
         case priceWentUp
         case priceWentDown
-        case outOfStock
+        case noLongerAvailable
     }
 
     let kind: Kind
-    let itemId: Int
+    let productId: Int
     let from: Double?
     let to: Double?
 
     init(from change: BagChange) {
-        self.itemId = change.itemId
+        self.productId = change.productId
         switch change {
         case .priceWentUp(_, let from, let to):
             self.kind = .priceWentUp
@@ -44,8 +44,8 @@ struct BagChangeDTO: Codable, Sendable {
             self.kind = .priceWentDown
             self.from = from
             self.to = to
-        case .outOfStock:
-            self.kind = .outOfStock
+        case .noLongerAvailable:
+            self.kind = .noLongerAvailable
             self.from = nil
             self.to = nil
         }
@@ -55,12 +55,12 @@ struct BagChangeDTO: Codable, Sendable {
         switch kind {
         case .priceWentUp:
             guard let from, let to else { return nil }
-            return .priceWentUp(itemId: itemId, from: from, to: to)
+            return .priceWentUp(productId: productId, from: from, to: to)
         case .priceWentDown:
             guard let from, let to else { return nil }
-            return .priceWentDown(itemId: itemId, from: from, to: to)
-        case .outOfStock:
-            return .outOfStock(itemId: itemId)
+            return .priceWentDown(productId: productId, from: from, to: to)
+        case .noLongerAvailable:
+            return .noLongerAvailable(productId: productId)
         }
     }
 }

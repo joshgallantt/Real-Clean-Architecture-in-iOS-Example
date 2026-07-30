@@ -41,12 +41,12 @@ final class FakeShop: @unchecked Sendable {
     var observeBagChanges: ObserveBagChangesUseCase { ObserveChanges(shop: self) }
     var getProductsByIds: GetProductsByIdsUseCase { Lookup(shop: self) }
     var setBagItemQuantity: SetBagItemQuantityUseCase { SetQuantity(shop: self) }
-    var reconcile: BringBagUpToDateUseCase { Reconcile(shop: self) }
+    var bringUpToDate: BringBagUpToDateUseCase { BringUpToDate(shop: self) }
     var acknowledge: AcknowledgeBagChangeUseCase { Acknowledge(shop: self) }
     @MainActor var snackbar: SnackbarPresenting { Presenter(shop: self) }
 
     func choose(_ item: BagItem) {
-        save(bag: bagSubject.value.adding(item), changes: changesSubject.value.acknowledging(itemId: item.id))
+        save(bag: bagSubject.value.adding(item), changes: changesSubject.value.acknowledging(productId: item.id))
     }
 
     fileprivate func save(bag: Bag, changes: BagChanges) {
@@ -91,20 +91,20 @@ final class FakeShop: @unchecked Sendable {
 
     private struct SetQuantity: SetBagItemQuantityUseCase {
         let shop: FakeShop
-        @MainActor func callAsFunction(itemId: Int, to quantity: Int) {
-            let bag = shop.bag.changingQuantity(ofItemId: itemId, to: quantity)
-            let changes = bag.quantity(forItemId: itemId) == 0
-                ? shop.changes.acknowledging(itemId: itemId)
-                : shop.changes
+        @MainActor func callAsFunction(productId: Int, to quantity: Int) {
+            let bag = shop.bag.changingQuantity(of: productId, to: quantity)
+            let changes = bag.holds(productId: productId)
+                ? shop.changes
+                : shop.changes.acknowledging(productId: productId)
             shop.save(bag: bag, changes: changes)
         }
     }
 
-    private struct Reconcile: BringBagUpToDateUseCase {
+    private struct BringUpToDate: BringBagUpToDateUseCase {
         let shop: FakeShop
-        @MainActor func callAsFunction(prices: [Int: Double], inStock: [Int: Bool]) {
+        @MainActor func callAsFunction(against products: [Product]) {
             let caughtUp = BagReconciliation.reconcile(
-                bag: shop.bag, changes: shop.changes, prices: prices, inStock: inStock
+                bag: shop.bag, changes: shop.changes, against: products
             )
             guard caughtUp.bag != shop.bag || caughtUp.changes != shop.changes else { return }
             shop.save(bag: caughtUp.bag, changes: caughtUp.changes)
@@ -113,8 +113,8 @@ final class FakeShop: @unchecked Sendable {
 
     private struct Acknowledge: AcknowledgeBagChangeUseCase {
         let shop: FakeShop
-        @MainActor func callAsFunction(itemId: Int) {
-            shop.save(bag: shop.bag, changes: shop.changes.acknowledging(itemId: itemId))
+        @MainActor func callAsFunction(productId: Int) {
+            shop.save(bag: shop.bag, changes: shop.changes.acknowledging(productId: productId))
         }
     }
 

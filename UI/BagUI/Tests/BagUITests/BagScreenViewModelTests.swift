@@ -20,14 +20,14 @@ struct BagScreenViewModelTests {
             observeBagChanges: shop.observeBagChanges,
             getProductsByIds: shop.getProductsByIds,
             setBagItemQuantity: shop.setBagItemQuantity,
-            bringBagUpToDate: shop.reconcile,
+            bringBagUpToDate: shop.bringUpToDate,
             acknowledgeBagChange: shop.acknowledge,
             snackbar: shop.snackbar
         )
     }
 
     private func makeShop(
-        items: [BagItem] = [BagItem(id: 1, lastKnownPrice: 9.99)],
+        items: [BagItem] = [BagItem(productId: 1, lastKnownPrice: 9.99)],
         catalog: [Product] = [.fixture(id: 1)]
     ) -> FakeShop {
         FakeShop(bag: Bag(items: items), catalog: catalog)
@@ -68,7 +68,7 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop, untilAskedTimes: 2)
 
-        #expect(shop.currentChanges.priceChanges == [.priceWentUp(itemId: 1, from: 9.99, to: 12.99)])
+        #expect(shop.currentChanges.priceMoves == [.priceWentUp(productId: 1, from: 9.99, to: 12.99)])
         #expect(viewModel.priceChangedRows.map(\.id) == [1])
         #expect(viewModel.removedRows.isEmpty)
         #expect(viewModel.total.cents == 1299)
@@ -117,7 +117,7 @@ struct BagScreenViewModelTests {
         await settle(none)
 
         #expect(plenty.currentChanges.isEmpty)
-        #expect(none.currentChanges.removals == [.outOfStock(itemId: 1)])
+        #expect(none.currentChanges.noLongerAvailable == [.noLongerAvailable(productId: 1)])
     }
 
     @Test("Changing how many asks again")
@@ -127,19 +127,19 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        viewModel.didChangeQuantity(itemId: 1, quantity: 3)
+        viewModel.didChangeQuantity(productId: 1, quantity: 3)
         await settle(shop, untilAskedTimes: 2)
 
         #expect(shop.lookups.count == 2)
-        #expect(shop.currentBag.quantity(forItemId: 1) == 3)
+        #expect(shop.currentBag.quantity(of: 1) == 3)
     }
 
     @Test("Taking something out asks again")
     func removingAsks() async {
         let shop = makeShop(
             items: [
-                BagItem(id: 1, lastKnownPrice: 9.99, dateAdded: .distantPast),
-                BagItem(id: 2, lastKnownPrice: 5, dateAdded: .now)
+                BagItem(productId: 1, lastKnownPrice: 9.99, dateAdded: .distantPast),
+                BagItem(productId: 2, lastKnownPrice: 5, dateAdded: .now)
             ],
             catalog: [.fixture(id: 1), .fixture(id: 2)]
         )
@@ -147,7 +147,7 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        viewModel.didSwipeToDelete(itemId: 2)
+        viewModel.didSwipeToDelete(productId: 2)
         await settle(shop, untilAskedTimes: 2)
 
         #expect(shop.currentBag.items.map(\.id) == [1])
@@ -163,7 +163,7 @@ struct BagScreenViewModelTests {
         let asksSoFar = shop.lookups.count
         #expect(viewModel.priceChangedRows.count == 1)
 
-        viewModel.didAcknowledgeChange(itemId: 1)
+        viewModel.didAcknowledgeChange(productId: 1)
         await settle(shop)
 
         #expect(shop.lookups.count == asksSoFar)
@@ -178,7 +178,7 @@ struct BagScreenViewModelTests {
         await settle(shop)
         #expect(viewModel.removedRows.count == 1)
 
-        viewModel.didAskToBeNotified(itemId: 1)
+        viewModel.didAskToBeNotified(productId: 1)
         await settle(shop)
 
         #expect(viewModel.removedRows.isEmpty)
