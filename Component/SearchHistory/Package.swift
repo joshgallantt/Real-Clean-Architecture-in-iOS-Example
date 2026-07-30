@@ -56,17 +56,10 @@ let package = Package(
             path: "Sources/DI"
         ),
         .testTarget(
-            name: "SearchHistoryTests",
-            dependencies: [
-                "SearchHistory",
-                .product(name: "Product", package: "Product")
-            ],
-            path: "Tests/SearchHistoryTests"
-        ),
-        .testTarget(
             name: "SearchHistoryAcceptanceTests",
             dependencies: [
                 "SearchHistoryDI",
+                "SearchHistoryData",
                 .product(name: "Session", package: "Session"),
                 .product(name: "Product", package: "Product")
             ],

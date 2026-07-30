@@ -30,7 +30,7 @@ public final class SearchingViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        history = await getSearchHistory()
+        history = getSearchHistory()
     }
 
     func queryChanged(_ typed: String) {
@@ -56,9 +56,7 @@ public final class SearchingViewModel: ObservableObject {
     }
 
     func clearHistory() {
-        Task {
-            await clearSearchHistory()
-            history = await getSearchHistory()
-        }
+        clearSearchHistory()
+        history = getSearchHistory()
     }
 }

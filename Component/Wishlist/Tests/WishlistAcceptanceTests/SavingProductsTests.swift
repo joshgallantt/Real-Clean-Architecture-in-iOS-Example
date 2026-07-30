@@ -1,17 +1,13 @@
-import Combine
 import Foundation
 import Testing
 import Product
-import Session
 import Wishlist
-import WishlistData
-import WishlistDI
 
 @MainActor
 @Suite("Saving products for later")
 /// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: a whole feature wired as the
-/// composition root wires it, driven only through the use cases the UI is given. What no layer test
-/// can show is that the layers fit together.
+/// composition root wires it, driven only through the use cases the UI is given. Every test here is
+/// something a shopper would notice.
 ///
 /// Evans, *Domain-Driven Design* (2003) — Ubiquitous Language: the tests are named in the shopper's
 /// words, so a failure reads as a broken journey rather than a broken method.
@@ -20,8 +16,8 @@ struct SavingProductsTests {
     func savesTwoThings() async {
         let shopper = Saver(signedInAs: 42)
 
-        await shopper.save(productId: pid(1))
-        await shopper.save(productId: pid(2))
+        await shopper.save(productId: 1)
+        await shopper.save(productId: 2)
 
         #expect(shopper.wishlist.items.map(\.id) == [pid(2), pid(1)])
     }
@@ -30,137 +26,137 @@ struct SavingProductsTests {
     func savingTwice() async {
         let shopper = Saver(signedInAs: 42)
 
-        await shopper.save(productId: pid(1))
-        await shopper.save(productId: pid(1))
+        await shopper.save(productId: 1)
+        await shopper.save(productId: 1)
 
         #expect(shopper.wishlist.itemCount == 1)
+    }
+
+    @Test("Saving something already saved does not shuffle it back to the top")
+    func savingAgainDoesNotReorder() async {
+        let shopper = Saver(signedInAs: 42)
+        await shopper.save(productId: 1)
+        await shopper.save(productId: 2)
+
+        await shopper.save(productId: 1)
+
+        #expect(shopper.wishlist.items.map(\.id) == [pid(2), pid(1)])
     }
 
     @Test("Unsaving takes it out and leaves the rest")
     func unsaving() async {
         let shopper = Saver(signedInAs: 42)
-        await shopper.save(productId: pid(1))
-        await shopper.save(productId: pid(2))
+        await shopper.save(productId: 1)
+        await shopper.save(productId: 2)
 
-        await shopper.unsave(productId: pid(1))
+        await shopper.unsave(productId: 1)
 
         #expect(shopper.wishlist.items.map(\.id) == [pid(2)])
     }
 
-    @Test("A guest is asked to sign in rather than quietly saving nothing")
-    func guestIsAskedToSignIn() async {
-        let shopper = Saver()
+    @Test("Unsaving something that was never saved changes nothing")
+    func unsavingSomethingNeverSaved() async {
+        let shopper = Saver(signedInAs: 42)
+        await shopper.save(productId: 1)
 
-        let result = await shopper.save(productId: pid(1))
+        await shopper.unsave(productId: 99)
 
-        #expect(result.failure == .unauthenticated)
-        #expect(shopper.wishlist.isEmpty)
+        #expect(shopper.wishlist.items.map(\.id) == [pid(1)])
     }
 
-    @Test("A shopper's saved products are still there when they come back")
-    func listSurvivesLeaving() async {
-        let store = InMemoryWishlistStore()
-        let firstVisit = Saver(store: store, signedInAs: 42)
-        await firstVisit.save(productId: pid(1))
-        await firstVisit.save(productId: pid(2))
-        try? await Task.sleep(for: .milliseconds(50))
+    @Test("The heart on a product fills and empties as that product is saved and unsaved")
+    func theHeartFollowsOneProduct() async {
+        let shopper = Saver(signedInAs: 42)
+        shopper.watchTheHeart(onProductId: 7)
 
-        let nextVisit = Saver(store: store, signedInAs: 42)
+        #expect(shopper.heartIsFilled[pid(7)] == false)
 
-        #expect(nextVisit.wishlist.items.map(\.id) == [pid(2), pid(1)])
+        await shopper.save(productId: 7)
+        #expect(shopper.heartIsFilled[pid(7)] == true)
+
+        await shopper.unsave(productId: 7)
+        #expect(shopper.heartIsFilled[pid(7)] == false)
     }
 
-    @Test("Two shoppers do not see each other's saved products")
-    func listsAreNotShared() async {
-        let store = InMemoryWishlistStore()
-        let first = Saver(store: store, signedInAs: 1)
-        await first.save(productId: pid(7))
-        try? await Task.sleep(for: .milliseconds(50))
+    @Test("The heart on a product ignores the rest of the list moving around it")
+    func theHeartIgnoresEverythingElse() async {
+        let shopper = Saver(signedInAs: 42)
+        shopper.watchTheHeart(onProductId: 7)
+        await shopper.save(productId: 7)
 
-        let second = Saver(store: store, signedInAs: 2)
+        await shopper.save(productId: 99)
+        await shopper.unsave(productId: 99)
 
-        #expect(second.wishlist.isEmpty)
+        #expect(shopper.heartIsFilled[pid(7)] == true)
     }
 }
 
 @MainActor
-final class Saver {
-    private let sessions: CurrentValueSubject<Session, Never>
-    private let di: WishlistDI
-    private var cancellables = Set<AnyCancellable>()
-    private(set) var wishlist = Wishlist()
+@Suite("A wishlist belongs to somebody")
+/// Requiring an account is a business rule, so it is met here as a shopper meets it — as an answer
+/// from the operation they attempted, not as a check they had to remember to make first.
+struct AWishlistBelongsToSomebodyTests {
+    @Test("A guest is asked to sign in rather than quietly saving nothing")
+    func guestIsAskedToSignIn() async {
+        let shopper = Saver()
 
-    init(store: WishlistStore = InMemoryWishlistStore(), signedInAs userId: Int? = nil) {
-        let session: Session = userId.map {
-            .authenticated(
-                User(
-                    id: UserID(rawValue: $0),
-                    email: Email("shopper@example.com"),
-                    name: PersonName(first: "Ada", last: nil)
-                )
-            )
-        } ?? .guest
-        self.sessions = CurrentValueSubject(session)
-        self.di = WishlistDI(
-            getSession: StubGetSession(sessions: sessions),
-            observeSession: StubObserveSession(sessions: sessions),
-            store: store
-        )
+        let outcome = await shopper.save(productId: 1)
 
-        di.observeWishlistUseCase()
-            .sink { [weak self] in self?.wishlist = $0 }
-            .store(in: &cancellables)
+        #expect(outcome.failure == .unauthenticated)
+        #expect(shopper.wishlist.isEmpty)
     }
 
-    @discardableResult
-    func save(productId: ProductID) async -> Result<Void, WishlistError> {
-        await di.addProductToWishlistUseCase(productId: productId)
+    @Test("A guest cannot unsave either — there is no list of theirs to change")
+    func guestCannotUnsave() async {
+        let shopper = Saver()
+
+        #expect(await shopper.unsave(productId: 1).failure == .unauthenticated)
     }
 
-    @discardableResult
-    func unsave(productId: ProductID) async -> Result<Void, WishlistError> {
-        await di.removeProductFromWishlistUseCase(productId: productId)
-    }
-}
+    @Test("Signing in after being asked, the shopper can save what they were after")
+    func signingInThenSaving() async {
+        let shopper = Saver()
+        #expect(await shopper.save(productId: 1).failure == .unauthenticated)
 
-private struct StubGetSession: GetSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
+        shopper.signIn(asUserId: 42)
 
-    @MainActor
-    func callAsFunction() -> Session { sessions.value }
-}
-
-private struct StubObserveSession: ObserveSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    @MainActor
-    func callAsFunction() -> AnyPublisher<Session, Never> { sessions.eraseToAnyPublisher() }
-}
-
-final class InMemoryWishlistStore: WishlistStore, @unchecked Sendable {
-    private let lock = NSLock()
-    private var lists: [UserID?: [WishlistItem]]
-
-    init(seeded: [UserID?: [WishlistItem]] = [:]) {
-        self.lists = seeded
+        #expect(await shopper.save(productId: 1).failure == nil)
+        #expect(shopper.wishlist.items.map(\.id) == [pid(1)])
     }
 
-    func getItems(for owner: UserID?) -> [WishlistItem] {
-        lock.withLock { lists[owner] ?? [] }
+    @Test("A shopper's saved products are still there when they come back")
+    func listSurvivesLeaving() async {
+        let shopper = Saver(signedInAs: 42)
+        await shopper.save(productId: 1)
+        await shopper.save(productId: 2)
+
+        let returning = await shopper.leaveAndComeBack()
+
+        #expect(returning.wishlist.items.map(\.id) == [pid(2), pid(1)])
     }
 
-    func setItems(_ items: [WishlistItem], for owner: UserID?) async {
-        lock.withLock { lists[owner] = items }
+    @Test("Two shoppers do not see each other's saved products")
+    func listsAreNotShared() async {
+        let shopper = Saver(signedInAs: 1)
+        await shopper.save(productId: 7)
+        await shopper.writesToSettle()
+
+        shopper.signIn(asUserId: 2)
+
+        #expect(shopper.wishlist.isEmpty)
+
+        shopper.signIn(asUserId: 1)
+        #expect(shopper.wishlist.items.map(\.id) == [pid(7)])
     }
-}
 
-private extension Result where Success == Void, Failure: Equatable {
-    var isSuccess: Bool { if case .success = self { true } else { false } }
-    var failure: Failure? { if case .failure(let error) = self { error } else { nil } }
-}
+    @Test("Signing out leaves nothing of the shopper's list on screen")
+    func signingOutClearsTheList() async {
+        let shopper = Saver(signedInAs: 42)
+        await shopper.save(productId: 1)
+        await shopper.writesToSettle()
 
-// MARK: - Fixtures
+        shopper.signOut()
 
-func pid(_ value: Int) -> ProductID {
-    ProductID(rawValue: value)
+        #expect(shopper.wishlist.isEmpty)
+    }
 }

@@ -52,7 +52,7 @@ let package = Package(
             path: "Sources/DI"
         ),
         .testTarget(
-            name: "BagUITests",
+            name: "BagUIAcceptanceTests",
             dependencies: [
                 "BagUI",
                 .product(name: "Bag", package: "Bag"),
@@ -60,7 +60,7 @@ let package = Package(
                 .product(name: "Money", package: "Money"),
                 .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
-            path: "Tests/BagUITests"
+            path: "Tests/BagUIAcceptanceTests"
         )
     ]
 )

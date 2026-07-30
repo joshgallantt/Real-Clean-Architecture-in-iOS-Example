@@ -15,9 +15,9 @@ final class FakeShop: BagRepository {
     private let catalogLock = NSLock()
     private let bagSubject: CurrentValueSubject<Bag, Never>
     private let changesSubject: CurrentValueSubject<BagChanges, Never>
-    private var _lookups: [[ProductID]] = []
-    private var _shownSnackbars: [Snackbar] = []
-    private var _catalog: [Product]
+    private nonisolated(unsafe) var _lookups: [[ProductID]] = []
+    private nonisolated(unsafe) var _shownSnackbars: [Snackbar] = []
+    private nonisolated(unsafe) var _catalog: [Product]
 
     nonisolated var lookups: [[ProductID]] { catalogLock.withLock { _lookups } }
     nonisolated var shownSnackbars: [Snackbar] { catalogLock.withLock { _shownSnackbars } }

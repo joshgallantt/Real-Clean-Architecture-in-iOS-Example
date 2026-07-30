@@ -25,9 +25,9 @@ struct BagDTO: Codable, Sendable {
 /// Fowler, *PoEAA* (2002) — Data Transfer Object: the serialisation shape, kept out of the domain.
 /// It maps at the boundary, so a wire format change stops here.
 ///
-/// Fowler — Special Case: a payload naming a kind this build no longer has decodes to nothing
-/// rather than failing the whole bag. Losing a notice is a small harm; losing the shopper's bag is
-/// not.
+/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: a payload naming a kind
+/// this build no longer has stops at the boundary rather than failing the whole bag. Losing a
+/// notice is a small harm; losing the shopper's bag is not.
 struct BagChangeDTO: Codable, Sendable {
     enum Kind: String, Codable, Sendable {
         case priceWentUp
@@ -36,7 +36,10 @@ struct BagChangeDTO: Codable, Sendable {
         case noLongerAvailable
     }
 
-    let kind: Kind
+    /// Held as its raw form, not as `Kind`. Decoding straight into the enum throws on a kind this
+    /// build does not have, and one throw anywhere in the payload costs the shopper their whole
+    /// bag. Read as a string, an unrecognised notice is simply a notice that cannot be shown.
+    let kind: String
     let productId: Int
     let fromMinorUnits: Int?
     let toMinorUnits: Int?
@@ -48,25 +51,25 @@ struct BagChangeDTO: Codable, Sendable {
 
         switch change {
         case .priceWentUp(_, let from, let to):
-            self.kind = .priceWentUp
+            self.kind = Kind.priceWentUp.rawValue
             self.fromMinorUnits = from.minorUnits
             self.toMinorUnits = to.minorUnits
             self.currencyCode = to.currency.code
             self.available = nil
         case .priceWentDown(_, let from, let to):
-            self.kind = .priceWentDown
+            self.kind = Kind.priceWentDown.rawValue
             self.fromMinorUnits = from.minorUnits
             self.toMinorUnits = to.minorUnits
             self.currencyCode = to.currency.code
             self.available = nil
         case .onlySomeLeft(_, let available):
-            self.kind = .onlySomeLeft
+            self.kind = Kind.onlySomeLeft.rawValue
             self.fromMinorUnits = nil
             self.toMinorUnits = nil
             self.currencyCode = nil
             self.available = available
         case .noLongerAvailable:
-            self.kind = .noLongerAvailable
+            self.kind = Kind.noLongerAvailable.rawValue
             self.fromMinorUnits = nil
             self.toMinorUnits = nil
             self.currencyCode = nil
@@ -77,7 +80,9 @@ struct BagChangeDTO: Codable, Sendable {
     func toDomain() -> BagChange? {
         let id = ProductID(rawValue: productId)
 
-        switch kind {
+        switch Kind(rawValue: kind) {
+        case .none:
+            return nil
         case .priceWentUp:
             guard let prices = priceMove() else { return nil }
             return .priceWentUp(productId: id, from: prices.from, to: prices.to)

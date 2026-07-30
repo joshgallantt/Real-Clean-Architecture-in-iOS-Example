@@ -7,7 +7,8 @@ import Product
 public protocol RecordSearchUseCase: Sendable {
     /// Evans, *Domain-Driven Design* (2003) — Value Objects: takes a `SearchTerm`, so there is no
     /// blank-or-not decision left for a caller to make differently.
-    func callAsFunction(_ term: SearchTerm) async
+    @MainActor
+    func callAsFunction(_ term: SearchTerm)
 }
 
 public struct DefaultRecordSearchUseCase: RecordSearchUseCase {
@@ -17,7 +18,8 @@ public struct DefaultRecordSearchUseCase: RecordSearchUseCase {
         self.repository = repository
     }
 
-    public func callAsFunction(_ term: SearchTerm) async {
-        await repository.save(await repository.history().recording(term))
+    @MainActor
+    public func callAsFunction(_ term: SearchTerm) {
+        repository.save(repository.history().recording(term))
     }
 }

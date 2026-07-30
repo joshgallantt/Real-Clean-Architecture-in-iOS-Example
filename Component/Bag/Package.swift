@@ -30,7 +30,6 @@ let package = Package(
             name: "Bag",
             dependencies: [
                 .product(name: "Product", package: "Product"),
-                .product(name: "Session", package: "Session"),
                 .product(name: "Money", package: "Money")
             ],
             path: "Sources",
@@ -59,28 +58,10 @@ let package = Package(
             path: "Sources/DI"
         ),
         .testTarget(
-            name: "BagTests",
-            dependencies: [
-                "Bag",
-                .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money")
-            ],
-            path: "Tests/BagTests"
-        ),
-        .testTarget(
-            name: "BagDataTests",
-            dependencies: [
-                "BagData",
-                .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money"),
-                .product(name: "Session", package: "Session")
-            ],
-            path: "Tests/BagDataTests"
-        ),
-        .testTarget(
             name: "BagAcceptanceTests",
             dependencies: [
                 "BagDI",
+                "BagData",
                 .product(name: "Session", package: "Session"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money")

@@ -7,9 +7,8 @@ import Product
 /// no line with none of it, newest first. A bag cannot be in those states because building one out
 /// of them produces a bag that isn't.
 ///
-/// Evans — Side-Effect-Free Functions: every change returns a new `Bag`. Martin, *Clean
-/// Architecture* (2017), Ch. 6 — Functional Programming: immutability removes the states a mutable
-/// aggregate has to defend.
+/// Evans — Side-Effect-Free Functions: every change returns a new `Bag`, so the invariants are
+/// re-established by the initialiser on every path rather than defended after the fact.
 public struct Bag: Equatable, Sendable {
     public let items: [BagItem]
 

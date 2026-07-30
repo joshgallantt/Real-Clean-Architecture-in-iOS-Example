@@ -1,5 +1,3 @@
-import Foundation
-
 /// Evans, *Domain-Driven Design* (2003) — Value Objects.
 ///
 /// Evans — Assertions: the rule is stated once, on the thing it is about. Deliberately lenient and
@@ -13,10 +11,9 @@ public struct Email: Equatable, Sendable {
     }
 
     public var isValid: Bool {
-        let trimmed = value.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard trimmed == value, !trimmed.isEmpty else { return false }
+        guard !value.isEmpty, !value.contains(where: \.isWhitespace) else { return false }
 
-        let parts = trimmed.split(separator: "@", omittingEmptySubsequences: false)
+        let parts = value.split(separator: "@", omittingEmptySubsequences: false)
         guard parts.count == 2 else { return false }
 
         let local = parts[0]

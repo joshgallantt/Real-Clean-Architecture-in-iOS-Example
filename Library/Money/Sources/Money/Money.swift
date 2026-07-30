@@ -60,7 +60,8 @@ extension Money: Comparable {
     }
 }
 
-/// Evans, *Domain-Driven Design* (2003) — Closure of Operations.
+/// Fowler, *PoEAA* (2002) — Money: nothing at all for an empty sequence, because there is no
+/// currency in it to name an amount in.
 extension Sequence where Element == Money {
     public func total() -> Money? {
         reduce(nil) { running, next in
