@@ -3,7 +3,6 @@ import Foundation
 import Bag
 import Money
 import Product
-import SnackbarUI
 @testable import BagUI
 
 @MainActor
@@ -17,11 +16,9 @@ final class FakeShop: BagRepository {
     private let bagSubject: CurrentValueSubject<Bag, Never>
     private let changesSubject: CurrentValueSubject<BagChanges, Never>
     private nonisolated(unsafe) var _lookups: [[ProductID]] = []
-    private nonisolated(unsafe) var _shownSnackbars: [Snackbar] = []
     private nonisolated(unsafe) var _catalog: [Product]
 
     nonisolated var lookups: [[ProductID]] { catalogLock.withLock { _lookups } }
-    nonisolated var shownSnackbars: [Snackbar] { catalogLock.withLock { _shownSnackbars } }
     var currentBag: Bag { bagSubject.value }
     var currentChanges: BagChanges { changesSubject.value }
 
@@ -50,8 +47,6 @@ final class FakeShop: BagRepository {
 
     nonisolated var lookUpProducts: LookUpProductsUseCase { Lookup(shop: self) }
 
-    var snackbar: SnackbarPresenting { Presenter(shop: self) }
-
     func choose(_ item: BagItem) {
         addItemToBag(item)
     }
@@ -77,21 +72,11 @@ final class FakeShop: BagRepository {
         }
     }
 
-    nonisolated fileprivate func record(_ snackbar: Snackbar) {
-        catalogLock.withLock { _shownSnackbars.append(snackbar) }
-    }
-
     private struct Lookup: LookUpProductsUseCase {
         let shop: FakeShop
         func callAsFunction(ids: [ProductID]) async -> Result<[Product], ProductError> {
             .success(shop.lookUp(ids))
         }
-    }
-
-    private final class Presenter: SnackbarPresenting {
-        let shop: FakeShop
-        init(shop: FakeShop) { self.shop = shop }
-        func show(_ snackbar: Snackbar) { shop.record(snackbar) }
     }
 }
 
