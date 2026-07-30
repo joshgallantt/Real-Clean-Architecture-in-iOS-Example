@@ -2,6 +2,13 @@ import Foundation
 import Money
 import Product
 
+/// Martin, *Clean Architecture* (2017), Ch. 9 — Liskov Substitution Principle: decorators standing
+/// in for the real use cases. Nothing below the app layer knows a demo is possible — `Component/Bag`
+/// sees ordinary catalog answers and reacts exactly as it would in production.
+///
+/// Deterministic, so a demo can be repeated and a screenshot reproduced: every third product costs
+/// more, every third costs less, every fifth has sold out and every tenth is gone for good — enough
+/// overlap that some lines report two changes at once.
 enum DemoCatalogMischief {
     nonisolated static func meddle(with product: Product) -> Product {
         let price = switch product.id.rawValue % 3 {
@@ -35,6 +42,7 @@ enum DemoCatalogMischief {
 
 // MARK: - Decorators
 
+/// Martin, Ch. 9 — Liskov Substitution Principle.
 struct DemoBrowseCatalogUseCase: BrowseCatalogUseCase {
     let wrapped: BrowseCatalogUseCase
 
@@ -43,6 +51,7 @@ struct DemoBrowseCatalogUseCase: BrowseCatalogUseCase {
     }
 }
 
+/// Martin, Ch. 9 — Liskov Substitution Principle.
 struct DemoLookUpProductsUseCase: LookUpProductsUseCase {
     let wrapped: LookUpProductsUseCase
 
@@ -51,6 +60,7 @@ struct DemoLookUpProductsUseCase: LookUpProductsUseCase {
     }
 }
 
+/// Martin, Ch. 9 — Liskov Substitution Principle.
 struct DemoViewProductUseCase: ViewProductUseCase {
     let wrapped: ViewProductUseCase
 

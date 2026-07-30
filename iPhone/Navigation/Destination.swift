@@ -31,11 +31,11 @@ public enum Destination: Hashable {
     func makeView() -> some View {
         switch self {
         case .catalog(let filter):
-            Injector.shared.searchUIDI.catalogResultsView(filter: filter)
+            CompositionRoot.shared.searchUIDI.catalogResultsView(filter: filter)
         case .productDetails(.id(let id)):
-            Injector.shared.productUIDI.detailView(id: id)
+            CompositionRoot.shared.productUIDI.detailView(id: id)
         case .productDetails(.product(let product)):
-            Injector.shared.productUIDI.detailView(product: product)
+            CompositionRoot.shared.productUIDI.detailView(product: product)
         }
     }
 }
