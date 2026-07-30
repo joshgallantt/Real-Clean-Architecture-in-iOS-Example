@@ -239,6 +239,16 @@ public struct BagScreenView: View {
         }
     }
 
+    /// The line opens the product, and everything left of the stepper is the line. The picture, the
+    /// name, the price and the space after them are one target, so a shopper aiming at a row does
+    /// not have to hit the words.
+    ///
+    /// `contentShape` is what makes the space count. A `Spacer` draws nothing and so is hit-tested
+    /// as nothing; without a shape to stand in for it the gap between the name and the stepper — the
+    /// widest part of the row on a short product name — quietly did nothing when tapped.
+    ///
+    /// The stepper stays outside the button. Changing how many you want is not opening the product,
+    /// and the two would fight over the same tap.
     private func bagRow(_ row: BagRow) -> some View {
         HStack(spacing: 12) {
             Button {
@@ -264,11 +274,12 @@ public struct BagScreenView: View {
                                 .monospacedDigit()
                         }
                     }
+
+                    Spacer(minLength: 0)
                 }
+                .contentShape(Rectangle())
             }
             .buttonStyle(.plain)
-
-            Spacer(minLength: 0)
 
             Stepper(
                 value: Binding(
