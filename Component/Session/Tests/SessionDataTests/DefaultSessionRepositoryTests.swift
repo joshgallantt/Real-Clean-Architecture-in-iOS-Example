@@ -17,18 +17,18 @@ struct DefaultSessionRepositoryTests {
         let client = StubAuthClient()
         let repository = DefaultSessionRepository(sessionStore: store, authClient: client)
 
-        _ = await repository.login(email: "shopper@example.com", password: "hunter2!!")
+        _ = await repository.login(email: Email("shopper@example.com"), password: Password("hunter2!!"))
 
-        #expect(store.session.user?.email == "shopper@example.com")
+        #expect(store.session.user?.email == Email("shopper@example.com"))
         #expect(store.authToken?.value == "token")
     }
 
     @Test("A refusal is translated into the domain's word for it, and nothing is kept",
           arguments: [
             (AuthClientError.invalidCredentials, LoginError.invalidCredentials),
-            (.networkFailure, .unknown),
-            (.emailAlreadyInUse, .unknown),
-            (.unknown, .unknown)
+            (.networkFailure, .unavailable),
+            (.emailAlreadyInUse, .unavailable),
+            (.unknown, .unavailable)
           ])
     func translatesLoginFailures(from clientError: AuthClientError, to expected: LoginError) async {
         let store = RecordingSessionStore()
@@ -36,13 +36,13 @@ struct DefaultSessionRepositoryTests {
         client.loginResult = .failure(clientError)
         let repository = DefaultSessionRepository(sessionStore: store, authClient: client)
 
-        let result = await repository.login(email: "shopper@example.com", password: "hunter2!!")
+        let result = await repository.login(email: Email("shopper@example.com"), password: Password("hunter2!!"))
 
         #expect(result.failure == expected)
         #expect(store.session == .guest)
     }
 
-    @Test("Signing up with an address already in use is said plainly, not as an unknown error")
+    @Test("Signing up with an address already in use is said plainly, not as the shop being unavailable")
     func translatesCreateAccountFailures() async {
         let store = RecordingSessionStore()
         let client = StubAuthClient()
@@ -50,13 +50,15 @@ struct DefaultSessionRepositoryTests {
         let repository = DefaultSessionRepository(sessionStore: store, authClient: client)
 
         let result = await repository.createAccount(
-            firstName: "Ada", lastName: "", email: "ada@example.com", password: "hunter2!!"
+            name: PersonName(first: "Ada", last: nil),
+            email: Email("ada@example.com"),
+            password: Password("hunter2!!")
         )
 
         #expect(result.failure == .emailAlreadyInUse)
     }
 
-    @Test("Every other sign-up refusal is an unknown error rather than a wrong one",
+    @Test("Every other sign-up refusal is the shop being unavailable rather than a wrong answer",
           arguments: [AuthClientError.invalidCredentials, .networkFailure, .unknown])
     func otherCreateAccountFailures(from clientError: AuthClientError) async {
         let store = RecordingSessionStore()
@@ -65,10 +67,12 @@ struct DefaultSessionRepositoryTests {
         let repository = DefaultSessionRepository(sessionStore: store, authClient: client)
 
         let result = await repository.createAccount(
-            firstName: "Ada", lastName: "", email: "ada@example.com", password: "hunter2!!"
+            name: PersonName(first: "Ada", last: nil),
+            email: Email("ada@example.com"),
+            password: Password("hunter2!!")
         )
 
-        #expect(result.failure == .unknown)
+        #expect(result.failure == .unavailable)
     }
 
     @Test("Signing out clears the session even when the auth system will not answer")
@@ -77,7 +81,7 @@ struct DefaultSessionRepositoryTests {
         let client = StubAuthClient()
         client.logoutResult = .failure(.networkFailure)
         let repository = DefaultSessionRepository(sessionStore: store, authClient: client)
-        await repository.login(email: "shopper@example.com", password: "hunter2!!")
+        await repository.login(email: Email("shopper@example.com"), password: Password("hunter2!!"))
 
         await repository.logout()
 
@@ -132,15 +136,14 @@ private final class StubAuthClient: AuthClient, @unchecked Sendable {
         set { lock.withLock { _logoutResult = newValue } }
     }
 
-    func login(email: String, password: String) async -> Result<(User, AuthToken), AuthClientError> {
+    func login(email: Email, password: Password) async -> Result<(User, AuthToken), AuthClientError> {
         loginResult
     }
 
     func createAccount(
-        firstName: String,
-        lastName: String,
-        email: String,
-        password: String
+        name: PersonName,
+        email: Email,
+        password: Password
     ) async -> Result<(User, AuthToken), AuthClientError> {
         createAccountResult
     }
@@ -150,7 +153,11 @@ private final class StubAuthClient: AuthClient, @unchecked Sendable {
 
 private extension User {
     static func fixture() -> User {
-        User(id: 1, email: "shopper@example.com", firstName: "Ada", lastName: "Lovelace")
+        User(
+            id: UserID(rawValue: 1),
+            email: Email("shopper@example.com"),
+            name: PersonName(first: "Ada", last: "Lovelace")
+        )
     }
 }
 

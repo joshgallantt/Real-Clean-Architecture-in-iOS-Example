@@ -3,12 +3,12 @@ import Product
 
 public struct SearchingView: View {
     @ObservedObject var viewModel: SearchingViewModel
-    let onSelectHistory: (String) -> Void
+    let onSelectHistory: (SearchTerm) -> Void
     let onSelectSuggestion: (Product) -> Void
 
     public init(
         viewModel: SearchingViewModel,
-        onSelectHistory: @escaping (String) -> Void,
+        onSelectHistory: @escaping (SearchTerm) -> Void,
         onSelectSuggestion: @escaping (Product) -> Void
     ) {
         self.viewModel = viewModel
@@ -20,11 +20,11 @@ public struct SearchingView: View {
         List {
             if viewModel.suggestions.isEmpty {
                 Section("Recent Searches") {
-                    ForEach(viewModel.history.queries, id: \.self) { query in
+                    ForEach(viewModel.history.terms, id: \.text) { term in
                         Button {
-                            onSelectHistory(query)
+                            onSelectHistory(term)
                         } label: {
-                            Label(query, systemImage: "clock")
+                            Label(term.text, systemImage: "clock")
                         }
                     }
                     if !viewModel.history.isEmpty {

@@ -1,9 +1,10 @@
+import Product
 import Session
 
 public protocol AddProductToWishlistUseCase: Sendable {
     @MainActor
     @discardableResult
-    func callAsFunction(productId: Int) async -> Result<Void, WishlistError>
+    func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError>
 }
 
 public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
@@ -19,11 +20,11 @@ public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
     /// it needs the session — so the rule lives here rather than on the list.
     @MainActor
     @discardableResult
-    public func callAsFunction(productId: Int) async -> Result<Void, WishlistError> {
+    public func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError> {
         guard getSession().isLoggedIn else {
             return .failure(.unauthenticated)
         }
-        repository.save(repository.wishlist.adding(WishlistItem(id: productId)))
+        repository.save(repository.wishlist.adding(WishlistItem(productId: productId)))
         return .success(())
     }
 }

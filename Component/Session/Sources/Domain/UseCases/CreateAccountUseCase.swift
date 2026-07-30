@@ -1,11 +1,8 @@
-import Foundation
-
 public protocol CreateAccountUseCase: Sendable {
     func callAsFunction(
-        firstName: String,
-        lastName: String,
-        email: String,
-        password: String
+        name: PersonName,
+        email: Email,
+        password: Password
     ) async -> Result<Void, CreateAccountError>
 }
 
@@ -16,23 +13,19 @@ public struct DefaultCreateAccountUseCase: CreateAccountUseCase {
         self.sessionRepository = sessionRepository
     }
 
+    /// Checks what can be checked here before troubling the shop with it. Each rule is
+    /// asked of the thing that owns it — the name says whether it is a name, the address
+    /// whether it is an address — so this decides only the order to ask in, and there is no
+    /// half of a rule left here to forget.
     public func callAsFunction(
-        firstName: String,
-        lastName: String,
-        email: String,
-        password: String
+        name: PersonName,
+        email: Email,
+        password: Password
     ) async -> Result<Void, CreateAccountError> {
-        guard !firstName.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
-            return .failure(.nameIsMissing)
-        }
-        guard Email(email).isValid else { return .failure(.invalidEmail) }
-        guard Password(password).isValid else { return .failure(.invalidPassword) }
+        guard name.isValid else { return .failure(.nameIsMissing) }
+        guard email.isValid else { return .failure(.invalidEmail) }
+        guard password.isValid else { return .failure(.invalidPassword) }
 
-        return await sessionRepository.createAccount(
-            firstName: firstName,
-            lastName: lastName,
-            email: email,
-            password: password
-        )
+        return await sessionRepository.createAccount(name: name, email: email, password: password)
     }
 }

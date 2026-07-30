@@ -47,7 +47,7 @@ public struct ProductCardView: View {
                 .foregroundStyle(.secondary)
                 .lineLimit(1)
 
-            Text(product.price, format: .currency(code: "USD"))
+            Text(product.price.formatted())
                 .font(.subheadline)
         }
     }

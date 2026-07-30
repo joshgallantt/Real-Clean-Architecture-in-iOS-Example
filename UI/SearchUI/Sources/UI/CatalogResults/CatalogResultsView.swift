@@ -5,13 +5,13 @@ import ProductUI
 public struct CatalogResultsView: View {
     @StateObject private var viewModel: CatalogResultsViewModel
     let navigation: SearchNavigation
-    let wishlistButton: (Int) -> AnyView
+    let wishlistButton: (ProductID) -> AnyView
     let bagButton: (Product) -> AnyView
 
     public init(
         viewModel: @autoclosure @escaping () -> CatalogResultsViewModel,
         navigation: SearchNavigation,
-        wishlistButton: @escaping (Int) -> AnyView,
+        wishlistButton: @escaping (ProductID) -> AnyView,
         bagButton: @escaping (Product) -> AnyView
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel())

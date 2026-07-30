@@ -1,4 +1,5 @@
 import Testing
+import Money
 import Product
 
 /// A handful of journeys, run over a fake shop with the whole product stack behind
@@ -67,7 +68,7 @@ struct ShoppingTheCatalogTests {
         let product = await shop.open(productId: 5)
 
         #expect(product.success?.title == "Calvin Klein CK One")
-        #expect(product.success?.price == 49.99)
+        #expect(product.success?.price == Money(amount: 49.99, currency: .usd))
     }
 
     @Test("A shopper returns to a screen that remembered ids and gets the products back, in order")
@@ -83,12 +84,29 @@ struct ShoppingTheCatalogTests {
         ])
     }
 
+    @Test("A shopper sees what the shop can and cannot supply, and which absences are permanent")
+    func seesWhatIsAvailable() async throws {
+        let shop = Shop(catalog: FakeCatalog(items: [
+            CatalogItem(id: 1, title: "In Stock", category: "beauty", stock: 4),
+            CatalogItem(id: 2, title: "Back Soon", category: "beauty", stock: 0),
+            CatalogItem(id: 3, title: "Gone For Good", category: "beauty", stock: 0, willRestock: false)
+        ]))
+
+        let products = try #require(await shop.browse().success)
+
+        #expect(products.map(\.availability) == [
+            .inStock(remaining: 4),
+            .outOfStock,
+            .discontinued
+        ])
+    }
+
     @Test("A shopper who cannot reach the shop is told, rather than shown an empty catalog")
     func cannotReachTheShop() async {
         let shop = Shop()
         shop.catalog.goOffline()
 
-        #expect(await shop.browse() == .failure(.networkFailure))
+        #expect(await shop.browse() == .failure(.unavailable))
     }
 
     @Test("A shopper who goes offline mid-session sees the failure on their next action, not stale results")
@@ -100,6 +118,6 @@ struct ShoppingTheCatalogTests {
         let afterLosingSignal = await shop.browse(page: 1, pageSize: 3)
 
         #expect(beforeLosingSignal.success?.count == 3)
-        #expect(afterLosingSignal == .failure(.networkFailure))
+        #expect(afterLosingSignal == .failure(.unavailable))
     }
 }

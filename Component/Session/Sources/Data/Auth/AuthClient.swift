@@ -1,10 +1,3 @@
-//
-//  AuthClient.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 17/07/2025.
-//
-
 import Foundation
 import Session
 
@@ -16,12 +9,11 @@ public enum AuthClientError: Error, Equatable {
 }
 
 public protocol AuthClient: Sendable {
-    func login(email: String, password: String) async -> Result<(User, AuthToken), AuthClientError>
+    func login(email: Email, password: Password) async -> Result<(User, AuthToken), AuthClientError>
     func createAccount(
-        firstName: String,
-        lastName: String,
-        email: String,
-        password: String
+        name: PersonName,
+        email: Email,
+        password: Password
     ) async -> Result<(User, AuthToken), AuthClientError>
     func logout() async -> Result<Void, AuthClientError>
 }

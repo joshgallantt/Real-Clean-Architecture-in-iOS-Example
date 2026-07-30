@@ -21,10 +21,15 @@ public struct BagDI {
         observeSession: ObserveSessionUseCase,
         store: BagStore = FileBagStore()
     ) {
+        // Turning a session into an owner is `BagOwner`'s job, and happens here once. What
+        // the repository is handed is who the bag belongs to, never a session.
         let repository = DefaultBagRepository(
             store: store,
-            userKey: Self.userKey(for: getSession()),
-            userKeyPublisher: observeSession().map(Self.userKey(for:)).eraseToAnyPublisher()
+            owner: BagOwner(getSession()),
+            ownerPublisher: observeSession()
+                .map(BagOwner.init)
+                .removeDuplicates()
+                .eraseToAnyPublisher()
         )
         self.repository = repository
 
@@ -35,9 +40,5 @@ public struct BagDI {
         self.setBagItemQuantityUseCase = DefaultSetBagItemQuantityUseCase(repository: repository)
         self.bringBagUpToDateUseCase = DefaultBringBagUpToDateUseCase(repository: repository)
         self.acknowledgeBagChangeUseCase = DefaultAcknowledgeBagChangeUseCase(repository: repository)
-    }
-
-    private static func userKey(for session: Session) -> String {
-        session.user.map { String($0.id) } ?? "guest"
     }
 }

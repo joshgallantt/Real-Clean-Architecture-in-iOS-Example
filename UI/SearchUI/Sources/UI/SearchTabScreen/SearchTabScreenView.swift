@@ -33,9 +33,12 @@ public struct SearchTabScreenView: View {
             if viewModel.isSearchActive {
                 SearchingView(
                     viewModel: searchingViewModel,
-                    onSelectHistory: { query in
-                        viewModel.query = query
-                        commitSearch(query)
+                    onSelectHistory: { term in
+                        // Already a search — it was one when it was remembered.
+                        viewModel.query = term.text
+                        isFocused = false
+                        viewModel.didSubmitSearch(term)
+                        navigation.openCatalog(filter: .search(term))
                     },
                     onSelectSuggestion: { product in
                         isFocused = false
@@ -64,11 +67,13 @@ public struct SearchTabScreenView: View {
         }
     }
 
-    private func commitSearch(_ query: String) {
-        let trimmed = query.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty else { return }
+    /// Whether what the shopper typed is a search, and what it amounts to once it is, are
+    /// `SearchTerm`'s to answer. This screen no longer trims or checks for blank — doing so
+    /// here is how the recorded search and the search that was actually run came to disagree.
+    private func commitSearch(_ typed: String) {
+        guard let term = SearchTerm(typed) else { return }
         isFocused = false
-        viewModel.didSubmitSearch(trimmed)
-        navigation.openCatalog(filter: .search(trimmed))
+        viewModel.didSubmitSearch(term)
+        navigation.openCatalog(filter: .search(term))
     }
 }

@@ -18,15 +18,20 @@ public struct WishlistDI {
         observeSession: ObserveSessionUseCase,
         store: WishlistStore = FileWishlistStore()
     ) {
+        // A wishlist belongs to a signed-in shopper, so who owns one is a `UserID` or
+        // nobody at all. Turning a session into that happens here once.
         let repository = DefaultWishlistRepository(
             store: store,
-            userKey: Self.userKey(for: getSession()),
-            userKeyPublisher: observeSession().map(Self.userKey(for:)).eraseToAnyPublisher()
+            owner: Self.owner(for: getSession()),
+            ownerPublisher: observeSession()
+                .map(Self.owner(for:))
+                .removeDuplicates()
+                .eraseToAnyPublisher()
         )
         self.repository = repository
 
         self.observeWishlistUseCase = DefaultObserveWishlistUseCase(repository: repository)
-        self.observeProductIsWishlistedUseCase = DefaultObserveObserveProductIsWishlistedUseCase(repository: repository)
+        self.observeProductIsWishlistedUseCase = DefaultObserveProductIsWishlistedUseCase(repository: repository)
         self.addProductToWishlistUseCase = DefaultAddProductToWishlistUseCase(
             repository: repository,
             getSession: getSession
@@ -37,7 +42,17 @@ public struct WishlistDI {
         )
     }
 
-    private static func userKey(for session: Session) -> String {
-        session.user.map { String($0.id) } ?? "guest"
+    /// Exhaustive over `Session` rather than reading `session.user`, so a new kind of session
+    /// has to be a decision about whose wishlist is live instead of quietly becoming nobody's.
+    ///
+    /// `nil` is not a guest with an empty list — it is the absence of a list. A guest cannot
+    /// save anything, so there is nothing for one to own.
+    private static func owner(for session: Session) -> UserID? {
+        switch session {
+        case .guest:
+            nil
+        case .authenticated(let user):
+            user.id
+        }
     }
 }

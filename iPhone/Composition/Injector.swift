@@ -1,10 +1,3 @@
-//
-//  Injector.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 14/07/2025.
-//
-
 import SwiftUI
 import HomeUIDI
 import SearchUIDI
@@ -22,8 +15,8 @@ import SessionData
 import Product
 import ProductDI
 import ProductData
-import SearchDI
-import SearchData
+import SearchHistoryDI
+import SearchHistoryData
 import WishlistDI
 import BagDI
 import Networking
@@ -35,7 +28,7 @@ final class Injector {
     // MARK: - Components
     let sessionDI: SessionDI
     let productDI: ProductDI
-    let searchDI: SearchDI
+    let searchHistoryDI: SearchHistoryDI
     let wishlistDI: WishlistDI
     let bagDI: BagDI
 
@@ -74,21 +67,21 @@ final class Injector {
         )
         productDI = ProductDI(client: DummyJSONProductClient(httpClient: URLSessionHTTPClient(session: .shared)))
 
-        let getProducts: GetProductsUseCase = productDI.getProductsUseCase
-        let getProductsByIds: GetProductsByIdsUseCase = productDI.getProductsByIdsUseCase
-        let getProduct: GetProductUseCase = productDI.getProductUseCase
+        let browseCatalog: BrowseCatalogUseCase = productDI.browseCatalogUseCase
+        let lookUpProducts: LookUpProductsUseCase = productDI.lookUpProductsUseCase
+        let viewProduct: ViewProductUseCase = productDI.viewProductUseCase
 
         // DEMO ONLY. Comment out the three lines above and uncomment these to make the
         // shop change its mind, so reopening the bag shows the Changed section. See
         // DemoCatalog.swift for the script. Never commit this switched on.
         //
-        // let getProducts: GetProductsUseCase =
-        //     DemoGetProductsUseCase(wrapped: productDI.getProductsUseCase)
-        // let getProductsByIds: GetProductsByIdsUseCase =
-        //     DemoGetProductsByIdsUseCase(wrapped: productDI.getProductsByIdsUseCase)
-        // let getProduct: GetProductUseCase =
-        //     DemoGetProductUseCase(wrapped: productDI.getProductUseCase)
-        searchDI = SearchDI(
+        // let browseCatalog: BrowseCatalogUseCase =
+        //     DemoBrowseCatalogUseCase(wrapped: productDI.browseCatalogUseCase)
+        // let lookUpProducts: LookUpProductsUseCase =
+        //     DemoLookUpProductsUseCase(wrapped: productDI.lookUpProductsUseCase)
+        // let viewProduct: ViewProductUseCase =
+        //     DemoViewProductUseCase(wrapped: productDI.viewProductUseCase)
+        searchHistoryDI = SearchHistoryDI(
             store: UserDefaultsSearchHistoryStore(defaults: .standard),
             getSession: sessionDI.getSessionUseCase
         )
@@ -137,7 +130,7 @@ final class Injector {
             observeBagItemQuantity: bagDI.observeBagItemQuantityUseCase,
             addItemToBag: bagDI.addItemToBagUseCase,
             setBagItemQuantity: bagDI.setBagItemQuantityUseCase,
-            getProductsByIds: getProductsByIds,
+            lookUpProducts: lookUpProducts,
             bringBagUpToDate: bagDI.bringBagUpToDateUseCase,
             acknowledgeBagChange: bagDI.acknowledgeBagChangeUseCase,
             snackbarPresenter: snackbarDI.presenter,
@@ -147,7 +140,7 @@ final class Injector {
         let wishlistUI = WishlistUIDI(
             navigation: navigator,
             observeWishlist: wishlistDI.observeWishlistUseCase,
-            getProductsByIds: getProductsByIds,
+            lookUpProducts: lookUpProducts,
             observeSession: sessionDI.observeSessionUseCase,
             authPresenter: authDI.presenter,
             snackbarPresenter: snackbarDI.presenter,
@@ -156,22 +149,22 @@ final class Injector {
         )
         wishlistUIDI = wishlistUI
         productUIDI = ProductUIDI(
-            getProduct: getProduct,
+            viewProduct: viewProduct,
             bagUIDI: bagUI,
             sharedUIDI: sharedUI
         )
         homeUIDI = HomeUIDI(
             navigation: navigator,
-            getProducts: getProducts,
+            browseCatalog: browseCatalog,
             snackbar: snackbarDI.presenter
         )
         searchUIDI = SearchUIDI(
             navigation: navigator,
-            getProducts: getProducts,
-            getCategories: productDI.getCategoriesUseCase,
-            getSearchHistory: searchDI.getSearchHistoryUseCase,
-            recordSearch: searchDI.recordSearchUseCase,
-            clearSearchHistory: searchDI.clearSearchHistoryUseCase,
+            browseCatalog: browseCatalog,
+            browseCategories: productDI.browseCategoriesUseCase,
+            getSearchHistory: searchHistoryDI.getSearchHistoryUseCase,
+            recordSearch: searchHistoryDI.recordSearchUseCase,
+            clearSearchHistory: searchHistoryDI.clearSearchHistoryUseCase,
             snackbarPresenter: snackbarDI.presenter,
             wishlistUIDI: wishlistUI,
             bagUIDI: bagUI

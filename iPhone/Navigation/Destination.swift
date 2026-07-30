@@ -1,10 +1,3 @@
-//
-//  Destination.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 22/12/2025.
-//
-
 import Foundation
 import SwiftUI
 import Product
@@ -22,7 +15,7 @@ public enum Destination: Hashable {
     /// Either the bare id (fetched on appear) or an already-loaded model
     /// (e.g. from a product grid, which skips the fetch entirely).
     public enum ProductReference: Hashable {
-        case id(Int)
+        case id(ProductID)
         case product(Product)
     }
 
@@ -57,7 +50,7 @@ extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNa
         open(.productDetails(.product(product)))
     }
 
-    func openProductDetails(id: Int) {
+    func openProductDetails(id: ProductID) {
         open(.productDetails(.id(id)))
     }
 

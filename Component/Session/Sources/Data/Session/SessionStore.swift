@@ -1,10 +1,3 @@
-//
-//  SessionStore.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 17/07/2025.
-//
-
 import Foundation
 import Combine
 import Session
@@ -68,7 +61,12 @@ public final class DefaultSessionStore: SessionStore {
 
     private func saveSnapshot(user: User, token: AuthToken) {
         let snapshot = SessionSnapshotDTO(
-            user: .init(id: user.id, email: user.email, firstName: user.firstName, lastName: user.lastName),
+            user: .init(
+                id: user.id.rawValue,
+                email: user.email.value,
+                firstName: user.name.first,
+                lastName: user.name.last ?? ""
+            ),
             tokenValue: token.value,
             expiresAt: token.expiresAt
         )
@@ -85,10 +83,9 @@ public final class DefaultSessionStore: SessionStore {
             return nil
         }
         let user = User(
-            id: snapshot.user.id,
-            email: snapshot.user.email,
-            firstName: snapshot.user.firstName,
-            lastName: snapshot.user.lastName
+            id: UserID(rawValue: snapshot.user.id),
+            email: Email(snapshot.user.email),
+            name: PersonName(first: snapshot.user.firstName, last: snapshot.user.lastName)
         )
         let token = AuthToken(value: snapshot.tokenValue, expiresAt: snapshot.expiresAt)
         return (user, token)

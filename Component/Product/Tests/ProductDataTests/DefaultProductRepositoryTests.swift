@@ -1,5 +1,6 @@
 import Foundation
 import Testing
+import Money
 import Networking
 import Product
 @testable import ProductData
@@ -14,6 +15,10 @@ struct DefaultProductRepositoryTests {
         let transport = StubHTTPClient()
         return (DefaultProductRepository(client: DummyJSONProductClient(httpClient: transport)), transport)
     }
+
+    private func id(_ value: Int) -> ProductID { ProductID(rawValue: value) }
+
+    private func term(_ text: String) -> SearchTerm { SearchTerm(text)! }
 
     // MARK: - Browsing the catalog
 
@@ -33,9 +38,19 @@ struct DefaultProductRepositoryTests {
         let (repository, transport) = makeRepository()
         transport.stub(path: "/products/search", query: ["q": "red dress"], returning: Self.pageJSON)
 
-        let result = await repository.getProducts(matching: .search("red dress", page: 0, pageSize: 30))
+        let result = await repository.getProducts(matching: .search(term("red dress"), page: 0, pageSize: 30))
 
         #expect(result.success?.count == 1)
+        #expect(try #require(transport.lastRequest).requestQuery["q"] == "red dress")
+    }
+
+    @Test("A search carries the words alone, with the whitespace around them already gone")
+    func searchingIsTrimmedBeforeItLeaves() async throws {
+        let (repository, transport) = makeRepository()
+        transport.stub(path: "/products/search", query: ["q": "red dress"], returning: Self.pageJSON)
+
+        _ = await repository.getProducts(matching: .search(term("  red dress  "), page: 0, pageSize: 30))
+
         #expect(try #require(transport.lastRequest).requestQuery["q"] == "red dress")
     }
 
@@ -71,20 +86,47 @@ struct DefaultProductRepositoryTests {
 
         let result = await repository.getProducts(matching: .all(page: 0, pageSize: 30))
 
-        #expect(result.success?.map(\.id) == [1])
+        #expect(result.success?.map(\.id) == [id(1)])
         #expect(result.success?.first?.category == CategoryID(rawValue: "beauty"))
     }
 
-    @Test("A catalog that says nothing about restocking is taken to mean it will")
-    func restockingIsAssumed() async {
+    // MARK: - Prices
+
+    @Test("A price becomes an exact amount in the shop's currency")
+    func priceBecomesMoney() async {
         let (repository, transport) = makeRepository()
         transport.stub(path: "/products", returning: Self.pageJSON)
 
         let result = await repository.getProducts(matching: .all(page: 0, pageSize: 30))
 
+        #expect(result.success?.first?.price == Money(minorUnits: 999, currency: .usd))
+    }
+
+    // MARK: - Availability
+
+    @Test("Stock on the wire becomes how many the shop can supply")
+    func stockBecomesAvailability() async {
+        let (repository, transport) = makeRepository()
+        transport.stub(path: "/products", returning: Self.pageJSON)
+
+        let result = await repository.getProducts(matching: .all(page: 0, pageSize: 30))
+
+        #expect(result.success?.first?.availability == .inStock(remaining: 5))
+    }
+
+    @Test("A catalog that says nothing about restocking is taken to mean it will")
+    func restockingIsAssumed() async {
+        let (repository, transport) = makeRepository()
+        transport.stub(
+            path: "/products",
+            returning: Self.pageJSON.replacingOccurrences(of: #""stock": 5"#, with: #""stock": 0"#)
+        )
+
+        let result = await repository.getProducts(matching: .all(page: 0, pageSize: 30))
+
         // DummyJSON has no such field. Assuming the optimistic answer keeps the offer to
         // wait available; assuming the other would hide it everywhere, permanently.
-        #expect(result.success?.first?.willRestock == true)
+        #expect(result.success?.first?.availability == .outOfStock)
     }
 
     @Test("A catalog that says something is gone for good is believed")
@@ -97,8 +139,7 @@ struct DefaultProductRepositoryTests {
 
         let result = await repository.getProducts(matching: .all(page: 0, pageSize: 30))
 
-        #expect(result.success?.first?.isInStock == false)
-        #expect(result.success?.first?.willRestock == false)
+        #expect(result.success?.first?.availability == .discontinued)
     }
 
     @Test("A product listed without a brand is still a product")
@@ -111,28 +152,30 @@ struct DefaultProductRepositoryTests {
         #expect(result.success?.first?.brand == "")
     }
 
-    @Test("A catalog that cannot be reached is a network failure, not an empty catalog")
+    // MARK: - When the shop does not answer
+
+    @Test("A catalog that cannot be reached is unavailable, not an empty catalog")
     func browsingWhenUnreachable() async {
         let (repository, transport) = makeRepository()
         transport.stub(path: "/products", failingWith: HTTPClientError.transport)
 
-        #expect(await repository.getProducts(matching: .all(page: 0, pageSize: 30)) == .failure(.networkFailure))
+        #expect(await repository.getProducts(matching: .all(page: 0, pageSize: 30)) == .failure(.unavailable))
     }
 
-    @Test("A catalog the app cannot read is a network failure, not a half-built page")
+    @Test("A catalog the app cannot read is unavailable, not a half-built page")
     func browsingUnreadablePayload() async {
         let (repository, transport) = makeRepository()
         transport.stub(path: "/products", returning: #"{"products": [{"id": 1}], "total": 1, "skip": 0, "limit": 30}"#)
 
-        #expect(await repository.getProducts(matching: .all(page: 0, pageSize: 30)) == .failure(.networkFailure))
+        #expect(await repository.getProducts(matching: .all(page: 0, pageSize: 30)) == .failure(.unavailable))
     }
 
-    @Test("A catalog that answers with an error is a network failure")
+    @Test("A catalog that answers with an error is unavailable")
     func browsingServerError() async {
         let (repository, transport) = makeRepository()
         transport.stub(path: "/products", failingWith: HTTPClientError.server(statusCode: 500))
 
-        #expect(await repository.getProducts(matching: .all(page: 0, pageSize: 30)) == .failure(.networkFailure))
+        #expect(await repository.getProducts(matching: .all(page: 0, pageSize: 30)) == .failure(.unavailable))
     }
 
     // MARK: - Opening one product
@@ -142,9 +185,9 @@ struct DefaultProductRepositoryTests {
         let (repository, transport) = makeRepository()
         transport.stub(path: "/products/42", returning: Self.productJSON(id: 42))
 
-        let result = await repository.getProduct(id: 42)
+        let result = await repository.getProduct(id: id(42))
 
-        #expect(result.success?.id == 42)
+        #expect(result.success?.id == id(42))
         #expect(try #require(transport.lastRequest).requestPath == "/products/42")
     }
 
@@ -153,7 +196,7 @@ struct DefaultProductRepositoryTests {
         let (repository, transport) = makeRepository()
         transport.stub(path: "/products/42", failingWith: HTTPClientError.server(statusCode: 404))
 
-        #expect(await repository.getProduct(id: 42) == .failure(.notFound))
+        #expect(await repository.getProduct(id: id(42)) == .failure(.notFound))
     }
 
     @Test("A product the app could not reach is a connection problem, not a product that is gone")
@@ -161,7 +204,7 @@ struct DefaultProductRepositoryTests {
         let (repository, transport) = makeRepository()
         transport.stub(path: "/products/42", failingWith: HTTPClientError.transport)
 
-        #expect(await repository.getProduct(id: 42) == .failure(.networkFailure))
+        #expect(await repository.getProduct(id: id(42)) == .failure(.unavailable))
     }
 
     // MARK: - Listing categories
@@ -182,15 +225,15 @@ struct DefaultProductRepositoryTests {
         #expect(try #require(transport.lastRequest).requestPath == "/products/categories")
     }
 
-    @Test("A category list with no identities to browse by is a network failure")
+    @Test("A category list with no identities to browse by is unavailable")
     func listingUnreadableCategories() async {
         let (repository, transport) = makeRepository()
         transport.stub(path: "/products/categories", returning: #"[{"name": "Beauty"}]"#)
 
-        #expect(await repository.getCategories() == .failure(.networkFailure))
+        #expect(await repository.getCategories() == .failure(.unavailable))
     }
 
-    // MARK: - Fetching a known set of ids
+    // MARK: - Looking up a known set of ids
 
     @Test("Asking for no products asks the catalog nothing")
     func emptySet() async {
@@ -203,11 +246,11 @@ struct DefaultProductRepositoryTests {
     @Test("Products come back in the order they were asked for, not the order they arrived")
     func setKeepsRequestedOrder() async {
         let (repository, transport) = makeRepository()
-        for id in [1, 2, 3] { transport.stub(path: "/products/\(id)", returning: Self.productJSON(id: id)) }
+        for value in [1, 2, 3] { transport.stub(path: "/products/\(value)", returning: Self.productJSON(id: value)) }
 
-        let result = await repository.getProducts(ids: [3, 1, 2])
+        let result = await repository.getProducts(ids: [id(3), id(1), id(2)])
 
-        #expect(result.success?.map(\.id) == [3, 1, 2])
+        #expect(result.success?.map(\.id) == [id(3), id(1), id(2)])
     }
 
     @Test("A product delisted since its id was stored drops out, and the rest survive")
@@ -217,17 +260,19 @@ struct DefaultProductRepositoryTests {
         transport.stub(path: "/products/2", failingWith: HTTPClientError.server(statusCode: 404))
         transport.stub(path: "/products/3", returning: Self.productJSON(id: 3))
 
-        let result = await repository.getProducts(ids: [1, 2, 3])
+        let result = await repository.getProducts(ids: [id(1), id(2), id(3)])
 
-        #expect(result.success?.map(\.id) == [1, 3])
+        #expect(result.success?.map(\.id) == [id(1), id(3)])
     }
 
     @Test("A set of nothing but delisted products is empty, not broken")
     func everyProductDelisted() async {
         let (repository, transport) = makeRepository()
-        for id in [1, 2] { transport.stub(path: "/products/\(id)", failingWith: HTTPClientError.server(statusCode: 404)) }
+        for value in [1, 2] {
+            transport.stub(path: "/products/\(value)", failingWith: HTTPClientError.server(statusCode: 404))
+        }
 
-        #expect(await repository.getProducts(ids: [1, 2]) == .success([]))
+        #expect(await repository.getProducts(ids: [id(1), id(2)]) == .success([]))
     }
 
     @Test("One unreachable product fails the set rather than quietly shortening it")
@@ -236,22 +281,25 @@ struct DefaultProductRepositoryTests {
         transport.stub(path: "/products/1", returning: Self.productJSON(id: 1))
         transport.stub(path: "/products/2", failingWith: HTTPClientError.transport)
 
-        #expect(await repository.getProducts(ids: [1, 2]) == .failure(.networkFailure))
+        #expect(await repository.getProducts(ids: [id(1), id(2)]) == .failure(.unavailable))
     }
 
     @Test("A set larger than one page is fetched in full, in order")
     func largeSet() async {
         let (repository, transport) = makeRepository()
-        let ids = Array(1...40)
-        for id in ids { transport.stub(path: "/products/\(id)", returning: Self.productJSON(id: id)) }
+        let values = Array(1...40)
+        for value in values { transport.stub(path: "/products/\(value)", returning: Self.productJSON(id: value)) }
 
-        let result = await repository.getProducts(ids: ids.reversed())
+        let result = await repository.getProducts(ids: values.reversed().map(id))
 
-        #expect(result.success?.map(\.id) == ids.reversed())
+        #expect(result.success?.map(\.id) == values.reversed().map(id))
     }
 }
 
 private extension DefaultProductRepositoryTests {
+    /// Carries `discountPercentage` because the real catalog does. The DTO ignores it on
+    /// purpose, and this is what proves a field the domain declines to model does not
+    /// break the parse.
     static func productJSON(id: Int = 1, brand: String = "\"Essence\"") -> String {
         """
         {

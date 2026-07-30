@@ -13,11 +13,11 @@
 		1418DDBF2E3E542300191417 /* SessionDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBE2E3E542300191417 /* SessionDI */; };
 		1418DDC12E3E542300191417 /* WishlistUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDC02E3E542300191417 /* WishlistUIDI */; };
 		2A7AD030AB0C5D47D98AE192 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = 905C6EC5E3B21525CBD02EF9 /* Networking */; };
-		5563A1BBC34EADA9E5BF613B /* SearchData in Frameworks */ = {isa = PBXBuildFile; productRef = 17E6FCA71FC7E5B3FCF60C12 /* SearchData */; };
+		5563A1BBC34EADA9E5BF613B /* SearchHistoryData in Frameworks */ = {isa = PBXBuildFile; productRef = 17E6FCA71FC7E5B3FCF60C12 /* SearchHistoryData */; };
 		6D54B0B012238C4772C7879F /* AccountUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = EDD9F67AA3E61BAD6139E5A7 /* AccountUIDI */; };
 		9D7079D16B1262239E3D4564 /* SearchUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 9A079E2873908107AF3834BC /* SearchUIDI */; };
 		BE81553773C1F601F3F14A6F /* ProductDI in Frameworks */ = {isa = PBXBuildFile; productRef = 91547A9FAB7827290BA768A3 /* ProductDI */; };
-		C8D4AC912BD3E7E1CE4D20C3 /* SearchDI in Frameworks */ = {isa = PBXBuildFile; productRef = F120951C767491840AE8B42D /* SearchDI */; };
+		C8D4AC912BD3E7E1CE4D20C3 /* SearchHistoryDI in Frameworks */ = {isa = PBXBuildFile; productRef = F120951C767491840AE8B42D /* SearchHistoryDI */; };
 		CA6CC2CC18052FD3033712E3 /* SessionData in Frameworks */ = {isa = PBXBuildFile; productRef = 06C2BFF1093558BB589FD94A /* SessionData */; };
 		F6BF47BD61ECFE742F92A22E /* ProductData in Frameworks */ = {isa = PBXBuildFile; productRef = 2C7A05B997C425E0F320291D /* ProductData */; };
 		FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000200000000000000A2 /* OnboardingUIDI */; };
@@ -30,6 +30,7 @@
 		FADE000900000000000000A1 /* SheetUI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE000900000000000000A2 /* SheetUI */; };
 		FADE001000000000000000A1 /* BagDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE001000000000000000A2 /* BagDI */; };
 		FADE001100000000000000A1 /* SharedUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE001100000000000000A2 /* SharedUIDI */; };
+		FADE002200000000000000B1 /* Money in Frameworks */ = {isa = PBXBuildFile; productRef = FADE002100000000000000B1 /* Money */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -72,11 +73,12 @@
 				BE81553773C1F601F3F14A6F /* ProductDI in Frameworks */,
 				9D7079D16B1262239E3D4564 /* SearchUIDI in Frameworks */,
 				6D54B0B012238C4772C7879F /* AccountUIDI in Frameworks */,
-				C8D4AC912BD3E7E1CE4D20C3 /* SearchDI in Frameworks */,
+				C8D4AC912BD3E7E1CE4D20C3 /* SearchHistoryDI in Frameworks */,
 				2A7AD030AB0C5D47D98AE192 /* Networking in Frameworks */,
+				FADE002200000000000000B1 /* Money in Frameworks */,
 				CA6CC2CC18052FD3033712E3 /* SessionData in Frameworks */,
 				F6BF47BD61ECFE742F92A22E /* ProductData in Frameworks */,
-				5563A1BBC34EADA9E5BF613B /* SearchData in Frameworks */,
+				5563A1BBC34EADA9E5BF613B /* SearchHistoryData in Frameworks */,
 				FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */,
 				FADE000300000000000000A1 /* ProductUIDI in Frameworks */,
 				FADE000400000000000000A1 /* WishlistDI in Frameworks */,
@@ -140,11 +142,12 @@
 				91547A9FAB7827290BA768A3 /* ProductDI */,
 				9A079E2873908107AF3834BC /* SearchUIDI */,
 				EDD9F67AA3E61BAD6139E5A7 /* AccountUIDI */,
-				F120951C767491840AE8B42D /* SearchDI */,
+				F120951C767491840AE8B42D /* SearchHistoryDI */,
 				905C6EC5E3B21525CBD02EF9 /* Networking */,
+				FADE002100000000000000B1 /* Money */,
 				06C2BFF1093558BB589FD94A /* SessionData */,
 				2C7A05B997C425E0F320291D /* ProductData */,
-				17E6FCA71FC7E5B3FCF60C12 /* SearchData */,
+				17E6FCA71FC7E5B3FCF60C12 /* SearchHistoryData */,
 				FADE000200000000000000A2 /* OnboardingUIDI */,
 				FADE000300000000000000A2 /* ProductUIDI */,
 				FADE000400000000000000A2 /* WishlistDI */,
@@ -454,9 +457,9 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Component/Product;
 		};
-		8D80DA7DCD10C50973849D66 /* XCLocalSwiftPackageReference "Component/Search" */ = {
+		8D80DA7DCD10C50973849D66 /* XCLocalSwiftPackageReference "Component/SearchHistory" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = Component/Search;
+			relativePath = Component/SearchHistory;
 		};
 		A16D1462DE358801E4D2BE98 /* XCLocalSwiftPackageReference "UI/BagUI" */ = {
 			isa = XCLocalSwiftPackageReference;
@@ -502,6 +505,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = UI/SharedUI;
 		};
+		FADE002000000000000000B1 /* XCLocalSwiftPackageReference "Library/Money" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Library/Money;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -535,10 +542,10 @@
 			package = 3FD7B96A8B93ACD063C9157B /* XCLocalSwiftPackageReference "UI/WishlistUI" */;
 			productName = WishlistUIDI;
 		};
-		17E6FCA71FC7E5B3FCF60C12 /* SearchData */ = {
+		17E6FCA71FC7E5B3FCF60C12 /* SearchHistoryData */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 8D80DA7DCD10C50973849D66 /* XCLocalSwiftPackageReference "Component/Search" */;
-			productName = SearchData;
+			package = 8D80DA7DCD10C50973849D66 /* XCLocalSwiftPackageReference "Component/SearchHistory" */;
+			productName = SearchHistoryData;
 		};
 		2C7A05B997C425E0F320291D /* ProductData */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -565,10 +572,10 @@
 			package = A4BEB5340B5948D49132C5A1 /* XCLocalSwiftPackageReference "UI/AccountUI" */;
 			productName = AccountUIDI;
 		};
-		F120951C767491840AE8B42D /* SearchDI */ = {
+		F120951C767491840AE8B42D /* SearchHistoryDI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 8D80DA7DCD10C50973849D66 /* XCLocalSwiftPackageReference "Component/Search" */;
-			productName = SearchDI;
+			package = 8D80DA7DCD10C50973849D66 /* XCLocalSwiftPackageReference "Component/SearchHistory" */;
+			productName = SearchHistoryDI;
 		};
 		FADE000200000000000000A2 /* OnboardingUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -619,6 +626,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FADE001100000000000000B1 /* XCLocalSwiftPackageReference "UI/SharedUI" */;
 			productName = SharedUIDI;
+		};
+		FADE002100000000000000B1 /* Money */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE002000000000000000B1 /* XCLocalSwiftPackageReference "Library/Money" */;
+			productName = Money;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

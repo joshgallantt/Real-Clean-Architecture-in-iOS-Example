@@ -21,12 +21,15 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../../Library/Networking")
+        .package(path: "../../Library/Networking"),
+        .package(path: "../../Library/Money")
     ],
     targets: [
         .target(
             name: "Product",
-            dependencies: [],
+            dependencies: [
+                .product(name: "Money", package: "Money")
+            ],
             path: "Sources",
             exclude: ["DI", "Data"],
             sources: ["Domain"]
@@ -35,7 +38,8 @@ let package = Package(
             name: "ProductData",
             dependencies: [
                 "Product",
-                .product(name: "Networking", package: "Networking")
+                .product(name: "Networking", package: "Networking"),
+                .product(name: "Money", package: "Money")
             ],
             path: "Sources",
             exclude: ["Domain", "DI"],
@@ -47,13 +51,28 @@ let package = Package(
             path: "Sources/DI"
         ),
         .testTarget(
+            name: "ProductTests",
+            dependencies: [
+                "Product",
+                .product(name: "Money", package: "Money")
+            ],
+            path: "Tests/ProductTests"
+        ),
+        .testTarget(
             name: "ProductDataTests",
-            dependencies: ["ProductData"],
+            dependencies: [
+                "ProductData",
+                .product(name: "Money", package: "Money")
+            ],
             path: "Tests/ProductDataTests"
         ),
         .testTarget(
             name: "ProductAcceptanceTests",
-            dependencies: ["ProductDI", "ProductData"],
+            dependencies: [
+                "ProductDI",
+                "ProductData",
+                .product(name: "Money", package: "Money")
+            ],
             path: "Tests/ProductAcceptanceTests"
         )
     ]

@@ -1,5 +1,7 @@
 import Foundation
 import Bag
+import Money
+import Product
 
 struct BagDTO: Codable, Sendable {
     let items: [BagItemDTO]
@@ -25,42 +27,72 @@ struct BagChangeDTO: Codable, Sendable {
     enum Kind: String, Codable, Sendable {
         case priceWentUp
         case priceWentDown
+        case onlySomeLeft
         case noLongerAvailable
     }
 
     let kind: Kind
     let productId: Int
-    let from: Double?
-    let to: Double?
+    let fromMinorUnits: Int?
+    let toMinorUnits: Int?
+    let currencyCode: String?
+    let available: Int?
 
     init(from change: BagChange) {
-        self.productId = change.productId
+        self.productId = change.productId.rawValue
+
         switch change {
         case .priceWentUp(_, let from, let to):
             self.kind = .priceWentUp
-            self.from = from
-            self.to = to
+            self.fromMinorUnits = from.minorUnits
+            self.toMinorUnits = to.minorUnits
+            self.currencyCode = to.currency.code
+            self.available = nil
         case .priceWentDown(_, let from, let to):
             self.kind = .priceWentDown
-            self.from = from
-            self.to = to
+            self.fromMinorUnits = from.minorUnits
+            self.toMinorUnits = to.minorUnits
+            self.currencyCode = to.currency.code
+            self.available = nil
+        case .onlySomeLeft(_, let available):
+            self.kind = .onlySomeLeft
+            self.fromMinorUnits = nil
+            self.toMinorUnits = nil
+            self.currencyCode = nil
+            self.available = available
         case .noLongerAvailable:
             self.kind = .noLongerAvailable
-            self.from = nil
-            self.to = nil
+            self.fromMinorUnits = nil
+            self.toMinorUnits = nil
+            self.currencyCode = nil
+            self.available = nil
         }
     }
 
     func toDomain() -> BagChange? {
+        let id = ProductID(rawValue: productId)
+
         switch kind {
         case .priceWentUp:
-            guard let from, let to else { return nil }
-            return .priceWentUp(productId: productId, from: from, to: to)
+            guard let prices = priceMove() else { return nil }
+            return .priceWentUp(productId: id, from: prices.from, to: prices.to)
         case .priceWentDown:
-            guard let from, let to else { return nil }
-            return .priceWentDown(productId: productId, from: from, to: to)
+            guard let prices = priceMove() else { return nil }
+            return .priceWentDown(productId: id, from: prices.from, to: prices.to)
+        case .onlySomeLeft:
+            guard let available else { return nil }
+            return .onlySomeLeft(productId: id, available: available)
         case .noLongerAvailable:
-            return .noLongerAvailable(productId: productId)
+            return .noLongerAvailable(productId: id)
         }
+    }
+
+    private func priceMove() -> (from: Money, to: Money)? {
+        guard let fromMinorUnits, let toMinorUnits, let currencyCode else { return nil }
+        let currency = Currency(code: currencyCode, minorUnitsPerMajor: 100)
+        return (
+            Money(minorUnits: fromMinorUnits, currency: currency),
+            Money(minorUnits: toMinorUnits, currency: currency)
+        )
     }
 }

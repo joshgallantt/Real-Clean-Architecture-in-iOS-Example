@@ -1,3 +1,6 @@
+import Money
+import Product
+
 /// What the shop has done to the shopper's choices since they last looked, still waiting
 /// to be mentioned.
 ///
@@ -22,24 +25,29 @@ public struct BagChanges: Equatable, Sendable {
     public var noLongerAvailable: [BagChange] { all.filter { !$0.isAboutAProductStillInTheBag } }
 
     /// Products still in the bag, at a price the shopper has not seen yet.
-    public var priceMoves: [BagChange] { all.filter(\.isAboutAProductStillInTheBag) }
+    public var priceMoves: [BagChange] { all.filter(\.isPriceMove) }
 
-    public func about(productId: Int) -> [BagChange] {
+    /// Products still in the bag, but fewer of them than the shopper asked for.
+    public var shortages: [BagChange] {
+        all.filter { if case .onlySomeLeft = $0 { true } else { false } }
+    }
+
+    public func about(productId: ProductID) -> [BagChange] {
         all.filter { $0.productId == productId }
     }
 
     /// The price this shopper last saw and dismissed, so a later move can be measured
     /// from what they know rather than from the last time anyone asked the shop.
-    public func priceLastSeen(forProductId productId: Int) -> Double? {
-        all.first { $0.productId == productId && $0.isAboutAProductStillInTheBag }?.priceLastSeen
+    ///
+    /// Asks for the first entry that actually carries a price. A product can have more than
+    /// one thing waiting to be said about it — a price move and a shortage — and only one of
+    /// them knows what the price was.
+    public func priceLastSeen(forProductId productId: ProductID) -> Money? {
+        all.first { $0.productId == productId && $0.isPriceMove }?.priceLastSeen
     }
 
     /// The shopper has seen whatever happened to this product.
-    public func acknowledging(productId: Int) -> BagChanges {
+    public func acknowledging(productId: ProductID) -> BagChanges {
         BagChanges(all.filter { $0.productId != productId })
-    }
-
-    public func acknowledgingEverything() -> BagChanges {
-        BagChanges()
     }
 }

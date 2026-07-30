@@ -11,6 +11,7 @@ struct CatalogItem: Encodable {
     var discountPercentage: Double = 0
     var rating: Double = 4.5
     var stock: Int = 10
+    var willRestock: Bool? = nil
     var brand: String? = "Acme"
     var thumbnail: String = "https://cdn.example.com/thumb.png"
     var images: [String] = ["https://cdn.example.com/1.png"]

@@ -19,6 +19,7 @@ let package = Package(
     dependencies: [
         .package(path: "../../Component/Bag"),
         .package(path: "../../Component/Product"),
+        .package(path: "../../Library/Money"),
         .package(path: "../../Component/Session"),
         .package(path: "../SnackbarUI"),
         .package(url: "https://github.com/onevcat/Kingfisher.git", from: "8.0.0")
@@ -29,6 +30,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
                 .product(name: "SnackbarUI", package: "SnackbarUI"),
                 .product(name: "Kingfisher", package: "Kingfisher")
@@ -43,6 +45,7 @@ let package = Package(
                 "BagUI",
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
                 .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
@@ -54,6 +57,7 @@ let package = Package(
                 "BagUI",
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
                 .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
             path: "Tests/BagUITests"

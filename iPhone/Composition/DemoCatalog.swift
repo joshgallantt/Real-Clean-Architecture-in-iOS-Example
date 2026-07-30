@@ -1,4 +1,5 @@
 import Foundation
+import Money
 import Product
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -32,8 +33,7 @@ import Product
 //  Also worth showing: turn on airplane mode and reopen the bag — names and
 //  pictures go blank, the total is still exactly right, and no error appears.
 //
-//  The same rules are asserted without any of this in BagReconciliationTests
-//  and PendingChangeTests.
+//  The same rules are asserted without any of this in BringingTheBagUpToDateTests.
 // ─────────────────────────────────────────────────────────────────────────────
 
 /// How the fake shop misbehaves. Deterministic, so a demo can be repeated and a
@@ -41,12 +41,20 @@ import Product
 enum DemoCatalogMischief {
     /// Every third product costs more, every third costs less, every fifth has sold out,
     /// and every tenth is gone for good — enough overlap that some lines report two
-    /// changes at once, and both out-of-stock endings are reachable.
+    /// changes at once, and both kinds of unavailability are reachable.
     nonisolated static func meddle(with product: Product) -> Product {
-        let price = switch product.id % 3 {
-        case 0: (product.price * 1.2).toTheNearestPenny
-        case 1: (product.price * 0.8).toTheNearestPenny
+        let price = switch product.id.rawValue % 3 {
+        case 0: product.price.scaled(by: 1.2)
+        case 1: product.price.scaled(by: 0.8)
         default: product.price
+        }
+
+        let availability: Availability = if product.id.rawValue % 10 == 0 {
+            .discontinued
+        } else if product.id.rawValue % 5 == 0 {
+            .outOfStock
+        } else {
+            product.availability
         }
 
         return Product(
@@ -55,10 +63,8 @@ enum DemoCatalogMischief {
             description: product.description,
             category: product.category,
             price: price,
-            discountPercentage: product.discountPercentage,
             rating: product.rating,
-            stock: product.id % 5 == 0 ? 0 : product.stock,
-            willRestock: product.id % 10 != 0,
+            availability: availability,
             brand: product.brand,
             thumbnail: product.thumbnail,
             images: product.images
@@ -69,33 +75,36 @@ enum DemoCatalogMischief {
 // MARK: - Decorators
 
 /// DEMO ONLY. Wraps the real use case and meddles with its answers.
-struct DemoGetProductsUseCase: GetProductsUseCase {
-    let wrapped: GetProductsUseCase
+struct DemoBrowseCatalogUseCase: BrowseCatalogUseCase {
+    let wrapped: BrowseCatalogUseCase
 
-    func callAsFunction(matching query: ProductQuery) async -> Result<[Product], ProductError> {
+    func callAsFunction(matching query: CatalogQuery) async -> Result<[Product], ProductError> {
         await wrapped(matching: query).map { $0.map(DemoCatalogMischief.meddle) }
     }
 }
 
 /// DEMO ONLY. This is the one the bag reads when it catches up, so it is the one
 /// that produces the Changed section.
-struct DemoGetProductsByIdsUseCase: GetProductsByIdsUseCase {
-    let wrapped: GetProductsByIdsUseCase
+struct DemoLookUpProductsUseCase: LookUpProductsUseCase {
+    let wrapped: LookUpProductsUseCase
 
-    func callAsFunction(ids: [Int]) async -> Result<[Product], ProductError> {
+    func callAsFunction(ids: [ProductID]) async -> Result<[Product], ProductError> {
         await wrapped(ids: ids).map { $0.map(DemoCatalogMischief.meddle) }
     }
 }
 
 /// DEMO ONLY.
-struct DemoGetProductUseCase: GetProductUseCase {
-    let wrapped: GetProductUseCase
+struct DemoViewProductUseCase: ViewProductUseCase {
+    let wrapped: ViewProductUseCase
 
-    func callAsFunction(id: Int) async -> Result<Product, ProductError> {
+    func callAsFunction(id: ProductID) async -> Result<Product, ProductError> {
         await wrapped(id: id).map(DemoCatalogMischief.meddle)
     }
 }
 
-private extension Double {
-    nonisolated var toTheNearestPenny: Double { (self * 100).rounded() / 100 }
+private extension Money {
+    /// Rounded to a whole minor unit, because a fifth of a penny is not a price.
+    nonisolated func scaled(by factor: Double) -> Money {
+        Money(minorUnits: Int((Double(minorUnits) * factor).rounded()), currency: currency)
+    }
 }

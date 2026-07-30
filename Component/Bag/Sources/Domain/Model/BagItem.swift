@@ -1,4 +1,6 @@
 import Foundation
+import Money
+import Product
 
 /// A line in the shopper's bag: which product, how many, and what it cost when they last
 /// saw it.
@@ -12,16 +14,22 @@ import Foundation
 /// one part of another aggregate it is safe to hold. What the product is called and what
 /// it looks like belong to the catalog: they mean the same thing there, and copying them
 /// into every context that shows a product is how one model becomes five.
+///
+/// A line on its own does not police how many of something there are. It is not a bag, and
+/// the rules about what may sit in one belong to the `Bag` that holds it.
 public struct BagItem: Equatable, Sendable, Identifiable {
-    public let productId: Int
+    public let productId: ProductID
     public let quantity: Int
-    public let lastKnownPrice: Double
+    public let lastKnownPrice: Money
     public let dateAdded: Date
 
     /// A bag holds one line per product, so the product is what identifies the line.
-    public var id: Int { productId }
+    public var id: ProductID { productId }
 
-    public init(productId: Int, quantity: Int = 1, lastKnownPrice: Double, dateAdded: Date = Date()) {
+    /// What this line is worth at the last price the shopper saw.
+    public var lineTotal: Money { lastKnownPrice * quantity }
+
+    public init(productId: ProductID, quantity: Int = 1, lastKnownPrice: Money, dateAdded: Date = Date()) {
         self.productId = productId
         self.quantity = quantity
         self.lastKnownPrice = lastKnownPrice
@@ -32,7 +40,7 @@ public struct BagItem: Equatable, Sendable, Identifiable {
         BagItem(productId: productId, quantity: quantity, lastKnownPrice: lastKnownPrice, dateAdded: dateAdded)
     }
 
-    public func withPrice(_ price: Double) -> BagItem {
+    public func withPrice(_ price: Money) -> BagItem {
         BagItem(productId: productId, quantity: quantity, lastKnownPrice: price, dateAdded: dateAdded)
     }
 }

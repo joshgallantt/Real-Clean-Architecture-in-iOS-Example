@@ -1,15 +1,15 @@
 import SwiftUI
 import SearchUI
 import Product
-import Search
+import SearchHistory
 import SnackbarUI
 import WishlistUIDI
 import BagUIDI
 
 public struct SearchUIDI {
     private let navigation: SearchNavigation
-    private let getProducts: GetProductsUseCase
-    private let getCategories: GetCategoriesUseCase
+    private let browseCatalog: BrowseCatalogUseCase
+    private let browseCategories: BrowseCategoriesUseCase
     private let getSearchHistory: GetSearchHistoryUseCase
     private let recordSearch: RecordSearchUseCase
     private let clearSearchHistory: ClearSearchHistoryUseCase
@@ -19,8 +19,8 @@ public struct SearchUIDI {
 
     public init(
         navigation: SearchNavigation,
-        getProducts: GetProductsUseCase,
-        getCategories: GetCategoriesUseCase,
+        browseCatalog: BrowseCatalogUseCase,
+        browseCategories: BrowseCategoriesUseCase,
         getSearchHistory: GetSearchHistoryUseCase,
         recordSearch: RecordSearchUseCase,
         clearSearchHistory: ClearSearchHistoryUseCase,
@@ -29,8 +29,8 @@ public struct SearchUIDI {
         bagUIDI: BagUIDI
     ) {
         self.navigation = navigation
-        self.getProducts = getProducts
-        self.getCategories = getCategories
+        self.browseCatalog = browseCatalog
+        self.browseCategories = browseCategories
         self.getSearchHistory = getSearchHistory
         self.recordSearch = recordSearch
         self.clearSearchHistory = clearSearchHistory
@@ -43,14 +43,14 @@ public struct SearchUIDI {
     public func mainView() -> some View {
         SearchTabScreenView(
             viewModel: SearchTabScreenViewModel(
-                getCategories: getCategories,
+                browseCategories: browseCategories,
                 recordSearch: recordSearch,
                 snackbar: snackbarPresenter
             ),
             searchingViewModel: SearchingViewModel(
                 getSearchHistory: getSearchHistory,
                 clearSearchHistory: clearSearchHistory,
-                getProducts: getProducts
+                browseCatalog: browseCatalog
             ),
             navigation: navigation
         )
@@ -61,7 +61,7 @@ public struct SearchUIDI {
         CatalogResultsView(
             viewModel: CatalogResultsViewModel(
                 filter: filter,
-                getProducts: getProducts,
+                browseCatalog: browseCatalog,
                 snackbar: snackbarPresenter
             ),
             navigation: navigation,

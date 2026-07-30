@@ -1,11 +1,13 @@
 import Combine
 import Foundation
 import Testing
+import Product
+import Session
 import Wishlist
 @testable import WishlistData
 
 /// Keeping the current list, putting it on disk in the right order, swapping it when
-/// the shopper changes, and telling anyone watching. Nothing here decides what saving
+/// the owner changes, and telling anyone watching. Nothing here decides what saving
 /// or removing means.
 @MainActor
 @Suite("Keeping the wishlist")
@@ -13,12 +15,12 @@ struct DefaultWishlistRepositoryTests {
 
     private func makeRepository(
         store: InMemoryWishlistStore = InMemoryWishlistStore(),
-        userKeys: CurrentValueSubject<String, Never> = CurrentValueSubject("guest")
+        owners: CurrentValueSubject<UserID?, Never> = CurrentValueSubject(UserID(rawValue: 1))
     ) -> DefaultWishlistRepository {
         DefaultWishlistRepository(
             store: store,
-            userKey: userKeys.value,
-            userKeyPublisher: userKeys.eraseToAnyPublisher()
+            owner: owners.value,
+            ownerPublisher: owners.eraseToAnyPublisher()
         )
     }
 
@@ -26,10 +28,10 @@ struct DefaultWishlistRepositoryTests {
     func savedListsArePublished() {
         let repository = makeRepository()
         var seen: [Int] = []
-        let cancellable = repository.wishlistPublisher.sink { seen.append($0.count) }
+        let cancellable = repository.wishlistPublisher.sink { seen.append($0.itemCount) }
 
-        repository.save(Wishlist(items: [WishlistItem(id: 1)]))
-        repository.save(Wishlist(items: [WishlistItem(id: 1), WishlistItem(id: 2)]))
+        repository.save(Wishlist(items: [WishlistItem(productId: pid(1))]))
+        repository.save(Wishlist(items: [WishlistItem(productId: pid(1)), WishlistItem(productId: pid(2))]))
 
         #expect(seen == [0, 1, 2])
         cancellable.cancel()
@@ -39,74 +41,82 @@ struct DefaultWishlistRepositoryTests {
     func writesArePersistedInOrder() async {
         let store = InMemoryWishlistStore()
         let repository = makeRepository(store: store)
-        let first = WishlistItem(id: 1)
-        let second = WishlistItem(id: 2)
+        let first = WishlistItem(productId: pid(1))
+        let second = WishlistItem(productId: pid(2))
 
         repository.save(Wishlist(items: [first]))
         repository.save(Wishlist(items: [first, second]))
         repository.save(Wishlist(items: [second]))
         await repository.flushPendingWrites()
 
-        #expect(store.writes.map { $0.map(\.id).sorted() } == [[1], [1, 2], [2]])
+        #expect(store.writes.map(\.count) == [1, 2, 1])
+        #expect(store.writes.last?.map(\.productId) == [pid(2)])
     }
 
     @Test("A list kept from a previous visit is there on the next one, newest first")
     func restoresAPreviousList() {
         let kept = [
-            WishlistItem(id: 1, dateAdded: .distantPast),
-            WishlistItem(id: 2, dateAdded: .now)
+            WishlistItem(productId: pid(1), dateAdded: .distantPast),
+            WishlistItem(productId: pid(2), dateAdded: .now)
         ]
-        let store = InMemoryWishlistStore(seeded: ["guest": kept])
+        let store = InMemoryWishlistStore(seeded: [UserID(rawValue: 1): kept])
 
         let repository = makeRepository(store: store)
 
-        #expect(repository.wishlist.items.map(\.id) == [2, 1])
+        #expect(repository.wishlist.items.map(\.id) == [pid(2), pid(1)])
     }
 
-    @Test("Signing in swaps the guest's list for the shopper's own")
-    func switchingUserSwapsTheList() {
-        let store = InMemoryWishlistStore(seeded: ["42": [WishlistItem(id: 9)]])
-        let userKeys = CurrentValueSubject<String, Never>("guest")
-        let repository = makeRepository(store: store, userKeys: userKeys)
-        repository.save(Wishlist(items: [WishlistItem(id: 1)]))
+    @Test("Signing in as someone else swaps in their list")
+    func switchingOwnerSwapsTheList() {
+        let store = InMemoryWishlistStore(seeded: [UserID(rawValue: 42): [WishlistItem(productId: pid(9))]])
+        let owners = CurrentValueSubject<UserID?, Never>(UserID(rawValue: 1))
+        let repository = makeRepository(store: store, owners: owners)
+        repository.save(Wishlist(items: [WishlistItem(productId: pid(1))]))
 
-        userKeys.send("42")
+        owners.send(UserID(rawValue: 42))
 
-        #expect(repository.wishlist.items.map(\.id) == [9])
+        #expect(repository.wishlist.items.map(\.id) == [pid(9)])
     }
 
-    @Test("Being told the shopper is who they already were leaves the list alone")
-    func sameUserIsNotAReload() {
-        let userKeys = CurrentValueSubject<String, Never>("guest")
-        let repository = makeRepository(userKeys: userKeys)
-        repository.save(Wishlist(items: [WishlistItem(id: 1)]))
+    @Test("Being told the owner is who they already were leaves the list alone")
+    func sameOwnerIsNotAReload() {
+        let owners = CurrentValueSubject<UserID?, Never>(UserID(rawValue: 1))
+        let repository = makeRepository(owners: owners)
+        repository.save(Wishlist(items: [WishlistItem(productId: pid(1))]))
 
-        userKeys.send("guest")
+        owners.send(UserID(rawValue: 1))
 
         // A reload here would drop the save that has not reached disk yet.
-        #expect(repository.wishlist.items.map(\.id) == [1])
+        #expect(repository.wishlist.items.map(\.id) == [pid(1)])
     }
 }
 
 final class InMemoryWishlistStore: WishlistStore, @unchecked Sendable {
     private let lock = NSLock()
-    private var lists: [String: [WishlistItem]]
+    private var lists: [UserID?: [WishlistItem]]
     private var _writes: [[WishlistItem]] = []
 
     var writes: [[WishlistItem]] { lock.withLock { _writes } }
 
-    init(seeded: [String: [WishlistItem]] = [:]) {
+    init(seeded: [UserID?: [WishlistItem]] = [:]) {
         self.lists = seeded
     }
 
-    func getItems(forUserKey userKey: String) -> [WishlistItem] {
-        lock.withLock { lists[userKey] ?? [] }
+    func getItems(for owner: UserID?) -> [WishlistItem] {
+        lock.withLock { lists[owner] ?? [] }
     }
 
-    func setItems(_ items: [WishlistItem], forUserKey userKey: String) async {
+    func setItems(_ items: [WishlistItem], for owner: UserID?) async {
         lock.withLock {
-            lists[userKey] = items
+            lists[owner] = items
             _writes.append(items)
         }
     }
+}
+
+
+// MARK: - Fixtures
+
+func pid(_ value: Int) -> ProductID {
+    ProductID(rawValue: value)
 }

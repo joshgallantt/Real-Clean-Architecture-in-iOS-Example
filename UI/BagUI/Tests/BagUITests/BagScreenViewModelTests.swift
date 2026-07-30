@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import Bag
+import Money
 import Product
 @testable import BagUI
 
@@ -18,7 +19,7 @@ struct BagScreenViewModelTests {
         BagScreenViewModel(
             observeBag: shop.observeBag,
             observeBagChanges: shop.observeBagChanges,
-            getProductsByIds: shop.getProductsByIds,
+            lookUpProducts: shop.lookUpProducts,
             setBagItemQuantity: shop.setBagItemQuantity,
             bringBagUpToDate: shop.bringUpToDate,
             acknowledgeBagChange: shop.acknowledge,
@@ -27,7 +28,7 @@ struct BagScreenViewModelTests {
     }
 
     private func makeShop(
-        items: [BagItem] = [BagItem(productId: 1, lastKnownPrice: 9.99)],
+        items: [BagItem] = [bagItem(1, price: 9.99)],
         catalog: [Product] = [.fixture(id: 1)]
     ) -> FakeShop {
         FakeShop(bag: Bag(items: items), catalog: catalog)
@@ -41,7 +42,7 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        #expect(shop.lookups == [[1]])
+        #expect(shop.lookups == [[pid(1)]])
     }
 
     @Test("Opening it again asks again — coming back after a while is the whole point")
@@ -54,7 +55,7 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop, untilAskedTimes: 2)
 
-        #expect(shop.lookups == [[1], [1]])
+        #expect(shop.lookups == [[pid(1)], [pid(1)]])
     }
 
     @Test("A price that moved between visits is caught, applied and shown")
@@ -68,10 +69,10 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop, untilAskedTimes: 2)
 
-        #expect(shop.currentChanges.priceMoves == [.priceWentUp(productId: 1, from: 9.99, to: 12.99)])
-        #expect(viewModel.priceChangedRows.map(\.id) == [1])
+        #expect(shop.currentChanges.priceMoves == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
+        #expect(viewModel.priceChangedRows.map(\.id) == [pid(1)])
         #expect(viewModel.removedRows.isEmpty)
-        #expect(viewModel.total.cents == 1299)
+        #expect(viewModel.total == usd(12.99))
     }
 
     @Test("Catching up does not itself count as a change, or the screen would ask forever")
@@ -92,23 +93,23 @@ struct BagScreenViewModelTests {
 
     @Test("Something out of stock leaves the bag and is listed as removed")
     func outOfStockIsRemoved() async {
-        let shop = makeShop(catalog: [.fixture(id: 1, stock: 0)])
+        let shop = makeShop(catalog: [.fixture(id: 1, availability: .outOfStock)])
         let viewModel = makeViewModel(shop: shop)
 
         viewModel.onAppear()
         await settle(shop)
 
         #expect(shop.currentBag.isEmpty)
-        #expect(viewModel.removedRows.map(\.id) == [1])
+        #expect(viewModel.removedRows.map(\.id) == [pid(1)])
         #expect(viewModel.rows.isEmpty)
         #expect(viewModel.isEmpty)
     }
 
-    @Test("Stock is a yes-or-no to a bag, whatever the count happens to be")
+    @Test("Availability is a yes-or-no to a bag, whatever the count happens to be")
     func stockIsAYesOrNo() async {
-        let plenty = makeShop(catalog: [.fixture(id: 1, stock: 1)])
+        let plenty = makeShop(catalog: [.fixture(id: 1, availability: .inStock(remaining: 1))])
         let plentyScreen = makeViewModel(shop: plenty)
-        let none = makeShop(catalog: [.fixture(id: 1, stock: 0)])
+        let none = makeShop(catalog: [.fixture(id: 1, availability: .outOfStock)])
         let noneScreen = makeViewModel(shop: none)
 
         plentyScreen.onAppear()
@@ -117,7 +118,7 @@ struct BagScreenViewModelTests {
         await settle(none)
 
         #expect(plenty.currentChanges.isEmpty)
-        #expect(none.currentChanges.noLongerAvailable == [.noLongerAvailable(productId: 1)])
+        #expect(none.currentChanges.noLongerAvailable == [.noLongerAvailable(productId: pid(1))])
     }
 
     @Test("Changing how many asks again")
@@ -127,19 +128,19 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        viewModel.didChangeQuantity(productId: 1, quantity: 3)
+        viewModel.didChangeQuantity(productId: pid(1), quantity: 3)
         await settle(shop, untilAskedTimes: 2)
 
         #expect(shop.lookups.count == 2)
-        #expect(shop.currentBag.quantity(of: 1) == 3)
+        #expect(shop.currentBag.quantity(of: pid(1)) == 3)
     }
 
     @Test("Taking something out asks again")
     func removingAsks() async {
         let shop = makeShop(
             items: [
-                BagItem(productId: 1, lastKnownPrice: 9.99, dateAdded: .distantPast),
-                BagItem(productId: 2, lastKnownPrice: 5, dateAdded: .now)
+                bagItem(1, price: 9.99, addedAt: .distantPast),
+                bagItem(2, price: 5, addedAt: .now)
             ],
             catalog: [.fixture(id: 1), .fixture(id: 2)]
         )
@@ -147,10 +148,10 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        viewModel.didSwipeToDelete(productId: 2)
+        viewModel.didSwipeToDelete(productId: pid(2))
         await settle(shop, untilAskedTimes: 2)
 
-        #expect(shop.currentBag.items.map(\.id) == [1])
+        #expect(shop.currentBag.items.map(\.id) == [pid(1)])
         #expect(shop.lookups.count == 2)
     }
 
@@ -163,7 +164,7 @@ struct BagScreenViewModelTests {
         let asksSoFar = shop.lookups.count
         #expect(viewModel.priceChangedRows.count == 1)
 
-        viewModel.didAcknowledgeChange(productId: 1)
+        viewModel.didAcknowledgeChange(productId: pid(1))
         await settle(shop)
 
         #expect(shop.lookups.count == asksSoFar)
@@ -172,13 +173,13 @@ struct BagScreenViewModelTests {
 
     @Test("Asking to be notified clears the row and says so")
     func notifyMe() async {
-        let shop = makeShop(catalog: [.fixture(id: 1, stock: 0)])
+        let shop = makeShop(catalog: [.fixture(id: 1, availability: .outOfStock)])
         let viewModel = makeViewModel(shop: shop)
         viewModel.onAppear()
         await settle(shop)
         #expect(viewModel.removedRows.count == 1)
 
-        viewModel.didAskToBeNotified(productId: 1)
+        viewModel.didAskToBeNotified(productId: pid(1))
         await settle(shop)
 
         #expect(viewModel.removedRows.isEmpty)
@@ -194,8 +195,8 @@ struct BagScreenViewModelTests {
         await settle(shop)
 
         #expect(shop.currentChanges.isEmpty)
-        #expect(shop.currentBag.items.map(\.id) == [1])
-        #expect(viewModel.total.cents == 999)
+        #expect(shop.currentBag.items.map(\.id) == [pid(1)])
+        #expect(viewModel.total == usd(9.99))
     }
 
     @Test("Rows render from the bag before the shop answers, and the total never waits")
@@ -206,9 +207,9 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
 
         // No settling: the lookup has not come back yet.
-        #expect(viewModel.rows.map(\.id) == [1])
+        #expect(viewModel.rows.map(\.id) == [pid(1)])
         #expect(viewModel.rows.first?.name == nil)
-        #expect(viewModel.total.cents == 999)
+        #expect(viewModel.total == usd(9.99))
     }
 
     @Test("Names and pictures arrive once the shop answers")
@@ -241,6 +242,3 @@ private func settle(_ shop: FakeShop, untilAskedTimes times: Int = 1) async {
     }
 }
 
-private extension Double {
-    var cents: Int { Int((self * 100).rounded()) }
-}
