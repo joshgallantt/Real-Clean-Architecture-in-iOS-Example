@@ -1,20 +1,15 @@
 import Foundation
 import Product
 
-/// The products a shopper has saved to come back to.
+/// Evans, *Domain-Driven Design* (2003) — Aggregates: the root, enforcing its own invariants on the
+/// way in — each product once, newest first. Unlike a bag it keeps no prices: a shopper saves
+/// something precisely to watch what happens to it, so what it costs is the catalog's to answer,
+/// freshly.
 ///
-/// A wishlist holds ids and the day each was saved, and nothing else. Unlike a bag it
-/// has no prices of its own — a shopper saves something precisely to watch what happens
-/// to it — so what each entry is called and costs is the catalog's to answer, freshly,
-/// every time.
-///
-/// Everything inside changes through here: saving something twice, or removing
-/// something that was never saved, are questions about the list and are answered by it.
+/// Evans — Side-Effect-Free Functions.
 public struct Wishlist: Equatable, Sendable {
     public let items: [WishlistItem]
 
-    /// Each product appears once, and newest first is the list's own order — both
-    /// established here rather than trusted from whatever handed the entries over.
     public init(items: [WishlistItem] = []) {
         var seen: Set<ProductID> = []
         self.items = items
@@ -30,8 +25,6 @@ public struct Wishlist: Equatable, Sendable {
         items.contains { $0.productId == productId }
     }
 
-    /// Saving something already saved changes nothing, and in particular does not move
-    /// it to the top: the shopper saved it when they saved it.
     public func adding(_ item: WishlistItem) -> Wishlist {
         guard !contains(productId: item.productId) else { return self }
         return Wishlist(items: items + [item])

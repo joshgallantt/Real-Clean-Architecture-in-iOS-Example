@@ -1,3 +1,7 @@
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002) — Service
+/// Layer.
+///
+/// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces.
 public protocol AddItemToBagUseCase: Sendable {
     @MainActor
     func callAsFunction(_ item: BagItem)
@@ -10,8 +14,6 @@ public struct DefaultAddItemToBagUseCase: AddItemToBagUseCase {
         self.repository = repository
     }
 
-    /// Choosing something is also seeing its price and its availability, so anything
-    /// waiting to be said about it has already served its purpose.
     @MainActor
     public func callAsFunction(_ item: BagItem) {
         repository.save(

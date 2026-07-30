@@ -5,12 +5,10 @@ import Networking
 import Product
 @testable import ProductData
 
-/// The repository under test, wired to the real client over a stubbed transport. The
-/// URL the catalog is asked for, the JSON it answers with, and the domain models that
-/// come out the other side are all genuine — only the network is not.
 @Suite("The product catalog")
+/// Fowler, *PoEAA* (2002) — Repository: the translation and the keeping, tested with the real
+/// implementation over a stubbed gateway. No rule about what the domain means lives at this level.
 struct DefaultProductRepositoryTests {
-
     private func makeRepository() -> (DefaultProductRepository, StubHTTPClient) {
         let transport = StubHTTPClient()
         return (DefaultProductRepository(client: DummyJSONProductClient(httpClient: transport)), transport)
@@ -124,8 +122,6 @@ struct DefaultProductRepositoryTests {
 
         let result = await repository.getProducts(matching: .all(page: 0, pageSize: 30))
 
-        // DummyJSON has no such field. Assuming the optimistic answer keeps the offer to
-        // wait available; assuming the other would hide it everywhere, permanently.
         #expect(result.success?.first?.availability == .outOfStock)
     }
 
@@ -297,9 +293,6 @@ struct DefaultProductRepositoryTests {
 }
 
 private extension DefaultProductRepositoryTests {
-    /// Carries `discountPercentage` because the real catalog does. The DTO ignores it on
-    /// purpose, and this is what proves a field the domain declines to model does not
-    /// break the parse.
     static func productJSON(id: Int = 1, brand: String = "\"Essence\"") -> String {
         """
         {

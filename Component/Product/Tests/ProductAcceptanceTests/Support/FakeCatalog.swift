@@ -1,14 +1,9 @@
 import Foundation
 import Networking
 
-/// A stand-in for the shop's backend, seeded with a small catalog and speaking the
-/// same JSON the real one does. It is the only thing faked in these tests: the client,
-/// the repository, the DTO decoding and the use cases are all the real implementations,
-/// so a journey that passes here is a journey the app can actually complete.
-///
-/// It answers correctly or not at all. Every way a real backend can misbehave — a 404,
-/// a 500, a payload with a field missing — is stubbed request by request in
-/// ProductDataTests, where a failure names the layer that broke.
+/// Fowler, *PoEAA* (2002) — Gateway: the fake is the transport, so the client, the repository, the
+/// DTO decoding and the use cases are all the real implementations. A journey that passes here is
+/// one the app can complete.
 final class FakeCatalog: HTTPClient, @unchecked Sendable {
     private let lock = NSLock()
     private let items: [CatalogItem]
@@ -23,7 +18,6 @@ final class FakeCatalog: HTTPClient, @unchecked Sendable {
         self.categories = categories
     }
 
-    /// The shopper loses connectivity.
     func goOffline() { lock.withLock { isOffline = true } }
 
     func get<T: Decodable>(_ url: URL) async throws -> T {

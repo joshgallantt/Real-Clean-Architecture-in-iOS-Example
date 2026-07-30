@@ -22,6 +22,16 @@ import BagDI
 import Networking
 
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the composition root. Every
+/// concrete type in the app is named here and nowhere else, so swapping one is a change to this
+/// file alone. Its length tracks feature count, not complexity.
+///
+/// Martin, Ch. 22 — The Clean Architecture: the outermost ring. Nothing inward knows it exists. Not
+/// unit tested — it is wiring, with no behaviour of its own.
+///
+/// Fowler, *Inversion of Control Containers and the Dependency Injection Pattern* (2004) —
+/// Dependency Injection, not a Service Locator: collaborators are handed in through initialisers
+/// rather than looked up.
 final class Injector {
     static let shared = Injector()
 
@@ -54,8 +64,6 @@ final class Injector {
     let bagView: AnyView
     let accountView: AnyView
 
-    // Pure wiring for the whole app graph, so its length tracks feature count, not complexity.
-    // swiftlint:disable:next function_body_length
     private init() {
         // MARK: Component DI
         sessionDI = SessionDI(
@@ -71,16 +79,6 @@ final class Injector {
         let lookUpProducts: LookUpProductsUseCase = productDI.lookUpProductsUseCase
         let viewProduct: ViewProductUseCase = productDI.viewProductUseCase
 
-        // DEMO ONLY. Comment out the three lines above and uncomment these to make the
-        // shop change its mind, so reopening the bag shows the Changed section. See
-        // DemoCatalog.swift for the script. Never commit this switched on.
-        //
-        // let browseCatalog: BrowseCatalogUseCase =
-        //     DemoBrowseCatalogUseCase(wrapped: productDI.browseCatalogUseCase)
-        // let lookUpProducts: LookUpProductsUseCase =
-        //     DemoLookUpProductsUseCase(wrapped: productDI.lookUpProductsUseCase)
-        // let viewProduct: ViewProductUseCase =
-        //     DemoViewProductUseCase(wrapped: productDI.viewProductUseCase)
         searchHistoryDI = SearchHistoryDI(
             store: UserDefaultsSearchHistoryStore(defaults: .standard),
             getSession: sessionDI.getSessionUseCase

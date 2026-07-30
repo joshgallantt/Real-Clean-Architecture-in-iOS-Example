@@ -5,16 +5,11 @@ import Money
 import Product
 @testable import BagUI
 
-/// When the bag screen asks the shop what has changed, and — just as importantly — when
-/// it does not. The tab is created once and held alive for the whole session, so nothing
-/// else will ever ask on the shopper's behalf.
 @MainActor
-/// Serialised: every test here runs on the main actor and makes progress by yielding to
-/// the screen's lookup task. Run in parallel they compete for the same actor, and a test
-/// can run out of yields because another one was holding it.
 @Suite("Asking the shop what has changed", .serialized)
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: what the use case sequences, and
+/// what it keeps.
 struct BagScreenViewModelTests {
-
     private func makeViewModel(shop: FakeShop) -> BagScreenViewModel {
         BagScreenViewModel(
             observeBag: shop.observeBag,
@@ -86,8 +81,6 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop, untilAskedTimes: 2)
 
-        // Two visits, two lookups. The repricing that came back from the second one
-        // saved a new bag, which must not send the screen round again.
         #expect(shop.lookups.count == 2)
     }
 
@@ -206,7 +199,6 @@ struct BagScreenViewModelTests {
 
         viewModel.onAppear()
 
-        // No settling: the lookup has not come back yet.
         #expect(viewModel.rows.map(\.id) == [pid(1)])
         #expect(viewModel.rows.first?.name == nil)
         #expect(viewModel.total == usd(9.99))
@@ -224,19 +216,11 @@ struct BagScreenViewModelTests {
     }
 }
 
-/// Waits for the shop to have been asked, and for the saves that follow to land.
-///
-/// Polls rather than awaiting the screen's task: the task is main-actor isolated and so
-/// is every test here, and awaiting its value from the same actor wedges both. It
-/// returns as soon as the count reaches `times`, so the wait is only as long as the work
-/// actually takes.
 @MainActor
 private func settle(_ shop: FakeShop, untilAskedTimes times: Int = 1) async {
     for _ in 0..<200 where shop.lookups.count < times {
         await Task.yield()
     }
-    // The lookup's own saves ripple back through two publishers before the screen has
-    // rendered them.
     for _ in 0..<20 {
         await Task.yield()
     }

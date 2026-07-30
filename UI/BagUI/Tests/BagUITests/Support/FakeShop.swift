@@ -5,17 +5,12 @@ import Money
 import Product
 import SnackbarUI
 
-/// A working bag and catalog behind the use case ports the screen is given.
-///
-/// Only two things are faked: where the bag is kept, and what the catalog answers. The use
-/// cases the screen is handed are the real ones, built on this as their repository — so
-/// catching up really reconciles, saving really pushes a new bag back through `observeBag`,
-/// and the news the screen receives has really been through the rule about what is still
-/// worth telling.
-///
-/// Lock-protected rather than `@MainActor` throughout, because `LookUpProductsUseCase` is
-/// not main-actor isolated and the screen calls it from a task that has hopped off.
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: only two things are faked —
+/// where the bag is kept and what the catalog answers. The use cases the screen is handed are the
+/// real ones, built on this as their repository.
+///
+/// Fowler, *PoEAA* (2002) — Repository; Gateway.
 final class FakeShop: BagRepository {
     private let catalogLock = NSLock()
     private let bagSubject: CurrentValueSubject<Bag, Never>
@@ -24,14 +19,11 @@ final class FakeShop: BagRepository {
     private var _shownSnackbars: [Snackbar] = []
     private var _catalog: [Product]
 
-    /// Every batch of ids the screen asked the catalog about, in order.
     nonisolated var lookups: [[ProductID]] { catalogLock.withLock { _lookups } }
     nonisolated var shownSnackbars: [Snackbar] { catalogLock.withLock { _shownSnackbars } }
     var currentBag: Bag { bagSubject.value }
     var currentChanges: BagChanges { changesSubject.value }
 
-    /// What the catalog answers with. Change it between visits to move a price or sell
-    /// something out.
     nonisolated var catalog: [Product] {
         get { catalogLock.withLock { _catalog } }
         set { catalogLock.withLock { _catalog = newValue } }
@@ -52,7 +44,6 @@ final class FakeShop: BagRepository {
     var acknowledge: AcknowledgeBagChangeUseCase { DefaultAcknowledgeBagChangeUseCase(repository: self) }
     var addItemToBag: AddItemToBagUseCase { DefaultAddItemToBagUseCase(repository: self) }
 
-    /// The catalog is the one thing genuinely stubbed here.
     nonisolated var lookUpProducts: LookUpProductsUseCase { Lookup(shop: self) }
 
     var snackbar: SnackbarPresenting { Presenter(shop: self) }

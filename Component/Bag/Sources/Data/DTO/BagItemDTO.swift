@@ -3,10 +3,12 @@ import Bag
 import Money
 import Product
 
+/// Fowler, *PoEAA* (2002) — Data Transfer Object: the serialisation shape, kept out of the domain.
+/// It maps at the boundary, so a wire format change stops here.
 struct BagItemDTO: Codable, Sendable {
     let productId: Int
     let quantity: Int
-    /// Whole minor units, the same way `Money` counts them, so a bag read back off disk
+    /// Fowler, *PoEAA* (2002) — Money: stored as whole minor units, so a bag read back off disk
     /// totals to exactly what it totalled before it was written.
     let lastKnownPriceMinorUnits: Int
     let currencyCode: String

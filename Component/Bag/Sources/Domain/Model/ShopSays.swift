@@ -1,19 +1,16 @@
 import Money
 import Product
 
-/// What the shop currently says about one product the bag holds: what it costs, and whether
-/// it can be supplied.
+/// Martin, *Clean Architecture* (2017), Ch. 10 — Interface Segregation Principle: the bag reads
+/// three things about a product. Taking `Product` would make it depend on seven more it never
+/// reads, each a reason to recompile and a reason it could only ever be satisfied by the catalog.
 ///
-/// The bag's side of its boundary with the catalog, and deliberately not `Product`. A bag
-/// reasons about exactly these three things; handed a whole product it would also be handed
-/// a title, a description, a brand, a rating, a thumbnail and a set of images, and would
-/// then be a context that recompiles whenever any of them changes. Declaring what it needs
-/// is the same move as declaring its own repository protocol — the bag says what it wants,
-/// and whoever has a catalog to hand supplies it.
+/// Evans, *Domain-Driven Design* (2003) — Bounded Context; Anticorruption Layer: the translated
+/// form at the boundary between Catalog and Bag. `ProductID` and `Availability` are imported
+/// unchanged rather than restated, because identity and availability mean the same thing in both
+/// contexts and a second definition would be a second answer.
 ///
-/// Identity and availability come from the catalog because they mean the same thing in both
-/// places. Copying them would be inventing a second answer to a question the shop has
-/// already answered.
+/// Evans — Value Objects.
 public struct ShopSays: Equatable, Sendable {
     public let productId: ProductID
     public let price: Money

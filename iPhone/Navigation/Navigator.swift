@@ -1,16 +1,12 @@
-//
-//  Navigator.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 15/07/2025.
-//
-
 import SwiftUI
 import Combine
 import Foundation
 import AuthUI
 
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: conforms to every
+/// feature's navigation protocol, so the features depend on their own declarations and never on
+/// this.
 final class Navigator: ObservableObject {
     enum Tabs: Hashable {
         case home, search, bag, wishlist, account
@@ -30,8 +26,6 @@ final class Navigator: ObservableObject {
 
     // MARK: - Single entry point for all navigation (taps, deep links)
 
-    /// Navigates to `destination`, first routing through the auth gate when the
-    /// destination declares `requiresAuthentication`.
     func open(_ destination: Destination, tab: Tabs? = nil) {
         if destination.requiresAuthentication {
             Task { [weak self] in
@@ -55,9 +49,6 @@ final class Navigator: ObservableObject {
 
     // MARK: - NavigationPath controls
 
-    // Enumerates every tab twice (reset path, then append) by design; complexity tracks
-    // the tab count, not an actual branching problem.
-    // swiftlint:disable:next cyclomatic_complexity
     private func push(_ destination: Destination, tab: Tabs?) {
         let destinationTab = tab ?? selectedTab
         if destinationTab != selectedTab {

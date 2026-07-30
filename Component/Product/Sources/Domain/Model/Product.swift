@@ -1,5 +1,9 @@
 import Money
 
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: an entity, immutable and
+/// framework-free.
+///
+/// Evans, *Domain-Driven Design* (2003) — Entities.
 public struct Product: Equatable, Hashable, Sendable, Identifiable {
     public let id: ProductID
     public let title: String

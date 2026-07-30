@@ -1,15 +1,14 @@
 import Foundation
 import Product
 
-/// The searches a shopper has run lately, most recent first.
+/// Evans, *Domain-Driven Design* (2003) — Aggregates: the root, owning what "lately" means — the
+/// same search again moves to the top rather than repeating, and only the last handful are kept.
 ///
-/// What "lately" means lives here: running the same search again moves it back to the top
-/// rather than listing it twice, and only the last handful are worth keeping. What makes
-/// two searches *the same* search, and what makes something a search at all, is
-/// `SearchTerm`'s to say — so a blank one cannot get in here, and "Red Dress" cannot sit
-/// alongside "red dress", without this having to check either.
+/// Evans — Conceptual Contours: what makes something a search, and what makes two searches the
+/// same, belongs to `SearchTerm`. This cannot restate those rules and so cannot drift from them.
+///
+/// Evans — Side-Effect-Free Functions.
 public struct SearchHistory: Equatable, Sendable {
-    /// Enough to be useful as a shortcut, few enough to stay one glance.
     public static let limit = 10
 
     public let terms: [SearchTerm]
@@ -20,8 +19,6 @@ public struct SearchHistory: Equatable, Sendable {
 
     public var isEmpty: Bool { terms.isEmpty }
 
-    /// Searching for something already remembered moves it to the top rather than
-    /// repeating it, and the spelling kept is the one the shopper just used.
     public func recording(_ term: SearchTerm) -> SearchHistory {
         SearchHistory(terms: [term] + terms.filter { $0 != term })
     }

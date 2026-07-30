@@ -1,7 +1,10 @@
 import Product
 
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002) — Service
+/// Layer.
+///
+/// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces.
 public protocol AcknowledgeBagChangeUseCase: Sendable {
-    /// The shopper has seen what happened to this product.
     @MainActor
     func callAsFunction(productId: ProductID)
 }

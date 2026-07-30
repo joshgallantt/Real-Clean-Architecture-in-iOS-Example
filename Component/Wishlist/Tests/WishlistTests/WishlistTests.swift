@@ -3,10 +3,11 @@ import Testing
 import Product
 import Wishlist
 
-/// Everything the wishlist decides, decided without a repository, a store or a catalog.
 @Suite("What a wishlist holds")
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the domain is tested with no
+/// repository, no store and no simulator in the room. Anything here that needed one would not be a
+/// domain rule.
 struct WishlistTests {
-
     @Test("A new wishlist holds nothing")
     func empty() {
         let wishlist = Wishlist()

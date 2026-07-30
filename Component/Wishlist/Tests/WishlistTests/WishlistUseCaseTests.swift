@@ -5,13 +5,11 @@ import Session
 import Product
 import Wishlist
 
-/// The wishlist is the shopper's, so there has to be a shopper. That rule needs the
-/// session, which the list cannot see, so it lives here rather than on the aggregate —
-/// and it is the only rule these own.
 @MainActor
 @Suite("Saving and unsaving products")
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: what the use case sequences, and
+/// what it keeps.
 struct WishlistUseCaseTests {
-
     @Test("A signed-in shopper saving something saves a list with it in")
     func savingWhenSignedIn() async {
         let repository = InMemoryWishlistRepository()
@@ -75,8 +73,6 @@ struct WishlistUseCaseTests {
         await save(productId: pid(99))
         await save(productId: pid(7))
 
-        // Saving something else changed the list but not this heart, so the tile
-        // showing it is not redrawn.
         #expect(seen == [false, true])
         cancellable.cancel()
     }
@@ -87,8 +83,6 @@ private extension Result where Success == Void, Failure: Equatable {
     var failure: Failure? { if case .failure(let error) = self { error } else { nil } }
 }
 
-/// A session rather than a bare boolean: a test can now say *who* is signed in, which
-/// is what the wishlist is actually partitioned by.
 private struct StubGetSession: GetSessionUseCase {
     let session: Session
 

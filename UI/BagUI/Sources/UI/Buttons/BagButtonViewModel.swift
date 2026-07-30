@@ -5,6 +5,12 @@ import Product
 import SnackbarUI
 
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
+/// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
+/// never a repository, a store or a data source.
+///
+/// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
+/// a container that could resolve anything.
 public final class BagButtonViewModel: ObservableObject {
     @Published private(set) var quantity = 0
 
@@ -33,12 +39,6 @@ public final class BagButtonViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    // The boundary between the two contexts, and the only things that cross it: which
-    // product, and what it costs today. The name and the picture stay where they belong,
-    // in the catalog. Nothing is fetched, so nothing can fail.
-    //
-    // Something the shop cannot supply is not added — the next catch-up would only take
-    // it straight back out again, which would read as the app losing it.
     func didTap() {
         switch product.availability {
         case .inStock:

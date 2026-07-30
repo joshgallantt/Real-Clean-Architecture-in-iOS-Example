@@ -6,11 +6,14 @@ import SearchHistoryData
 import SearchHistoryDI
 import Session
 
-/// Journeys through the whole feature — use cases, repository and store — as the
-/// composition root wires it.
 @Suite("Coming back to a search")
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: a whole feature wired as the
+/// composition root wires it, driven only through the use cases the UI is given. What no layer test
+/// can show is that the layers fit together.
+///
+/// Evans, *Domain-Driven Design* (2003) — Ubiquitous Language: the tests are named in the shopper's
+/// words, so a failure reads as a broken journey rather than a broken method.
 struct SearchingAgainTests {
-
     @Test("A shopper's recent searches are waiting for them, most recent first")
     func recentSearchesAreRemembered() async {
         let shopper = Searcher()
@@ -82,7 +85,6 @@ struct SearchingAgainTests {
     }
 }
 
-/// The search feature wired as the composition root wires it, over an in-memory store.
 struct Searcher {
     private let di: SearchHistoryDI
 
@@ -94,8 +96,6 @@ struct Searcher {
         get async { await di.getSearchHistoryUseCase().terms.map(\.text) }
     }
 
-    /// Takes the raw text a shopper typed, exactly as a screen has it, so these journeys
-    /// still cover what happens when that text is not a search at all.
     func search(for typed: String) async {
         guard let term = SearchTerm(typed) else { return }
         await di.recordSearchUseCase(term)

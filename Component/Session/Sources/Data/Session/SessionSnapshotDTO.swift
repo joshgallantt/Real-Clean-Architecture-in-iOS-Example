@@ -1,5 +1,7 @@
 import Foundation
 
+/// Fowler, *PoEAA* (2002) — Data Transfer Object: the serialisation shape, kept out of the domain.
+/// It maps at the boundary, so a wire format change stops here.
 struct SessionSnapshotDTO: Codable {
     struct UserDTO: Codable {
         let id: Int

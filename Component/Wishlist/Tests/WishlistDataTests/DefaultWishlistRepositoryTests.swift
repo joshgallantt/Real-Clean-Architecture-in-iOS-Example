@@ -6,13 +6,11 @@ import Session
 import Wishlist
 @testable import WishlistData
 
-/// Keeping the current list, putting it on disk in the right order, swapping it when
-/// the owner changes, and telling anyone watching. Nothing here decides what saving
-/// or removing means.
 @MainActor
 @Suite("Keeping the wishlist")
+/// Fowler, *PoEAA* (2002) — Repository: the translation and the keeping, tested with the real
+/// implementation over a stubbed gateway. No rule about what the domain means lives at this level.
 struct DefaultWishlistRepositoryTests {
-
     private func makeRepository(
         store: InMemoryWishlistStore = InMemoryWishlistStore(),
         owners: CurrentValueSubject<UserID?, Never> = CurrentValueSubject(UserID(rawValue: 1))
@@ -86,7 +84,6 @@ struct DefaultWishlistRepositoryTests {
 
         owners.send(UserID(rawValue: 1))
 
-        // A reload here would drop the save that has not reached disk yet.
         #expect(repository.wishlist.items.map(\.id) == [pid(1)])
     }
 }
@@ -113,7 +110,6 @@ final class InMemoryWishlistStore: WishlistStore, @unchecked Sendable {
         }
     }
 }
-
 
 // MARK: - Fixtures
 

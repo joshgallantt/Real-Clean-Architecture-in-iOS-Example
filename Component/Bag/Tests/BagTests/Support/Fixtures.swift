@@ -3,8 +3,6 @@ import Bag
 import Money
 import Product
 
-/// Prices as amounts rather than raw numbers. There is no `Double.cents` helper any more,
-/// because the arithmetic is exact and the assertions can just say what they mean.
 func usd(_ amount: Decimal) -> Money {
     Money(amount: amount, currency: .usd)
 }

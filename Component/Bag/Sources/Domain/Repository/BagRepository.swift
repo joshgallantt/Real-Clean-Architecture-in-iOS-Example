@@ -1,12 +1,13 @@
 import Combine
 
-/// Access to the shopper's bag and to what they still need to be told about it.
+/// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle; Ch. 7 — Single
+/// Responsibility Principle: two aggregates behind one repository, because they have one reason to
+/// change — they share a file, an owner and a sign-in, and are always read together. Whether a
+/// notice still holds against a given bag is decided on read, so a write that tears corrects
+/// itself.
 ///
-/// Two aggregates, one repository. Not because they must be written atomically — if that
-/// were required they would be one aggregate — but because there is one reason for this
-/// to change: they share a file, an owner, and a sign-in. Whether a notice still makes
-/// sense against a given bag is decided when they are read, by `ObserveBagChangesUseCase`,
-/// so a write that tears corrects itself.
+/// Evans, *Domain-Driven Design* (2003) — Repositories. Fowler, *PoEAA* (2002) — Repository;
+/// Separated Interface.
 public protocol BagRepository: Sendable {
     @MainActor
     var bag: Bag { get }

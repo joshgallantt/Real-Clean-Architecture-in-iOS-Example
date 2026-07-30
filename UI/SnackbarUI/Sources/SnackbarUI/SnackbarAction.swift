@@ -1,5 +1,3 @@
-/// The one thing a snackbar offers to do on the user's behalf. `undo`, `retry`, and `view`
-/// are the ones that have earned names; anything else supplies its own label.
 public struct SnackbarAction {
     public let label: String
     public let handler: @MainActor () -> Void

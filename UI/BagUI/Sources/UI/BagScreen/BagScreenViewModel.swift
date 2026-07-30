@@ -6,6 +6,12 @@ import Product
 import SnackbarUI
 
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
+/// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
+/// never a repository, a store or a data source.
+///
+/// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
+/// a container that could resolve anything.
 public final class BagScreenViewModel: ObservableObject {
     @Published private(set) var rows: [BagRow] = []
     @Published private(set) var removedRows: [ChangedBagRow] = []
@@ -30,9 +36,8 @@ public final class BagScreenViewModel: ObservableObject {
     private var loadedCount: Int
     private var lookupTask: Task<Void, Never>?
 
-    /// Always from the bag, never from the catalog: the total must be right whether or
-    /// not anything loaded. Nothing at all when the bag is empty, which is the one case
-    /// where the screen shows no total.
+    /// Fowler, *PoEAA* (2002) — Money: always from the bag, never the catalog, so the total is
+    /// right whether or not anything loaded.
     var total: Money? { bag.total }
 
     var isEmpty: Bool { bag.isEmpty }
@@ -56,13 +61,6 @@ public final class BagScreenViewModel: ObservableObject {
         self.loadedCount = pageSize
     }
 
-    /// Opening the bag is a reason to ask the shop again — a shopper coming back after a
-    /// day is the whole point of catching up, and the tab is held alive between visits,
-    /// so nothing else would ever ask.
-    ///
-    /// It also covers anything added from another tab while this screen was off-screen:
-    /// that bag change does not ask on its own, and does not need to, because the shopper
-    /// has to come here to see it.
     func onAppear() {
         if cancellables.isEmpty {
             subscribe()
@@ -82,8 +80,6 @@ public final class BagScreenViewModel: ObservableObject {
         askTheShop(aboutEverythingVisible: true)
     }
 
-    // Wanting none of something is the same thing as taking it out, so the bag is told
-    // once, in one way.
     func didSwipeToDelete(productId: ProductID) {
         setBagItemQuantity(productId: productId, to: 0)
         askTheShop(aboutEverythingVisible: true)
@@ -98,9 +94,6 @@ public final class BagScreenViewModel: ObservableObject {
         askTheShop(aboutEverythingVisible: true)
     }
 
-    /// Stubbed until there is a push notification system to register with. It dismisses
-    /// the row so the shopper is not left with a button that appears to do nothing, and
-    /// says what it will eventually mean.
     func didAskToBeNotified(productId: ProductID) {
         acknowledgeBagChange(productId: productId)
         snackbar.show(Snackbar(
@@ -127,8 +120,6 @@ public final class BagScreenViewModel: ObservableObject {
             }
             .store(in: &cancellables)
 
-        // Already narrowed to what is still worth telling this shopper, so there is nothing
-        // about it left for this screen to decide.
         observeBagChanges()
             .sink { [weak self] changes in
                 self?.changes = changes
@@ -137,11 +128,6 @@ public final class BagScreenViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    /// Redraws, and nothing else. Asking the shop is triggered by the things that
-    /// warrant it — opening the screen, and the shopper changing something here — rather
-    /// than inferred from the bag having changed. Inferring it means telling the
-    /// shopper's own edits apart from the repricing that asking causes, and getting that
-    /// wrong makes the screen ask forever.
     private func bagChanged(_ bag: Bag) {
         self.bag = bag
 
@@ -151,8 +137,6 @@ public final class BagScreenViewModel: ObservableObject {
         render()
     }
 
-    /// Rows go out immediately from the bag alone. Names and pictures arrive later if
-    /// they arrive at all — the shopper's bag is never held hostage to the catalog.
     private func render() {
         rows = bag.items.prefix(loadedCount).map { item in
             BagRow(item: item, name: catalog[item.id]?.title, imageURL: catalog[item.id]?.thumbnail)
@@ -163,9 +147,6 @@ public final class BagScreenViewModel: ObservableObject {
         shortageRows = changes.shortages.map(row(for:))
     }
 
-    /// - Parameter aboutEverythingVisible: ask again about lines already looked up, so
-    ///   prices and availability can be checked. `false` asks only about lines never seen,
-    ///   which is all paging needs.
     private func askTheShop(aboutEverythingVisible refreshAll: Bool) {
         lookupTask?.cancel()
 
@@ -182,14 +163,10 @@ public final class BagScreenViewModel: ObservableObject {
             let result = await self.lookUpProducts(ids: ids)
             guard !Task.isCancelled else { return }
 
-            // A failure leaves the rows as they were and says nothing. There is no retry
-            // to offer, because nothing the shopper asked for has failed.
             if case .success(let products) = result {
                 for product in products {
                     self.catalog[product.id] = product
                 }
-                // The bag is told what the shop says in the bag's own terms. What a product
-                // is called and what it looks like is this screen's business, not the bag's.
                 self.bringBagUpToDate(against: products.map(ShopSays.init))
             }
 
@@ -199,8 +176,10 @@ public final class BagScreenViewModel: ObservableObject {
     }
 }
 
+/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the Interface Adapters
+/// ring converting the catalog's format into the one the bag's use case wants. The screen fetches
+/// products for names and thumbnails anyway; this is the same answer, narrowed.
 private extension ShopSays {
-    /// The translation between the two contexts, made in the one place that holds both.
     init(_ product: Product) {
         self.init(
             productId: product.id,

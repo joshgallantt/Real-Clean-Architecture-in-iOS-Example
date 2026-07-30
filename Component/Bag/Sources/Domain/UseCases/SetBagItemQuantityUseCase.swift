@@ -1,8 +1,10 @@
 import Product
 
+/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002) — Service
+/// Layer.
+///
+/// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces.
 public protocol SetBagItemQuantityUseCase: Sendable {
-    /// Asking for none of something is how a shopper takes it out of their bag, so this
-    /// is the only way a line's count changes — including to nothing.
     @MainActor
     func callAsFunction(productId: ProductID, to quantity: Int)
 }
@@ -18,8 +20,6 @@ public struct DefaultSetBagItemQuantityUseCase: SetBagItemQuantityUseCase {
     public func callAsFunction(productId: ProductID, to quantity: Int) {
         let bag = repository.bag.changingQuantity(of: productId, to: quantity)
 
-        // A price move about a line the shopper has just taken out is news about
-        // nothing, so it goes with it.
         let changes = bag.holds(productId: productId)
             ? repository.changes
             : repository.changes.acknowledging(productId: productId)

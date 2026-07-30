@@ -2,6 +2,12 @@ import Foundation
 import Product
 
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
+/// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
+/// never a repository, a store or a data source.
+///
+/// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
+/// a container that could resolve anything.
 public final class ProductDetailsViewModel: ObservableObject {
     @Published private(set) var product: Product?
     @Published private(set) var isLoading = false
@@ -15,8 +21,6 @@ public final class ProductDetailsViewModel: ObservableObject {
         self.viewProduct = viewProduct
     }
 
-    // Skips the fetch entirely: the caller already holds the full model (e.g.
-    // a product grid), so there's nothing to load.
     public init(product: Product) {
         self.id = product.id
         self.product = product

@@ -1,7 +1,8 @@
 import Session
 
-/// Turning a domain failure into something worth reading is a presentation decision, so the
-/// wording lives here rather than in `Session`.
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: turning a domain
+/// failure into something worth reading is a presentation decision, so the wording lives here
+/// rather than in `Session`.
 extension LoginError {
     var userMessage: String {
         switch self {

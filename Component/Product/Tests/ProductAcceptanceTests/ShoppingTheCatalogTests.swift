@@ -2,14 +2,14 @@ import Testing
 import Money
 import Product
 
-/// A handful of journeys, run over a fake shop with the whole product stack behind
-/// them: the composition root's wiring, the real client, the real parsing and the real
-/// use cases. These do not enumerate what can go wrong — `ProductDataTests` owns that,
-/// where a failure names the layer that broke. What lives here is the thing no layer
-/// test can show, which is that the layers fit together.
 @Suite("Shopping the catalog")
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: a whole feature wired as the
+/// composition root wires it, driven only through the use cases the UI is given. What no layer test
+/// can show is that the layers fit together.
+///
+/// Evans, *Domain-Driven Design* (2003) — Ubiquitous Language: the tests are named in the shopper's
+/// words, so a failure reads as a broken journey rather than a broken method.
 struct ShoppingTheCatalogTests {
-
     @Test("A shopper opens the app and sees the first page of products")
     func opensTheApp() async {
         let shop = Shop()

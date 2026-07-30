@@ -3,13 +3,15 @@ import Testing
 import Bag
 import Money
 
-/// Journeys through the whole bag feature — use cases, repository and store — with no
-/// catalog anywhere in sight. That is the thing worth proving: everything a shopper
-/// does with their bag, and everything the bag is worth, works without the shop.
 @MainActor
 @Suite("Using the bag")
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: a whole feature wired as the
+/// composition root wires it, driven only through the use cases the UI is given. What no layer test
+/// can show is that the layers fit together.
+///
+/// Evans, *Domain-Driven Design* (2003) — Ubiquitous Language: the tests are named in the shopper's
+/// words, so a failure reads as a broken journey rather than a broken method.
 struct UsingTheBagTests {
-
     @Test("A shopper chooses two things and their bag is worth what they agreed to pay")
     func choosesTwoThings() {
         let shopper = Shopper()
@@ -39,8 +41,6 @@ struct UsingTheBagTests {
         shopper.choose(productId: 1, atPrice: 4.99)
         shopper.choose(productId: 1, atPrice: 9.99)
 
-        // Leaving the first at the sale price would either short the shop or overcharge
-        // the shopper, depending which way the price moved.
         #expect(shopper.bag.total == usd(19.98))
     }
 
@@ -136,13 +136,9 @@ struct UsingTheBagTests {
     }
 }
 
-/// The same journeys, but with the shop changing its mind while the shopper was away. What
-/// they are told is read straight off the use case — a screen showing this is handed news it
-/// can render as-is.
 @MainActor
 @Suite("Being told what the shop changed")
 struct BeingToldWhatChangedTests {
-
     @Test("A shopper is told a price moved, and the bag is worth the new price")
     func priceMoved() {
         let shopper = Shopper()
@@ -198,7 +194,6 @@ struct BeingToldWhatChangedTests {
 
         shopper.choose(productId: 1, atPrice: 9.99)
 
-        // The notice explained a bag that was shorter. It isn't shorter any more.
         #expect(shopper.news.isEmpty)
     }
 

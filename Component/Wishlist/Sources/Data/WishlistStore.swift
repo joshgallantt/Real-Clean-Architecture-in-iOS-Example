@@ -2,17 +2,15 @@ import Foundation
 import Session
 import Wishlist
 
-/// A wishlist belongs to a signed-in shopper. `nil` is nobody signed in, which has no
-/// wishlist to read and nowhere to write one — a guest cannot save anything in the first
-/// place, so there is no such file and never was.
+/// Fowler, *PoEAA* (2002) — Gateway: wraps one external system behind a domain-shaped call.
+///
+/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the outermost ring,
+/// replaceable without anything inward moving.
 public protocol WishlistStore: Sendable {
     func getItems(for owner: UserID?) -> [WishlistItem]
     func setItems(_ items: [WishlistItem], for owner: UserID?) async
 }
 
-// Reads are synchronous because they happen once per owner switch, and seeding the
-// repository asynchronously would flash empty hearts on launch. Writes happen on
-// every toggle and re-encode the whole list, so they go off the main thread.
 public struct FileWishlistStore: WishlistStore, @unchecked Sendable {
     private let directory: URL
     private let legacyDefaults: UserDefaults
@@ -61,9 +59,6 @@ public struct FileWishlistStore: WishlistStore, @unchecked Sendable {
         return dtos.map { $0.toDomain() }
     }
 
-    // Wishlists written before the move off UserDefaults. Runs at most once per
-    // user, on the first read with no file present. Delete this method, its call
-    // site, and `legacyDefaults` once the upgrade window has passed.
     private func migrateLegacyItems(forUserKey userKey: String) -> [WishlistItem] {
         let legacyKey = "wishlist.\(userKey)"
         defer { legacyDefaults.removeObject(forKey: legacyKey) }
@@ -89,8 +84,8 @@ public struct FileWishlistStore: WishlistStore, @unchecked Sendable {
         directory.appending(path: "\(userKey).json", directoryHint: .notDirectory)
     }
 
-    /// What a wishlist is filed under. The only place an owner turns back into a string, and
-    /// the spelling is the one already on disk so lists kept by earlier builds still load.
+    /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: what something is
+    /// filed under is the storage layer's business. The only place an owner becomes a string.
     private static func filename(for owner: UserID?) -> String? {
         owner.map { String($0.rawValue) }
     }

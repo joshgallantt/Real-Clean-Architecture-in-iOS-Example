@@ -1,5 +1,3 @@
-/// Why the user is being asked to authenticate. Features supply their own so the ask reads
-/// as part of what the user was trying to do.
 public struct AuthenticationPrompt: Equatable, Sendable {
     public let title: String
     public let message: String

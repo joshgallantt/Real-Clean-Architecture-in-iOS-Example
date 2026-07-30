@@ -1,8 +1,5 @@
 import SwiftUI
 
-/// The flow's one and only sheet. The form and its confirmation are the same surface
-/// resolving in place, so the user crosses the whole thing without a sheet ever dismissing
-/// out from under them.
 struct AuthSheetView: View {
     @StateObject private var viewModel: AuthViewModel
     @Environment(\.dismiss) private var dismiss
@@ -33,8 +30,6 @@ struct AuthSheetView: View {
             .accessibilityLabel("Close")
             .padding(16)
         }
-        // A rubber-banding swipe is the system's own way of saying "not like that"; the
-        // close button is right there, and it explains itself.
         .interactiveDismissDisabled(viewModel.hasUnsavedInput)
         .confirmationDialog(
             "Discard your details?",

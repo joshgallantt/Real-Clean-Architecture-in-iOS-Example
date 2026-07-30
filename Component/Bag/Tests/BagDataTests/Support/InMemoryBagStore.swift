@@ -9,8 +9,6 @@ final class InMemoryBagStore: BagStore, @unchecked Sendable {
     private var bags: [BagOwner: (bag: Bag, changes: BagChanges)] = [:]
     private var _writes: [(bag: Bag, changes: BagChanges)] = []
 
-    /// Every write in the order it landed, so ordering guarantees can be asserted
-    /// rather than inferred from the final state.
     var writes: [(bag: Bag, changes: BagChanges)] { lock.withLock { _writes } }
 
     init(seeded: [BagOwner: (bag: Bag, changes: BagChanges)] = [:]) {

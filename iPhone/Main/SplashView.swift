@@ -1,10 +1,3 @@
-//
-//  SplashView.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 24/07/2026.
-//
-
 import SwiftUI
 
 struct SplashView: View {

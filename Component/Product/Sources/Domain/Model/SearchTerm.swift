@@ -1,20 +1,12 @@
 import Foundation
 
-/// Something a shopper is looking for.
+/// Evans, *Domain-Driven Design* (2003) — Making Implicit Concepts Explicit: what counts as a
+/// search, and when two searches are the same search, was a rule spread across a text field, a
+/// catalog request and a history list — three places free to disagree.
 ///
-/// Every rule about what makes a search a search, and about when two searches are the same
-/// search, lives here: surrounding whitespace is not part of what they typed, blank is not
-/// a search at all, and case is not what makes two searches different. Spread across a text
-/// field, a catalog request and a history list, those rules disagree — a screen can trim
-/// before searching while the thing remembering it does not, and then "Red Dress" is
-/// searched for but "red dress" is what gets remembered.
-///
-/// A smart constructor here, unlike `Email`, because nothing needs to hold a half-typed
-/// search: the text field holds a `String` and only becomes a term at the moment a shopper
-/// commits to it. `nil` means there was no search to run.
+/// Evans — Value Objects; Side-Effect-Free Functions. Failable rather than lenient, because nothing
+/// needs to hold a half-typed search: `nil` means there was none.
 public struct SearchTerm: Sendable {
-    /// What the shopper typed, minus the whitespace around it. Their capitalisation is
-    /// kept — it is theirs to see in their own history.
     public let text: String
 
     public init?(_ raw: String) {
@@ -24,7 +16,6 @@ public struct SearchTerm: Sendable {
     }
 }
 
-/// Two searches for the same words are the same search however they were capitalised.
 extension SearchTerm: Equatable, Hashable {
     public static func == (lhs: SearchTerm, rhs: SearchTerm) -> Bool {
         lhs.text.caseInsensitiveCompare(rhs.text) == .orderedSame

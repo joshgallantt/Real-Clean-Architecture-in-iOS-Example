@@ -2,6 +2,8 @@ import Combine
 import Foundation
 import Session
 
+/// Evans, *Domain-Driven Design* (2003) — Repositories. Fowler, *PoEAA* (2002) — Repository: it
+/// keeps and hands back aggregates and decides nothing about what they mean.
 public struct DefaultSessionRepository: SessionRepository {
     private let sessionStore: SessionStore
     private let authClient: AuthClient
@@ -48,8 +50,9 @@ public struct DefaultSessionRepository: SessionRepository {
         await sessionStore.clear()
     }
 
-    // The auth client's vocabulary becomes the domain's. Anything that is not a specific,
-    // actionable answer is the shop not having answered.
+    /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the auth client's
+    /// vocabulary becomes the domain's. Anything that is not a specific, actionable answer is the
+    /// shop not answering.
     private static func createAccountError(from error: AuthClientError) -> CreateAccountError {
         switch error {
         case .emailAlreadyInUse:

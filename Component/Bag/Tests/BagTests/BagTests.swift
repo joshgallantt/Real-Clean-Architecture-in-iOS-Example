@@ -3,18 +3,17 @@ import Testing
 import Bag
 import Money
 
-/// Everything the bag decides, decided without a repository, a store or a catalog in
-/// the room. If any of this needed one, it would not be the bag's rule.
 @Suite("What a bag costs")
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the domain is tested with no
+/// repository, no store and no simulator in the room. Anything here that needed one would not be a
+/// domain rule.
 struct BagCostTests {
-
     @Test("An empty bag holds nothing, and is not worth zero of anything in particular")
     func emptyBag() {
         let bag = Bag()
 
         #expect(bag.isEmpty)
         #expect(bag.itemCount == 0)
-        // There is no currency in an empty bag to name an amount in, so there is no amount.
         #expect(bag.total == nil)
     }
 
@@ -35,14 +34,11 @@ struct BagCostTests {
             item(2, price: 49.99)
         ])
 
-        // In `Double` this comes out as 59.980000000000004.
         #expect(bag.total == usd(59.98))
     }
 
     @Test("A bag totals correctly with nothing loaded, because nothing needs loading")
     func totalNeedsNothingFetched() {
-        // No names, no pictures, no catalog: the bag keeps the last prices it was
-        // shown, so it can still say what it is worth.
         let bag = Bag(items: [item(1, quantity: 3, price: 4.99)])
 
         #expect(bag.total == usd(14.97))
@@ -67,12 +63,11 @@ struct BagCostTests {
     }
 }
 
-/// The states a bag says it will not be in, asserted at the only door into one. Documented
-/// invariants that the initialiser does not actually impose are held only by the good
-/// manners of every caller.
 @Suite("States a bag cannot be in")
+/// Evans, *Domain-Driven Design* (2003) — Aggregates: the states the root says it will not be in,
+/// asserted at the only door into one. A documented invariant the initialiser does not impose is
+/// held only by the good manners of every caller.
 struct BagInvariantTests {
-
     @Test("Two lines for one product become one line with both counts")
     func duplicateLinesAreMerged() {
         let bag = Bag(items: [
@@ -82,7 +77,6 @@ struct BagInvariantTests {
 
         #expect(bag.items.count == 1)
         #expect(bag.quantity(of: pid(1)) == 5)
-        // The earlier line is when the shopper put it in the bag, so its price and date stand.
         #expect(bag.items.first?.lastKnownPrice == usd(9.99))
     }
 
@@ -106,7 +100,6 @@ struct BagInvariantTests {
 
     @Test("A bag rebuilt from a file written by an older build is put right, not trusted")
     func repairsWhateverItIsHanded() {
-        // Exactly what a decoded payload can contain: duplicates, an empty line, any order.
         let bag = Bag(items: [
             item(1, quantity: 1, price: 5, addedAt: Date(timeIntervalSince1970: 100)),
             item(2, quantity: 0, price: 5, addedAt: Date(timeIntervalSince1970: 200)),
@@ -122,7 +115,6 @@ struct BagInvariantTests {
 
 @Suite("How a bag changes")
 struct BagChangeTests {
-
     @Test("Choosing something new puts it in the bag")
     func addingSomethingNew() {
         let bag = Bag().adding(item(1, price: 9.99))
@@ -147,8 +139,6 @@ struct BagChangeTests {
             .adding(item(1, price: 4.99))
             .adding(item(1, price: 9.99))
 
-        // The alternative leaves the shopper paying last week's price for both, which
-        // is wrong in whichever direction the price moved.
         #expect(bag.items.first?.lastKnownPrice == usd(9.99))
         #expect(bag.total == usd(19.98))
     }

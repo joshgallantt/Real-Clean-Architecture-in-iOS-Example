@@ -3,6 +3,8 @@ import Bag
 import Money
 import Product
 
+/// Fowler, *PoEAA* (2002) — Data Transfer Object: the serialisation shape, kept out of the domain.
+/// It maps at the boundary, so a wire format change stops here.
 struct BagDTO: Codable, Sendable {
     let items: [BagItemDTO]
     let pendingChanges: [BagChangeDTO]
@@ -20,9 +22,12 @@ struct BagDTO: Codable, Sendable {
     }
 }
 
-/// A change flattened for storage. A payload written by an older build, or one naming a
-/// kind this build no longer has, decodes to nothing rather than failing the whole bag —
-/// losing a warning is a small harm, losing the shopper's bag is not.
+/// Fowler, *PoEAA* (2002) — Data Transfer Object: the serialisation shape, kept out of the domain.
+/// It maps at the boundary, so a wire format change stops here.
+///
+/// Fowler — Special Case: a payload naming a kind this build no longer has decodes to nothing
+/// rather than failing the whole bag. Losing a notice is a small harm; losing the shopper's bag is
+/// not.
 struct BagChangeDTO: Codable, Sendable {
     enum Kind: String, Codable, Sendable {
         case priceWentUp

@@ -1,6 +1,12 @@
 import Product
 import ProductData
 
+/// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: wiring, and nothing else. It
+/// is the only thing that knows the concrete types, so it is the only thing that has to change when
+/// one is swapped. Not unit tested — there is no behaviour here to test.
+///
+/// Fowler, *Inversion of Control Containers and the Dependency Injection Pattern* (2004) —
+/// Dependency Injection.
 public struct ProductDI {
     public let browseCatalogUseCase: BrowseCatalogUseCase
     public let lookUpProductsUseCase: LookUpProductsUseCase

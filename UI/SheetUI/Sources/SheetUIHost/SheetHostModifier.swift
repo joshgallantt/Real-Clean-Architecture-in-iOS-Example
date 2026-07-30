@@ -12,7 +12,6 @@ private struct SheetHostModifier: ViewModifier {
 }
 
 public extension View {
-    /// Hosts whatever `presenter` is asked to present.
     func sheetHost(_ presenter: SheetPresenter) -> some View {
         modifier(SheetHostModifier(presenter: presenter))
     }

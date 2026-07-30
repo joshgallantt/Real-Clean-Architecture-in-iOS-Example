@@ -18,8 +18,6 @@ public struct CategoriesView: View {
 
     public var body: some View {
         List {
-            // Not a real DummyJSON category, so it's a UI-only row rather than an
-            // entry fabricated into the fetched categories list.
             Button {
                 onSelectAll()
             } label: {

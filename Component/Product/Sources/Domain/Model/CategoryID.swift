@@ -1,5 +1,4 @@
-/// Opaque identity for a category. The backend's token format — a kebab-case slug today —
-/// is not the domain's business, and nothing inward of the data layer reads `rawValue`.
+/// Evans, *Domain-Driven Design* (2003) — Value Objects. Fowler, *PoEAA* (2002) — Identity Field.
 public struct CategoryID: Equatable, Hashable, Sendable {
     public let rawValue: String
 

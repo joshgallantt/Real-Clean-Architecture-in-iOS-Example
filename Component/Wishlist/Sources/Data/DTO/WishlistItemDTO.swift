@@ -2,9 +2,9 @@ import Foundation
 import Product
 import Wishlist
 
+/// Fowler, *PoEAA* (2002) — Data Transfer Object: the serialisation shape, kept out of the domain.
+/// It maps at the boundary, so a wire format change stops here.
 struct WishlistItemDTO: Codable, Sendable {
-    /// Still `id` on the wire: this is what earlier builds wrote, and renaming a stored key
-    /// would silently empty every wishlist already on disk.
     let id: Int
     let dateAdded: Date
 

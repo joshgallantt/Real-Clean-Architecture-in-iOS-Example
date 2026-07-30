@@ -1,15 +1,14 @@
-//
-//  MainViewModel.swift
-//  CleanArchitecture
-//
-//  Created by Josh Gallant on 24/07/2026.
-//
-
 import Combine
 import Foundation
 import Session
 
 @MainActor
+/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
+/// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
+/// never a repository, a store or a data source.
+///
+/// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
+/// a container that could resolve anything.
 final class MainViewModel: ObservableObject {
     enum Phase: Hashable {
         case splash
@@ -24,9 +23,6 @@ final class MainViewModel: ObservableObject {
 
     private let splashDuration: Duration = .seconds(1.2)
 
-    /// A beat between the authentication sheet leaving and the app changing underneath, so
-    /// the two read as one thing finishing and the next beginning rather than as a single
-    /// lurch.
     private let settleAfterAuthentication: Duration = .milliseconds(500)
 
     init(getSession: GetSessionUseCase) {
@@ -44,9 +40,6 @@ final class MainViewModel: ObservableObject {
         phase = .main
     }
 
-    /// Called when the Welcome screen's authentication flow has finished *and* its sheet has
-    /// gone — not when the session changed, which happens a few seconds earlier while the
-    /// user is still reading the confirmation.
     func authenticationFinished() {
         Task {
             try? await Task.sleep(for: settleAfterAuthentication)

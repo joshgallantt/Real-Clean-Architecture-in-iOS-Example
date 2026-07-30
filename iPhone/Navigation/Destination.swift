@@ -8,19 +8,18 @@ import WishlistUI
 import BagUI
 import ProductUIDI
 
+/// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: every route in one place, in
+/// the only layer that may know all the features. It also declares navigation policy — which
+/// destinations require an account — so the rule sits beside the routes rather than in each screen.
 public enum Destination: Hashable {
     case catalog(CatalogFilter)
     case productDetails(ProductReference)
 
-    /// Either the bare id (fetched on appear) or an already-loaded model
-    /// (e.g. from a product grid, which skips the fetch entirely).
     public enum ProductReference: Hashable {
         case id(ProductID)
         case product(Product)
     }
 
-    /// Navigation policy: destinations that require an authenticated session.
-    /// `Navigator.open` routes these through the auth gate before pushing.
     var requiresAuthentication: Bool {
         switch self {
         case .catalog, .productDetails:
