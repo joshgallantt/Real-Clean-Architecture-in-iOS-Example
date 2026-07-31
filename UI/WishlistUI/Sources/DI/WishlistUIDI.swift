@@ -20,6 +20,8 @@ public struct WishlistUIDI {
     private let navigation: WishlistNavigation
     private let observeWishlist: ObserveWishlistUseCase
     private let observeStockAlerts: ObserveStockAlertsUseCase
+    private let getProductsToBeNotified: GetProductsToBeNotifiedUseCase
+    private let getBackInStockProducts: GetBackInStockProductsUseCase
     private let catchUpOnStockAlerts: CatchUpOnStockAlertsUseCase
     private let stopBeingToldWhenBack: StopBeingToldWhenBackUseCase
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
@@ -33,6 +35,8 @@ public struct WishlistUIDI {
         navigation: WishlistNavigation,
         observeWishlist: ObserveWishlistUseCase,
         observeStockAlerts: ObserveStockAlertsUseCase,
+        getProductsToBeNotified: GetProductsToBeNotifiedUseCase,
+        getBackInStockProducts: GetBackInStockProductsUseCase,
         catchUpOnStockAlerts: CatchUpOnStockAlertsUseCase,
         stopBeingToldWhenBack: StopBeingToldWhenBackUseCase,
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
@@ -45,6 +49,8 @@ public struct WishlistUIDI {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
         self.observeStockAlerts = observeStockAlerts
+        self.getProductsToBeNotified = getProductsToBeNotified
+        self.getBackInStockProducts = getBackInStockProducts
         self.catchUpOnStockAlerts = catchUpOnStockAlerts
         self.stopBeingToldWhenBack = stopBeingToldWhenBack
         self.removeProductFromWishlist = removeProductFromWishlist
@@ -90,7 +96,7 @@ public struct WishlistUIDI {
 
     @MainActor
     public func allNotifyMeView() -> some View {
-        list(
+        alertedList(
             viewModel: notifyMeViewModel(),
             title: "Notify Me",
             emptyTitle: "Nothing to Wait For",
@@ -101,7 +107,7 @@ public struct WishlistUIDI {
 
     @MainActor
     public func allBackInStockView() -> some View {
-        list(
+        alertedList(
             viewModel: backInStockViewModel(),
             title: "Back in Stock",
             emptyTitle: "Nothing Back Yet",
@@ -111,6 +117,26 @@ public struct WishlistUIDI {
     }
 
     // MARK: -
+
+    @MainActor
+    private func alertedList(
+        viewModel: @autoclosure @escaping () -> AlertedProductsViewModel,
+        title: String,
+        emptyTitle: String,
+        emptyIcon: String,
+        emptyMessage: String
+    ) -> some View {
+        AlertedProductsListView(
+            viewModel: viewModel(),
+            title: title,
+            emptyTitle: emptyTitle,
+            emptyIcon: emptyIcon,
+            emptyMessage: emptyMessage,
+            onSelect: { [navigation] product in navigation.openProductDetails(product: product) },
+            accessory: { product in AnyView(button(productId: product.id)) },
+            leadingAccessory: { product in AnyView(productActionsUIDI.cardActionButton(product: product)) }
+        )
+    }
 
     @MainActor
     private func list(
@@ -151,35 +177,32 @@ public struct WishlistUIDI {
         )
     }
 
-    /// The same asks feed both lists. Which one a product appears on is decided by what the shop
-    /// says about it now — still sold out, or back — so a shopper never has to have been told
-    /// anything for the split to be right, and something that returns moves the moment it does.
+    /// Which products are on which list is the domain's to say, and it says so by name. This picks
+    /// a use case; it does not sieve one list into two, which is what it used to do and what put a
+    /// rule about stock inside a DI container.
     @MainActor
-    private func notifyMeViewModel() -> SavedProductsViewModel {
-        alertsViewModel(keeping: { !$0.availability.isAvailable }, couldNotLoad: "Couldn't Load Notify Me")
+    private func notifyMeViewModel() -> AlertedProductsViewModel {
+        alertedProducts(from: { [getProductsToBeNotified] in await getProductsToBeNotified() }, couldNotLoad: "Couldn't Load Notify Me")
     }
 
     @MainActor
-    private func backInStockViewModel() -> SavedProductsViewModel {
-        alertsViewModel(keeping: { $0.availability.isAvailable }, couldNotLoad: "Couldn't Load Back in Stock")
+    private func backInStockViewModel() -> AlertedProductsViewModel {
+        alertedProducts(from: { [getBackInStockProducts] in await getBackInStockProducts() }, couldNotLoad: "Couldn't Load Back in Stock")
     }
 
     @MainActor
-    private func alertsViewModel(
-        keeping: @escaping @MainActor (Product) -> Bool,
+    private func alertedProducts(
+        from load: @escaping @MainActor () async -> Result<[Product], StockAlertError>,
         couldNotLoad: String
-    ) -> SavedProductsViewModel {
-        SavedProductsViewModel(
-            savedProductIds: { [observeStockAlerts] in
-                observeStockAlerts().map { $0.alerts.map(\.productId) }.eraseToAnyPublisher()
-            },
-            lookUpProducts: lookUpProducts,
-            snackbar: snackbarPresenter,
-            couldNotLoad: couldNotLoad,
-            keeping: keeping,
+    ) -> AlertedProductsViewModel {
+        AlertedProductsViewModel(
+            load: load,
+            changes: { [observeStockAlerts] in observeStockAlerts() },
             clear: { [stopBeingToldWhenBack] ids in
                 for id in ids { _ = await stopBeingToldWhenBack(productId: id) }
-            }
+            },
+            snackbar: snackbarPresenter,
+            couldNotLoad: couldNotLoad
         )
     }
 }

@@ -19,6 +19,8 @@ public struct StockAlertDI {
     public let observeWaitingForProductUseCase: ObserveWaitingForProductUseCase
     public let observeStockAlertsUseCase: ObserveStockAlertsUseCase
     public let catchUpOnStockAlertsUseCase: CatchUpOnStockAlertsUseCase
+    public let getProductsToBeNotifiedUseCase: GetProductsToBeNotifiedUseCase
+    public let getBackInStockProductsUseCase: GetBackInStockProductsUseCase
 
     @MainActor
     public init(
@@ -57,6 +59,14 @@ public struct StockAlertDI {
             repository: repository,
             lookUpProducts: lookUpProducts,
             getSession: getSession
+        )
+        self.getProductsToBeNotifiedUseCase = DefaultGetProductsToBeNotifiedUseCase(
+            repository: repository,
+            lookUpProducts: lookUpProducts
+        )
+        self.getBackInStockProductsUseCase = DefaultGetBackInStockProductsUseCase(
+            repository: repository,
+            lookUpProducts: lookUpProducts
         )
     }
 

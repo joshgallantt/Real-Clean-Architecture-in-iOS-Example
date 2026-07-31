@@ -119,6 +119,8 @@ struct PresentationAssembler {
             navigation: navigator,
             observeWishlist: domain.wishlist.observeWishlistUseCase,
             observeStockAlerts: domain.stockAlerts.observeStockAlertsUseCase,
+            getProductsToBeNotified: domain.stockAlerts.getProductsToBeNotifiedUseCase,
+            getBackInStockProducts: domain.stockAlerts.getBackInStockProductsUseCase,
             catchUpOnStockAlerts: domain.stockAlerts.catchUpOnStockAlertsUseCase,
             stopBeingToldWhenBack: domain.stockAlerts.stopBeingToldWhenBackUseCase,
             removeProductFromWishlist: domain.wishlist.removeProductFromWishlistUseCase,
