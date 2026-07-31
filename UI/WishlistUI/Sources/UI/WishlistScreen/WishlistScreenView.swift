@@ -10,6 +10,7 @@ public struct WishlistScreenView: View {
     @ObservedObject var session: WishlistScreenViewModel
     @ObservedObject var faves: SavedProductsViewModel
     @ObservedObject var notifyMe: SavedProductsViewModel
+    @ObservedObject var backInStock: SavedProductsViewModel
 
     let navigation: WishlistNavigation
     let wishlistButton: (ProductID) -> AnyView
@@ -20,6 +21,7 @@ public struct WishlistScreenView: View {
         session: WishlistScreenViewModel,
         faves: SavedProductsViewModel,
         notifyMe: SavedProductsViewModel,
+        backInStock: SavedProductsViewModel,
         navigation: WishlistNavigation,
         wishlistButton: @escaping (ProductID) -> AnyView,
         bagButton: @escaping (Product) -> AnyView,
@@ -28,6 +30,7 @@ public struct WishlistScreenView: View {
         self.session = session
         self.faves = faves
         self.notifyMe = notifyMe
+        self.backInStock = backInStock
         self.navigation = navigation
         self.wishlistButton = wishlistButton
         self.bagButton = bagButton
@@ -43,9 +46,10 @@ public struct WishlistScreenView: View {
             }
         }
         .task {
-            session.onAppear()
             faves.onAppear()
             notifyMe.onAppear()
+            backInStock.onAppear()
+            await session.onAppear()
         }
     }
 
@@ -58,6 +62,24 @@ public struct WishlistScreenView: View {
                 /// glitch rather than as news.
                 if somethingHasBeenDiscontinued {
                     discontinuedNotice
+                }
+
+                /// First, and only when there is something in it. This is the promise the bell made,
+                /// kept — a shopper who opens this tab to find something they were waiting for has
+                /// had the app do the one thing it said it would.
+                if !backInStock.isEmpty {
+                    SavedProductsCarousel(
+                        viewModel: backInStock,
+                        title: "Back in Stock",
+                        icon: "sparkles",
+                        tint: .green,
+                        description: "You asked to be told — here they are. Add them before they go again.",
+                        emptyMessage: "",
+                        onSelect: { navigation.openProductDetails(product: $0) },
+                        onViewAll: { navigation.openAllNotifyMe() },
+                        accessory: { product in AnyView(wishlistButton(product.id)) },
+                        leadingAccessory: { product in AnyView(bagButton(product)) }
+                    )
                 }
 
                 SavedProductsCarousel(

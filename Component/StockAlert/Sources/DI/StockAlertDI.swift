@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import Product
 import Session
 import StockAlert
 import StockAlertData
@@ -17,17 +18,21 @@ public struct StockAlertDI {
     public let stopBeingToldWhenBackUseCase: StopBeingToldWhenBackUseCase
     public let observeWaitingForProductUseCase: ObserveWaitingForProductUseCase
     public let observeStockAlertsUseCase: ObserveStockAlertsUseCase
+    public let catchUpOnStockAlertsUseCase: CatchUpOnStockAlertsUseCase
 
     @MainActor
     public init(
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
+        lookUpProducts: LookUpProductsUseCase,
+        client: StockAlertClient,
         store: StockAlertStore = FileStockAlertStore()
     ) {
         /// Evans, *Domain-Driven Design* (2003) — Bounded Context: turning a session into an owner
         /// happens here, once.
         let repository = DefaultStockAlertRepository(
             store: store,
+            client: client,
             owner: Self.owner(for: getSession()),
             ownerPublisher: observeSession()
                 .map(Self.owner(for:))
@@ -48,6 +53,11 @@ public struct StockAlertDI {
             repository: repository
         )
         self.observeStockAlertsUseCase = DefaultObserveStockAlertsUseCase(repository: repository)
+        self.catchUpOnStockAlertsUseCase = DefaultCatchUpOnStockAlertsUseCase(
+            repository: repository,
+            lookUpProducts: lookUpProducts,
+            getSession: getSession
+        )
     }
 
     /// Evans, *Domain-Driven Design* (2003) — Assertions: exhaustive over `Session`. `nil` is the

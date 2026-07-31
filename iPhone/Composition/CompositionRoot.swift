@@ -25,16 +25,15 @@ import SessionDI
 final class CompositionRoot {
     /// The graph the app runs on. Both catalogs compile whichever way `Demo.isOn` is set, so a
     /// demo cannot rot unnoticed and switching one on is never a matter of uncommenting code.
-    static let shared = CompositionRoot(
-        catalog: Demo.isOn ? Demo.shopThatChangesItsMind() : .live()
-    )
+    static let shared = Demo.isOn
+        ? CompositionRoot(catalog: Demo.shopThatChangesItsMind(), data: Demo.aShopThatRestocksQuickly())
+        : CompositionRoot(catalog: .live())
 
     let data: DataAssembler
     let domain: DomainAssembler
     let presentation: PresentationAssembler
 
-    init(catalog: Catalog) {
-        let data = DataAssembler()
+    init(catalog: Catalog, data: DataAssembler = DataAssembler()) {
         let domain = DomainAssembler(data: data, catalog: catalog)
 
         self.data = data

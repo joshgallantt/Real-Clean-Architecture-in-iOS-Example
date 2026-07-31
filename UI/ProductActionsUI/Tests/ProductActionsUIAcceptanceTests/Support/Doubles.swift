@@ -45,6 +45,9 @@ final class InMemoryStockAlertRepository: StockAlertRepository {
         subject.value = alerts
     }
 
+    /// A bell knows nothing about restocking, so nothing here does either.
+    func whatTheShopSaysIsBack() async throws -> [ProductID] { [] }
+
     struct CouldNotKeep: Error {}
 
     private struct Session_: GetSessionUseCase, @unchecked Sendable {

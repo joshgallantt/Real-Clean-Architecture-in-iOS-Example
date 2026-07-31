@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import Money
 import Product
 import Session
 import StockAlert
@@ -20,14 +21,45 @@ final class Waiter {
 
     private(set) var bellIsRinging: [ProductID: Bool] = [:]
 
+    /// The two things the app cannot own: the shop's alert service, and its catalog.
+    let alertService = StubAlertService()
+    let shop = StubCatalog()
+
+    private(set) var alerts = StockAlerts()
+
     init(in directory: URL = .newTemporaryDirectory, signedInAs userId: Int? = nil) {
         self.directory = directory
         self.sessions = CurrentValueSubject(Self.session(forUserId: userId))
         self.di = StockAlertDI(
             getSession: StubGetSession(sessions: sessions),
             observeSession: StubObserveSession(sessions: sessions),
+            lookUpProducts: shop,
+            client: alertService,
             store: FileStockAlertStore(directory: directory)
         )
+
+        di.observeStockAlertsUseCase()
+            .sink { [weak self] in self?.alerts = $0 }
+            .store(in: &cancellables)
+    }
+
+    // MARK: - What the shop does
+
+    /// The alert service says these are back, and the catalog is stocked with whatever it still
+    /// sells. The two are set apart on purpose: they are allowed to disagree, and what happens when
+    /// they do is the rule worth testing.
+    func theShopPutsBackOnTheShelf(_ ids: Int...) {
+        alertService.backInStock = ids.map(pid)
+    }
+
+    func theCatalogStillSells(_ shelf: OnTheShelf...) {
+        shop.stock = shelf
+    }
+
+    /// The shopper looks, and whatever the shop has to say is caught up on.
+    @discardableResult
+    func looks() async -> Result<Void, StockAlertError> {
+        await di.catchUpOnStockAlertsUseCase()
     }
 
     // MARK: - What a shopper does
@@ -116,4 +148,79 @@ func pid(_ value: Int) -> ProductID {
 
 extension Result where Success == Void, Failure: Equatable {
     var failure: Failure? { if case .failure(let error) = self { error } else { nil } }
+}
+
+
+// MARK: - What the app cannot own
+
+/// The shop's alert service. It is told what a shopper is waiting on and says what has come back;
+/// what it does with the registrations is its own business, which is why a test sets the answer
+/// rather than the mechanism.
+final class StubAlertService: StockAlertClient, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _backInStock: [ProductID] = []
+    private var _told: [ProductID] = []
+
+    var backInStock: [ProductID] {
+        get { lock.withLock { _backInStock } }
+        set { lock.withLock { _backInStock = newValue } }
+    }
+
+    /// What the shop has been told this shopper is waiting on, so a test can check it was told.
+    var told: [ProductID] { lock.withLock { _told } }
+
+    func setAlerts(_ productIds: [ProductID], for owner: UserID) async throws {
+        lock.withLock { _told = productIds }
+    }
+
+    func backInStock(for owner: UserID) async throws -> [ProductID] {
+        lock.withLock { _backInStock }
+    }
+}
+
+/// The catalog, which answers about what it still sells and says nothing about the rest.
+final class StubCatalog: LookUpProductsUseCase, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _stock: [OnTheShelf] = []
+
+    var stock: [OnTheShelf] {
+        get { lock.withLock { _stock } }
+        set { lock.withLock { _stock = newValue } }
+    }
+
+    func callAsFunction(ids: [ProductID]) async -> Result<[Product], ProductError> {
+        lock.withLock {
+            let wanted = Set(ids)
+            return .success(_stock.filter { wanted.contains($0.id) }.map(\.product))
+        }
+    }
+}
+
+struct OnTheShelf {
+    let product: Product
+
+    var id: ProductID { product.id }
+}
+
+func inStock(_ id: Int) -> OnTheShelf {
+    OnTheShelf(product: aProduct(id, availability: .inStock(remaining: 5)))
+}
+
+func soldOut(_ id: Int) -> OnTheShelf {
+    OnTheShelf(product: aProduct(id, availability: .outOfStock))
+}
+
+private func aProduct(_ id: Int, availability: Availability) -> Product {
+    Product(
+        id: pid(id),
+        title: "Product \(id)",
+        description: "",
+        category: CategoryID(rawValue: "beauty"),
+        price: Money(amount: 9.99, currency: .usd),
+        rating: 4.5,
+        availability: availability,
+        brand: "Acme",
+        thumbnail: "https://cdn.example.com/\(id).png",
+        images: []
+    )
 }

@@ -27,6 +27,19 @@ import ProductDI
 enum Demo {
     static let isOn = true
 
+    /// `DataAssembler` defaults a restock to a day, because that is what a shop takes. Nobody
+    /// demonstrates anything by waiting a day, so the demo compresses it — here, in the demo's own
+    /// file, rather than by writing a dishonest number into the app.
+    static let restocksAfter: TimeInterval = 90
+
+    /// The stores and clients a demo runs on: the shipped ones, with a shop that puts things back
+    /// while somebody is still looking. It varies `DataAssembler` the way
+    /// `shopThatChangesItsMind` varies `Catalog` — a different value handed in, never a flag read
+    /// from inside.
+    static func aShopThatRestocksQuickly() -> DataAssembler {
+        DataAssembler(restocksAfter: restocksAfter)
+    }
+
     /// A shop that changes its mind between visits.
     ///
     /// The meddling sits under the use cases rather than around them, so every question about a

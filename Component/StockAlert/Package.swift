@@ -22,7 +22,8 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../Session"),
-        .package(path: "../Product")
+        .package(path: "../Product"),
+        .package(path: "../../Library/Money")
     ],
     targets: [
         .target(
@@ -61,6 +62,7 @@ let package = Package(
             dependencies: [
                 "StockAlertDI",
                 "StockAlertData",
+                .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
                 .product(name: "Product", package: "Product")
             ],
