@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import Session
+import StockAlert
 
 @MainActor
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
@@ -14,19 +15,28 @@ public final class WishlistScreenViewModel: ObservableObject {
     @Published private(set) var isAuthenticated = false
 
     private let observeSession: ObserveSessionUseCase
+    private let catchUpOnStockAlerts: CatchUpOnStockAlertsUseCase
     private var cancellables = Set<AnyCancellable>()
 
-    public init(observeSession: ObserveSessionUseCase) {
+    public init(
+        observeSession: ObserveSessionUseCase,
+        catchUpOnStockAlerts: CatchUpOnStockAlertsUseCase
+    ) {
         self.observeSession = observeSession
+        self.catchUpOnStockAlerts = catchUpOnStockAlerts
     }
 
-    func onAppear() {
-        guard cancellables.isEmpty else { return }
+    /// Asked every time the shopper looks, not once. Coming back after a while is when there is
+    /// most likely to be something waiting, which is the same reason the bag asks on every appear.
+    func onAppear() async {
+        if cancellables.isEmpty {
+            observeSession()
+                .sink { [weak self] session in
+                    self?.isAuthenticated = session.isLoggedIn
+                }
+                .store(in: &cancellables)
+        }
 
-        observeSession()
-            .sink { [weak self] session in
-                self?.isAuthenticated = session.isLoggedIn
-            }
-            .store(in: &cancellables)
+        await catchUpOnStockAlerts()
     }
 }

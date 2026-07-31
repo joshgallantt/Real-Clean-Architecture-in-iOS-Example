@@ -20,6 +20,7 @@ public struct WishlistUIDI {
     private let navigation: WishlistNavigation
     private let observeWishlist: ObserveWishlistUseCase
     private let observeStockAlerts: ObserveStockAlertsUseCase
+    private let catchUpOnStockAlerts: CatchUpOnStockAlertsUseCase
     private let lookUpProducts: LookUpProductsUseCase
     private let observeSession: ObserveSessionUseCase
     private let authPresenter: AuthPresenting
@@ -30,6 +31,7 @@ public struct WishlistUIDI {
         navigation: WishlistNavigation,
         observeWishlist: ObserveWishlistUseCase,
         observeStockAlerts: ObserveStockAlertsUseCase,
+        catchUpOnStockAlerts: CatchUpOnStockAlertsUseCase,
         lookUpProducts: LookUpProductsUseCase,
         observeSession: ObserveSessionUseCase,
         authPresenter: AuthPresenting,
@@ -39,6 +41,7 @@ public struct WishlistUIDI {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
         self.observeStockAlerts = observeStockAlerts
+        self.catchUpOnStockAlerts = catchUpOnStockAlerts
         self.lookUpProducts = lookUpProducts
         self.observeSession = observeSession
         self.authPresenter = authPresenter
@@ -54,9 +57,13 @@ public struct WishlistUIDI {
     @MainActor
     public func mainView() -> some View {
         WishlistScreenView(
-            session: WishlistScreenViewModel(observeSession: observeSession),
+            session: WishlistScreenViewModel(
+                observeSession: observeSession,
+                catchUpOnStockAlerts: catchUpOnStockAlerts
+            ),
             faves: favesViewModel(),
             notifyMe: notifyMeViewModel(),
+            backInStock: backInStockViewModel(),
             navigation: navigation,
             wishlistButton: { productId in AnyView(button(productId: productId)) },
             bagButton: { product in AnyView(productActionsUIDI.cardActionButton(product: product)) },
@@ -124,15 +131,29 @@ public struct WishlistUIDI {
         )
     }
 
+    /// Still waiting to hear. Something already back has had its ask answered and belongs in the
+    /// list below, not here — which is what stopped this filling up with things that had arrived.
     @MainActor
     private func notifyMeViewModel() -> SavedProductsViewModel {
         SavedProductsViewModel(
             savedProductIds: { [observeStockAlerts] in
-                observeStockAlerts().map { $0.alerts.map(\.productId) }.eraseToAnyPublisher()
+                observeStockAlerts().map { $0.waiting.map(\.productId) }.eraseToAnyPublisher()
             },
             lookUpProducts: lookUpProducts,
             snackbar: snackbarPresenter,
             couldNotLoad: "Couldn't Load Notify Me"
+        )
+    }
+
+    @MainActor
+    private func backInStockViewModel() -> SavedProductsViewModel {
+        SavedProductsViewModel(
+            savedProductIds: { [observeStockAlerts] in
+                observeStockAlerts().map { $0.back.map(\.productId) }.eraseToAnyPublisher()
+            },
+            lookUpProducts: lookUpProducts,
+            snackbar: snackbarPresenter,
+            couldNotLoad: "Couldn't Load Back in Stock"
         )
     }
 }

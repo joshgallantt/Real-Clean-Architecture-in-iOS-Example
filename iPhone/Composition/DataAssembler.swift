@@ -26,6 +26,11 @@ struct DataAssembler {
     let bagStore: BagStore
     let stockAlertStore: StockAlertStore
     let orderStore: OrderStore
+    let stockAlertClient: StockAlertClient
+
+    /// What a shop takes to put something back on the shelf. A real one replenishes overnight, so a
+    /// day is what this means, and a day is what it is.
+    static let restocksAfter: TimeInterval = 60 * 60 * 24
 
     /// There is no processor to call, so the app ships a fake one the same way it ships
     /// `FakeAuthClient`. Swapping it for a real gateway is a change to this line.
@@ -34,7 +39,7 @@ struct DataAssembler {
     /// A sign-in outlives the app being closed, but not indefinitely.
     static let signInLasts: TimeInterval = 60 * 60 * 24 * 7
 
-    init(defaults: UserDefaults = .standard) {
+    init(defaults: UserDefaults = .standard, restocksAfter: TimeInterval = Self.restocksAfter) {
         sessionStore = DefaultSessionStore(defaults: defaults)
         authClient = FakeAuthClient(
             userStore: UserDefaultsUserStore(defaults: defaults),
@@ -44,6 +49,7 @@ struct DataAssembler {
         wishlistStore = FileWishlistStore()
         bagStore = FileBagStore()
         stockAlertStore = FileStockAlertStore()
+        stockAlertClient = FakeStockAlertClient(restockAfter: restocksAfter)
         orderStore = FileOrderStore()
         paymentClient = FakePaymentClient()
     }
