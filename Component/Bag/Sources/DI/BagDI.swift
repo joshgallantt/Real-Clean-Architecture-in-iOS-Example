@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import Bag
 import BagData
+import Product
 import Session
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: wiring, and nothing else. It
@@ -25,6 +26,7 @@ public struct BagDI {
     public init(
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
+        lookUpProducts: LookUpProductsUseCase,
         store: BagStore = FileBagStore()
     ) {
         /// Evans, *Domain-Driven Design* (2003), Ch. 14 — Bounded Context: turning a session into an owner
@@ -45,7 +47,10 @@ public struct BagDI {
         self.observeBagItemQuantityUseCase = DefaultObserveBagItemQuantityUseCase(repository: repository)
         self.addItemToBagUseCase = DefaultAddItemToBagUseCase(repository: repository)
         self.setBagItemQuantityUseCase = DefaultSetBagItemQuantityUseCase(repository: repository)
-        self.bringBagUpToDateUseCase = DefaultBringBagUpToDateUseCase(repository: repository)
+        self.bringBagUpToDateUseCase = DefaultBringBagUpToDateUseCase(
+            repository: repository,
+            lookUpProducts: lookUpProducts
+        )
         self.acknowledgeNoticesUseCase = DefaultAcknowledgeNoticesUseCase(repository: repository)
     }
 }

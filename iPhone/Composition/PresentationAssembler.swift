@@ -108,7 +108,6 @@ struct PresentationAssembler {
             observeBag: domain.bag.observeBagUseCase,
             observeNotices: domain.bag.observeNoticesUseCase,
             setBagItemQuantity: domain.bag.setBagItemQuantityUseCase,
-            lookUpProducts: catalog.lookUpProducts,
             bringBagUpToDate: domain.bag.bringBagUpToDateUseCase,
             acknowledgeNotices: domain.bag.acknowledgeNoticesUseCase,
             stockAlertButton: { id in AnyView(productActions.stockAlertButton(productId: id)) },

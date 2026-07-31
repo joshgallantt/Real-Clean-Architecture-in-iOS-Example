@@ -49,7 +49,9 @@ final class FakeShop: BagRepository {
     }
     var observeNotices: ObserveNoticesUseCase { DefaultObserveNoticesUseCase(repository: self) }
     var setBagItemQuantity: SetBagItemQuantityUseCase { DefaultSetBagItemQuantityUseCase(repository: self) }
-    var bringUpToDate: BringBagUpToDateUseCase { DefaultBringBagUpToDateUseCase(repository: self) }
+    var bringUpToDate: BringBagUpToDateUseCase {
+        DefaultBringBagUpToDateUseCase(repository: self, lookUpProducts: lookUpProducts)
+    }
     var acknowledge: AcknowledgeNoticesUseCase { DefaultAcknowledgeNoticesUseCase(repository: self) }
     var addItemToBag: AddItemToBagUseCase { DefaultAddItemToBagUseCase(repository: self) }
 

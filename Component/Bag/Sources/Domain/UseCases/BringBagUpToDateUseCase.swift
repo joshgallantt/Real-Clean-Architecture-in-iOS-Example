@@ -4,14 +4,21 @@ import Product
 /// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002), Ch. 9 —
 /// Service Layer.
 ///
-/// `asked` is what makes silence mean something. A shop that has stopped selling a product does not
-/// describe it — it stops answering for it — so the only way to hear that is to have asked and been
-/// given nothing back. Without knowing which ids went out, "absent" and "never mentioned" are the
-/// same input, and the bag has to guess; it used to guess "leave it alone", which kept a line
-/// nobody could ever be sold.
+/// It asks the shop itself rather than being handed the answer. `PlaceOrderUseCase` reaches for
+/// `GetSessionUseCase` the same way: a use case may compose another component's use cases, and
+/// asking is part of catching up rather than something a screen does on its behalf.
+///
+/// That is also what makes silence mean something. A shop that has stopped selling a product does
+/// not describe it — it stops answering for it — so hearing that requires knowing what was asked.
+/// While a caller did the asking, "absent" and "never mentioned" arrived as the same input and this
+/// had to guess; it guessed "leave it alone", which kept a line nobody could ever be sold.
+///
+/// What it heard is handed back, because the screen that draws names and pictures wants the same
+/// answer. Asking twice over the same ids is a second round trip for a reply already received.
 public protocol BringBagUpToDateUseCase: Sendable {
     @MainActor
-    func callAsFunction(against shopSays: [ShopSays], asked: [ProductID])
+    @discardableResult
+    func callAsFunction() async -> [Product]
 }
 
 /// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: application work, not a rule either
@@ -23,24 +30,43 @@ public protocol BringBagUpToDateUseCase: Sendable {
 /// aggregate, and holding no state.
 public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
     private let repository: BagRepository
+    private let lookUpProducts: LookUpProductsUseCase
 
-    public init(repository: BagRepository) {
+    public init(repository: BagRepository, lookUpProducts: LookUpProductsUseCase) {
         self.repository = repository
+        self.lookUpProducts = lookUpProducts
     }
 
     @MainActor
-    public func callAsFunction(against shopSays: [ShopSays], asked: [ProductID]) {
+    @discardableResult
+    public func callAsFunction() async -> [Product] {
         let bagBefore = repository.bag
         let noticesBefore = repository.notices
+
+        /// Everything on the shopper's screen, not only what the bag still holds: a notice that
+        /// something has gone outlives the line it refers to, and the screen showing it still wants
+        /// to know what the shop says about that product.
+        let asked = Set(bagBefore.items.map(\.productId))
+            .union(noticesBefore.all.map(\.productId))
+        guard !asked.isEmpty else { return [] }
+
+        /// A shop that could not be reached has said nothing at all, and nothing is concluded from
+        /// nothing. Only an answer is evidence — which is what keeps a dropped connection from
+        /// reading as a shop that has closed down and emptying the bag.
+        guard case .success(let products) = await lookUpProducts(ids: Array(asked)) else { return [] }
+
         let (bag, notices) = Self.catchUp(
             bag: bagBefore,
             notices: noticesBefore,
-            against: shopSays,
-            asked: Set(asked)
+            against: products,
+            asked: asked
         )
 
-        guard bag != bagBefore || notices != noticesBefore else { return }
-        repository.save(bag: bag, notices: notices)
+        if bag != bagBefore || notices != noticesBefore {
+            repository.save(bag: bag, notices: notices)
+        }
+
+        return products
     }
 
     /// Evans, *Domain-Driven Design* (2003), Ch. 10 — Side-Effect-Free Functions: the whole catch-up
@@ -50,10 +76,10 @@ public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
     static func catchUp(
         bag: Bag,
         notices: Notices,
-        against shopSays: [ShopSays],
+        against products: [Product],
         asked: Set<ProductID>
     ) -> (bag: Bag, notices: Notices) {
-        let shop = Dictionary(shopSays.map { ($0.productId, $0) }, uniquingKeysWith: { _, latest in latest })
+        let shop = Dictionary(products.map { ($0.id, $0) }, uniquingKeysWith: { _, latest in latest })
         var kept: [BagItem] = []
         var news: [Notice] = []
 
@@ -72,9 +98,7 @@ public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
                     continue
                 }
 
-                /// Asked about and not described. The shop has stopped selling it, and a shopper
-                /// who reads the two ways of going differently — one is worth waiting for and the
-                /// other is not — is told which this was.
+                /// Asked about and not described. The shop has stopped selling it.
                 if !gone.contains(where: { $0.productId == line.productId }) {
                     gone.append(.discontinued(productId: line.productId))
                 }
@@ -104,7 +128,7 @@ public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
     /// more than that.
     private static func news(
         about line: BagItem,
-        nowThatTheShopSays says: ShopSays,
+        nowThatTheShopSays says: Product,
         given notices: Notices
     ) -> [Notice] {
         var news: [Notice] = []

@@ -37,7 +37,8 @@ struct ComingBackToTheBagTests {
     func newsSurvivesLeaving() async {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
-        shopper.shopSays(shopSells(1, at: 12.99))
+        shopper.theShopNowSells(shopSells(1, at: 12.99))
+        await shopper.comesBack()
 
         let returning = await shopper.leaveAndComeBack()
 

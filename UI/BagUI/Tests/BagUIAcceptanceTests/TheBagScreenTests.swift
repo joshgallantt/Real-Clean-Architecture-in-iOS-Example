@@ -17,7 +17,6 @@ struct BagScreenViewModelTests {
             navigation: navigation,
             observeBag: shop.observeBag,
             observeNotices: shop.observeNotices,
-            lookUpProducts: shop.lookUpProducts,
             setBagItemQuantity: shop.setBagItemQuantity,
             bringBagUpToDate: shop.bringUpToDate,
             acknowledgeNotices: shop.acknowledge
@@ -408,7 +407,6 @@ struct DealingWithAWholeSectionTests {
             navigation: navigation,
             observeBag: shop.observeBag,
             observeNotices: shop.observeNotices,
-            lookUpProducts: shop.lookUpProducts,
             setBagItemQuantity: shop.setBagItemQuantity,
             bringBagUpToDate: shop.bringUpToDate,
             acknowledgeNotices: shop.acknowledge
@@ -527,7 +525,6 @@ struct GoingFromTheBagToAProductTests {
             navigation: navigation,
             observeBag: shop.observeBag,
             observeNotices: shop.observeNotices,
-            lookUpProducts: shop.lookUpProducts,
             setBagItemQuantity: shop.setBagItemQuantity,
             bringBagUpToDate: shop.bringUpToDate,
             acknowledgeNotices: shop.acknowledge

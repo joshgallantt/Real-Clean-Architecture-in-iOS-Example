@@ -13,7 +13,7 @@ import Money
 /// words, so a failure reads as a broken journey rather than a broken method.
 struct UsingTheBagTests {
     @Test("A shopper chooses two things and their bag is worth what they agreed to pay")
-    func choosesTwoThings() {
+    func choosesTwoThings() async {
         let shopper = Shopper()
 
         shopper.choose(productId: 1, atPrice: 9.99)
@@ -24,7 +24,7 @@ struct UsingTheBagTests {
     }
 
     @Test("Adding prices up is exact, so a total is never a hair off what the lines say")
-    func totalsAreExact() {
+    func totalsAreExact() async {
         let shopper = Shopper()
 
         shopper.choose(productId: 1, atPrice: 0.07)
@@ -35,7 +35,7 @@ struct UsingTheBagTests {
     }
 
     @Test("Choosing the same thing twice is one line with two of it")
-    func choosesTheSameThingTwice() {
+    func choosesTheSameThingTwice() async {
         let shopper = Shopper()
 
         shopper.choose(productId: 1, atPrice: 9.99)
@@ -46,7 +46,7 @@ struct UsingTheBagTests {
     }
 
     @Test("Taking a second one at today's price moves the whole line to today's price")
-    func takingAnotherReprices() {
+    func takingAnotherReprices() async {
         let shopper = Shopper()
 
         shopper.choose(productId: 1, atPrice: 4.99)
@@ -56,7 +56,7 @@ struct UsingTheBagTests {
     }
 
     @Test("Taking three of one thing counts as three items, not one")
-    func itemCountCountsEachOne() {
+    func itemCountCountsEachOne() async {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
 
@@ -67,7 +67,7 @@ struct UsingTheBagTests {
     }
 
     @Test("Taking more of something costs proportionally more")
-    func changesQuantity() {
+    func changesQuantity() async {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
 
@@ -77,7 +77,7 @@ struct UsingTheBagTests {
     }
 
     @Test("Changing how many leaves the price alone")
-    func quantityChangeKeepsThePrice() {
+    func quantityChangeKeepsThePrice() async {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 4.99)
 
@@ -87,7 +87,7 @@ struct UsingTheBagTests {
     }
 
     @Test("The newest thing chosen sits at the top of the bag")
-    func newestFirst() {
+    func newestFirst() async {
         let shopper = Shopper()
 
         shopper.choose(productId: 1, atPrice: 1)
@@ -97,7 +97,7 @@ struct UsingTheBagTests {
     }
 
     @Test("Putting something back leaves the rest of the bag alone")
-    func removesSomething() {
+    func removesSomething() async {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
         shopper.choose(productId: 2, atPrice: 49.99)
@@ -109,7 +109,7 @@ struct UsingTheBagTests {
     }
 
     @Test("Asking for none of something is how a shopper puts it back")
-    func askingForNoneRemoves() {
+    func askingForNoneRemoves() async {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
 
@@ -119,7 +119,7 @@ struct UsingTheBagTests {
     }
 
     @Test("An emptied bag is worth nothing at all, not zero of something")
-    func emptiedBag() {
+    func emptiedBag() async {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
 
@@ -130,7 +130,7 @@ struct UsingTheBagTests {
     }
 
     @Test("Changing how many of something the shopper never chose changes nothing")
-    func changingSomethingNotThere() {
+    func changingSomethingNotThere() async {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
 
@@ -141,7 +141,7 @@ struct UsingTheBagTests {
     }
 
     @Test("Putting back something that was never in the bag changes nothing")
-    func removingSomethingNotThere() {
+    func removingSomethingNotThere() async {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
 
