@@ -14,27 +14,24 @@ import StockAlertData
 public struct StockAlertDI {
     private let repository: StockAlertRepository
 
-    public let askToBeToldWhenBackUseCase: AskToBeToldWhenBackUseCase
-    public let stopBeingToldWhenBackUseCase: StopBeingToldWhenBackUseCase
-    public let observeWaitingForProductUseCase: ObserveWaitingForProductUseCase
-    public let observeStockAlertsUseCase: ObserveStockAlertsUseCase
-    public let catchUpOnStockAlertsUseCase: CatchUpOnStockAlertsUseCase
-    public let getProductsToBeNotifiedUseCase: GetProductsToBeNotifiedUseCase
+    public let setStockAlertForProductUseCase: SetStockAlertForProductUseCase
+    public let observeWaitlistStatusUseCase: ObserveWaitlistStatusUseCase
+    public let observeWaitlistUseCase: ObserveWaitlistUseCase
+    public let getWaitlistProductsUseCase: GetWaitlistProductsUseCase
     public let getBackInStockProductsUseCase: GetBackInStockProductsUseCase
+
 
     @MainActor
     public init(
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
         lookUpProducts: LookUpProductsUseCase,
-        client: StockAlertClient,
         store: StockAlertStore = FileStockAlertStore()
     ) {
         /// Evans, *Domain-Driven Design* (2003) — Bounded Context: turning a session into an owner
         /// happens here, once.
         let repository = DefaultStockAlertRepository(
             store: store,
-            client: client,
             owner: Self.owner(for: getSession()),
             ownerPublisher: observeSession()
                 .map(Self.owner(for:))
@@ -43,24 +40,13 @@ public struct StockAlertDI {
         )
         self.repository = repository
 
-        self.askToBeToldWhenBackUseCase = DefaultAskToBeToldWhenBackUseCase(
+        self.setStockAlertForProductUseCase = DefaultSetStockAlertForProductUseCase(
             repository: repository,
             getSession: getSession
         )
-        self.stopBeingToldWhenBackUseCase = DefaultStopBeingToldWhenBackUseCase(
-            repository: repository,
-            getSession: getSession
-        )
-        self.observeWaitingForProductUseCase = DefaultObserveWaitingForProductUseCase(
-            repository: repository
-        )
-        self.observeStockAlertsUseCase = DefaultObserveStockAlertsUseCase(repository: repository)
-        self.catchUpOnStockAlertsUseCase = DefaultCatchUpOnStockAlertsUseCase(
-            repository: repository,
-            lookUpProducts: lookUpProducts,
-            getSession: getSession
-        )
-        self.getProductsToBeNotifiedUseCase = DefaultGetProductsToBeNotifiedUseCase(
+        self.observeWaitlistStatusUseCase = DefaultObserveWaitlistStatusUseCase(repository: repository)
+        self.observeWaitlistUseCase = DefaultObserveWaitlistUseCase(repository: repository)
+        self.getWaitlistProductsUseCase = DefaultGetWaitlistProductsUseCase(
             repository: repository,
             lookUpProducts: lookUpProducts
         )
@@ -68,6 +54,7 @@ public struct StockAlertDI {
             repository: repository,
             lookUpProducts: lookUpProducts
         )
+
     }
 
     /// Evans, *Domain-Driven Design* (2003) — Assertions: exhaustive over `Session`. `nil` is the

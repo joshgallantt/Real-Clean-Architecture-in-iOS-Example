@@ -19,11 +19,10 @@ import ProductActionsUIDI
 public struct WishlistUIDI {
     private let navigation: WishlistNavigation
     private let observeWishlist: ObserveWishlistUseCase
-    private let observeStockAlerts: ObserveStockAlertsUseCase
-    private let getProductsToBeNotified: GetProductsToBeNotifiedUseCase
+    private let observeWaitlist: ObserveWaitlistUseCase
+    private let getWaitlistProducts: GetWaitlistProductsUseCase
     private let getBackInStockProducts: GetBackInStockProductsUseCase
-    private let catchUpOnStockAlerts: CatchUpOnStockAlertsUseCase
-    private let stopBeingToldWhenBack: StopBeingToldWhenBackUseCase
+    private let setStockAlertForProduct: SetStockAlertForProductUseCase
     private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
     private let lookUpProducts: LookUpProductsUseCase
     private let observeSession: ObserveSessionUseCase
@@ -34,11 +33,10 @@ public struct WishlistUIDI {
     public init(
         navigation: WishlistNavigation,
         observeWishlist: ObserveWishlistUseCase,
-        observeStockAlerts: ObserveStockAlertsUseCase,
-        getProductsToBeNotified: GetProductsToBeNotifiedUseCase,
+        observeWaitlist: ObserveWaitlistUseCase,
+        getWaitlistProducts: GetWaitlistProductsUseCase,
         getBackInStockProducts: GetBackInStockProductsUseCase,
-        catchUpOnStockAlerts: CatchUpOnStockAlertsUseCase,
-        stopBeingToldWhenBack: StopBeingToldWhenBackUseCase,
+        setStockAlertForProduct: SetStockAlertForProductUseCase,
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
         lookUpProducts: LookUpProductsUseCase,
         observeSession: ObserveSessionUseCase,
@@ -48,11 +46,10 @@ public struct WishlistUIDI {
     ) {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
-        self.observeStockAlerts = observeStockAlerts
-        self.getProductsToBeNotified = getProductsToBeNotified
+        self.observeWaitlist = observeWaitlist
+        self.getWaitlistProducts = getWaitlistProducts
         self.getBackInStockProducts = getBackInStockProducts
-        self.catchUpOnStockAlerts = catchUpOnStockAlerts
-        self.stopBeingToldWhenBack = stopBeingToldWhenBack
+        self.setStockAlertForProduct = setStockAlertForProduct
         self.removeProductFromWishlist = removeProductFromWishlist
         self.lookUpProducts = lookUpProducts
         self.observeSession = observeSession
@@ -69,16 +66,14 @@ public struct WishlistUIDI {
     @MainActor
     public func mainView() -> some View {
         WishlistScreenView(
-            session: WishlistScreenViewModel(
-                observeSession: observeSession,
-                catchUpOnStockAlerts: catchUpOnStockAlerts
-            ),
+            session: WishlistScreenViewModel(observeSession: observeSession),
             faves: favesViewModel(),
-            notifyMe: notifyMeViewModel(),
+            waitlist: waitlistViewModel(),
             backInStock: backInStockViewModel(),
             navigation: navigation,
-            wishlistButton: { productId in AnyView(button(productId: productId)) },
-            bagButton: { product in AnyView(productActionsUIDI.cardActionButton(product: product)) },
+            waitlistAccessories: waitlistAccessories(),
+            backInStockAccessories: backInStockAccessories(),
+            favesAccessories: favesAccessories(),
             authPresenter: authPresenter
         )
     }
@@ -95,10 +90,11 @@ public struct WishlistUIDI {
     }
 
     @MainActor
-    public func allNotifyMeView() -> some View {
+    public func allWaitlistView() -> some View {
         alertedList(
-            viewModel: notifyMeViewModel(),
-            title: "Notify Me",
+            viewModel: waitlistViewModel(),
+            accessories: waitlistAccessories(),
+            title: "Waitlist",
             emptyTitle: "Nothing to Wait For",
             emptyIcon: "bell",
             emptyMessage: "Tap the bell on anything that's sold out and it'll wait here."
@@ -109,6 +105,7 @@ public struct WishlistUIDI {
     public func allBackInStockView() -> some View {
         alertedList(
             viewModel: backInStockViewModel(),
+            accessories: backInStockAccessories(),
             title: "Back in Stock",
             emptyTitle: "Nothing Back Yet",
             emptyIcon: "sparkles",
@@ -118,9 +115,43 @@ public struct WishlistUIDI {
 
     // MARK: -
 
+    /// A waitlist card is out of stock, so there is nothing to put in a bag from it. All it offers
+    /// is taking it off the list.
+    @MainActor
+    private func waitlistAccessories() -> (leading: (Product) -> AnyView, trailing: (Product) -> AnyView) {
+        (
+            leading: { _ in AnyView(EmptyView()) },
+            trailing: { product in AnyView(self.removeFromWaitlistButton(productId: product.id)) }
+        )
+    }
+
+    /// Back in stock, so the bag button is the point of it — and the minus sits where the minus
+    /// sits on the list above, because it means the same thing in both.
+    @MainActor
+    private func backInStockAccessories() -> (leading: (Product) -> AnyView, trailing: (Product) -> AnyView) {
+        (
+            leading: { product in AnyView(self.productActionsUIDI.cardActionButton(product: product)) },
+            trailing: { product in AnyView(self.removeFromWaitlistButton(productId: product.id)) }
+        )
+    }
+
+    @MainActor
+    private func favesAccessories() -> (leading: (Product) -> AnyView, trailing: (Product) -> AnyView) {
+        (
+            leading: { product in AnyView(self.productActionsUIDI.cardActionButton(product: product)) },
+            trailing: { product in AnyView(self.button(productId: product.id)) }
+        )
+    }
+
+    @MainActor
+    private func removeFromWaitlistButton(productId: ProductID) -> some View {
+        productActionsUIDI.removeFromWaitlistButton(productId: productId)
+    }
+
     @MainActor
     private func alertedList(
         viewModel: @autoclosure @escaping () -> AlertedProductsViewModel,
+        accessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView),
         title: String,
         emptyTitle: String,
         emptyIcon: String,
@@ -133,8 +164,8 @@ public struct WishlistUIDI {
             emptyIcon: emptyIcon,
             emptyMessage: emptyMessage,
             onSelect: { [navigation] product in navigation.openProductDetails(product: product) },
-            accessory: { product in AnyView(button(productId: product.id)) },
-            leadingAccessory: { product in AnyView(productActionsUIDI.cardActionButton(product: product)) }
+            accessory: accessories.trailing,
+            leadingAccessory: accessories.leading
         )
     }
 
@@ -181,8 +212,8 @@ public struct WishlistUIDI {
     /// a use case; it does not sieve one list into two, which is what it used to do and what put a
     /// rule about stock inside a DI container.
     @MainActor
-    private func notifyMeViewModel() -> AlertedProductsViewModel {
-        alertedProducts(from: { [getProductsToBeNotified] in await getProductsToBeNotified() }, couldNotLoad: "Couldn't Load Notify Me")
+    private func waitlistViewModel() -> AlertedProductsViewModel {
+        alertedProducts(from: { [getWaitlistProducts] in await getWaitlistProducts() }, couldNotLoad: "Couldn't Load Your Waitlist")
     }
 
     @MainActor
@@ -197,9 +228,9 @@ public struct WishlistUIDI {
     ) -> AlertedProductsViewModel {
         AlertedProductsViewModel(
             load: load,
-            changes: { [observeStockAlerts] in observeStockAlerts() },
-            clear: { [stopBeingToldWhenBack] ids in
-                for id in ids { _ = await stopBeingToldWhenBack(productId: id) }
+            changes: { [observeWaitlist] in observeWaitlist() },
+            clear: { [setStockAlertForProduct] ids in
+                for id in ids { _ = await setStockAlertForProduct(productId: id, isOn: false) }
             },
             snackbar: snackbarPresenter,
             couldNotLoad: couldNotLoad

@@ -54,12 +54,8 @@ final class AProduct {
     func stockAlertButton() -> StockAlertButtonViewModel {
         StockAlertButtonViewModel(
             productId: product.id,
-            observeWaitingForProduct: DefaultObserveWaitingForProductUseCase(repository: alertRepository),
-            askToBeTold: DefaultAskToBeToldWhenBackUseCase(
-                repository: alertRepository,
-                getSession: alertRepository.session
-            ),
-            stopBeingTold: DefaultStopBeingToldWhenBackUseCase(
+            observeWaitlistStatus: DefaultObserveWaitlistStatusUseCase(repository: alertRepository),
+            setStockAlert: DefaultSetStockAlertForProductUseCase(
                 repository: alertRepository,
                 getSession: alertRepository.session
             ),

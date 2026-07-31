@@ -26,9 +26,8 @@ public struct ProductActionsUIDI {
     private let observeBagItemQuantity: ObserveBagItemQuantityUseCase
     private let addItemToBag: AddItemToBagUseCase
 
-    private let observeWaitingForProduct: ObserveWaitingForProductUseCase
-    private let askToBeToldWhenBack: AskToBeToldWhenBackUseCase
-    private let stopBeingToldWhenBack: StopBeingToldWhenBackUseCase
+    private let observeWaitlistStatus: ObserveWaitlistStatusUseCase
+    private let setStockAlertForProduct: SetStockAlertForProductUseCase
 
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
@@ -40,9 +39,8 @@ public struct ProductActionsUIDI {
         removeProductFromWishlist: RemoveProductFromWishlistUseCase,
         observeBagItemQuantity: ObserveBagItemQuantityUseCase,
         addItemToBag: AddItemToBagUseCase,
-        observeWaitingForProduct: ObserveWaitingForProductUseCase,
-        askToBeToldWhenBack: AskToBeToldWhenBackUseCase,
-        stopBeingToldWhenBack: StopBeingToldWhenBackUseCase,
+        observeWaitlistStatus: ObserveWaitlistStatusUseCase,
+        setStockAlertForProduct: SetStockAlertForProductUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting
     ) {
@@ -52,9 +50,8 @@ public struct ProductActionsUIDI {
         self.removeProductFromWishlist = removeProductFromWishlist
         self.observeBagItemQuantity = observeBagItemQuantity
         self.addItemToBag = addItemToBag
-        self.observeWaitingForProduct = observeWaitingForProduct
-        self.askToBeToldWhenBack = askToBeToldWhenBack
-        self.stopBeingToldWhenBack = stopBeingToldWhenBack
+        self.observeWaitlistStatus = observeWaitlistStatus
+        self.setStockAlertForProduct = setStockAlertForProduct
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
     }
@@ -67,6 +64,13 @@ public struct ProductActionsUIDI {
     @MainActor
     public func stockAlertButton(productId: ProductID) -> some View {
         StockAlertButtonView(viewModel: makeStockAlertViewModel(productId: productId))
+    }
+
+    /// The minus on a card that is already on the waitlist. Same use case as the bell, said the way
+    /// a list needs it said.
+    @MainActor
+    public func removeFromWaitlistButton(productId: ProductID) -> some View {
+        RemoveFromWaitlistButton(viewModel: makeStockAlertViewModel(productId: productId))
     }
 
     /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: what the shop
@@ -126,9 +130,8 @@ public struct ProductActionsUIDI {
     private func makeStockAlertViewModel(productId: ProductID) -> StockAlertButtonViewModel {
         StockAlertButtonViewModel(
             productId: productId,
-            observeWaitingForProduct: observeWaitingForProduct,
-            askToBeTold: askToBeToldWhenBack,
-            stopBeingTold: stopBeingToldWhenBack,
+            observeWaitlistStatus: observeWaitlistStatus,
+            setStockAlert: setStockAlertForProduct,
             authPresenter: authPresenter,
             snackbarPresenter: snackbarPresenter
         )

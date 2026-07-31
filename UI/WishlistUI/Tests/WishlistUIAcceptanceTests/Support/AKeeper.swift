@@ -9,7 +9,7 @@ import SnackbarUI
 /// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the testing API. Tests say what
 /// a shopper has kept and what the shop said about it, never which type held it.
 ///
-/// One driver for both lists on the tab, because there is one list *type*: My Faves and Notify Me
+/// One driver for both lists on the tab, because there is one list *type*: My Faves and the waitlist
 /// differ in where their ids come from and in nothing else. A test written here holds for both,
 /// which is the payoff for their being one view model rather than two.
 final class AKeeper {

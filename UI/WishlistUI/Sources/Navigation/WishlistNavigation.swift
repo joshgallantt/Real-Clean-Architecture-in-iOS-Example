@@ -14,6 +14,6 @@ public protocol WishlistNavigation: AnyObject {
     /// them, because this tab is where a wishlist and a set of stock alerts stop being two things
     /// and start being "what I am keeping an eye on".
     func openAllFaves()
-    func openAllNotifyMe()
+    func openAllWaitlist()
     func openAllBackInStock()
 }

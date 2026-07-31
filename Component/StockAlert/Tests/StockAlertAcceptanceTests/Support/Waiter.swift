@@ -21,8 +21,7 @@ final class Waiter {
 
     private(set) var bellIsRinging: [ProductID: Bool] = [:]
 
-    /// The two things the app cannot own: the shop's alert service, and its catalog.
-    let alertService = StubAlertService()
+    /// The one thing the app cannot own here: the catalog.
     let shop = StubCatalog()
 
     private(set) var alerts = StockAlerts()
@@ -34,39 +33,26 @@ final class Waiter {
             getSession: StubGetSession(sessions: sessions),
             observeSession: StubObserveSession(sessions: sessions),
             lookUpProducts: shop,
-            client: alertService,
             store: FileStockAlertStore(directory: directory)
         )
 
-        di.observeStockAlertsUseCase()
+        di.observeWaitlistUseCase()
             .sink { [weak self] in self?.alerts = $0 }
             .store(in: &cancellables)
     }
 
-    // MARK: - What the shop does
-
-    /// The alert service says these are back, and the catalog is stocked with whatever it still
-    /// sells. The two are set apart on purpose: they are allowed to disagree, and what happens when
-    /// they do is the rule worth testing.
-    func theShopPutsBackOnTheShelf(_ ids: Int...) {
-        alertService.backInStock = ids.map(pid)
-    }
+    // MARK: - What the shop has
 
     func theCatalogStillSells(_ shelf: OnTheShelf...) {
         shop.stock = shelf
     }
 
-    /// The shopper looks, and whatever the shop has to say is caught up on.
-    @discardableResult
-    func looks() async -> Result<Void, StockAlertError> {
-        await di.catchUpOnStockAlertsUseCase()
-    }
 
     // MARK: - The two lists a shopper sees
 
     /// Still sold out, and still waited on.
     func stillWaitingFor() async -> [ProductID] {
-        ((try? await di.getProductsToBeNotifiedUseCase().get()) ?? []).map(\.id)
+        ((try? await di.getWaitlistProductsUseCase().get()) ?? []).map(\.id)
     }
 
     /// Asked about, and back on the shelf.
@@ -78,17 +64,17 @@ final class Waiter {
 
     @discardableResult
     func askToBeTold(aboutProductId productId: Int) async -> Result<Void, StockAlertError> {
-        await di.askToBeToldWhenBackUseCase(productId: pid(productId))
+        await di.setStockAlertForProductUseCase(productId: pid(productId), isOn: true)
     }
 
     @discardableResult
     func changeTheirMind(aboutProductId productId: Int) async -> Result<Void, StockAlertError> {
-        await di.stopBeingToldWhenBackUseCase(productId: pid(productId))
+        await di.setStockAlertForProductUseCase(productId: pid(productId), isOn: false)
     }
 
     /// The bell on a product card, which watches one product and nothing else.
     func watchTheBell(onProductId productId: Int) {
-        di.observeWaitingForProductUseCase(productId: pid(productId))
+        di.observeWaitlistStatusUseCase(productId: pid(productId))
             .sink { [weak self] in self?.bellIsRinging[pid(productId)] = $0 }
             .store(in: &cancellables)
     }
@@ -165,30 +151,6 @@ extension Result where Success == Void, Failure: Equatable {
 
 // MARK: - What the app cannot own
 
-/// The shop's alert service. It is told what a shopper is waiting on and says what has come back;
-/// what it does with the registrations is its own business, which is why a test sets the answer
-/// rather than the mechanism.
-final class StubAlertService: StockAlertClient, @unchecked Sendable {
-    private let lock = NSLock()
-    private var _backInStock: [ProductID] = []
-    private var _told: [ProductID] = []
-
-    var backInStock: [ProductID] {
-        get { lock.withLock { _backInStock } }
-        set { lock.withLock { _backInStock = newValue } }
-    }
-
-    /// What the shop has been told this shopper is waiting on, so a test can check it was told.
-    var told: [ProductID] { lock.withLock { _told } }
-
-    func setAlerts(_ productIds: [ProductID], for owner: UserID) async throws {
-        lock.withLock { _told = productIds }
-    }
-
-    func backInStock(for owner: UserID) async throws -> [ProductID] {
-        lock.withLock { _backInStock }
-    }
-}
 
 /// The catalog, which answers about what it still sells and says nothing about the rest.
 final class StubCatalog: LookUpProductsUseCase, @unchecked Sendable {

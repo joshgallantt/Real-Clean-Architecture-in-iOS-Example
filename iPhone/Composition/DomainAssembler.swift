@@ -56,7 +56,6 @@ struct DomainAssembler {
             getSession: session.getSessionUseCase,
             observeSession: session.observeSessionUseCase,
             lookUpProducts: catalog.lookUpProducts,
-            client: data.stockAlertClient,
             store: data.stockAlertStore
         )
         orders = OrderDI(

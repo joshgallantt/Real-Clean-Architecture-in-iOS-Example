@@ -19,7 +19,7 @@ public enum Destination: Hashable {
     case productDetails(ProductReference)
     case orderHistory
     case allFaves
-    case allNotifyMe
+    case allWaitlist
     case allBackInStock
 
     public enum ProductReference: Hashable {
@@ -34,7 +34,7 @@ public enum Destination: Hashable {
         /// Everything a shopper keeps. Orders, faves and the things they are waiting on all belong
         /// to somebody, so there is nothing to show a guest — and the prompt happens here, where
         /// the policy already lives, rather than being remembered by each screen.
-        case .orderHistory, .allFaves, .allNotifyMe, .allBackInStock:
+        case .orderHistory, .allFaves, .allWaitlist, .allBackInStock:
             return true
         }
     }
@@ -52,8 +52,8 @@ public enum Destination: Hashable {
             CompositionRoot.shared.presentation.order.historyView()
         case .allFaves:
             CompositionRoot.shared.presentation.wishlist.allFavesView()
-        case .allNotifyMe:
-            CompositionRoot.shared.presentation.wishlist.allNotifyMeView()
+        case .allWaitlist:
+            CompositionRoot.shared.presentation.wishlist.allWaitlistView()
         case .allBackInStock:
             CompositionRoot.shared.presentation.wishlist.allBackInStockView()
         }
@@ -77,8 +77,8 @@ extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNa
         open(.allFaves)
     }
 
-    func openAllNotifyMe() {
-        open(.allNotifyMe)
+    func openAllWaitlist() {
+        open(.allWaitlist)
     }
 
     func openAllBackInStock() {

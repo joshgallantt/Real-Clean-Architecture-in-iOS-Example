@@ -79,7 +79,7 @@ public final class SavedProductsViewModel: ObservableObject {
     /// the request it saved.
     var savedCount: Int { keeping == nil ? saved.count : products.count }
 
-    /// Everything the shopper would lose. Taken from the list as it is, so clearing Notify Me does
+    /// Everything the shopper would lose. Taken from the list as it is, so clearing the waitlist does
     /// not touch what has come back and clearing Back in Stock does not touch what is still waited
     /// on — they are two lists, and each Clear means its own.
     func didConfirmClear() {

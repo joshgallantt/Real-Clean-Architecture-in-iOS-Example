@@ -1,5 +1,4 @@
 import Combine
-import Product
 
 /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle.
 ///
@@ -17,8 +16,4 @@ public protocol StockAlertRepository: Sendable {
     @MainActor
     func save(_ alerts: StockAlerts) async throws
 
-    /// What the shop says has come back. Read, not applied: whether any of it is worth telling the
-    /// shopper is a rule, and rules live in use cases — this only fetches the answer.
-    @MainActor
-    func whatTheShopSaysIsBack() async throws -> [ProductID]
 }

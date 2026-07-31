@@ -83,9 +83,8 @@ struct PresentationAssembler {
             removeProductFromWishlist: domain.wishlist.removeProductFromWishlistUseCase,
             observeBagItemQuantity: domain.bag.observeBagItemQuantityUseCase,
             addItemToBag: domain.bag.addItemToBagUseCase,
-            observeWaitingForProduct: domain.stockAlerts.observeWaitingForProductUseCase,
-            askToBeToldWhenBack: domain.stockAlerts.askToBeToldWhenBackUseCase,
-            stopBeingToldWhenBack: domain.stockAlerts.stopBeingToldWhenBackUseCase,
+            observeWaitlistStatus: domain.stockAlerts.observeWaitlistStatusUseCase,
+            setStockAlertForProduct: domain.stockAlerts.setStockAlertForProductUseCase,
             authPresenter: auth.presenter,
             snackbarPresenter: snackbar.presenter
         )
@@ -118,11 +117,10 @@ struct PresentationAssembler {
         let wishlist = WishlistUIDI(
             navigation: navigator,
             observeWishlist: domain.wishlist.observeWishlistUseCase,
-            observeStockAlerts: domain.stockAlerts.observeStockAlertsUseCase,
-            getProductsToBeNotified: domain.stockAlerts.getProductsToBeNotifiedUseCase,
+            observeWaitlist: domain.stockAlerts.observeWaitlistUseCase,
+            getWaitlistProducts: domain.stockAlerts.getWaitlistProductsUseCase,
             getBackInStockProducts: domain.stockAlerts.getBackInStockProductsUseCase,
-            catchUpOnStockAlerts: domain.stockAlerts.catchUpOnStockAlertsUseCase,
-            stopBeingToldWhenBack: domain.stockAlerts.stopBeingToldWhenBackUseCase,
+            setStockAlertForProduct: domain.stockAlerts.setStockAlertForProductUseCase,
             removeProductFromWishlist: domain.wishlist.removeProductFromWishlistUseCase,
             lookUpProducts: catalog.lookUpProducts,
             observeSession: session.observeSessionUseCase,
