@@ -50,5 +50,20 @@ public struct ProductCardView: View {
             Text(product.price.formatted())
                 .font(.subheadline)
         }
+        /// A card is exactly as tall as its own contents, and refuses to be squeezed into whatever
+        /// height it is offered.
+        ///
+        /// Without this the picture pays for the words. It is the only part with no height of its
+        /// own — `fit` reads the width *and* the height on offer and takes the largest box
+        /// satisfying both — so in a row that hands every card the height of the tallest, a
+        /// two-line name came out of the photograph, and the products with most to say were shown
+        /// smallest.
+        ///
+        /// It goes here rather than on the picture. Fixing the picture alone leaves it with no
+        /// height to reason from and the words are squeezed instead, which truncates a two-line
+        /// name to one. Fixing the card settles the width, and the width settles everything else:
+        /// the picture is identical on every card, and a longer name simply makes its own card
+        /// taller. Whatever arranges them aligns them at the top.
+        .fixedSize(horizontal: false, vertical: true)
     }
 }
