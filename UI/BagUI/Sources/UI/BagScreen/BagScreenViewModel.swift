@@ -82,18 +82,14 @@ public final class BagScreenViewModel: ObservableObject {
         askTheShop()
     }
 
-    /// A line in the bag goes to its product. Opening it is behaviour, so it lives here rather than
-    /// being called straight out of the view — where nothing could reach it, which is why the bag
-    /// screen has had a `StubNavigation` that no test ever asserted on.
+    /// Any line on this screen goes to its product, in the bag or in a notice. Opening it is
+    /// behaviour, so it lives here rather than being called straight out of the view — where
+    /// nothing could reach it, which is why the bag screen had a `StubNavigation` no test used.
+    ///
+    /// One method, because every section is now about something the shop still sells. It used to
+    /// ask the section whether there was a page worth opening, for the one kind where there was
+    /// not.
     func didTapRow(productId: ProductID) {
-        navigation.openProductDetails(id: productId)
-    }
-
-    /// A line in a notice goes to its product too, where the section has a product left to go to.
-    /// Whether it has is the section's to say — the view asks rather than keeping its own list of
-    /// which of the five are worth a trip.
-    func didTapNotice(in kind: Notice.Kind, productId: ProductID) {
-        guard noticeSections.first(where: { $0.kind == kind })?.opensTheProduct == true else { return }
         navigation.openProductDetails(id: productId)
     }
 

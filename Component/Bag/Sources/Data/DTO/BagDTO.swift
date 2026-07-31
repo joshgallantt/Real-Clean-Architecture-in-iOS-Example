@@ -44,13 +44,11 @@ struct NoticeDTO: Codable, Sendable {
         case priceWentDown
         case onlySomeLeft
         case outOfStock
-        case discontinued
 
-        /// What "it has gone" was called before the two ways of going were told apart. A bag
-        /// written by an older build still reads, and its notice becomes the recoverable one —
-        /// offering to tell a shopper about something already back is a smaller wrong than
-        /// promising word about something that will never return.
+        /// Names this build no longer writes. A bag saved by an older one still reads: both meant
+        /// the line had gone, and out of stock is the one of the two a shopper can act on.
         static let legacyGone = "noLongerAvailable"
+        static let legacyDiscontinued = "discontinued"
     }
 
     /// Held as its raw form, not as `Kind`. Decoding straight into the enum throws on a kind this
@@ -80,7 +78,7 @@ struct NoticeDTO: Codable, Sendable {
             self.currencyCode = nil
             self.available = available
 
-        case .outOfStock, .discontinued:
+        case .outOfStock:
             self.fromMinorUnits = nil
             self.toMinorUnits = nil
             self.currencyCode = nil
@@ -91,7 +89,9 @@ struct NoticeDTO: Codable, Sendable {
     func toDomain() -> Notice? {
         let id = ProductID(rawValue: productId)
 
-        if kind == Kind.legacyGone { return .outOfStock(productId: id) }
+        if kind == Kind.legacyGone || kind == Kind.legacyDiscontinued {
+            return .outOfStock(productId: id)
+        }
 
         switch Kind(rawValue: kind) {
         case .none:
@@ -107,8 +107,6 @@ struct NoticeDTO: Codable, Sendable {
             return .onlySomeLeft(productId: id, available: available)
         case .outOfStock:
             return .outOfStock(productId: id)
-        case .discontinued:
-            return .discontinued(productId: id)
         }
     }
 
@@ -120,7 +118,6 @@ struct NoticeDTO: Codable, Sendable {
         case .priceWentDown: .priceWentDown
         case .onlySomeLeft: .onlySomeLeft
         case .outOfStock: .outOfStock
-        case .discontinued: .discontinued
         }
     }
 

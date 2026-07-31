@@ -71,12 +71,8 @@ public struct BagScreenView: View {
     /// a sixth.
     private func noticeSection(_ section: NoticeSection) -> some View {
         Section {
-            /// A section that cannot name its lines shows none. The heading has already said the
-            /// whole of what is known, and rows would only repeat it once per anonymous placeholder.
-            if section.listsItsRows {
-                ForEach(section.rows) { row in
-                    noticeRow(row, in: section)
-                }
+            ForEach(section.rows) { row in
+                noticeRow(row, in: section)
             }
         } header: {
             sectionHeader(
@@ -168,7 +164,7 @@ public struct BagScreenView: View {
             /// The same target as a bag line: everything left of the accessory. A shopper reading
             /// that something got dearer wants to go and look at it, and had no way to.
             .contentShape(Rectangle())
-            .onTapGesture { viewModel.didTapNotice(in: section.kind, productId: row.id) }
+            .onTapGesture { viewModel.didTapRow(productId: row.id) }
 
             accessoryButton(section.accessory, for: row.id)
         }

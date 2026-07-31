@@ -58,21 +58,21 @@ struct BeingToldWhatChangedTests {
         #expect(shopper.bag.isEmpty)
     }
 
-    @Test("Something the shop no longer answers about has been stopped, and leaves the bag")
-    func discontinued() async {
+    @Test("Something the shop no longer answers about leaves the bag, and says nothing")
+    func stoppedSelling() async {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
 
-        /// Asked about, and not described. That silence is the whole signal.
+        /// Asked about, and not described. That silence is the whole signal — and there is nothing
+        /// a shopper can do about it, so they are not handed a notice to dismiss.
         shopper.theShopNowSells()
         await shopper.comesBack()
 
-        #expect(shopper.news.of(.discontinued) == [.discontinued(productId: pid(1))])
-        #expect(shopper.news.of(.outOfStock).isEmpty)
         #expect(shopper.bag.isEmpty)
+        #expect(shopper.news.isEmpty)
     }
 
-    @Test("A sell-out and a discontinuation are not the same news, because they are not the same to a shopper")
+    @Test("A sell-out is news; something stopped is not, because only one can be waited for")
     func toldApart() async {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
@@ -82,8 +82,7 @@ struct BeingToldWhatChangedTests {
         await shopper.comesBack()
 
         #expect(shopper.news.of(.outOfStock) == [.outOfStock(productId: pid(1))])
-        #expect(shopper.news.of(.discontinued) == [.discontinued(productId: pid(2))])
-        #expect(shopper.news.gone.count == 2)
+        #expect(shopper.news.gone.count == 1)
         #expect(shopper.bag.isEmpty)
     }
 
@@ -121,9 +120,9 @@ struct BeingToldWhatChangedTests {
         shopper.theShopNowSells(shopSells(2, at: 49.99))
         await shopper.comesBack()
 
-        #expect(shopper.news.of(.discontinued) == [.discontinued(productId: pid(1))])
         #expect(shopper.bag.items.map(\.id) == [pid(2)])
         #expect(shopper.bag.total == usd(49.99))
+        #expect(shopper.news.isEmpty)
     }
 
     @Test("A bag the shop has emptied is empty, and says why")

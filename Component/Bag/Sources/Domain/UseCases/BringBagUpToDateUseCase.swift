@@ -98,10 +98,10 @@ public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
                     continue
                 }
 
-                /// Asked about and not described. The shop has stopped selling it.
-                if !gone.contains(where: { $0.productId == line.productId }) {
-                    gone.append(.discontinued(productId: line.productId))
-                }
+                /// Asked about and not described: the shop has stopped selling it, so the line
+                /// goes. Nothing is said about it. There is nothing a shopper can do with the news
+                /// — it cannot be waited for, bought or put back — and a notice offering no action
+                /// is one more thing to dismiss on the way to the ones that do.
                 continue
             }
 

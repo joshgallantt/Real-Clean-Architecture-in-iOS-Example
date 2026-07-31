@@ -20,9 +20,6 @@ public final class SavedProductsViewModel: ObservableObject {
     @Published private(set) var isLoading = false
     @Published private(set) var isLoadingMore = false
 
-    /// Whether anything on this list has been stopped. Not *which*: the shop says so by no longer
-    /// answering about them, so there is no name and no picture to show.
-    @Published private(set) var somethingHasBeenDiscontinued = false
 
     private let pageSize: Int
     private let savedProductIds: () -> AnyPublisher<[ProductID], Never>
@@ -143,14 +140,6 @@ public final class SavedProductsViewModel: ObservableObject {
                     self.cache[product.id] = product
                 }
 
-                /// Asked about, and not described. A shop that answers describes everything it
-                /// still sells, so whatever is missing from a successful answer has been stopped.
-                /// A *failed* lookup says nothing at all, which is why this is only read here —
-                /// a dropped connection must never read as the shop closing down.
-                let described = Set(fetched.map(\.id))
-                if missing.contains(where: { !described.contains($0) }) {
-                    self.somethingHasBeenDiscontinued = true
-                }
 
             case .failure:
                 self.snackbar.show(Snackbar(
