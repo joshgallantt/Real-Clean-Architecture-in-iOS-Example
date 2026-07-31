@@ -11,8 +11,8 @@ import AuthUI
 public struct WishlistScreenView: View {
     @ObservedObject var session: WishlistScreenViewModel
     @ObservedObject var faves: SavedProductsViewModel
-    @ObservedObject var notifyMe: SavedProductsViewModel
-    @ObservedObject var backInStock: SavedProductsViewModel
+    @ObservedObject var notifyMe: AlertedProductsViewModel
+    @ObservedObject var backInStock: AlertedProductsViewModel
 
     let navigation: WishlistNavigation
     let wishlistButton: (ProductID) -> AnyView
@@ -22,8 +22,8 @@ public struct WishlistScreenView: View {
     public init(
         session: WishlistScreenViewModel,
         faves: SavedProductsViewModel,
-        notifyMe: SavedProductsViewModel,
-        backInStock: SavedProductsViewModel,
+        notifyMe: AlertedProductsViewModel,
+        backInStock: AlertedProductsViewModel,
         navigation: WishlistNavigation,
         wishlistButton: @escaping (ProductID) -> AnyView,
         bagButton: @escaping (Product) -> AnyView,
@@ -67,7 +67,9 @@ public struct WishlistScreenView: View {
                 }
 
                 SavedProductsCarousel(
-                    viewModel: notifyMe,
+                    products: notifyMe.products,
+                    total: notifyMe.count,
+                    onClear: { notifyMe.didConfirmClear() },
                     title: "Notify Me",
                     icon: "bell.fill",
                     tint: .orange,
@@ -83,7 +85,9 @@ public struct WishlistScreenView: View {
                 /// need telling twice that something is still sold out, and does need telling once
                 /// that it is not.
                 SavedProductsCarousel(
-                    viewModel: backInStock,
+                    products: backInStock.products,
+                    total: backInStock.count,
+                    onClear: { backInStock.didConfirmClear() },
                     title: "Back in Stock",
                     icon: "sparkles",
                     tint: .green,
@@ -96,7 +100,9 @@ public struct WishlistScreenView: View {
                 )
 
                 SavedProductsCarousel(
-                    viewModel: faves,
+                    products: faves.products,
+                    total: faves.savedCount,
+                    onClear: { faves.didConfirmClear() },
                     title: "My Faves",
                     icon: "heart.fill",
                     tint: .accentColor,
@@ -112,12 +118,11 @@ public struct WishlistScreenView: View {
         }
     }
 
-    /// Either list may lose something, and a shopper reads one sentence about their saved things
-    /// rather than the same sentence twice under two headings.
+    /// Only the wishlist can notice this. The alert lists are answered by a use case that returns
+    /// products, so a product the shop has stopped selling is simply not among them — there is
+    /// nothing for either row to have lost sight of, and nothing to say about it.
     private var somethingHasBeenDiscontinued: Bool {
         faves.somethingHasBeenDiscontinued
-            || notifyMe.somethingHasBeenDiscontinued
-            || backInStock.somethingHasBeenDiscontinued
     }
 
     /// One notice for all of them, and no rows. This tab found out these had gone by being told

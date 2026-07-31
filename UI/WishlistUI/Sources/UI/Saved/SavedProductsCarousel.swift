@@ -10,9 +10,14 @@ import ProductUI
 /// It shows the same `ProductCardView` the grids show. A card that looked different here would be
 /// a second card to keep in step with the first, and a shopper would have to learn it twice.
 struct SavedProductsCarousel: View {
-    @ObservedObject var viewModel: SavedProductsViewModel
-
     @State private var isConfirmingClear = false
+
+    /// Products and a count, not a view model. A wishlist is a list of ids that has to be filled in
+    /// and paged; the alert lists are answered whole by a use case. Typing this to either would
+    /// make the other one wrong, and a row of cards has no business knowing the difference.
+    let products: [Product]
+    let total: Int
+    let onClear: () -> Void
 
     let title: String
     let icon: String
@@ -38,9 +43,9 @@ struct SavedProductsCarousel: View {
             SavedSectionHeader(title: title, icon: icon, tint: tint, description: description) {
                 /// Nothing to offer about an empty list: neither seeing the rest of it nor emptying
                 /// it means anything, and two disabled buttons say less than no buttons.
-                if viewModel.savedCount > 0 {
+                if total > 0 {
                     HStack(spacing: 12) {
-                        Button("View All (\(viewModel.savedCount))", action: onViewAll)
+                        Button("View All (\(total))", action: onViewAll)
 
                         /// Red, because it is the only thing in this heading that takes something
                         /// away — and asked about first, because there is no undo behind it.
@@ -50,7 +55,7 @@ struct SavedProductsCarousel: View {
                 }
             }
 
-            if viewModel.isEmpty {
+            if products.isEmpty {
                 Text(emptyMessage)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
@@ -68,7 +73,7 @@ struct SavedProductsCarousel: View {
             isPresented: $isConfirmingClear,
             titleVisibility: .visible
         ) {
-            Button("Clear \(title)", role: .destructive) { viewModel.didConfirmClear() }
+            Button("Clear \(title)", role: .destructive) { onClear() }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This empties \(title). It cannot be undone.")
@@ -78,7 +83,7 @@ struct SavedProductsCarousel: View {
     private var cards: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(alignment: .top, spacing: 12) {
-                ForEach(viewModel.products.prefix(atMost)) { product in
+                ForEach(products.prefix(atMost)) { product in
                     Button {
                         onSelect(product)
                     } label: {

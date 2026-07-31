@@ -62,6 +62,18 @@ final class Waiter {
         await di.catchUpOnStockAlertsUseCase()
     }
 
+    // MARK: - The two lists a shopper sees
+
+    /// Still sold out, and still waited on.
+    func stillWaitingFor() async -> [ProductID] {
+        ((try? await di.getProductsToBeNotifiedUseCase().get()) ?? []).map(\.id)
+    }
+
+    /// Asked about, and back on the shelf.
+    func backInStock() async -> [ProductID] {
+        ((try? await di.getBackInStockProductsUseCase().get()) ?? []).map(\.id)
+    }
+
     // MARK: - What a shopper does
 
     @discardableResult
