@@ -119,6 +119,7 @@ struct PresentationAssembler {
         let wishlist = WishlistUIDI(
             navigation: navigator,
             observeWishlist: domain.wishlist.observeWishlistUseCase,
+            observeStockAlerts: domain.stockAlerts.observeStockAlertsUseCase,
             lookUpProducts: catalog.lookUpProducts,
             observeSession: session.observeSessionUseCase,
             authPresenter: auth.presenter,

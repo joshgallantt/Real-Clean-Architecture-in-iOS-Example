@@ -5,6 +5,7 @@ import HomeUI
 import SearchUI
 import SearchUIDI
 import WishlistUI
+import WishlistUIDI
 import BagUI
 import OrderUIDI
 import ProductActionsUI
@@ -17,6 +18,8 @@ public enum Destination: Hashable {
     case catalog(CatalogFilter)
     case productDetails(ProductReference)
     case orderHistory
+    case allFaves
+    case allNotifyMe
 
     public enum ProductReference: Hashable {
         case id(ProductID)
@@ -27,10 +30,10 @@ public enum Destination: Hashable {
         switch self {
         case .catalog, .productDetails:
             return false
-        /// The first route that needs one. Orders belong to somebody, so there is nothing to show a
-        /// guest — and the prompt happens here, where the policy already lives, rather than being
-        /// remembered by the screen.
-        case .orderHistory:
+        /// Everything a shopper keeps. Orders, faves and the things they are waiting on all belong
+        /// to somebody, so there is nothing to show a guest — and the prompt happens here, where
+        /// the policy already lives, rather than being remembered by each screen.
+        case .orderHistory, .allFaves, .allNotifyMe:
             return true
         }
     }
@@ -46,6 +49,10 @@ public enum Destination: Hashable {
             CompositionRoot.shared.presentation.product.detailView(product: product)
         case .orderHistory:
             CompositionRoot.shared.presentation.order.historyView()
+        case .allFaves:
+            CompositionRoot.shared.presentation.wishlist.allFavesView()
+        case .allNotifyMe:
+            CompositionRoot.shared.presentation.wishlist.allNotifyMeView()
         }
     }
 }
@@ -61,6 +68,14 @@ extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNa
 
     func openProductDetails(id: ProductID) {
         open(.productDetails(.id(id)))
+    }
+
+    func openAllFaves() {
+        open(.allFaves)
+    }
+
+    func openAllNotifyMe() {
+        open(.allNotifyMe)
     }
 
     func switchToBagTab() {

@@ -934,11 +934,12 @@ That is not a stylistic preference. The first thing this rewrite found was that 
 | [`OrderAcceptanceTests`](Component/Order/Tests/OrderAcceptanceTests/BuyingSomethingTests.swift) | Buying, what an order records, a declined payment, and coming back to what you bought |
 | [`BagUIAcceptanceTests`](UI/BagUI/Tests/BagUIAcceptanceTests/TheBagScreenTests.swift) | The bag screen: what it asks the shop, when, and what it shows while waiting |
 | [`OrderUIAcceptanceTests`](UI/OrderUI/Tests/OrderUIAcceptanceTests/BuyingFromAProductPageTests.swift) | Buy Now and checking out: what each one buys, what it leaves behind, and who it asks to sign in |
+| [`WishlistUIAcceptanceTests`](UI/WishlistUI/Tests/WishlistUIAcceptanceTests/KeepingAnEyeOnThingsTests.swift) | Both saved lists: filling them in, paging, and telling a dropped connection from a product that has gone |
 | [`MoneyTests`](Library/Money/Tests/MoneyTests/MoneyTests.swift) | The one exception — a `Library/` has no shopper, and owes exact arithmetic to whoever links it |
 
 **Why does this matter?** Tests that require a simulator run slowly and fail for infrastructure reasons unrelated to the logic being tested. Tests that depend on a real network are non-deterministic. Protocol-based design means a whole feature can be assembled and driven in-process, deterministically, in milliseconds. No third-party mocking libraries are needed — a conforming struct is sufficient.
 
-The UI packages other than `BagUI`, `OrderUI` and `ProductActionsUI` are not yet covered — the seams are in place, the tests are not.
+The UI packages other than `BagUI`, `OrderUI`, `ProductActionsUI` and `WishlistUI` are not yet covered — the seams are in place, the tests are not.
 
 ---
 
@@ -967,7 +968,8 @@ iPhone (App)
 ├── HomeUIDI     ──▶  HomeUI      ──▶  Product, Money, SnackbarUI
 ├── SearchUIDI   ──▶  SearchUI    ──▶  Product, Money, SearchHistory, ProductUI, SnackbarUI
 │                ──▶  WishlistUIDI, BagUIDI
-├── WishlistUIDI ──▶  WishlistUI  ──▶  Wishlist, Product, Session, ProductUI, SnackbarUI, AuthUI
+├── WishlistUIDI ──▶  WishlistUI  ──▶  Wishlist, StockAlert, Product, Session, ProductUI,
+│                                     SnackbarUI, AuthUI
 │                ──▶  ProductActionsUIDI
 ├── BagUIDI      ──▶  BagUI       ──▶  Bag, Product, Money, SnackbarUI
 ├── OrderUIDI    ──▶  OrderUI     ──▶  Order, Bag, Product, Money, SnackbarUI, AuthUI
