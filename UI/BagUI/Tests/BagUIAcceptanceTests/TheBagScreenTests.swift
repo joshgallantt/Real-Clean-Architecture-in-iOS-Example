@@ -139,8 +139,8 @@ struct BagScreenViewModelTests {
         #expect(viewModel.isEmpty)
     }
 
-    @Test("Something the shop no longer answers about is listed apart, where no bell is offered")
-    func discontinuedIsItsOwnSection() async {
+    @Test("Something the shop no longer answers about leaves quietly, with no section of its own")
+    func stoppedSellingSaysNothing() async {
         let shop = makeShop(
             items: [bagItem(1, price: 9.99), bagItem(2, price: 5)],
             catalog: [
@@ -153,7 +153,7 @@ struct BagScreenViewModelTests {
         await settle(shop)
 
         #expect(viewModel.notices(in: .outOfStock).map(\.id) == [pid(1)])
-        #expect(viewModel.notices(in: .discontinued).map(\.id) == [pid(2)])
+        #expect(viewModel.noticeSections.count == 1)
         #expect(viewModel.isEmpty)
     }
 
@@ -180,7 +180,6 @@ struct BagScreenViewModelTests {
         await settle(shop)
 
         #expect(viewModel.notices(in: .outOfStock).first?.says == .nothing)
-        #expect(viewModel.notices(in: .discontinued).first?.says == .nothing)
 
         // How many are left, and what it costs now, are the two things a heading cannot say.
         let shortages = viewModel.notices(in: .onlySomeLeft).map(\.says)
@@ -352,9 +351,9 @@ struct BagScreenViewModelTests {
         viewModel.onAppear()
         await settle(shop)
 
-        #expect(shop.currentNotices.of(.discontinued).map(\.productId) == [pid(1)])
         #expect(shop.currentBag.isEmpty)
-        #expect(viewModel.hasNews)
+        #expect(shop.currentNotices.isEmpty)
+        #expect(viewModel.hasNews == false)
     }
 
     @Test("A shop that cannot be reached leaves the bag exactly as it was")
@@ -553,7 +552,7 @@ struct GoingFromTheBagToAProductTests {
         viewModel.onAppear()
         await settle(shop)
 
-        viewModel.didTapNotice(in: .outOfStock, productId: pid(1))
+        viewModel.didTapRow(productId: pid(1))
 
         #expect(navigation.openedProducts == [pid(1)])
     }
@@ -568,25 +567,9 @@ struct GoingFromTheBagToAProductTests {
         viewModel.onAppear()
         await settle(shop)
 
-        viewModel.didTapNotice(in: .priceWentUp, productId: pid(1))
+        viewModel.didTapRow(productId: pid(1))
 
         #expect(navigation.openedProducts == [pid(1)])
     }
 
-    @Test("Tapping something discontinued goes nowhere, because there is nothing left to show")
-    func tappingADiscontinuedNotice() async {
-        /// An empty catalog: the shop is asked about the line and says nothing, which is how it
-        /// says it has stopped selling it.
-        let shop = FakeShop(
-            bag: Bag(items: [bagItem(1, price: 9.99)]),
-            catalog: []
-        )
-        let viewModel = makeViewModel(shop: shop)
-        viewModel.onAppear()
-        await settle(shop)
-
-        viewModel.didTapNotice(in: .discontinued, productId: pid(1))
-
-        #expect(navigation.openedProducts.isEmpty)
-    }
 }

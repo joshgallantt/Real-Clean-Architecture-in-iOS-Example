@@ -65,13 +65,6 @@ public struct WishlistScreenView: View {
     private var lists: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 28) {
-                /// A section of its own at the top, the way the bag does it, rather than something
-                /// pinned above the scroll view. Inset over the top of a navigation title, it
-                /// fought with the title on every scroll — and a notice that jitters reads as a
-                /// glitch rather than as news.
-                if somethingHasBeenDiscontinued {
-                    discontinuedNotice
-                }
 
                 SavedProductsCarousel(
                     products: waitlist.products,
@@ -125,24 +118,7 @@ public struct WishlistScreenView: View {
         }
     }
 
-    /// Only the wishlist can notice this. The alert lists are answered by a use case that returns
-    /// products, so a product the shop has stopped selling is simply not among them — there is
-    /// nothing for either row to have lost sight of, and nothing to say about it.
-    private var somethingHasBeenDiscontinued: Bool {
-        faves.somethingHasBeenDiscontinued
-    }
 
-    /// One notice for all of them, and no rows. This tab found out these had gone by being told
-    /// nothing about them, so it has no name and no picture for any — a row of grey placeholders
-    /// would say less than the sentence does.
-    private var discontinuedNotice: some View {
-        SavedSectionHeader(
-            title: "No Longer Available",
-            icon: "xmark.circle",
-            tint: .secondary,
-            description: "One or more of your wishlist items has been discontinued. Sad, yes. But we thought you should know."
-        )
-    }
 
     private var guestPrompt: some View {
         ContentUnavailableView {

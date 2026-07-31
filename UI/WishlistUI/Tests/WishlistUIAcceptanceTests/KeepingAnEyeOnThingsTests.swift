@@ -32,7 +32,7 @@ struct KeepingAnEyeOnThingsTests {
         #expect(keeper.shop.asked.isEmpty)
     }
 
-    @Test("Something the shop no longer answers about is not shown, and the shopper is told")
+    @Test("Something the shop no longer answers about is not shown")
     func discontinued() async {
         let keeper = AKeeper()
         keeper.shop.sells(1)
@@ -42,11 +42,10 @@ struct KeepingAnEyeOnThingsTests {
         await keeper.settle()
 
         #expect(keeper.list.products.map(\.id) == [pid(1)])
-        #expect(keeper.list.somethingHasBeenDiscontinued)
     }
 
-    /// The one that matters most: a dropped connection must never read as the shop closing down.
-    @Test("A shop that cannot be reached says nothing about anything")
+    /// The one that matters most: a dropped connection must never empty a shopper's list.
+    @Test("A shop that cannot be reached leaves the list as it was")
     func cannotBeReached() async {
         let keeper = AKeeper()
         keeper.shop.cannotBeReached = true
@@ -55,7 +54,7 @@ struct KeepingAnEyeOnThingsTests {
         keeper.keeps(1, 2)
         await keeper.settle()
 
-        #expect(keeper.list.somethingHasBeenDiscontinued == false)
+        #expect(keeper.list.isEmpty)
         #expect(keeper.snackbars.shown.first?.title == "Couldn't Load")
     }
 

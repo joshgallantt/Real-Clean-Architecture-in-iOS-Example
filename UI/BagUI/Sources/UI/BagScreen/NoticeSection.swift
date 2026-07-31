@@ -38,10 +38,9 @@ struct NoticeSection: Identifiable, Equatable {
     }
 
     /// The order the sections are read in, decided once and here. It runs worst-first: what has gone
-    /// for good, then what has gone for now, then what there is not enough of, then what costs more,
-    /// and last the one piece of good news.
+    /// for now, then what there is not enough of, then what costs more, and last the one piece of
+    /// good news.
     static let readingOrder: [Notice.Kind] = [
-        .discontinued,
         .outOfStock,
         .onlySomeLeft,
         .priceWentUp,
@@ -56,18 +55,7 @@ struct NoticeSection: Identifiable, Equatable {
     let accessory: Accessory
     let rows: [NoticeRow]
 
-    /// Whether the lines here are worth listing one by one. Everything the shop still describes is:
-    /// a shopper wants to see *which* thing got dearer or nearly ran out. Something it has stopped
-    /// selling is not — the app learned it had gone by being told nothing about it, so there is no
-    /// name and no picture to show, and a column of grey placeholders says less than one sentence
-    /// does.
-    let listsItsRows: Bool
 
-    /// Whether a line here still has a product page worth opening. Everything the shop might yet
-    /// sell does — a shopper reading that something got dearer or nearly ran out is being asked to
-    /// decide, and the page is where they would go to decide it. Something discontinued does not:
-    /// there is nothing to go and look at, and offering the trip is a promise the shop cannot keep.
-    let opensTheProduct: Bool
 
     var id: Notice.Kind { kind }
 
@@ -78,23 +66,12 @@ struct NoticeSection: Identifiable, Equatable {
         self.rows = rows
 
         switch kind {
-        case .discontinued:
-            title = "No Longer Available"
-            description = "One or more of your bag items has been discontinued. Sad, yes. But we thought you should know."
-            icon = "xmark.circle"
-            tint = .quiet
-            accessory = .nothing
-            opensTheProduct = false
-            listsItsRows = false
-
         case .outOfStock:
             title = "Out Of Stock"
             description = "Sold out for now, so they've hopped out of your bag. Tap the bell and we'll ping you the moment they're back."
             icon = "shippingbox"
             tint = .warning
             accessory = .tellMeWhenItIsBack
-            opensTheProduct = true
-            listsItsRows = true
 
         case .onlySomeLeft:
             title = "Not Enough Left"
@@ -102,8 +79,6 @@ struct NoticeSection: Identifiable, Equatable {
             icon = "exclamationmark.triangle"
             tint = .warning
             accessory = .nothing
-            opensTheProduct = true
-            listsItsRows = true
 
         case .priceWentUp:
             title = "Price Increases"
@@ -111,8 +86,6 @@ struct NoticeSection: Identifiable, Equatable {
             icon = "arrow.up.circle"
             tint = .warning
             accessory = .removeFromBag
-            opensTheProduct = true
-            listsItsRows = true
 
         case .priceWentDown:
             title = "Price Decreases"
@@ -120,8 +93,6 @@ struct NoticeSection: Identifiable, Equatable {
             icon = "arrow.down.circle"
             tint = .good
             accessory = .nothing
-            opensTheProduct = true
-            listsItsRows = true
         }
     }
 }
@@ -131,8 +102,7 @@ struct NoticeSection: Identifiable, Equatable {
 ///
 /// Evans, *Domain-Driven Design* (2003), Ch. 9 — Making Implicit Concepts Explicit: what a row adds
 /// to its heading used to be a pair of optionals that were never both set. Four combinations were
-/// representable where three occur, and an out-of-stock row and a discontinued row were the same
-/// value with nothing to tell them apart. `Says` has the three states there are.
+/// representable where three occur. `Says` has the three states there are.
 struct NoticeRow: Identifiable, Equatable {
     /// Two amounts and a direction rather than a finished sentence. A price move is worth seeing
     /// rather than reading — the old struck through, the new one coloured by which way it went — and
@@ -176,7 +146,7 @@ struct NoticeRow: Identifiable, Equatable {
         case .priceWentDown(_, let from, let to):
             .priceMoved(PriceMove(was: from.formatted(), now: to.formatted(), isCheaper: true))
 
-        case .outOfStock, .discontinued:
+        case .outOfStock:
             .nothing
         }
     }
