@@ -56,6 +56,12 @@ struct NoticeSection: Identifiable, Equatable {
     let accessory: Accessory
     let rows: [NoticeRow]
 
+    /// Whether a line here still has a product page worth opening. Everything the shop might yet
+    /// sell does — a shopper reading that something got dearer or nearly ran out is being asked to
+    /// decide, and the page is where they would go to decide it. Something discontinued does not:
+    /// there is nothing to go and look at, and offering the trip is a promise the shop cannot keep.
+    let opensTheProduct: Bool
+
     var id: Notice.Kind { kind }
 
     /// Everything that distinguishes one section from another, in one table. A section cannot be
@@ -71,6 +77,7 @@ struct NoticeSection: Identifiable, Equatable {
             icon = "xmark.circle"
             tint = .quiet
             accessory = .nothing
+            opensTheProduct = false
 
         case .outOfStock:
             title = "Out Of Stock"
@@ -78,6 +85,7 @@ struct NoticeSection: Identifiable, Equatable {
             icon = "shippingbox"
             tint = .warning
             accessory = .tellMeWhenItIsBack
+            opensTheProduct = true
 
         case .onlySomeLeft:
             title = "Not Enough Left"
@@ -85,6 +93,7 @@ struct NoticeSection: Identifiable, Equatable {
             icon = "exclamationmark.triangle"
             tint = .warning
             accessory = .nothing
+            opensTheProduct = true
 
         case .priceWentUp:
             title = "Price Increases"
@@ -92,6 +101,7 @@ struct NoticeSection: Identifiable, Equatable {
             icon = "arrow.up.circle"
             tint = .warning
             accessory = .removeFromBag
+            opensTheProduct = true
 
         case .priceWentDown:
             title = "Price Decreases"
@@ -99,6 +109,7 @@ struct NoticeSection: Identifiable, Equatable {
             icon = "arrow.down.circle"
             tint = .good
             accessory = .nothing
+            opensTheProduct = true
         }
     }
 }

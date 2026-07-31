@@ -10,8 +10,11 @@ import Product
 /// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: what the use case sequences, and
 /// what it keeps.
 struct BagScreenViewModelTests {
+    private let navigation = StubNavigation()
+
     private func makeViewModel(shop: FakeShop) -> BagScreenViewModel {
         BagScreenViewModel(
+            navigation: navigation,
             observeBag: shop.observeBag,
             observeNotices: shop.observeNotices,
             lookUpProducts: shop.lookUpProducts,
@@ -380,8 +383,11 @@ struct BagScreenViewModelTests {
 /// A shopper who has been away a while comes back to a screenful of notices. Clearing them one tap
 /// at a time is the same work the shop made for them; each section can be accepted in one go.
 struct DealingWithAWholeSectionTests {
+    private let navigation = StubNavigation()
+
     private func makeViewModel(shop: FakeShop) -> BagScreenViewModel {
         BagScreenViewModel(
+            navigation: navigation,
             observeBag: shop.observeBag,
             observeNotices: shop.observeNotices,
             lookUpProducts: shop.lookUpProducts,
@@ -489,3 +495,81 @@ private func settle(_ shop: FakeShop, untilAskedTimes times: Int = 1) async {
     }
 }
 
+
+@MainActor
+@Suite("Going from the bag to a product", .serialized)
+/// Evans, *Domain-Driven Design* (2003), Ch. 2 — Ubiquitous Language: a shopper taps a line and
+/// expects the thing. These went untested while opening a product was called straight out of the
+/// view — there was a `StubNavigation` and nothing that could assert on it.
+struct GoingFromTheBagToAProductTests {
+    private let navigation = StubNavigation()
+
+    private func makeViewModel(shop: FakeShop) -> BagScreenViewModel {
+        BagScreenViewModel(
+            navigation: navigation,
+            observeBag: shop.observeBag,
+            observeNotices: shop.observeNotices,
+            lookUpProducts: shop.lookUpProducts,
+            setBagItemQuantity: shop.setBagItemQuantity,
+            bringBagUpToDate: shop.bringUpToDate,
+            acknowledgeNotices: shop.acknowledge
+        )
+    }
+
+    @Test("Tapping a line in the bag opens that product")
+    func tappingABagLine() async {
+        let shop = FakeShop(bag: Bag(items: [bagItem(1, price: 9.99)]), catalog: [.fixture(id: 1)])
+        let viewModel = makeViewModel(shop: shop)
+        viewModel.onAppear()
+        await settle(shop)
+
+        viewModel.didTapRow(productId: pid(1))
+
+        #expect(navigation.openedProducts == [pid(1)])
+    }
+
+    @Test("Tapping something that sold out opens it — it is coming back, and the page is where you wait")
+    func tappingAnOutOfStockNotice() async {
+        let shop = FakeShop(
+            bag: Bag(items: [bagItem(1, price: 9.99)]),
+            catalog: [.fixture(id: 1, availability: .outOfStock)]
+        )
+        let viewModel = makeViewModel(shop: shop)
+        viewModel.onAppear()
+        await settle(shop)
+
+        viewModel.didTapNotice(in: .outOfStock, productId: pid(1))
+
+        #expect(navigation.openedProducts == [pid(1)])
+    }
+
+    @Test("Tapping something repriced opens it, because that is where the decision gets made")
+    func tappingAPriceNotice() async {
+        let shop = FakeShop(
+            bag: Bag(items: [bagItem(1, price: 9.99)]),
+            catalog: [.fixture(id: 1, price: 12.99)]
+        )
+        let viewModel = makeViewModel(shop: shop)
+        viewModel.onAppear()
+        await settle(shop)
+
+        viewModel.didTapNotice(in: .priceWentUp, productId: pid(1))
+
+        #expect(navigation.openedProducts == [pid(1)])
+    }
+
+    @Test("Tapping something discontinued goes nowhere, because there is nothing left to show")
+    func tappingADiscontinuedNotice() async {
+        let shop = FakeShop(
+            bag: Bag(items: [bagItem(1, price: 9.99)]),
+            catalog: [.fixture(id: 1, availability: .discontinued)]
+        )
+        let viewModel = makeViewModel(shop: shop)
+        viewModel.onAppear()
+        await settle(shop)
+
+        viewModel.didTapNotice(in: .discontinued, productId: pid(1))
+
+        #expect(navigation.openedProducts.isEmpty)
+    }
+}
