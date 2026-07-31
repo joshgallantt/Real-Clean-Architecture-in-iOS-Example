@@ -30,6 +30,19 @@ public final class SavedProductsViewModel: ObservableObject {
     private let snackbar: SnackbarPresenting
     private let couldNotLoad: String
 
+    /// Which of them belong on this list, decided by what the shop says about them *now*.
+    /// Two lists are drawn from the same set of asks — the ones still sold out, and the ones back —
+    /// and which is which is a fact about stock, not something the app has to have been told.
+    ///
+    /// Nothing at all where a list is everything the shopper holds. That is not the same as a
+    /// filter that keeps everything: an unfiltered list can be counted without fetching a single
+    /// product, and a filtered one cannot be judged at all until it has.
+    private let keeping: (@MainActor (Product) -> Bool)?
+
+    /// Taking the whole list away. It is given the ids rather than deciding anything, so this type
+    /// still does not know whether it is showing a wishlist or a set of alerts.
+    private let clear: @MainActor ([ProductID]) async -> Void
+
     private var cancellables = Set<AnyCancellable>()
     private var saved: [ProductID] = []
     private var cache: [ProductID: Product] = [:]
@@ -41,21 +54,39 @@ public final class SavedProductsViewModel: ObservableObject {
         lookUpProducts: LookUpProductsUseCase,
         snackbar: SnackbarPresenting,
         couldNotLoad: String,
+        keeping: (@MainActor (Product) -> Bool)? = nil,
+        clear: @escaping @MainActor ([ProductID]) async -> Void = { _ in },
         pageSize: Int = 30
     ) {
         self.savedProductIds = savedProductIds
         self.lookUpProducts = lookUpProducts
         self.snackbar = snackbar
         self.couldNotLoad = couldNotLoad
+        self.keeping = keeping
+        self.clear = clear
         self.pageSize = pageSize
         self.loadedCount = pageSize
     }
 
     var isEmpty: Bool { products.isEmpty }
 
-    /// How many the shopper is holding, which is not how many are on screen: a carousel shows a
-    /// handful, and the heading still says how many there are altogether.
-    var savedCount: Int { saved.count }
+    /// How many belong on this list, which is not how many a carousel shows: a row shows a handful
+    /// and the heading still says how many there are altogether.
+    ///
+    /// A filtered list can only count what it has fetched, because whether something belongs on it
+    /// is a fact about the product. Which is why a filtered list fetches the lot rather than paging
+    /// — the alert lists are a handful, and a heading that undercounted them would be worse than
+    /// the request it saved.
+    var savedCount: Int { keeping == nil ? saved.count : products.count }
+
+    /// Everything the shopper would lose. Taken from the list as it is, so clearing Notify Me does
+    /// not touch what has come back and clearing Back in Stock does not touch what is still waited
+    /// on — they are two lists, and each Clear means its own.
+    func didConfirmClear() {
+        let losing = products.map(\.id)
+        guard !losing.isEmpty else { return }
+        Task { await clear(losing) }
+    }
 
     func onAppear() {
         guard cancellables.isEmpty else { return }
@@ -68,7 +99,7 @@ public final class SavedProductsViewModel: ObservableObject {
     }
 
     func onReachEnd() {
-        guard loadedCount < saved.count, !isLoading, !isLoadingMore else { return }
+        guard keeping == nil, loadedCount < saved.count, !isLoading, !isLoadingMore else { return }
         loadedCount += pageSize
         hydrate(isPaging: true)
     }
@@ -85,13 +116,13 @@ public final class SavedProductsViewModel: ObservableObject {
     private func hydrate(isPaging: Bool) {
         hydrationTask?.cancel()
 
-        let window = Array(saved.prefix(loadedCount))
+        let window = keeping == nil ? Array(saved.prefix(loadedCount)) : saved
         let missing = window.filter { cache[$0] == nil }
 
         guard !missing.isEmpty else {
             isLoading = false
             isLoadingMore = false
-            products = window.compactMap { cache[$0] }
+            products = showing(window)
             return
         }
 
@@ -130,9 +161,15 @@ public final class SavedProductsViewModel: ObservableObject {
                 ))
             }
 
-            self.products = window.compactMap { self.cache[$0] }
+            self.products = self.showing(window)
             self.isLoading = false
             self.isLoadingMore = false
         }
+    }
+
+    private func showing(_ window: [ProductID]) -> [Product] {
+        let held = window.compactMap { cache[$0] }
+        guard let keeping else { return held }
+        return held.filter(keeping)
     }
 }

@@ -15,4 +15,5 @@ public protocol WishlistNavigation: AnyObject {
     /// and start being "what I am keeping an eye on".
     func openAllFaves()
     func openAllNotifyMe()
+    func openAllBackInStock()
 }
