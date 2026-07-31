@@ -56,6 +56,13 @@ struct NoticeSection: Identifiable, Equatable {
     let accessory: Accessory
     let rows: [NoticeRow]
 
+    /// Whether the lines here are worth listing one by one. Everything the shop still describes is:
+    /// a shopper wants to see *which* thing got dearer or nearly ran out. Something it has stopped
+    /// selling is not — the app learned it had gone by being told nothing about it, so there is no
+    /// name and no picture to show, and a column of grey placeholders says less than one sentence
+    /// does.
+    let listsItsRows: Bool
+
     /// Whether a line here still has a product page worth opening. Everything the shop might yet
     /// sell does — a shopper reading that something got dearer or nearly ran out is being asked to
     /// decide, and the page is where they would go to decide it. Something discontinued does not:
@@ -73,11 +80,12 @@ struct NoticeSection: Identifiable, Equatable {
         switch kind {
         case .discontinued:
             title = "No Longer Available"
-            description = "Discontinued. Sad - yes, but we thought you should know."
+            description = "One or more of your bag items has been discontinued. Sad, yes. But we thought you should know."
             icon = "xmark.circle"
             tint = .quiet
             accessory = .nothing
             opensTheProduct = false
+            listsItsRows = false
 
         case .outOfStock:
             title = "Out Of Stock"
@@ -86,6 +94,7 @@ struct NoticeSection: Identifiable, Equatable {
             tint = .warning
             accessory = .tellMeWhenItIsBack
             opensTheProduct = true
+            listsItsRows = true
 
         case .onlySomeLeft:
             title = "Not Enough Left"
@@ -94,6 +103,7 @@ struct NoticeSection: Identifiable, Equatable {
             tint = .warning
             accessory = .nothing
             opensTheProduct = true
+            listsItsRows = true
 
         case .priceWentUp:
             title = "Price Increases"
@@ -102,6 +112,7 @@ struct NoticeSection: Identifiable, Equatable {
             tint = .warning
             accessory = .removeFromBag
             opensTheProduct = true
+            listsItsRows = true
 
         case .priceWentDown:
             title = "Price Decreases"
@@ -110,6 +121,7 @@ struct NoticeSection: Identifiable, Equatable {
             tint = .good
             accessory = .nothing
             opensTheProduct = true
+            listsItsRows = true
         }
     }
 }

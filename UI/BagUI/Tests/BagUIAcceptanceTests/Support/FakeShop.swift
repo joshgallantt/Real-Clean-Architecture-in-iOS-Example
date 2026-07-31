@@ -17,6 +17,7 @@ final class FakeShop: BagRepository {
     private let noticesSubject: CurrentValueSubject<Notices, Never>
     private nonisolated(unsafe) var _lookups: [[ProductID]] = []
     private nonisolated(unsafe) var _catalog: [Product]
+    private nonisolated(unsafe) var _cannotBeReached = false
 
     nonisolated var lookups: [[ProductID]] { catalogLock.withLock { _lookups } }
     var currentBag: Bag { bagSubject.value }
@@ -25,6 +26,13 @@ final class FakeShop: BagRepository {
     nonisolated var catalog: [Product] {
         get { catalogLock.withLock { _catalog } }
         set { catalogLock.withLock { _catalog = newValue } }
+    }
+
+    /// Told apart from a shop that answers with nothing, because the two mean opposite things: one
+    /// has stopped selling everything, the other has said nothing at all.
+    nonisolated var cannotBeReached: Bool {
+        get { catalogLock.withLock { _cannotBeReached } }
+        set { catalogLock.withLock { _cannotBeReached = newValue } }
     }
 
     init(bag: Bag = Bag(), notices: Notices = Notices(), catalog: [Product] = []) {
@@ -75,7 +83,8 @@ final class FakeShop: BagRepository {
     private struct Lookup: LookUpProductsUseCase {
         let shop: FakeShop
         func callAsFunction(ids: [ProductID]) async -> Result<[Product], ProductError> {
-            .success(shop.lookUp(ids))
+            guard !shop.cannotBeReached else { return .failure(.unavailable) }
+            return .success(shop.lookUp(ids))
         }
     }
 }

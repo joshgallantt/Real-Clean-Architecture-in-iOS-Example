@@ -74,9 +74,6 @@ public struct ProductActionsUIDI {
     /// what to be would be asked the question again on every render, and every caller would have to
     /// remember to ask it.
     ///
-    /// Nothing the shop has stopped selling reaches a card — `BrowseCatalogUseCase` does not return
-    /// them — so `.discontinued` is a case that should not arrive. It offers nothing rather than
-    /// offering something nobody can buy.
     @MainActor
     @ViewBuilder
     public func cardActionButton(product: Product) -> some View {
@@ -85,8 +82,6 @@ public struct ProductActionsUIDI {
             BagButtonView(viewModel: makeBagViewModel(product: product))
         case .outOfStock:
             StockAlertButtonView(viewModel: makeStockAlertViewModel(productId: product.id))
-        case .discontinued:
-            EmptyView()
         }
     }
 
@@ -99,8 +94,6 @@ public struct ProductActionsUIDI {
             AddToBagButton(viewModel: makeBagViewModel(product: product))
         case .outOfStock:
             NotifyMeButton(viewModel: makeStockAlertViewModel(productId: product.id))
-        case .discontinued:
-            UnavailableButton()
         }
     }
 

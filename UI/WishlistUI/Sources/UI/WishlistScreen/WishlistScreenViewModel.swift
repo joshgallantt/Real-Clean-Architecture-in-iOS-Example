@@ -18,6 +18,11 @@ public final class WishlistScreenViewModel: ObservableObject {
     @Published private(set) var isLoadingMore = false
     @Published private(set) var isAuthenticated = false
 
+    /// Whether anything saved has been stopped. Not *which* things: the shop learns us of it by
+    /// no longer answering about them, so there is no name and no picture to show — one sentence
+    /// says everything that is known.
+    @Published private(set) var somethingHasBeenDiscontinued = false
+
     private let pageSize = 30
 
     private let observeWishlist: ObserveWishlistUseCase
@@ -102,6 +107,14 @@ public final class WishlistScreenViewModel: ObservableObject {
             case .success(let fetched):
                 for product in fetched {
                     self.cache[product.id] = product
+                }
+
+                /// Asked about, and not described. A shop that answers describes everything it
+                /// still sells, so whatever is missing from a successful answer has been stopped.
+                /// A *failed* lookup says nothing at all, which is why this is only read here.
+                let described = Set(fetched.map(\.id))
+                if missing.contains(where: { !described.contains($0) }) {
+                    self.somethingHasBeenDiscontinued = true
                 }
             case .failure:
                 self.snackbar.show(Snackbar(

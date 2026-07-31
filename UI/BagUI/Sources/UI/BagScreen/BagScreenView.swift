@@ -71,8 +71,12 @@ public struct BagScreenView: View {
     /// a sixth.
     private func noticeSection(_ section: NoticeSection) -> some View {
         Section {
-            ForEach(section.rows) { row in
-                noticeRow(row, in: section)
+            /// A section that cannot name its lines shows none. The heading has already said the
+            /// whole of what is known, and rows would only repeat it once per anonymous placeholder.
+            if section.listsItsRows {
+                ForEach(section.rows) { row in
+                    noticeRow(row, in: section)
+                }
             }
         } header: {
             sectionHeader(

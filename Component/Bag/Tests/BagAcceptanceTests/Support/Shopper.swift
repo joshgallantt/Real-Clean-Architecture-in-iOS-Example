@@ -73,8 +73,16 @@ final class Shopper {
 
     // MARK: - What the shop does
 
+    /// The shop is asked about everything the bag holds, and answers about what it still sells.
+    /// Anything it does not describe it has stopped selling, which is the only signal a real shop
+    /// gives.
     func shopSays(_ shopSays: ShopSays...) {
-        di.bringBagUpToDateUseCase(against: shopSays)
+        di.bringBagUpToDateUseCase(against: shopSays, asked: bag.items.map(\.productId))
+    }
+
+    /// A catch-up that never reached the shop at all — nothing was asked, so nothing is concluded.
+    func theShopIsNotReached() {
+        di.bringBagUpToDateUseCase(against: [], asked: [])
     }
 
     // MARK: - Leaving and coming back
@@ -153,6 +161,6 @@ func shopHasSoldOutOf(_ id: Int) -> ShopSays {
     ShopSays(productId: pid(id), price: usd(1), availability: .outOfStock)
 }
 
-func shopHasDiscontinued(_ id: Int) -> ShopSays {
-    ShopSays(productId: pid(id), price: usd(1), availability: .discontinued)
-}
+/// There is no fixture for something the shop has stopped selling, and there cannot be: a shop
+/// stops selling something by not answering about it. Leave it out of `shopSays` and the bag draws
+/// the same conclusion the real one does.

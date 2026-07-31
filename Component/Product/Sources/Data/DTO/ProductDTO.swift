@@ -27,16 +27,20 @@ public struct ProductDTO: Decodable {
             category: CategoryID(rawValue: category),
             price: Money(amount: price, currency: Self.currency),
             rating: rating,
-            availability: Self.availability(stock: stock, willRestock: willRestock ?? true),
+            availability: stock > 0 ? .inStock(remaining: stock) : .outOfStock,
             brand: brand ?? "",
             thumbnail: thumbnail,
             images: images
         )
     }
 
-    private static func availability(stock: Int, willRestock: Bool) -> Availability {
-        guard stock <= 0 else { return .inStock(remaining: stock) }
-        return willRestock ? .outOfStock : .discontinued
+    /// Whether this is a product the shop still sells at all. One that has run out and will not be
+    /// restocked is gone for good, and gone for good is not something the domain is told — it is a
+    /// product the data layer does not hand over, which is the same answer a 404 gives. Treating
+    /// the two identically here is what lets everything above have one case to handle instead of
+    /// two that mean the same thing.
+    var isStillSold: Bool {
+        stock > 0 || (willRestock ?? true)
     }
 }
 

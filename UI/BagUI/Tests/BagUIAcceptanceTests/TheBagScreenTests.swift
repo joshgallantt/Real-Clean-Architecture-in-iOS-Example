@@ -140,13 +140,12 @@ struct BagScreenViewModelTests {
         #expect(viewModel.isEmpty)
     }
 
-    @Test("Something the shop has stopped selling is listed apart, where no bell is offered")
+    @Test("Something the shop no longer answers about is listed apart, where no bell is offered")
     func discontinuedIsItsOwnSection() async {
         let shop = makeShop(
             items: [bagItem(1, price: 9.99), bagItem(2, price: 5)],
             catalog: [
-                .fixture(id: 1, availability: .outOfStock),
-                .fixture(id: 2, availability: .discontinued)
+                .fixture(id: 1, availability: .outOfStock)
             ]
         )
         let viewModel = makeViewModel(shop: shop)
@@ -171,7 +170,6 @@ struct BagScreenViewModelTests {
             ],
             catalog: [
                 .fixture(id: 1, availability: .outOfStock),
-                .fixture(id: 2, availability: .discontinued),
                 .fixture(id: 3, availability: .inStock(remaining: 2)),
                 .fixture(id: 4, availability: .inStock(remaining: 1)),
                 .fixture(id: 5, price: 8)
@@ -341,9 +339,29 @@ struct BagScreenViewModelTests {
     }
 
 
-    @Test("A shop that answers with nothing leaves the bag exactly as it was")
-    func catalogSilenceIsHarmless() async {
+    /// The premise of this test used to be the opposite, and it was wrong: a shop that answers and
+    /// describes nothing has told the bag something. Silence about a product it was *asked* about is
+    /// the only way a shop says it has stopped selling one, so the line goes and the shopper is told.
+    ///
+    /// A shop that could not be reached at all is the other case, below, and it must not do this —
+    /// a bag emptied by a dropped connection would be the worst bug on this screen.
+    @Test("A shop that answers and describes nothing has stopped selling all of it")
+    func answeringWithNothingMeansStopped() async {
         let shop = makeShop(catalog: [])
+        let viewModel = makeViewModel(shop: shop)
+
+        viewModel.onAppear()
+        await settle(shop)
+
+        #expect(shop.currentNotices.of(.discontinued).map(\.productId) == [pid(1)])
+        #expect(shop.currentBag.isEmpty)
+        #expect(viewModel.hasNews)
+    }
+
+    @Test("A shop that cannot be reached leaves the bag exactly as it was")
+    func aShopThatCannotBeReachedChangesNothing() async {
+        let shop = makeShop(catalog: [])
+        shop.cannotBeReached = true
         let viewModel = makeViewModel(shop: shop)
 
         viewModel.onAppear()
@@ -560,9 +578,11 @@ struct GoingFromTheBagToAProductTests {
 
     @Test("Tapping something discontinued goes nowhere, because there is nothing left to show")
     func tappingADiscontinuedNotice() async {
+        /// An empty catalog: the shop is asked about the line and says nothing, which is how it
+        /// says it has stopped selling it.
         let shop = FakeShop(
             bag: Bag(items: [bagItem(1, price: 9.99)]),
-            catalog: [.fixture(id: 1, availability: .discontinued)]
+            catalog: []
         )
         let viewModel = makeViewModel(shop: shop)
         viewModel.onAppear()

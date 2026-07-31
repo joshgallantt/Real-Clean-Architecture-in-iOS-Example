@@ -200,7 +200,7 @@ public final class BagScreenViewModel: ObservableObject {
                 for product in products {
                     self.catalog[product.id] = product
                 }
-                self.bringBagUpToDate(against: products.map(self.whatTheShopSays))
+                self.bringBagUpToDate(against: products.map(self.whatTheShopSays), asked: Array(onScreen))
             }
 
             self.render()
