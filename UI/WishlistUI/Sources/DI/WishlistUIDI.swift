@@ -21,6 +21,8 @@ public struct WishlistUIDI {
     private let observeWishlist: ObserveWishlistUseCase
     private let observeStockAlerts: ObserveStockAlertsUseCase
     private let catchUpOnStockAlerts: CatchUpOnStockAlertsUseCase
+    private let stopBeingToldWhenBack: StopBeingToldWhenBackUseCase
+    private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
     private let lookUpProducts: LookUpProductsUseCase
     private let observeSession: ObserveSessionUseCase
     private let authPresenter: AuthPresenting
@@ -32,6 +34,8 @@ public struct WishlistUIDI {
         observeWishlist: ObserveWishlistUseCase,
         observeStockAlerts: ObserveStockAlertsUseCase,
         catchUpOnStockAlerts: CatchUpOnStockAlertsUseCase,
+        stopBeingToldWhenBack: StopBeingToldWhenBackUseCase,
+        removeProductFromWishlist: RemoveProductFromWishlistUseCase,
         lookUpProducts: LookUpProductsUseCase,
         observeSession: ObserveSessionUseCase,
         authPresenter: AuthPresenting,
@@ -42,6 +46,8 @@ public struct WishlistUIDI {
         self.observeWishlist = observeWishlist
         self.observeStockAlerts = observeStockAlerts
         self.catchUpOnStockAlerts = catchUpOnStockAlerts
+        self.stopBeingToldWhenBack = stopBeingToldWhenBack
+        self.removeProductFromWishlist = removeProductFromWishlist
         self.lookUpProducts = lookUpProducts
         self.observeSession = observeSession
         self.authPresenter = authPresenter
@@ -93,6 +99,17 @@ public struct WishlistUIDI {
         )
     }
 
+    @MainActor
+    public func allBackInStockView() -> some View {
+        list(
+            viewModel: backInStockViewModel(),
+            title: "Back in Stock",
+            emptyTitle: "Nothing Back Yet",
+            emptyIcon: "sparkles",
+            emptyMessage: "Anything you're waiting on shows up here the moment it returns."
+        )
+    }
+
     // MARK: -
 
     @MainActor
@@ -127,33 +144,42 @@ public struct WishlistUIDI {
             },
             lookUpProducts: lookUpProducts,
             snackbar: snackbarPresenter,
-            couldNotLoad: "Couldn't Load Your Faves"
+            couldNotLoad: "Couldn't Load Your Faves",
+            clear: { [removeProductFromWishlist] ids in
+                for id in ids { _ = await removeProductFromWishlist(productId: id) }
+            }
         )
     }
 
-    /// Still waiting to hear. Something already back has had its ask answered and belongs in the
-    /// list below, not here — which is what stopped this filling up with things that had arrived.
+    /// The same asks feed both lists. Which one a product appears on is decided by what the shop
+    /// says about it now — still sold out, or back — so a shopper never has to have been told
+    /// anything for the split to be right, and something that returns moves the moment it does.
     @MainActor
     private func notifyMeViewModel() -> SavedProductsViewModel {
-        SavedProductsViewModel(
-            savedProductIds: { [observeStockAlerts] in
-                observeStockAlerts().map { $0.waiting.map(\.productId) }.eraseToAnyPublisher()
-            },
-            lookUpProducts: lookUpProducts,
-            snackbar: snackbarPresenter,
-            couldNotLoad: "Couldn't Load Notify Me"
-        )
+        alertsViewModel(keeping: { !$0.availability.isAvailable }, couldNotLoad: "Couldn't Load Notify Me")
     }
 
     @MainActor
     private func backInStockViewModel() -> SavedProductsViewModel {
+        alertsViewModel(keeping: { $0.availability.isAvailable }, couldNotLoad: "Couldn't Load Back in Stock")
+    }
+
+    @MainActor
+    private func alertsViewModel(
+        keeping: @escaping @MainActor (Product) -> Bool,
+        couldNotLoad: String
+    ) -> SavedProductsViewModel {
         SavedProductsViewModel(
             savedProductIds: { [observeStockAlerts] in
-                observeStockAlerts().map { $0.back.map(\.productId) }.eraseToAnyPublisher()
+                observeStockAlerts().map { $0.alerts.map(\.productId) }.eraseToAnyPublisher()
             },
             lookUpProducts: lookUpProducts,
             snackbar: snackbarPresenter,
-            couldNotLoad: "Couldn't Load Back in Stock"
+            couldNotLoad: couldNotLoad,
+            keeping: keeping,
+            clear: { [stopBeingToldWhenBack] ids in
+                for id in ids { _ = await stopBeingToldWhenBack(productId: id) }
+            }
         )
     }
 }

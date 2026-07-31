@@ -120,6 +120,8 @@ struct PresentationAssembler {
             observeWishlist: domain.wishlist.observeWishlistUseCase,
             observeStockAlerts: domain.stockAlerts.observeStockAlertsUseCase,
             catchUpOnStockAlerts: domain.stockAlerts.catchUpOnStockAlertsUseCase,
+            stopBeingToldWhenBack: domain.stockAlerts.stopBeingToldWhenBackUseCase,
+            removeProductFromWishlist: domain.wishlist.removeProductFromWishlistUseCase,
             lookUpProducts: catalog.lookUpProducts,
             observeSession: session.observeSessionUseCase,
             authPresenter: auth.presenter,

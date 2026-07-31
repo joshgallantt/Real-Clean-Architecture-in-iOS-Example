@@ -20,6 +20,7 @@ public enum Destination: Hashable {
     case orderHistory
     case allFaves
     case allNotifyMe
+    case allBackInStock
 
     public enum ProductReference: Hashable {
         case id(ProductID)
@@ -33,7 +34,7 @@ public enum Destination: Hashable {
         /// Everything a shopper keeps. Orders, faves and the things they are waiting on all belong
         /// to somebody, so there is nothing to show a guest — and the prompt happens here, where
         /// the policy already lives, rather than being remembered by each screen.
-        case .orderHistory, .allFaves, .allNotifyMe:
+        case .orderHistory, .allFaves, .allNotifyMe, .allBackInStock:
             return true
         }
     }
@@ -53,6 +54,8 @@ public enum Destination: Hashable {
             CompositionRoot.shared.presentation.wishlist.allFavesView()
         case .allNotifyMe:
             CompositionRoot.shared.presentation.wishlist.allNotifyMeView()
+        case .allBackInStock:
+            CompositionRoot.shared.presentation.wishlist.allBackInStockView()
         }
     }
 }
@@ -76,6 +79,10 @@ extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNa
 
     func openAllNotifyMe() {
         open(.allNotifyMe)
+    }
+
+    func openAllBackInStock() {
+        open(.allBackInStock)
     }
 
     func switchToBagTab() {

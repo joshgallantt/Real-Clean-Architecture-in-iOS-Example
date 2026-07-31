@@ -12,6 +12,8 @@ import ProductUI
 struct SavedProductsCarousel: View {
     @ObservedObject var viewModel: SavedProductsViewModel
 
+    @State private var isConfirmingClear = false
+
     let title: String
     let icon: String
     let tint: Color
@@ -26,13 +28,25 @@ struct SavedProductsCarousel: View {
     /// off — which is what tells a shopper the row scrolls without a hint saying so.
     private let cardWidth: CGFloat = 150
 
+    /// A row is a sample, not the list. Ten is far more than anybody scrolls sideways through, and
+    /// View All is right there for the rest — so the tab stays a summary of three things rather
+    /// than three lists a shopper has to get past.
+    private let atMost = 10
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             SavedSectionHeader(title: title, icon: icon, tint: tint, description: description) {
-                /// Only where there is more to see. A View All on a row already showing everything
-                /// promises a screen the shopper has already read.
+                /// Nothing to offer about an empty list: neither seeing the rest of it nor emptying
+                /// it means anything, and two disabled buttons say less than no buttons.
                 if viewModel.savedCount > 0 {
-                    Button("View All (\(viewModel.savedCount))", action: onViewAll)
+                    HStack(spacing: 12) {
+                        Button("View All (\(viewModel.savedCount))", action: onViewAll)
+
+                        /// Red, because it is the only thing in this heading that takes something
+                        /// away — and asked about first, because there is no undo behind it.
+                        Button("Clear", role: .destructive) { isConfirmingClear = true }
+                            .foregroundStyle(.red)
+                    }
                 }
             }
 
@@ -46,12 +60,25 @@ struct SavedProductsCarousel: View {
                 cards
             }
         }
+        /// On the carousel rather than offered as something the caller must remember to attach.
+        /// A Clear whose confirmation can be left off is a Clear that one day deletes without
+        /// asking.
+        .confirmationDialog(
+            "Clear \(title)?",
+            isPresented: $isConfirmingClear,
+            titleVisibility: .visible
+        ) {
+            Button("Clear \(title)", role: .destructive) { viewModel.didConfirmClear() }
+            Button("Cancel", role: .cancel) {}
+        } message: {
+            Text("This empties \(title). It cannot be undone.")
+        }
     }
 
     private var cards: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             LazyHStack(alignment: .top, spacing: 12) {
-                ForEach(viewModel.products) { product in
+                ForEach(viewModel.products.prefix(atMost)) { product in
                     Button {
                         onSelect(product)
                     } label: {
@@ -73,3 +100,4 @@ struct SavedProductsCarousel: View {
         .scrollClipDisabled()
     }
 }
+
