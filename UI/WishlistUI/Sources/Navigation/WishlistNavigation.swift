@@ -9,4 +9,10 @@ import Product
 /// one protocol per feature, so nothing depends on another feature's routes.
 public protocol WishlistNavigation: AnyObject {
     func openProductDetails(product: Product)
+
+    /// The two View Alls. Named for the lists a shopper sees rather than for the components behind
+    /// them, because this tab is where a wishlist and a set of stock alerts stop being two things
+    /// and start being "what I am keeping an eye on".
+    func openAllFaves()
+    func openAllNotifyMe()
 }

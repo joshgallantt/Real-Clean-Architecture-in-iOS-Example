@@ -16,6 +16,7 @@ public struct StockAlertDI {
     public let askToBeToldWhenBackUseCase: AskToBeToldWhenBackUseCase
     public let stopBeingToldWhenBackUseCase: StopBeingToldWhenBackUseCase
     public let observeWaitingForProductUseCase: ObserveWaitingForProductUseCase
+    public let observeStockAlertsUseCase: ObserveStockAlertsUseCase
 
     @MainActor
     public init(
@@ -46,6 +47,7 @@ public struct StockAlertDI {
         self.observeWaitingForProductUseCase = DefaultObserveWaitingForProductUseCase(
             repository: repository
         )
+        self.observeStockAlertsUseCase = DefaultObserveStockAlertsUseCase(repository: repository)
     }
 
     /// Evans, *Domain-Driven Design* (2003) — Assertions: exhaustive over `Session`. `nil` is the

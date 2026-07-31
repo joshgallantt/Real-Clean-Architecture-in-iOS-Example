@@ -1,7 +1,9 @@
+import Combine
 import SwiftUI
-import Wishlist
 import Product
 import Session
+import StockAlert
+import Wishlist
 import AuthUI
 import SnackbarUI
 import WishlistUI
@@ -17,6 +19,7 @@ import ProductActionsUIDI
 public struct WishlistUIDI {
     private let navigation: WishlistNavigation
     private let observeWishlist: ObserveWishlistUseCase
+    private let observeStockAlerts: ObserveStockAlertsUseCase
     private let lookUpProducts: LookUpProductsUseCase
     private let observeSession: ObserveSessionUseCase
     private let authPresenter: AuthPresenting
@@ -26,6 +29,7 @@ public struct WishlistUIDI {
     public init(
         navigation: WishlistNavigation,
         observeWishlist: ObserveWishlistUseCase,
+        observeStockAlerts: ObserveStockAlertsUseCase,
         lookUpProducts: LookUpProductsUseCase,
         observeSession: ObserveSessionUseCase,
         authPresenter: AuthPresenting,
@@ -34,6 +38,7 @@ public struct WishlistUIDI {
     ) {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
+        self.observeStockAlerts = observeStockAlerts
         self.lookUpProducts = lookUpProducts
         self.observeSession = observeSession
         self.authPresenter = authPresenter
@@ -49,16 +54,85 @@ public struct WishlistUIDI {
     @MainActor
     public func mainView() -> some View {
         WishlistScreenView(
-            viewModel: WishlistScreenViewModel(
-                observeWishlist: observeWishlist,
-                lookUpProducts: lookUpProducts,
-                observeSession: observeSession,
-                snackbar: snackbarPresenter
-            ),
+            session: WishlistScreenViewModel(observeSession: observeSession),
+            faves: favesViewModel(),
+            notifyMe: notifyMeViewModel(),
             navigation: navigation,
             wishlistButton: { productId in AnyView(button(productId: productId)) },
             bagButton: { product in AnyView(productActionsUIDI.cardActionButton(product: product)) },
             authPresenter: authPresenter
+        )
+    }
+
+    @MainActor
+    public func allFavesView() -> some View {
+        list(
+            viewModel: favesViewModel(),
+            title: "My Faves",
+            emptyTitle: "No Saved Items",
+            emptyIcon: "heart",
+            emptyMessage: "Tap the heart on a product to save it here."
+        )
+    }
+
+    @MainActor
+    public func allNotifyMeView() -> some View {
+        list(
+            viewModel: notifyMeViewModel(),
+            title: "Notify Me",
+            emptyTitle: "Nothing to Wait For",
+            emptyIcon: "bell",
+            emptyMessage: "Tap the bell on anything that's sold out and it'll wait here."
+        )
+    }
+
+    // MARK: -
+
+    @MainActor
+    private func list(
+        viewModel: SavedProductsViewModel,
+        title: String,
+        emptyTitle: String,
+        emptyIcon: String,
+        emptyMessage: String
+    ) -> some View {
+        SavedProductsListView(
+            viewModel: viewModel,
+            title: title,
+            emptyTitle: emptyTitle,
+            emptyIcon: emptyIcon,
+            emptyMessage: emptyMessage,
+            onSelect: { [navigation] product in navigation.openProductDetails(product: product) },
+            accessory: { product in AnyView(button(productId: product.id)) },
+            leadingAccessory: { product in AnyView(productActionsUIDI.cardActionButton(product: product)) }
+        )
+    }
+
+    /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the Interface Adapters
+    /// ring. A wishlist and a set of stock alerts become the one thing the list view model reads —
+    /// ids, newest first — so neither aggregate is named above this file and one view model serves
+    /// both.
+    @MainActor
+    private func favesViewModel() -> SavedProductsViewModel {
+        SavedProductsViewModel(
+            savedProductIds: { [observeWishlist] in
+                observeWishlist().map { $0.items.map(\.productId) }.eraseToAnyPublisher()
+            },
+            lookUpProducts: lookUpProducts,
+            snackbar: snackbarPresenter,
+            couldNotLoad: "Couldn't Load Your Faves"
+        )
+    }
+
+    @MainActor
+    private func notifyMeViewModel() -> SavedProductsViewModel {
+        SavedProductsViewModel(
+            savedProductIds: { [observeStockAlerts] in
+                observeStockAlerts().map { $0.alerts.map(\.productId) }.eraseToAnyPublisher()
+            },
+            lookUpProducts: lookUpProducts,
+            snackbar: snackbarPresenter,
+            couldNotLoad: "Couldn't Load Notify Me"
         )
     }
 }

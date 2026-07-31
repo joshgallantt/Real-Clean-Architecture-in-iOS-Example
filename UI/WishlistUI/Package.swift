@@ -18,6 +18,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../Component/Wishlist"),
+        .package(path: "../../Component/StockAlert"),
         .package(path: "../../Component/Product"),
         .package(path: "../../Library/Money"),
         .package(path: "../../Component/Session"),
@@ -31,6 +32,7 @@ let package = Package(
             name: "WishlistUI",
             dependencies: [
                 .product(name: "Wishlist", package: "Wishlist"),
+                .product(name: "StockAlert", package: "StockAlert"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
@@ -47,6 +49,7 @@ let package = Package(
             dependencies: [
                 "WishlistUI",
                 .product(name: "Wishlist", package: "Wishlist"),
+                .product(name: "StockAlert", package: "StockAlert"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
@@ -55,6 +58,16 @@ let package = Package(
                 .product(name: "ProductActionsUIDI", package: "ProductActionsUI")
             ],
             path: "Sources/DI"
+        ),
+        .testTarget(
+            name: "WishlistUIAcceptanceTests",
+            dependencies: [
+                "WishlistUI",
+                .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
+                .product(name: "SnackbarUI", package: "SnackbarUI")
+            ],
+            path: "Tests/WishlistUIAcceptanceTests"
         )
     ]
 )
