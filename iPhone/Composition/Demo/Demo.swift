@@ -38,7 +38,21 @@ enum Demo {
             wrapped: DefaultProductRepository(
                 client: DummyJSONProductClient(httpClient: URLSessionHTTPClient(session: .shared))
             ),
-            shop: DemoShop()
+            shop: DemoShop(offset: thisVisit())
         )))
+    }
+
+    /// How many times the app has been opened, which is what the shop's rotation runs on.
+    ///
+    /// It is counted here rather than in `DataAssembler` because nothing but a demo has any use for
+    /// it — the exemplar does not gain a stored counter so that a demo can move. Read once, because
+    /// `CompositionRoot.shared` is built once per launch: quitting and opening the app is what
+    /// advances the shop, which is exactly the journey the bag and the waitlist are worth seeing on.
+    private static func thisVisit() -> Int {
+        let key = "demo.visit"
+        let defaults = UserDefaults.standard
+        let visit = defaults.integer(forKey: key) + 1
+        defaults.set(visit, forKey: key)
+        return visit
     }
 }
