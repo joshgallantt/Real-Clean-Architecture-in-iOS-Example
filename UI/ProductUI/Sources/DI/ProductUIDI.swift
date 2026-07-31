@@ -14,9 +14,20 @@ public struct ProductUIDI {
     private let viewProduct: ViewProductUseCase
     private let productActionsUIDI: ProductActionsUIDI
 
-    public init(viewProduct: ViewProductUseCase, productActionsUIDI: ProductActionsUIDI) {
+    /// A closure rather than `OrderUIDI`, unlike the peer container above it. `ProductActionsUIDI`
+    /// is named here because a product's buttons are part of what this screen *is*; a way to pay is
+    /// not, and taking the container would put the order domain in this package's dependency list
+    /// for the sake of one button.
+    private let buyNowButton: (Product) -> AnyView
+
+    public init(
+        viewProduct: ViewProductUseCase,
+        productActionsUIDI: ProductActionsUIDI,
+        buyNowButton: @escaping (Product) -> AnyView
+    ) {
         self.viewProduct = viewProduct
         self.productActionsUIDI = productActionsUIDI
+        self.buyNowButton = buyNowButton
     }
 
     @MainActor
@@ -24,7 +35,8 @@ public struct ProductUIDI {
         ProductDetailsScreen(
             viewModel: ProductDetailsViewModel(id: id, viewProduct: viewProduct),
             actionButton: { product in AnyView(productActionsUIDI.detailsActionButton(product: product)) },
-            wishlistButton: AnyView(productActionsUIDI.wishlistButton(productId: id))
+            wishlistButton: AnyView(productActionsUIDI.wishlistButton(productId: id)),
+            buyNowButton: buyNowButton
         )
     }
 
@@ -33,7 +45,8 @@ public struct ProductUIDI {
         ProductDetailsScreen(
             viewModel: ProductDetailsViewModel(product: product),
             actionButton: { product in AnyView(productActionsUIDI.detailsActionButton(product: product)) },
-            wishlistButton: AnyView(productActionsUIDI.wishlistButton(productId: product.id))
+            wishlistButton: AnyView(productActionsUIDI.wishlistButton(productId: product.id)),
+            buyNowButton: buyNowButton
         )
     }
 }

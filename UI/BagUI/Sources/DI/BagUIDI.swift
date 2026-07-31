@@ -19,6 +19,7 @@ public struct BagUIDI {
     private let bringBagUpToDate: BringBagUpToDateUseCase
     private let acknowledgeNotices: AcknowledgeNoticesUseCase
     private let stockAlertButton: (ProductID) -> AnyView
+    private let checkoutButton: () -> AnyView
 
     public init(
         navigation: BagNavigation,
@@ -28,7 +29,8 @@ public struct BagUIDI {
         lookUpProducts: LookUpProductsUseCase,
         bringBagUpToDate: BringBagUpToDateUseCase,
         acknowledgeNotices: AcknowledgeNoticesUseCase,
-        stockAlertButton: @escaping (ProductID) -> AnyView
+        stockAlertButton: @escaping (ProductID) -> AnyView,
+        checkoutButton: @escaping () -> AnyView
     ) {
         self.navigation = navigation
         self.observeBag = observeBag
@@ -38,6 +40,7 @@ public struct BagUIDI {
         self.bringBagUpToDate = bringBagUpToDate
         self.acknowledgeNotices = acknowledgeNotices
         self.stockAlertButton = stockAlertButton
+        self.checkoutButton = checkoutButton
     }
 
     @MainActor
@@ -52,7 +55,8 @@ public struct BagUIDI {
                 acknowledgeNotices: acknowledgeNotices
             ),
             navigation: navigation,
-            stockAlertButton: stockAlertButton
+            stockAlertButton: stockAlertButton,
+            checkoutButton: checkoutButton()
         )
     }
 }

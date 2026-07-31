@@ -6,6 +6,7 @@ import SearchUI
 import SearchUIDI
 import WishlistUI
 import BagUI
+import OrderUIDI
 import ProductActionsUI
 import ProductUIDI
 
@@ -15,6 +16,7 @@ import ProductUIDI
 public enum Destination: Hashable {
     case catalog(CatalogFilter)
     case productDetails(ProductReference)
+    case orderHistory
 
     public enum ProductReference: Hashable {
         case id(ProductID)
@@ -25,6 +27,11 @@ public enum Destination: Hashable {
         switch self {
         case .catalog, .productDetails:
             return false
+        /// The first route that needs one. Orders belong to somebody, so there is nothing to show a
+        /// guest — and the prompt happens here, where the policy already lives, rather than being
+        /// remembered by the screen.
+        case .orderHistory:
+            return true
         }
     }
 
@@ -37,6 +44,8 @@ public enum Destination: Hashable {
             CompositionRoot.shared.presentation.product.detailView(id: id)
         case .productDetails(.product(let product)):
             CompositionRoot.shared.presentation.product.detailView(product: product)
+        case .orderHistory:
+            CompositionRoot.shared.presentation.order.historyView()
         }
     }
 }

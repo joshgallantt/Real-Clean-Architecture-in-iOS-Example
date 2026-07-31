@@ -1,5 +1,6 @@
 import SwiftUI
 import BagDI
+import OrderDI
 import SearchHistoryDI
 import SessionDI
 import StockAlertDI
@@ -7,6 +8,7 @@ import WishlistDI
 import AccountUIDI
 import AuthUIDI
 import BagUIDI
+import OrderUIDI
 import HomeUIDI
 import OnboardingUIDI
 import ProductUIDI
@@ -40,6 +42,7 @@ struct PresentationAssembler {
     let search: SearchUIDI
     let wishlist: WishlistUIDI
     let bag: BagUIDI
+    let order: OrderUIDI
     let account: AccountUIDI
 
     /// Built once at startup. If `TabScreen` called `mainView()` on each render, SwiftUI would
@@ -88,6 +91,18 @@ struct PresentationAssembler {
         )
         self.productActions = productActions
 
+        /// Before the bag and the product screen, because both are handed a button it builds.
+        let order = OrderUIDI(
+            placeOrder: domain.orders.placeOrderUseCase,
+            observeOrders: domain.orders.observeOrdersUseCase,
+            observeBag: domain.bag.observeBagUseCase,
+            setBagItemQuantity: domain.bag.setBagItemQuantityUseCase,
+            authPresenter: auth.presenter,
+            snackbarPresenter: snackbar.presenter,
+            sheetPresenter: sheet.presenter
+        )
+        self.order = order
+
         let bag = BagUIDI(
             navigation: navigator,
             observeBag: domain.bag.observeBagUseCase,
@@ -96,7 +111,8 @@ struct PresentationAssembler {
             lookUpProducts: catalog.lookUpProducts,
             bringBagUpToDate: domain.bag.bringBagUpToDateUseCase,
             acknowledgeNotices: domain.bag.acknowledgeNoticesUseCase,
-            stockAlertButton: { id in AnyView(productActions.stockAlertButton(productId: id)) }
+            stockAlertButton: { id in AnyView(productActions.stockAlertButton(productId: id)) },
+            checkoutButton: { AnyView(order.checkoutButton()) }
         )
         self.bag = bag
 
@@ -113,7 +129,8 @@ struct PresentationAssembler {
 
         product = ProductUIDI(
             viewProduct: catalog.viewProduct,
-            productActionsUIDI: productActions
+            productActionsUIDI: productActions,
+            buyNowButton: { product in AnyView(order.buyNowButton(product: product)) }
         )
         home = HomeUIDI(
             navigation: navigator,
@@ -137,7 +154,14 @@ struct PresentationAssembler {
             getSession: session.getSessionUseCase,
             observeSession: session.observeSessionUseCase,
             logoutUseCase: session.logoutUseCase,
-            authUIDI: auth
+            authUIDI: auth,
+            /// The route, not the screen. `AccountUI` renders whatever row it is handed and never
+            /// learns what an order is or which destination this is.
+            ordersRow: AnyView(
+                NavigationLink(value: Destination.orderHistory) {
+                    Label("Your Orders", systemImage: "shippingbox")
+                }
+            )
         )
         self.account = account
 

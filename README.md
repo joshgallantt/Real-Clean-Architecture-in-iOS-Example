@@ -74,6 +74,7 @@ Each module in this project has a single axis of change. A new screen design tou
 │   ├── SearchHistory/          # Per-user recent search history
 │   ├── Wishlist/               # Per-user wishlist, gated on authentication
 │   ├── Bag/                    # Per-shopper bag, and the notices the shop leaves on it
+│   ├── Order/                  # What a shopper bought, for how much, and when
 │   └── StockAlert/             # Who asked to be told when something is back
 ├── UI/                         # Presentation packages
 │   ├── HomeUI/                 # Home tab
@@ -83,6 +84,7 @@ Each module in this project has a single axis of change. A new screen design tou
 │   ├── AccountUI/              # Account tab: profile, log in/out
 │   ├── ProductUI/              # Shared product UI: card, grid, details screen
 │   ├── ProductActionsUI/       # What a shopper can do to a product: save, buy, be told
+│   ├── OrderUI/                # Buy Now, checking out, confirmation, order history
 │   ├── OnboardingUI/           # First-run onboarding
 │   ├── AuthUI/                 # Authentication flow, exposed as a port
 │   ├── SheetUI/                # Generic sheet presentation primitive
@@ -245,6 +247,7 @@ The full vocabulary of the application is discoverable by reading the domain alo
 | `SearchHistory` | `GetSearchHistoryUseCase`, `RecordSearchUseCase`, `ClearSearchHistoryUseCase` |
 | `Wishlist` | `ObserveWishlistUseCase`, `ObserveProductIsWishlistedUseCase`, `AddProductToWishlistUseCase`, `RemoveProductFromWishlistUseCase` |
 | `Bag` | `ObserveBagUseCase`, `ObserveNoticesUseCase`, `ObserveBagItemQuantityUseCase`, `AddItemToBagUseCase`, `SetBagItemQuantityUseCase`, `BringBagUpToDateUseCase`, `AcknowledgeNoticesUseCase` |
+| `Order` | `PlaceOrderUseCase`, `ObserveOrdersUseCase` |
 
 Each name is something a shopper is trying to do. That is the test a use case name has to
 pass: `LookUpProductsUseCase` describes filling in the things on a list the shopper already
@@ -401,7 +404,7 @@ to ask.
 
 ### DTOs
 
-DTOs live in the data layer and never leak inward. `ProductDTO`, `ProductCategoryDTO`, `WishlistItemDTO`, `BagDTO`, `BagItemDTO`, `NoticeDTO`, `SessionSnapshotDTO`, and `StoredUser` are the `Codable` types; each maps to a domain model at the repository boundary. Domain models carry no `Codable` conformance at all — serialisation is a storage detail, and making entities `Codable` silently couples the domain's shape to a wire format.
+DTOs live in the data layer and never leak inward. `ProductDTO`, `ProductCategoryDTO`, `WishlistItemDTO`, `BagDTO`, `BagItemDTO`, `NoticeDTO`, `OrderDTO`, `OrderLineDTO`, `SessionSnapshotDTO`, and `StoredUser` are the `Codable` types; each maps to a domain model at the repository boundary. Domain models carry no `Codable` conformance at all — serialisation is a storage detail, and making entities `Codable` silently couples the domain's shape to a wire format.
 
 ### Shared Networking
 
@@ -928,12 +931,14 @@ That is not a stylistic preference. The first thing this rewrite found was that 
 | [`SessionAcceptanceTests`](Component/Session/Tests/SessionAcceptanceTests/GettingAnAccountTests.swift) | Signing up, signing in, what the form refuses, and staying signed in across launches |
 | [`WishlistAcceptanceTests`](Component/Wishlist/Tests/WishlistAcceptanceTests/SavingProductsTests.swift) | Saving, the heart on a card, and the account a list belongs to |
 | [`SearchHistoryAcceptanceTests`](Component/SearchHistory/Tests/SearchHistoryAcceptanceTests/SearchingAgainTests.swift) | Recent searches, whose they are, and what counts as a search |
+| [`OrderAcceptanceTests`](Component/Order/Tests/OrderAcceptanceTests/BuyingSomethingTests.swift) | Buying, what an order records, a declined payment, and coming back to what you bought |
 | [`BagUIAcceptanceTests`](UI/BagUI/Tests/BagUIAcceptanceTests/TheBagScreenTests.swift) | The bag screen: what it asks the shop, when, and what it shows while waiting |
+| [`OrderUIAcceptanceTests`](UI/OrderUI/Tests/OrderUIAcceptanceTests/BuyingFromAProductPageTests.swift) | Buy Now and checking out: what each one buys, what it leaves behind, and who it asks to sign in |
 | [`MoneyTests`](Library/Money/Tests/MoneyTests/MoneyTests.swift) | The one exception — a `Library/` has no shopper, and owes exact arithmetic to whoever links it |
 
 **Why does this matter?** Tests that require a simulator run slowly and fail for infrastructure reasons unrelated to the logic being tested. Tests that depend on a real network are non-deterministic. Protocol-based design means a whole feature can be assembled and driven in-process, deterministically, in milliseconds. No third-party mocking libraries are needed — a conforming struct is sufficient.
 
-The UI packages other than `BagUI` are not yet covered — the seams are in place, the tests are not.
+The UI packages other than `BagUI`, `OrderUI` and `ProductActionsUI` are not yet covered — the seams are in place, the tests are not.
 
 ---
 
@@ -950,6 +955,8 @@ iPhone (App)
 │                ◀──  WishlistData
 ├── BagDI        ──▶  Bag      ──▶  Product, Money
 │                ◀──  BagData  ──▶  Session
+├── OrderDI      ──▶  Order    ──▶  Product, Money, Session
+│                ◀──  OrderData
 ├── SheetUIDI    ──▶  SheetUI
 ├── SnackbarUIDI ──▶  SnackbarUI
 ├── AuthUIDI     ──▶  AuthUI, Session, SheetUI
@@ -963,6 +970,8 @@ iPhone (App)
 ├── WishlistUIDI ──▶  WishlistUI  ──▶  Wishlist, Product, Session, ProductUI, SnackbarUI, AuthUI
 │                ──▶  ProductActionsUIDI
 ├── BagUIDI      ──▶  BagUI       ──▶  Bag, Product, Money, SnackbarUI
+├── OrderUIDI    ──▶  OrderUI     ──▶  Order, Bag, Product, Money, SnackbarUI, AuthUI
+│                ──▶  SheetUI
 └── AccountUIDI  ──▶  AccountUI   ──▶  Session
                  ──▶  AuthUIDI
 ```
@@ -974,6 +983,8 @@ The rules the graph obeys:
 - Feature modules depend on **ports** (`SnackbarUI`, `AuthUI`, `SheetUI`), never on hosts. Only the composition root — and `AuthUIDI`, which is itself a host — links a `*UIDI` host product.
 - Cross-feature and cross-component dependencies are allowed where the domain genuinely relates: `Wishlist ──▶ Session` because requiring an account is a real rule, `Bag ──▶ Product` because a bag holds product ids and reads what the shop says about them, `SearchUI ──▶ ProductUI` because a search result is a product card.
 - `Bag`'s *domain* reaches `Session` not at all. Only `BagData` does, and only for `Owner` — the bag's rules do not depend on anyone being signed in, and the compiler now says so.
+- `Order`'s domain *does* reach `Session`, and the asymmetry is the point: a guest can hold a bag and cannot hold an order, so refusing one is a business rule rather than a storage detail.
+- `OrderUI ──▶ Bag`, and never the reverse. `BagUI` is handed a finished checkout button as an `AnyView`, exactly as it is handed a stock alert bell, so the payment stack stays out of the dependency list of every screen that renders a bag row or a heart. `ProductActionsUI` is untouched by checkout for the same reason.
 - One `*UIDI` container may take another — `SearchUIDI` takes `BagUIDI` so a search result can carry an add-to-bag button. That is a view-construction dependency between peers, not a reach into a component's domain wiring.
 - `Networking` and `Money` have no domain knowledge and sit under `Library/`.
 

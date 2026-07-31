@@ -7,14 +7,22 @@ public struct ProductDetailsScreen: View {
     private let actionButton: (Product) -> AnyView
     private let wishlistButton: AnyView
 
+    /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: a way to buy
+    /// this that the screen cannot name. `Component/Order` and its buttons live outside this
+    /// package, so the app layer passes one in already built and `ProductUI` stays unaware there is
+    /// an order domain at all — the same arrangement that keeps it unaware of the wishlist.
+    private let buyNowButton: (Product) -> AnyView
+
     public init(
         viewModel: @autoclosure @escaping () -> ProductDetailsViewModel,
         actionButton: @escaping (Product) -> AnyView = { _ in AnyView(EmptyView()) },
-        wishlistButton: AnyView = AnyView(EmptyView())
+        wishlistButton: AnyView = AnyView(EmptyView()),
+        buyNowButton: @escaping (Product) -> AnyView = { _ in AnyView(EmptyView()) }
     ) {
         self._viewModel = StateObject(wrappedValue: viewModel())
         self.actionButton = actionButton
         self.wishlistButton = wishlistButton
+        self.buyNowButton = buyNowButton
     }
 
     public var body: some View {
@@ -78,6 +86,13 @@ public struct ProductDetailsScreen: View {
             }
 
             actionButton(product)
+
+            /// Under Add to Bag rather than instead of it. The two are different intentions — one
+            /// is "I am still shopping" and the other is "I am done" — and only the shop can say
+            /// whether this is buyable, which is what `actionButton` has already decided.
+            if product.availability.isAvailable {
+                buyNowButton(product)
+            }
 
             Text(product.description)
                 .font(.body)
