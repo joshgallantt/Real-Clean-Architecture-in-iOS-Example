@@ -124,8 +124,8 @@ struct KeepingAnEyeOnThingsTests {
 /// Which list something is on is a fact about the shop's shelf right now, so it moves the moment
 /// the thing returns — nothing has to have been told, and nothing has to be marked.
 struct TellingWaitedOnFromBackTests {
-    @Test("What is still sold out is what Notify Me shows")
-    func notifyMeIsTheSoldOutOnes() async {
+    @Test("What is still sold out is what the waitlist shows")
+    func waitlistIsTheSoldOutOnes() async {
         let keeper = AKeeper()
         keeper.keeping = { !$0.availability.isAvailable }
         keeper.shop.sells(1, 2)

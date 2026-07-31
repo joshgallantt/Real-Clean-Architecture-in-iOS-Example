@@ -16,31 +16,32 @@ import SnackbarUI
 /// The same shape as the wishlist heart, for the same reason: asking to be told needs an account,
 /// so `.unauthenticated` is an answer the shopper gets back from what they tried, and the prompt
 /// resumes what they were after rather than gating it first.
+///
+/// One use case with a state, rather than one for asking and another for stopping. Two use cases
+/// meant this had to read its own `isWaiting` to decide which to call — a toggle re-derived from
+/// the thing it was toggling.
 public final class StockAlertButtonViewModel: ObservableObject {
     @Published private(set) var isWaiting = false
 
     private let productId: ProductID
-    private let askToBeTold: AskToBeToldWhenBackUseCase
-    private let stopBeingTold: StopBeingToldWhenBackUseCase
+    private let setStockAlert: SetStockAlertForProductUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
 
     public init(
         productId: ProductID,
-        observeWaitingForProduct: ObserveWaitingForProductUseCase,
-        askToBeTold: AskToBeToldWhenBackUseCase,
-        stopBeingTold: StopBeingToldWhenBackUseCase,
+        observeWaitlistStatus: ObserveWaitlistStatusUseCase,
+        setStockAlert: SetStockAlertForProductUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting
     ) {
         self.productId = productId
-        self.askToBeTold = askToBeTold
-        self.stopBeingTold = stopBeingTold
+        self.setStockAlert = setStockAlert
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
 
-        observeWaitingForProduct(productId: productId)
+        observeWaitlistStatus(productId: productId)
             .sink { [weak self] value in
                 self?.isWaiting = value
             }
@@ -48,67 +49,63 @@ public final class StockAlertButtonViewModel: ObservableObject {
     }
 
     func didTap() {
-        Task { [weak self] in
-            guard let self else { return }
-            if self.isWaiting {
-                await self.stopWaiting()
-            } else {
-                await self.ask()
-            }
+        set(isOn: !isWaiting)
+    }
+
+    /// Taking it off the list, whatever the bell happens to say. A minus on a waitlist card means
+    /// one thing, and it must not become "put it back" because the state arrived late.
+    func didTapRemove() {
+        set(isOn: false)
+    }
+
+    private func set(isOn: Bool) {
+        Task { [weak self] in await self?.apply(isOn: isOn) }
+    }
+
+    private func apply(isOn: Bool) async {
+        switch await setStockAlert(productId: productId, isOn: isOn) {
+        case .success:
+            snackbarPresenter.show(told(isOn))
+
+        case .failure(.unauthenticated):
+            guard await authPresenter.show(prompt(isOn)) else { return }
+            await apply(isOn: isOn)
+
+        case .failure(.unavailable):
+            snackbarPresenter.show(Snackbar(
+                title: isOn ? "Couldn't Set a Reminder" : "Couldn't Change That",
+                message: "We couldn't change that just now.",
+                icon: "bell.slash",
+                action: .retry { Task { await self.apply(isOn: isOn) } }
+            ))
         }
     }
 
-    private func ask() async {
-        switch await askToBeTold(productId: productId) {
-        case .success:
-            snackbarPresenter.show(Snackbar(
+    private func told(_ isOn: Bool) -> Snackbar {
+        isOn
+            ? Snackbar(
                 title: "We'll Let You Know",
                 message: "You'll hear from us when this is back in stock.",
                 icon: "bell.fill"
-            ))
-        case .failure(.unauthenticated):
-            guard await authPresenter.show(AuthenticationPrompt(
-                title: "We'll Tell You When It's Back",
-                message: "Log in or create an account and we'll let you know.",
-                icon: "bell.fill"
-            )) else {
-                return
-            }
-            await self.ask()
-        case .failure(.unavailable):
-            snackbarPresenter.show(Snackbar(
-                title: "Couldn't Set a Reminder",
-                message: "We couldn't note that down just now.",
-                icon: "bell.slash",
-                action: .retry { Task { await self.ask() } }
-            ))
-        }
-    }
-
-    private func stopWaiting() async {
-        switch await stopBeingTold(productId: productId) {
-        case .success:
-            snackbarPresenter.show(Snackbar(
+            )
+            : Snackbar(
                 title: "We Won't Let You Know",
                 message: "You'll hear nothing more about this one.",
                 icon: "bell.slash"
-            ))
-        case .failure(.unauthenticated):
-            guard await authPresenter.show(AuthenticationPrompt(
+            )
+    }
+
+    private func prompt(_ isOn: Bool) -> AuthenticationPrompt {
+        isOn
+            ? AuthenticationPrompt(
+                title: "We'll Tell You When It's Back",
+                message: "Log in or create an account and we'll let you know.",
+                icon: "bell.fill"
+            )
+            : AuthenticationPrompt(
                 title: "Manage Your Reminders",
                 message: "Log in or create an account to change what we tell you about.",
                 icon: "bell.slash"
-            )) else {
-                return
-            }
-            await self.stopWaiting()
-        case .failure(.unavailable):
-            snackbarPresenter.show(Snackbar(
-                title: "Couldn't Change That",
-                message: "We couldn't change that just now.",
-                icon: "bell.slash",
-                action: .retry { Task { await self.stopWaiting() } }
-            ))
-        }
+            )
     }
 }

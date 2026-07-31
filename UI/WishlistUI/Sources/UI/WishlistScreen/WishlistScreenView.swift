@@ -11,31 +11,38 @@ import AuthUI
 public struct WishlistScreenView: View {
     @ObservedObject var session: WishlistScreenViewModel
     @ObservedObject var faves: SavedProductsViewModel
-    @ObservedObject var notifyMe: AlertedProductsViewModel
+    @ObservedObject var waitlist: AlertedProductsViewModel
     @ObservedObject var backInStock: AlertedProductsViewModel
 
     let navigation: WishlistNavigation
-    let wishlistButton: (ProductID) -> AnyView
-    let bagButton: (Product) -> AnyView
+
+    /// What each card offers, per list. The trailing one manages the list — a minus on the two
+    /// alert rows, a heart on the faves — and the leading one buys, where buying is possible.
+    let waitlistAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView)
+    let backInStockAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView)
+    let favesAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView)
+
     let authPresenter: AuthPresenting
 
     public init(
         session: WishlistScreenViewModel,
         faves: SavedProductsViewModel,
-        notifyMe: AlertedProductsViewModel,
+        waitlist: AlertedProductsViewModel,
         backInStock: AlertedProductsViewModel,
         navigation: WishlistNavigation,
-        wishlistButton: @escaping (ProductID) -> AnyView,
-        bagButton: @escaping (Product) -> AnyView,
+        waitlistAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView),
+        backInStockAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView),
+        favesAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView),
         authPresenter: AuthPresenting
     ) {
         self.session = session
         self.faves = faves
-        self.notifyMe = notifyMe
+        self.waitlist = waitlist
         self.backInStock = backInStock
         self.navigation = navigation
-        self.wishlistButton = wishlistButton
-        self.bagButton = bagButton
+        self.waitlistAccessories = waitlistAccessories
+        self.backInStockAccessories = backInStockAccessories
+        self.favesAccessories = favesAccessories
         self.authPresenter = authPresenter
     }
 
@@ -48,10 +55,10 @@ public struct WishlistScreenView: View {
             }
         }
         .task {
+            session.onAppear()
             faves.onAppear()
-            notifyMe.onAppear()
+            waitlist.onAppear()
             backInStock.onAppear()
-            await session.onAppear()
         }
     }
 
@@ -67,18 +74,18 @@ public struct WishlistScreenView: View {
                 }
 
                 SavedProductsCarousel(
-                    products: notifyMe.products,
-                    total: notifyMe.count,
-                    onClear: { notifyMe.didConfirmClear() },
-                    title: "Notify Me",
+                    products: waitlist.products,
+                    total: waitlist.count,
+                    onClear: { waitlist.didConfirmClear() },
+                    title: "Waitlist",
                     icon: "bell.fill",
                     tint: .orange,
                     description: "Sold out, and you asked to hear when they're back.",
                     emptyMessage: "Tap the bell on anything that's sold out and it'll wait here.",
                     onSelect: { navigation.openProductDetails(product: $0) },
-                    onViewAll: { navigation.openAllNotifyMe() },
-                    accessory: { product in AnyView(wishlistButton(product.id)) },
-                    leadingAccessory: { product in AnyView(bagButton(product)) }
+                    onViewAll: { navigation.openAllWaitlist() },
+                    accessory: waitlistAccessories.trailing,
+                    leadingAccessory: waitlistAccessories.leading
                 )
 
                 /// The same asks as above, split by what the shop says today. A shopper does not
@@ -95,8 +102,8 @@ public struct WishlistScreenView: View {
                     emptyMessage: "Anything you're waiting on shows up here the moment it returns.",
                     onSelect: { navigation.openProductDetails(product: $0) },
                     onViewAll: { navigation.openAllBackInStock() },
-                    accessory: { product in AnyView(wishlistButton(product.id)) },
-                    leadingAccessory: { product in AnyView(bagButton(product)) }
+                    accessory: backInStockAccessories.trailing,
+                    leadingAccessory: backInStockAccessories.leading
                 )
 
                 SavedProductsCarousel(
@@ -110,8 +117,8 @@ public struct WishlistScreenView: View {
                     emptyMessage: "Tap the heart on a product to save it here.",
                     onSelect: { navigation.openProductDetails(product: $0) },
                     onViewAll: { navigation.openAllFaves() },
-                    accessory: { product in AnyView(wishlistButton(product.id)) },
-                    leadingAccessory: { product in AnyView(bagButton(product)) }
+                    accessory: favesAccessories.trailing,
+                    leadingAccessory: favesAccessories.leading
                 )
             }
             .padding(.vertical)
