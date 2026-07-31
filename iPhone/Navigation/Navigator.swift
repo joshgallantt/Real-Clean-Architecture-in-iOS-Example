@@ -17,6 +17,7 @@ final class Navigator: ObservableObject {
     @Published var searchPath = NavigationPath()
     @Published var bagPath = NavigationPath()
     @Published var wishlistPath = NavigationPath()
+    @Published var accountPath = NavigationPath()
 
     private let authPresenter: AuthPresenting
 
@@ -43,7 +44,7 @@ final class Navigator: ObservableObject {
         case .search: if !searchPath.isEmpty { searchPath.removeLast() }
         case .bag: if !bagPath.isEmpty { bagPath.removeLast() }
         case .wishlist: if !wishlistPath.isEmpty { wishlistPath.removeLast() }
-        case .account: break
+        case .account: if !accountPath.isEmpty { accountPath.removeLast() }
         }
     }
 
@@ -57,7 +58,7 @@ final class Navigator: ObservableObject {
             case .search: searchPath = NavigationPath()
             case .bag: bagPath = NavigationPath()
             case .wishlist: wishlistPath = NavigationPath()
-            case .account: break
+            case .account: accountPath = NavigationPath()
             }
             selectedTab = destinationTab
         }
@@ -66,7 +67,7 @@ final class Navigator: ObservableObject {
         case .search: searchPath.append(destination)
         case .bag: bagPath.append(destination)
         case .wishlist: wishlistPath.append(destination)
-        case .account: break
+        case .account: accountPath.append(destination)
         }
     }
 }

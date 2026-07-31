@@ -18,14 +18,22 @@ public struct BagScreenView: View {
     /// `EmptyView()` is exactly why nobody noticed.
     let stockAlertButton: (ProductID) -> AnyView
 
+    /// A way out of the bag that this screen cannot name, arriving the same way the bell does.
+    /// `Component/Order` lives outside this feature, so the app layer passes a finished button in
+    /// and `BagUI` stays unaware there is an order domain — which is what keeps the payment stack
+    /// out of the dependency list of every screen that renders a bag row.
+    let checkoutButton: AnyView
+
     public init(
         viewModel: BagScreenViewModel,
         navigation: BagNavigation,
-        stockAlertButton: @escaping (ProductID) -> AnyView
+        stockAlertButton: @escaping (ProductID) -> AnyView,
+        checkoutButton: AnyView
     ) {
         self.viewModel = viewModel
         self.navigation = navigation
         self.stockAlertButton = stockAlertButton
+        self.checkoutButton = checkoutButton
     }
 
     public var body: some View {
@@ -351,20 +359,24 @@ public struct BagScreenView: View {
     }
 
     private var totalFooter: some View {
-        HStack(alignment: .firstTextBaseline) {
-            VStack(alignment: .leading, spacing: 2) {
-                Text("Total")
-                    .font(.headline)
-                Text(viewModel.itemCountSummary)
-                    .font(.caption)
-                    .foregroundStyle(.secondary)
+        VStack(spacing: 12) {
+            HStack(alignment: .firstTextBaseline) {
+                VStack(alignment: .leading, spacing: 2) {
+                    Text("Total")
+                        .font(.headline)
+                    Text(viewModel.itemCountSummary)
+                        .font(.caption)
+                        .foregroundStyle(.secondary)
+                }
+
+                Spacer()
+
+                Text(viewModel.total?.formatted() ?? "")
+                    .font(.title3.weight(.bold))
+                    .monospacedDigit()
             }
 
-            Spacer()
-
-            Text(viewModel.total?.formatted() ?? "")
-                .font(.title3.weight(.bold))
-                .monospacedDigit()
+            checkoutButton
         }
         .padding()
         .background(.bar)

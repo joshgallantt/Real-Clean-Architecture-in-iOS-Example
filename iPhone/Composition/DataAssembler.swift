@@ -2,6 +2,8 @@ import Foundation
 import BagData
 import SearchHistoryData
 import SessionData
+import Order
+import OrderData
 import StockAlertData
 import WishlistData
 
@@ -23,6 +25,11 @@ struct DataAssembler {
     let wishlistStore: WishlistStore
     let bagStore: BagStore
     let stockAlertStore: StockAlertStore
+    let orderStore: OrderStore
+
+    /// There is no processor to call, so the app ships a fake one the same way it ships
+    /// `FakeAuthClient`. Swapping it for a real gateway is a change to this line.
+    let paymentClient: PaymentClient
 
     /// A sign-in outlives the app being closed, but not indefinitely.
     static let signInLasts: TimeInterval = 60 * 60 * 24 * 7
@@ -37,5 +44,7 @@ struct DataAssembler {
         wishlistStore = FileWishlistStore()
         bagStore = FileBagStore()
         stockAlertStore = FileStockAlertStore()
+        orderStore = FileOrderStore()
+        paymentClient = FakePaymentClient()
     }
 }

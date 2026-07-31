@@ -54,9 +54,12 @@ struct TabScreen: View {
                 }
             }
             Tab("Account", systemImage: "person.crop.circle", value: Navigator.Tabs.account) {
-                NavigationStack {
+                NavigationStack(path: $navigator.accountPath) {
                     accountView
                         .navigationTitle("Account")
+                        .navigationDestination(for: Destination.self) { destination in
+                            destination.makeView()
+                        }
                 }
             }
         }
