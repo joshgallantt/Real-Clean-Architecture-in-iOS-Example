@@ -33,6 +33,8 @@
 		FADE002200000000000000B1 /* Money in Frameworks */ = {isa = PBXBuildFile; productRef = FADE002100000000000000B1 /* Money */; };
 		FADE009800000000000000A1 /* StockAlertData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009800000000000000A2 /* StockAlertData */; };
 		FADE009900000000000000A1 /* StockAlertDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009900000000000000A2 /* StockAlertDI */; };
+		FADE010100000000000000A1 /* OrderDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010100000000000000A2 /* OrderDI */; };
+		FADE010200000000000000A1 /* OrderData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010200000000000000A2 /* OrderData */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -86,6 +88,8 @@
 				FADE000400000000000000A1 /* WishlistDI in Frameworks */,
 				FADE009900000000000000A1 /* StockAlertDI in Frameworks */,
 				FADE009800000000000000A1 /* StockAlertData in Frameworks */,
+				FADE010100000000000000A1 /* OrderDI in Frameworks */,
+				FADE010200000000000000A1 /* OrderData in Frameworks */,
 				FADE000500000000000000A1 /* AuthUI in Frameworks */,
 				FADE000600000000000000A1 /* SnackbarUIDI in Frameworks */,
 				FADE000700000000000000A1 /* SheetUIDI in Frameworks */,
@@ -157,6 +161,8 @@
 				FADE000400000000000000A2 /* WishlistDI */,
 				FADE009900000000000000A2 /* StockAlertDI */,
 				FADE009800000000000000A2 /* StockAlertData */,
+				FADE010100000000000000A2 /* OrderDI */,
+				FADE010200000000000000A2 /* OrderData */,
 				FADE000500000000000000A2 /* AuthUI */,
 				FADE000600000000000000A2 /* SnackbarUIDI */,
 				FADE000700000000000000A2 /* SheetUIDI */,
@@ -519,6 +525,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Component/StockAlert;
 		};
+		FADE010100000000000000B1 /* XCLocalSwiftPackageReference "Component/Order" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/Order;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -651,6 +661,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/StockAlert" */;
 			productName = StockAlertDI;
+		};
+		FADE010100000000000000A2 /* OrderDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE010100000000000000B1 /* XCLocalSwiftPackageReference "Component/Order" */;
+			productName = OrderDI;
+		};
+		FADE010200000000000000A2 /* OrderData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE010100000000000000B1 /* XCLocalSwiftPackageReference "Component/Order" */;
+			productName = OrderData;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
