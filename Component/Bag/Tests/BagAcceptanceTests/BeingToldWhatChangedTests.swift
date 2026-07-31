@@ -54,12 +54,13 @@ struct BeingToldWhatChangedTests {
         #expect(shopper.bag.isEmpty)
     }
 
-    @Test("Something the shop has stopped selling leaves the bag too, but is told apart from a sell-out")
+    @Test("Something the shop no longer answers about has been stopped, and leaves the bag")
     func discontinued() {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
 
-        shopper.shopSays(shopHasDiscontinued(1))
+        /// Asked about, and not described. That silence is the whole signal.
+        shopper.shopSays()
 
         #expect(shopper.news.of(.discontinued) == [.discontinued(productId: pid(1))])
         #expect(shopper.news.of(.outOfStock).isEmpty)
@@ -72,7 +73,7 @@ struct BeingToldWhatChangedTests {
         shopper.choose(productId: 1, atPrice: 9.99)
         shopper.choose(productId: 2, atPrice: 5)
 
-        shopper.shopSays(shopHasSoldOutOf(1), shopHasDiscontinued(2))
+        shopper.shopSays(shopHasSoldOutOf(1))
 
         #expect(shopper.news.of(.outOfStock) == [.outOfStock(productId: pid(1))])
         #expect(shopper.news.of(.discontinued) == [.discontinued(productId: pid(2))])
@@ -90,16 +91,29 @@ struct BeingToldWhatChangedTests {
         #expect(shopper.news.all == [.outOfStock(productId: pid(1))])
     }
 
-    @Test("A product the shop was not asked about is left exactly as it was")
-    func notAskedAbout() {
+    @Test("A catch-up that never reached the shop concludes nothing about anything")
+    func theShopWasNotReached() {
+        let shopper = Shopper()
+        shopper.choose(productId: 1, atPrice: 9.99)
+        shopper.choose(productId: 2, atPrice: 49.99)
+
+        shopper.theShopIsNotReached()
+
+        #expect(shopper.news.isEmpty)
+        #expect(shopper.bag.total == usd(59.98))
+    }
+
+    @Test("Being asked about and not described is what stopped selling looks like")
+    func silenceMeansStopped() {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 9.99)
         shopper.choose(productId: 2, atPrice: 49.99)
 
         shopper.shopSays(shopSells(2, at: 49.99))
 
-        #expect(shopper.news.isEmpty)
-        #expect(shopper.bag.total == usd(59.98))
+        #expect(shopper.news.of(.discontinued) == [.discontinued(productId: pid(1))])
+        #expect(shopper.bag.items.map(\.id) == [pid(2)])
+        #expect(shopper.bag.total == usd(49.99))
     }
 
     @Test("A bag the shop has emptied is empty, and says why")
@@ -250,13 +264,13 @@ struct NewsThatPilesUpTests {
         #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentDown(productId: pid(1), from: usd(10), to: usd(8))])
     }
 
-    @Test("News survives a catch-up that did not cover that product")
-    func survivesAPartialLookup() {
+    @Test("News survives a catch-up that never reached the shop")
+    func survivesAFailedLookup() {
         let shopper = Shopper()
         shopper.choose(productId: 1, atPrice: 10)
         shopper.shopSays(shopSells(1, at: 12))
 
-        shopper.shopSays()
+        shopper.theShopIsNotReached()
 
         #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(10), to: usd(12))])
     }

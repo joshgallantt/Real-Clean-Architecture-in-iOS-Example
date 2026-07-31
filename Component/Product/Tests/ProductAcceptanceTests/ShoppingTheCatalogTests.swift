@@ -208,14 +208,16 @@ struct WhatTheShopHasStoppedSellingTests {
         #expect(await shop.open(productId: 2).success?.title == "Back Soon")
     }
 
-    @Test("A bag or a wishlist filled before it went can still say what it was")
-    func aListTheShopperAlreadyHoldsStillKnows() async {
+    @Test("Looking one up by id gives nothing back either, which is how a list learns it has gone")
+    func aListTheShopperAlreadyHoldsIsToldNothing() async {
         let shop = shopThatHasStoppedSellingSomething()
 
-        let products = await shop.products(withIds: [3])
+        let products = await shop.products(withIds: [2, 3])
 
-        #expect(products.success?.map(\.title) == ["Gone For Good"])
-        #expect(products.success?.map(\.availability) == [.discontinued])
+        /// Asked about two, told about one. A bag or a wishlist holding 3 concludes from the
+        /// silence that it has been stopped — there is no state to read, because there is no
+        /// product to read it from.
+        #expect(products.success?.map(\.title) == ["Back Soon"])
     }
 
     @Test("Something merely out of stock is still sold, and still shown")

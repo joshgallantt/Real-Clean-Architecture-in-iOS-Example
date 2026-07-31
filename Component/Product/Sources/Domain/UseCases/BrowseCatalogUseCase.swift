@@ -2,20 +2,15 @@
 /// named for what a shopper is trying to do — a page of whatever slice of the shop the shopper is
 /// looking at.
 ///
-/// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces. Fowler, *PoEAA* (2002) —
-/// Service Layer.
+/// Evans, *Domain-Driven Design* (2003), Ch. 10 — Intention-Revealing Interfaces. Fowler, *PoEAA*
+/// (2002), Ch. 9 — Service Layer.
 public protocol BrowseCatalogUseCase: Sendable {
     func callAsFunction(matching query: CatalogQuery) async -> Result<[Product], ProductError>
 }
 
-/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: a shop does not offer what it has
-/// stopped selling. That is a rule about the shop, so it is applied once here rather than left as a
-/// filter every grid, search and category screen has to remember — and one that a new screen would
-/// be free to forget.
-///
-/// Only browsing is filtered. `LookUpProductsUseCase` still answers about anything, because the
-/// lists it fills in are ones the shopper already holds, and a bag has to be able to say what left
-/// it.
+/// A shop does not offer what it has stopped selling. That used to be a filter here, and is now a
+/// payload the repository never hands over — one place instead of two, and browsing and looking up
+/// by id agree by construction rather than by both remembering the same rule.
 public struct DefaultBrowseCatalogUseCase: BrowseCatalogUseCase {
     private let productRepository: ProductRepository
 
@@ -24,8 +19,6 @@ public struct DefaultBrowseCatalogUseCase: BrowseCatalogUseCase {
     }
 
     public func callAsFunction(matching query: CatalogQuery) async -> Result<[Product], ProductError> {
-        await productRepository
-            .getProducts(matching: query)
-            .map { $0.filter { $0.availability != .discontinued } }
+        await productRepository.getProducts(matching: query)
     }
 }

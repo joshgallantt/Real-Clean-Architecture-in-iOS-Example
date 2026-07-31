@@ -1,8 +1,13 @@
 import Networking
 import Product
 
-/// Evans, *Domain-Driven Design* (2003) — Repositories. Fowler, *PoEAA* (2002) — Repository: it
-/// keeps and hands back aggregates and decides nothing about what they mean.
+/// Evans, *Domain-Driven Design* (2003), Ch. 6 — Repositories. Fowler, *PoEAA* (2002), Ch. 13 —
+/// Repository: it keeps and hands back aggregates and decides nothing about what they mean.
+///
+/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the one exception is what
+/// counts as a product at all. A payload the shop has stopped selling is dropped here rather than
+/// carried inward as a state to be checked for, so "gone" reaches the domain the same way whether
+/// the shop said so or simply stopped answering: nothing comes back.
 public struct DefaultProductRepository: ProductRepository {
     private let client: ProductClient
 
@@ -13,7 +18,7 @@ public struct DefaultProductRepository: ProductRepository {
     public func getProducts(matching query: CatalogQuery) async -> Result<[Product], ProductError> {
         do {
             let dtos = try await client.fetchProducts(query: query)
-            return .success(dtos.map { $0.toDomain() })
+            return .success(dtos.filter(\.isStillSold).map { $0.toDomain() })
         } catch {
             return .failure(Self.productError(from: error))
         }
@@ -60,6 +65,7 @@ public struct DefaultProductRepository: ProductRepository {
     public func getProduct(id: ProductID) async -> Result<Product, ProductError> {
         do {
             let dto = try await client.fetchProduct(id: id)
+            guard dto.isStillSold else { return .failure(.notFound) }
             return .success(dto.toDomain())
         } catch {
             return .failure(Self.productError(from: error))
@@ -91,7 +97,9 @@ public struct DefaultProductRepository: ProductRepository {
         from client: ProductClient
     ) async -> (ProductID, Result<Product, ProductError>) {
         do {
-            return (id, .success(try await client.fetchProduct(id: id).toDomain()))
+            let dto = try await client.fetchProduct(id: id)
+            guard dto.isStillSold else { return (id, .failure(.notFound)) }
+            return (id, .success(dto.toDomain()))
         } catch {
             return (id, .failure(productError(from: error)))
         }

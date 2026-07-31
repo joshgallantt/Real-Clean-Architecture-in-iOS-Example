@@ -102,13 +102,12 @@ public struct ProductDetailsScreen: View {
     }
 
     /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: the wording is
-    /// a presentation decision; which of the three states it is in is the domain's, and is read
+    /// a presentation decision; which of the two states it is in is the domain's, and is read
     /// rather than re-derived.
     private func availabilityText(_ availability: Availability) -> String {
         switch availability {
         case .inStock: "In stock"
         case .outOfStock: "Out of stock"
-        case .discontinued: "No longer available"
         }
     }
 }

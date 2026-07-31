@@ -18,9 +18,9 @@ nonisolated struct DemoShop: Sendable {
         /// page, and Out Of Stock in a bag that was holding one.
         case soldOut
 
-        /// Stopped selling. Not listed, no page, and No Longer Available in a bag holding one —
-        /// which is the app's rule about the real shop, working.
-        case discontinued
+        /// Stopped selling. This shop does not return it at all — not in a list, not by id — which
+        /// is how a real shop stops selling something, and how a bag holding one finds out.
+        case gone
 
         /// One left, so a bag holding more is told it can have one.
         case nearlyGone
@@ -44,7 +44,7 @@ nonisolated struct DemoShop: Sendable {
 
     func mood(of id: ProductID) -> Mood {
         switch (id.rawValue + offset) % 10 {
-        case 0: .discontinued
+        case 0: .gone
         case 1: .dearer
         case 2: .cheaper
         case 3: .soldOut
@@ -54,18 +54,22 @@ nonisolated struct DemoShop: Sendable {
         }
     }
 
+    /// Whether this shop still sells it at all. Answered by withholding the product rather than by
+    /// describing it, because that is the only signal a shop that has stopped selling something
+    /// actually gives.
+    func isStillSold(_ id: ProductID) -> Bool {
+        mood(of: id) != .gone
+    }
+
     /// The product as this shop is selling it today. Every read goes through here, so this is what
     /// the grid shows, what the page shows, and what the bag is told when it asks.
     func asItIsToday(_ product: Product) -> Product {
         switch mood(of: product.id) {
-        case .ordinary:
+        case .ordinary, .gone:
             product
 
         case .soldOut:
             copy(product, availability: .outOfStock)
-
-        case .discontinued:
-            copy(product, availability: .discontinued)
 
         case .nearlyGone:
             copy(product, availability: .inStock(remaining: 1))
@@ -94,15 +98,20 @@ struct DemoProductRepository: ProductRepository {
     let shop: DemoShop
 
     func getProducts(matching query: CatalogQuery) async -> Result<[Product], ProductError> {
-        await wrapped.getProducts(matching: query).map { $0.map(shop.asItIsToday) }
+        await wrapped.getProducts(matching: query)
+            .map { $0.filter { shop.isStillSold($0.id) }.map(shop.asItIsToday) }
     }
 
     func getProducts(ids: [ProductID]) async -> Result<[Product], ProductError> {
-        await wrapped.getProducts(ids: ids).map { $0.map(shop.asItIsToday) }
+        await wrapped.getProducts(ids: ids)
+            .map { $0.filter { shop.isStillSold($0.id) }.map(shop.asItIsToday) }
     }
 
+    /// Gone means gone, by id as well as in a list. A shop that hid something from its shelves but
+    /// still served its page would not be one the bag could learn anything from.
     func getProduct(id: ProductID) async -> Result<Product, ProductError> {
-        await wrapped.getProduct(id: id).map(shop.asItIsToday)
+        guard shop.isStillSold(id) else { return .failure(.notFound) }
+        return await wrapped.getProduct(id: id).map(shop.asItIsToday)
     }
 
     /// A category is a shelf, not a product. There is nothing here to change.

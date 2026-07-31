@@ -3,9 +3,15 @@ import Product
 
 /// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002), Ch. 9 —
 /// Service Layer.
+///
+/// `asked` is what makes silence mean something. A shop that has stopped selling a product does not
+/// describe it — it stops answering for it — so the only way to hear that is to have asked and been
+/// given nothing back. Without knowing which ids went out, "absent" and "never mentioned" are the
+/// same input, and the bag has to guess; it used to guess "leave it alone", which kept a line
+/// nobody could ever be sold.
 public protocol BringBagUpToDateUseCase: Sendable {
     @MainActor
-    func callAsFunction(against shopSays: [ShopSays])
+    func callAsFunction(against shopSays: [ShopSays], asked: [ProductID])
 }
 
 /// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: application work, not a rule either
@@ -23,10 +29,15 @@ public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
     }
 
     @MainActor
-    public func callAsFunction(against shopSays: [ShopSays]) {
+    public func callAsFunction(against shopSays: [ShopSays], asked: [ProductID]) {
         let bagBefore = repository.bag
         let noticesBefore = repository.notices
-        let (bag, notices) = Self.catchUp(bag: bagBefore, notices: noticesBefore, against: shopSays)
+        let (bag, notices) = Self.catchUp(
+            bag: bagBefore,
+            notices: noticesBefore,
+            against: shopSays,
+            asked: Set(asked)
+        )
 
         guard bag != bagBefore || notices != noticesBefore else { return }
         repository.save(bag: bag, notices: notices)
@@ -39,7 +50,8 @@ public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
     static func catchUp(
         bag: Bag,
         notices: Notices,
-        against shopSays: [ShopSays]
+        against shopSays: [ShopSays],
+        asked: Set<ProductID>
     ) -> (bag: Bag, notices: Notices) {
         let shop = Dictionary(shopSays.map { ($0.productId, $0) }, uniquingKeysWith: { _, latest in latest })
         var kept: [BagItem] = []
@@ -52,16 +64,26 @@ public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
 
         for line in bag.items {
             guard let says = shop[line.productId] else {
-                /// The shop was not asked about this one, so nothing about it has been learned. It
-                /// stays as it was, and so does anything it was already owed word about.
-                kept.append(line)
-                news.append(contentsOf: notices.about(line.productId).filter { !$0.isAboutSomethingGone })
+                guard asked.contains(line.productId) else {
+                    /// Not asked about, so nothing has been learned. It stays as it was, and so does
+                    /// anything it was already owed word about.
+                    kept.append(line)
+                    news.append(contentsOf: notices.about(line.productId).filter { !$0.isAboutSomethingGone })
+                    continue
+                }
+
+                /// Asked about and not described. The shop has stopped selling it, and a shopper
+                /// who reads the two ways of going differently — one is worth waiting for and the
+                /// other is not — is told which this was.
+                if !gone.contains(where: { $0.productId == line.productId }) {
+                    gone.append(.discontinued(productId: line.productId))
+                }
                 continue
             }
 
             guard says.availability.isAvailable else {
                 if !gone.contains(where: { $0.productId == line.productId }) {
-                    gone.append(Self.howItWent(line.productId, says.availability))
+                    gone.append(.outOfStock(productId: line.productId))
                 }
                 continue
             }
@@ -100,13 +122,5 @@ public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
         }
 
         return news
-    }
-
-    /// A shopper reads the two ways of going completely differently — one is worth waiting for and
-    /// the other is not — so the bag records which, rather than only that it is gone.
-    private static func howItWent(_ productId: ProductID, _ availability: Availability) -> Notice {
-        availability == .discontinued
-            ? .discontinued(productId: productId)
-            : .outOfStock(productId: productId)
     }
 }

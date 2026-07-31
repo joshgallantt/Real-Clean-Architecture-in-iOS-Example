@@ -32,12 +32,9 @@ struct PuttingSomethingInTheBagTests {
         #expect(button.quantity == 2)
     }
 
-    @Test(
-        "A bag button can never put in something the shop cannot supply",
-        arguments: [Availability.outOfStock, .discontinued]
-    )
-    func neverAddsWhatCannotBeSupplied(_ availability: Availability) async {
-        let shown = AProduct(.fixture(id: 1, availability: availability))
+    @Test("A bag button can never put in something the shop cannot supply")
+    func neverAddsWhatCannotBeSupplied() async {
+        let shown = AProduct(.fixture(id: 1, availability: .outOfStock))
 
         shown.bagButton().didTap()
         await shown.settle()
