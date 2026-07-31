@@ -47,6 +47,7 @@ public struct BagUIDI {
     public func mainView() -> some View {
         BagScreenView(
             viewModel: BagScreenViewModel(
+                navigation: navigation,
                 observeBag: observeBag,
                 observeNotices: observeNotices,
                 lookUpProducts: lookUpProducts,
@@ -54,7 +55,6 @@ public struct BagUIDI {
                 bringBagUpToDate: bringBagUpToDate,
                 acknowledgeNotices: acknowledgeNotices
             ),
-            navigation: navigation,
             stockAlertButton: stockAlertButton,
             checkoutButton: checkoutButton()
         )

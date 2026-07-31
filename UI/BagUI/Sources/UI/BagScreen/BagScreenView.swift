@@ -7,8 +7,6 @@ public struct BagScreenView: View {
     @ObservedObject var viewModel: BagScreenViewModel
     @State private var isConfirmingRemoveAll = false
 
-    let navigation: BagNavigation
-
     /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: a bell this
     /// screen cannot name. `Component/StockAlert` and its buttons live outside this feature, so the
     /// app layer passes one in already built and BagUI stays unaware there is a stock alert domain.
@@ -26,12 +24,10 @@ public struct BagScreenView: View {
 
     public init(
         viewModel: BagScreenViewModel,
-        navigation: BagNavigation,
         stockAlertButton: @escaping (ProductID) -> AnyView,
         checkoutButton: AnyView
     ) {
         self.viewModel = viewModel
-        self.navigation = navigation
         self.stockAlertButton = stockAlertButton
         self.checkoutButton = checkoutButton
     }
@@ -76,7 +72,7 @@ public struct BagScreenView: View {
     private func noticeSection(_ section: NoticeSection) -> some View {
         Section {
             ForEach(section.rows) { row in
-                noticeRow(row, accessory: section.accessory)
+                noticeRow(row, in: section)
             }
         } header: {
             sectionHeader(
@@ -137,34 +133,40 @@ public struct BagScreenView: View {
     /// One row for every notice, so a shopper reads them the same way wherever they appear. What a
     /// row says is only ever what its heading has not already said, and most say nothing at all —
     /// they are a picture and a name, which is what a shopper opened the section to find out.
-    private func noticeRow(_ row: NoticeRow, accessory: NoticeSection.Accessory) -> some View {
+    private func noticeRow(_ row: NoticeRow, in section: NoticeSection) -> some View {
         HStack(spacing: 12) {
-            thumbnail(url: row.imageURL)
+            HStack(spacing: 12) {
+                thumbnail(url: row.imageURL)
 
-            VStack(alignment: .leading, spacing: 4) {
-                Text(row.name ?? " ")
-                    .font(.subheadline.weight(.semibold))
-                    .lineLimit(2)
-                    .redacted(reason: row.name == nil ? .placeholder : [])
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(row.name ?? " ")
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(2)
+                        .redacted(reason: row.name == nil ? .placeholder : [])
 
-                switch row.says {
-                case .nothing:
-                    EmptyView()
+                    switch row.says {
+                    case .nothing:
+                        EmptyView()
 
-                case .howManyLeft(let howMany):
-                    Text(howMany)
-                        .font(.footnote)
-                        .foregroundStyle(.secondary)
-                        .fixedSize(horizontal: false, vertical: true)
+                    case .howManyLeft(let howMany):
+                        Text(howMany)
+                            .font(.footnote)
+                            .foregroundStyle(.secondary)
+                            .fixedSize(horizontal: false, vertical: true)
 
-                case .priceMoved(let move):
-                    priceMove(move)
+                    case .priceMoved(let move):
+                        priceMove(move)
+                    }
                 }
+
+                Spacer(minLength: 0)
             }
+            /// The same target as a bag line: everything left of the accessory. A shopper reading
+            /// that something got dearer wants to go and look at it, and had no way to.
+            .contentShape(Rectangle())
+            .onTapGesture { viewModel.didTapNotice(in: section.kind, productId: row.id) }
 
-            Spacer(minLength: 0)
-
-            accessoryButton(accessory, for: row.id)
+            accessoryButton(section.accessory, for: row.id)
         }
         .padding(.vertical, 6)
     }
@@ -255,39 +257,40 @@ public struct BagScreenView: View {
     /// as nothing; without a shape to stand in for it the gap between the name and the stepper — the
     /// widest part of the row on a short product name — quietly did nothing when tapped.
     ///
-    /// The stepper stays outside the button. Changing how many you want is not opening the product,
-    /// and the two would fight over the same tap.
+    /// A tap gesture rather than a `Button`. Two buttons in one `List` row are two things the row
+    /// can route a tap to, and a row that also carries `swipeActions` and a `Stepper` resolves that
+    /// contest in its own favour often enough that the line simply did nothing. A gesture on a
+    /// shaped region does not enter the contest.
+    ///
+    /// The stepper stays outside it either way. Changing how many you want is not opening the
+    /// product, and the two would fight over the same tap.
     private func bagRow(_ row: BagRow) -> some View {
         HStack(spacing: 12) {
-            Button {
-                navigation.openProductDetails(id: row.id)
-            } label: {
-                HStack(spacing: 12) {
-                    thumbnail(url: row.imageURL)
+            HStack(spacing: 12) {
+                thumbnail(url: row.imageURL)
 
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(row.name ?? " ")
-                            .font(.subheadline.weight(.semibold))
-                            .lineLimit(2)
-                            .redacted(reason: row.name == nil ? .placeholder : [])
+                VStack(alignment: .leading, spacing: 4) {
+                    Text(row.name ?? " ")
+                        .font(.subheadline.weight(.semibold))
+                        .lineLimit(2)
+                        .redacted(reason: row.name == nil ? .placeholder : [])
 
-                        Text(row.lineTotal.formatted())
-                            .font(.subheadline.weight(.semibold))
+                    Text(row.lineTotal.formatted())
+                        .font(.subheadline.weight(.semibold))
+                        .monospacedDigit()
+
+                    if row.quantity > 1 {
+                        Text("\(row.unitPrice.formatted()) each")
+                            .font(.caption)
+                            .foregroundStyle(.secondary)
                             .monospacedDigit()
-
-                        if row.quantity > 1 {
-                            Text("\(row.unitPrice.formatted()) each")
-                                .font(.caption)
-                                .foregroundStyle(.secondary)
-                                .monospacedDigit()
-                        }
                     }
-
-                    Spacer(minLength: 0)
                 }
-                .contentShape(Rectangle())
+
+                Spacer(minLength: 0)
             }
-            .buttonStyle(.plain)
+            .contentShape(Rectangle())
+            .onTapGesture { viewModel.didTapRow(productId: row.id) }
 
             Stepper(
                 value: Binding(

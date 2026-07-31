@@ -18,6 +18,7 @@ public final class BagScreenViewModel: ObservableObject {
     /// and an if-statement each is what this replaced; the view now draws whatever it is given.
     @Published private(set) var noticeSections: [NoticeSection] = []
 
+    private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase
     private let observeNotices: ObserveNoticesUseCase
     private let lookUpProducts: LookUpProductsUseCase
@@ -50,6 +51,7 @@ public final class BagScreenViewModel: ObservableObject {
     }
 
     public init(
+        navigation: BagNavigation,
         observeBag: ObserveBagUseCase,
         observeNotices: ObserveNoticesUseCase,
         lookUpProducts: LookUpProductsUseCase,
@@ -57,6 +59,7 @@ public final class BagScreenViewModel: ObservableObject {
         bringBagUpToDate: BringBagUpToDateUseCase,
         acknowledgeNotices: AcknowledgeNoticesUseCase
     ) {
+        self.navigation = navigation
         self.observeBag = observeBag
         self.observeNotices = observeNotices
         self.lookUpProducts = lookUpProducts
@@ -80,6 +83,21 @@ public final class BagScreenViewModel: ObservableObject {
     func didSwipeToDelete(productId: ProductID) {
         setBagItemQuantity(productId: productId, to: 0)
         askTheShop()
+    }
+
+    /// A line in the bag goes to its product. Opening it is behaviour, so it lives here rather than
+    /// being called straight out of the view — where nothing could reach it, which is why the bag
+    /// screen has had a `StubNavigation` that no test ever asserted on.
+    func didTapRow(productId: ProductID) {
+        navigation.openProductDetails(id: productId)
+    }
+
+    /// A line in a notice goes to its product too, where the section has a product left to go to.
+    /// Whether it has is the section's to say — the view asks rather than keeping its own list of
+    /// which of the five are worth a trip.
+    func didTapNotice(in kind: Notice.Kind, productId: ProductID) {
+        guard noticeSections.first(where: { $0.kind == kind })?.opensTheProduct == true else { return }
+        navigation.openProductDetails(id: productId)
     }
 
     /// Acknowledging is by product, not by notice — "Okay" has always meant "I have seen what
