@@ -21,7 +21,6 @@ public final class BagScreenViewModel: ObservableObject {
     private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase
     private let observeNotices: ObserveNoticesUseCase
-    private let lookUpProducts: LookUpProductsUseCase
     private let setBagItemQuantity: SetBagItemQuantityUseCase
     private let bringBagUpToDate: BringBagUpToDateUseCase
     private let acknowledgeNotices: AcknowledgeNoticesUseCase
@@ -54,7 +53,6 @@ public final class BagScreenViewModel: ObservableObject {
         navigation: BagNavigation,
         observeBag: ObserveBagUseCase,
         observeNotices: ObserveNoticesUseCase,
-        lookUpProducts: LookUpProductsUseCase,
         setBagItemQuantity: SetBagItemQuantityUseCase,
         bringBagUpToDate: BringBagUpToDateUseCase,
         acknowledgeNotices: AcknowledgeNoticesUseCase
@@ -62,7 +60,6 @@ public final class BagScreenViewModel: ObservableObject {
         self.navigation = navigation
         self.observeBag = observeBag
         self.observeNotices = observeNotices
-        self.lookUpProducts = lookUpProducts
         self.setBagItemQuantity = setBagItemQuantity
         self.bringBagUpToDate = bringBagUpToDate
         self.acknowledgeNotices = acknowledgeNotices
@@ -183,6 +180,10 @@ public final class BagScreenViewModel: ObservableObject {
     /// left only once a shopper had scrolled far enough to ask about them, so the total moved under
     /// them as they scrolled. A total that changes while you read it is not a total. What a bag is
     /// worth is a fact about all of it, so all of it is what gets asked about.
+    ///
+    /// The use case does the asking now, and hands back what it was told — so this screen gets its
+    /// names and pictures out of the same reply that settled the prices, rather than making a
+    /// second round trip over the same ids to draw them.
     private func askTheShop() {
         lookupTask?.cancel()
 
@@ -193,28 +194,14 @@ public final class BagScreenViewModel: ObservableObject {
 
         lookupTask = Task { [weak self] in
             guard let self else { return }
-            let result = await self.lookUpProducts(ids: Array(onScreen))
+            let products = await self.bringBagUpToDate()
             guard !Task.isCancelled else { return }
 
-            if case .success(let products) = result {
-                for product in products {
-                    self.catalog[product.id] = product
-                }
-                self.bringBagUpToDate(against: products.map(self.whatTheShopSays), asked: Array(onScreen))
+            for product in products {
+                self.catalog[product.id] = product
             }
 
             self.render()
         }
-    }
-
-    /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the Interface Adapters
-    /// ring converting the catalog's format into the one the bag's use case wants. The screen
-    /// fetches products for names and thumbnails anyway; this is the same answer, narrowed.
-    private func whatTheShopSays(about product: Product) -> ShopSays {
-        ShopSays(
-            productId: product.id,
-            price: product.price,
-            availability: product.availability
-        )
     }
 }

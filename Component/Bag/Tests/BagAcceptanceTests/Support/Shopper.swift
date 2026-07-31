@@ -22,6 +22,10 @@ final class Shopper {
     private let di: BagDI
     private var cancellables = Set<AnyCancellable>()
 
+    /// The catalog, which is the one thing here the app cannot own — it is somebody else's shop,
+    /// over HTTP. Everything else in this driver is the real thing.
+    let shop = StubCatalog()
+
     private(set) var bag = Bag()
     private(set) var news = Notices()
 
@@ -31,6 +35,7 @@ final class Shopper {
         self.di = BagDI(
             getSession: StubGetSession(sessions: sessions),
             observeSession: StubObserveSession(sessions: sessions),
+            lookUpProducts: shop,
             store: FileBagStore(directory: directory)
         )
 
@@ -73,16 +78,22 @@ final class Shopper {
 
     // MARK: - What the shop does
 
-    /// The shop is asked about everything the bag holds, and answers about what it still sells.
-    /// Anything it does not describe it has stopped selling, which is the only signal a real shop
-    /// gives.
-    func shopSays(_ shopSays: ShopSays...) {
-        di.bringBagUpToDateUseCase(against: shopSays, asked: bag.items.map(\.productId))
+    /// What the shop sells now. Anything not listed here it has stopped selling, which is the only
+    /// signal a real shop gives — there is no fixture for "discontinued" because there cannot be.
+    func theShopNowSells(_ products: OnTheShelf...) {
+        shop.stock = products
     }
 
-    /// A catch-up that never reached the shop at all — nothing was asked, so nothing is concluded.
-    func theShopIsNotReached() {
-        di.bringBagUpToDateUseCase(against: [], asked: [])
+    /// The shopper looks again, and the bag catches up with whatever the shop is saying today.
+    func comesBack() async {
+        await di.bringBagUpToDateUseCase()
+    }
+
+    /// The shop could not be reached at all. Nothing was learned, so nothing may be concluded.
+    func theShopCannotBeReached() async {
+        shop.cannotBeReached = true
+        await di.bringBagUpToDateUseCase()
+        shop.cannotBeReached = false
     }
 
     // MARK: - Leaving and coming back
@@ -151,16 +162,64 @@ func pid(_ value: Int) -> ProductID {
     ProductID(rawValue: value)
 }
 
-// MARK: - What the shop says
+// MARK: - What the shop has on the shelf
 
-func shopSells(_ id: Int, at price: Decimal, remaining: Int = 10) -> ShopSays {
-    ShopSays(productId: pid(id), price: usd(price), availability: .inStock(remaining: remaining))
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the catalog, faked where the
+/// app genuinely cannot own it. It answers about what it stocks and says nothing about the rest,
+/// exactly as the real one does once `ProductDTO.isStillSold` has had its say.
+final class StubCatalog: LookUpProductsUseCase, @unchecked Sendable {
+    private let lock = NSLock()
+    private var _stock: [OnTheShelf] = []
+    private var _cannotBeReached = false
+
+    var stock: [OnTheShelf] {
+        get { lock.withLock { _stock } }
+        set { lock.withLock { _stock = newValue } }
+    }
+
+    var cannotBeReached: Bool {
+        get { lock.withLock { _cannotBeReached } }
+        set { lock.withLock { _cannotBeReached = newValue } }
+    }
+
+    func callAsFunction(ids: [ProductID]) async -> Result<[Product], ProductError> {
+        lock.withLock {
+            guard !_cannotBeReached else { return .failure(.unavailable) }
+            let wanted = Set(ids)
+            return .success(_stock.filter { wanted.contains($0.id) }.map(\.product))
+        }
+    }
 }
 
-func shopHasSoldOutOf(_ id: Int) -> ShopSays {
-    ShopSays(productId: pid(id), price: usd(1), availability: .outOfStock)
+/// One thing the shop has, said the way a shopper would describe finding it.
+struct OnTheShelf {
+    let product: Product
+
+    var id: ProductID { product.id }
+}
+
+func shopSells(_ id: Int, at price: Decimal, remaining: Int = 10) -> OnTheShelf {
+    OnTheShelf(product: product(id, price: price, availability: .inStock(remaining: remaining)))
+}
+
+func shopHasSoldOutOf(_ id: Int, at price: Decimal = 1) -> OnTheShelf {
+    OnTheShelf(product: product(id, price: price, availability: .outOfStock))
 }
 
 /// There is no fixture for something the shop has stopped selling, and there cannot be: a shop
-/// stops selling something by not answering about it. Leave it out of `shopSays` and the bag draws
-/// the same conclusion the real one does.
+/// stops selling something by not answering about it. Leave it off the shelf and the bag draws the
+/// same conclusion the real one does.
+private func product(_ id: Int, price: Decimal, availability: Availability) -> Product {
+    Product(
+        id: pid(id),
+        title: "Product \(id)",
+        description: "",
+        category: CategoryID(rawValue: "beauty"),
+        price: usd(price),
+        rating: 4.5,
+        availability: availability,
+        brand: "Acme",
+        thumbnail: "https://cdn.example.com/\(id).png",
+        images: []
+    )
+}

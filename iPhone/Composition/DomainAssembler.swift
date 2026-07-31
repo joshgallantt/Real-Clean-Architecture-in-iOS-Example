@@ -49,6 +49,7 @@ struct DomainAssembler {
         bag = BagDI(
             getSession: session.getSessionUseCase,
             observeSession: session.observeSessionUseCase,
+            lookUpProducts: catalog.lookUpProducts,
             store: data.bagStore
         )
         stockAlerts = StockAlertDI(
