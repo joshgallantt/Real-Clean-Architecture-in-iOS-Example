@@ -25,6 +25,11 @@ public struct CheckoutButton: View {
                 }
             }
             .fontWeight(.semibold)
+            /// `.borderedProminent` fills the background with the tint but does not work out a
+            /// contrasting colour for the label, so a `.primary` tint left white-on-white text in
+            /// dark mode. Naming the background colour as the foreground inverts with the theme:
+            /// black text on the white button, white text on the black one.
+            .foregroundStyle(Color(uiColor: .systemBackground))
             .frame(maxWidth: .infinity)
         }
         .buttonStyle(.borderedProminent)
