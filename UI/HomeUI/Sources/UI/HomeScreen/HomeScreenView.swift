@@ -17,9 +17,31 @@ public struct HomeScreenView: View {
     }
 
     public var body: some View {
+        Group {
+            switch viewModel.state {
+            case .loading:
+                ProgressView()
+            case .loaded(let feed):
+                feedView(feed)
+            case .error:
+                ContentUnavailableView {
+                    Label("Nothing to Show", systemImage: "wifi.exclamationmark")
+                } description: {
+                    Text("Check your signal and give it another go.")
+                } actions: {
+                    Button("Try Again") { viewModel.didTapRetry() }
+                }
+            }
+        }
+        .task {
+            await viewModel.onAppear()
+        }
+    }
+
+    private func feedView(_ feed: HomeFeed) -> some View {
         ScrollView {
             LazyVStack(alignment: .leading, spacing: 24) {
-                ForEach(viewModel.carousels) { carousel in
+                ForEach(feed.carousels) { carousel in
                     HomeCarouselView(
                         carousel: carousel,
                         onSelect: { viewModel.didSelect($0) },
@@ -30,16 +52,6 @@ public struct HomeScreenView: View {
                 }
             }
             .padding(.vertical)
-        }
-        .overlay {
-            if viewModel.isLoading && viewModel.carousels.isEmpty {
-                ProgressView()
-            } else if viewModel.isEmpty {
-                ContentUnavailableView("Nothing Here Yet", systemImage: "bag")
-            }
-        }
-        .task {
-            await viewModel.onAppear()
         }
     }
 }

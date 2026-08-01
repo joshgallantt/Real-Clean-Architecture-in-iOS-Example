@@ -52,28 +52,20 @@ final class Shopper {
 
     // MARK: - What a shopper sees
 
-    /// One carousel per category the feed drew, in the order it drew them. Empty while the feed is
-    /// loading, while it cannot be reached, and while the shop genuinely has nothing to show — those
-    /// three are told apart by `isToldTheShopCannotBeReached` and `seesNothingHereYet` below, never by
-    /// this being empty on its own.
+    /// One carousel per category the feed drew, in the order it drew them. Empty whenever Home has
+    /// drawn nothing, whatever the reason — `isOfferedAnotherGo` is what says a shopper is looking
+    /// at the failure screen rather than at carousels.
     var carouselsShown: [HomeCarousel] {
         guard let home, case .loaded(let feed) = home.state else { return [] }
         return feed.carousels
     }
 
-    /// Row 2 of the feed's two-tier failure policy: something failed reaching it, so a shopper is
-    /// told the shop cannot be reached rather than shown an empty Home.
-    var isToldTheShopCannotBeReached: Bool {
+    /// Home has nothing to show and says so, with a way to try again. A shop that cannot be reached
+    /// and a shop with nothing worth drawing both land here.
+    var isOfferedAnotherGo: Bool {
         guard let home else { return false }
         if case .error = home.state { return true }
         return false
-    }
-
-    /// Row 3: nothing failed, and the shop genuinely has nothing to show — "Nothing Here Yet", never
-    /// mistaken for the shop being unreachable.
-    var seesNothingHereYet: Bool {
-        guard let home, case .loaded(let feed) = home.state else { return false }
-        return feed.carousels.isEmpty
     }
 }
 
