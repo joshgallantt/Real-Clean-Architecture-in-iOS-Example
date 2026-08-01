@@ -80,7 +80,7 @@ public final class AlertedProductsViewModel: ObservableObject {
             case .failure:
                 self.snackbar.show(Snackbar(
                     title: self.couldNotLoad,
-                    message: "Check your connection and try again.",
+                    message: "Check your signal and give it another go.",
                     icon: "wifi.exclamationmark",
                     action: .retry { [weak self] in self?.reload() }
                 ))

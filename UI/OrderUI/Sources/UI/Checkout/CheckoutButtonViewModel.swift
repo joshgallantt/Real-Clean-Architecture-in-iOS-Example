@@ -80,8 +80,8 @@ public final class CheckoutButtonViewModel: ObservableObject {
 
         case .failure(.unauthenticated):
             guard await authPresenter.show(AuthenticationPrompt(
-                title: "Sign In to Check Out",
-                message: "Log in or create an account so we know where to send it.",
+                title: "Almost Yours",
+                message: "Sign in so we know where to send it.",
                 icon: "bag.fill"
             )) else {
                 return
@@ -91,22 +91,22 @@ public final class CheckoutButtonViewModel: ObservableObject {
         case .failure(.paymentDeclined):
             snackbarPresenter.show(Snackbar(
                 title: "Payment Declined",
-                message: "That payment didn't go through. Your bag is still here.",
+                message: "That card didn't go through. Your bag's still here.",
                 icon: "creditcard.trianglebadge.exclamationmark"
             ))
 
         case .failure(.unavailable):
             snackbarPresenter.show(Snackbar(
-                title: "Couldn't Complete Your Order",
-                message: "We couldn't reach the till just now. Your bag is still here.",
+                title: "That Didn't Go Through",
+                message: "Our end, not yours. Your bag's still here.",
                 icon: "exclamationmark.triangle",
                 action: .retry { self.didTap() }
             ))
 
         case .failure(.nothingToOrder):
             snackbarPresenter.show(Snackbar(
-                title: "Your Bag Is Empty",
-                message: "Add something before checking out.",
+                title: "Nothing in Your Bag",
+                message: "Add something first.",
                 icon: "bag"
             ))
         }

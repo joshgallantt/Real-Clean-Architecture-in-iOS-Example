@@ -13,5 +13,5 @@ public struct AuthenticationPrompt: Equatable, Sendable {
         self.icon = icon
     }
 
-    public static let `default` = AuthenticationPrompt(message: "Sign in to continue")
+    public static let `default` = AuthenticationPrompt(message: "Sign in to carry on")
 }

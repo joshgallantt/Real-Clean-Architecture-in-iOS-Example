@@ -63,8 +63,8 @@ public final class WishlistButtonViewModel: ObservableObject {
         switch await add(productId: productId) {
         case .success:
             snackbarPresenter.show(Snackbar(
-                title: "Added to Wishlist",
-                message: "Find it any time in your wishlist.",
+                title: "Saved",
+                message: "It's in your faves.",
                 icon: "heart.fill",
                 action: undo(
                     by: { await remove(productId: productId) },
@@ -73,8 +73,8 @@ public final class WishlistButtonViewModel: ObservableObject {
             ))
         case .failure(.unauthenticated):
             guard await authPresenter.show(AuthenticationPrompt(
-                title: "Save to Your Wishlist",
-                message: "Log in or create an account to build your wishlist.",
+                title: "Keep Your Faves",
+                message: "Sign in and everything you save sticks around.",
                 icon: "heart.fill"
             )) else {
                 return
@@ -82,8 +82,8 @@ public final class WishlistButtonViewModel: ObservableObject {
             await self.add()
         case .failure(.unavailable):
             snackbarPresenter.show(Snackbar(
-                title: "Couldn't Add to Wishlist",
-                message: "We couldn't save that just now.",
+                title: "Didn't Save",
+                message: "That didn't stick. Try again?",
                 icon: "heart.slash",
                 action: .retry { Task { await self.add() } }
             ))
@@ -99,8 +99,8 @@ public final class WishlistButtonViewModel: ObservableObject {
         switch await remove(productId: productId) {
         case .success:
             snackbarPresenter.show(Snackbar(
-                title: "Removed from Wishlist",
-                message: "This item is no longer saved.",
+                title: "Unsaved",
+                message: "Gone from your faves.",
                 icon: "heart.slash",
                 action: undo(
                     by: { await add(productId: productId) },
@@ -109,8 +109,8 @@ public final class WishlistButtonViewModel: ObservableObject {
             ))
         case .failure(.unauthenticated):
             guard await authPresenter.show(AuthenticationPrompt(
-                title: "Update Your Wishlist",
-                message: "Log in or create an account to manage your wishlist.",
+                title: "Your Faves",
+                message: "Sign in to change what you've saved.",
                 icon: "heart.slash"
             )) else {
                 return
@@ -118,8 +118,8 @@ public final class WishlistButtonViewModel: ObservableObject {
             await self.remove()
         case .failure(.unavailable):
             snackbarPresenter.show(Snackbar(
-                title: "Couldn't Update Wishlist",
-                message: "We couldn't change that just now.",
+                title: "Didn't Change",
+                message: "That didn't stick. Try again?",
                 icon: "heart.slash",
                 action: .retry { Task { await self.remove() } }
             ))
@@ -147,14 +147,14 @@ private func undo(
                 break
             case .failure(.unauthenticated):
                 snackbarPresenter.show(Snackbar(
-                    title: "Couldn't Undo",
-                    message: "Log in to change your wishlist.",
+                    title: "Couldn't Undo That",
+                    message: "Sign in to change what you've saved.",
                     icon: "heart.slash"
                 ))
             case .failure(.unavailable):
                 snackbarPresenter.show(Snackbar(
-                    title: "Couldn't Undo",
-                    message: "We couldn't change that just now.",
+                    title: "Couldn't Undo That",
+                    message: "That didn't stick. Try again?",
                     icon: "heart.slash",
                     action: .retry(undoAgain(change, sayingSoIfItCannot: snackbarPresenter))
                 ))

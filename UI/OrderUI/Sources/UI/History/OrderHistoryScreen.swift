@@ -12,9 +12,9 @@ public struct OrderHistoryScreen: View {
         Group {
             if viewModel.isEmpty {
                 ContentUnavailableView(
-                    "No Orders Yet",
+                    "Nothing Yet",
                     systemImage: "shippingbox",
-                    description: Text("Anything you buy will show up here.")
+                    description: Text("Everything you buy lands here.")
                 )
             } else {
                 List(viewModel.orders) { order in

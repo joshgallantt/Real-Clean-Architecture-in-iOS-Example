@@ -183,8 +183,8 @@ struct BagScreenViewModelTests {
 
         // How many are left, and what it costs now, are the two things a heading cannot say.
         let shortages = viewModel.notices(in: .onlySomeLeft).map(\.says)
-        #expect(shortages.contains(.howManyLeft("Only 2 left")))
-        #expect(shortages.contains(.howManyLeft("Only 1 left")))
+        #expect(shortages.contains(.howManyLeft("2 left")))
+        #expect(shortages.contains(.howManyLeft("Last one")))
 
         #expect(viewModel.notices(in: .priceWentUp).first?.says == .priceMoved(
             NoticeRow.PriceMove(was: usd(5).formatted(), now: usd(8).formatted(), isCheaper: false)

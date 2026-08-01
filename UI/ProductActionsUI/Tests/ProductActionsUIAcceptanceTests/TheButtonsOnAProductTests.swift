@@ -17,7 +17,7 @@ struct PuttingSomethingInTheBagTests {
         await shown.settle()
 
         #expect(shown.bagContains == [pid(1)])
-        #expect(shown.snackbarTitles == ["Added to Bag"])
+        #expect(shown.snackbarTitles == ["In the Bag"])
     }
 
     @Test("The count on the button follows what is in the bag")
@@ -58,7 +58,7 @@ struct AskingToBeToldTests {
         await shown.settle()
 
         #expect(shown.waitingFor == [pid(1)])
-        #expect(shown.snackbarTitles == ["We'll Let You Know"])
+        #expect(shown.snackbarTitles == ["You're on the List"])
     }
 
     @Test("The bell shows whether they have asked, so they are not left guessing")
@@ -86,7 +86,7 @@ struct AskingToBeToldTests {
 
         #expect(shown.waitingFor.isEmpty)
         #expect(bell.isWaiting == false)
-        #expect(shown.snackbarTitles == ["We'll Let You Know", "We Won't Let You Know"])
+        #expect(shown.snackbarTitles == ["You're on the List", "Off the List"])
     }
 
     @Test("A guest is asked to sign in, because there is nowhere to tell them otherwise")

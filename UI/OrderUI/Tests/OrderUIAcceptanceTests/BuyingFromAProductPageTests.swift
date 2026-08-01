@@ -91,7 +91,7 @@ struct BuyingFromAProductPageTests {
 
         await button.tapAndSettle()
 
-        #expect(shopper.snackbars.shown.first?.title == "Couldn't Complete Your Order")
+        #expect(shopper.snackbars.shown.first?.title == "That Didn't Go Through")
         #expect(shopper.snackbars.shown.first?.action != nil)
     }
 }

@@ -15,9 +15,9 @@ public struct WelcomeScreenView: View {
                 .foregroundStyle(.tint)
 
             VStack(spacing: 8) {
-                Text("Welcome")
+                Text("Hey")
                     .font(.largeTitle.bold())
-                Text("Sign in to sync your bag and wishlist, or keep browsing as a guest.")
+                Text("Sign in to keep your bag and your faves. Or just have a look around.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
                     .multilineTextAlignment(.center)
@@ -28,7 +28,7 @@ public struct WelcomeScreenView: View {
                 Button {
                     viewModel.didTapLogIn()
                 } label: {
-                    Text("Log In").frame(maxWidth: .infinity)
+                    Text("Sign In").frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
@@ -44,7 +44,7 @@ public struct WelcomeScreenView: View {
                 Button {
                     viewModel.didContinueAsGuest()
                 } label: {
-                    Text("Continue as Guest")
+                    Text("Just Looking")
                         .fontWeight(.bold)
                 }
                 .buttonStyle(.plain)

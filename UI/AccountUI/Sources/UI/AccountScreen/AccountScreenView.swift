@@ -29,7 +29,7 @@ public struct AccountScreenView: View {
                         Task { await viewModel.didTapLogOut() }
                     }
                 } else {
-                    Text("You're browsing as a guest.")
+                    Text("You're just looking right now.")
                         .foregroundStyle(.secondary)
                     loginButton
                 }

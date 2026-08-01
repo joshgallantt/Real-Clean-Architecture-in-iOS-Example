@@ -74,7 +74,7 @@ public final class StockAlertButtonViewModel: ObservableObject {
         case .failure(.unavailable):
             snackbarPresenter.show(Snackbar(
                 title: isOn ? "Couldn't Set a Reminder" : "Couldn't Change That",
-                message: "We couldn't change that just now.",
+                message: "That didn't stick. Try again?",
                 icon: "bell.slash",
                 action: .retry { Task { await self.apply(isOn: isOn) } }
             ))
@@ -84,13 +84,13 @@ public final class StockAlertButtonViewModel: ObservableObject {
     private func told(_ isOn: Bool) -> Snackbar {
         isOn
             ? Snackbar(
-                title: "We'll Let You Know",
-                message: "You'll hear from us when this is back in stock.",
+                title: "You're on the List",
+                message: "We'll tell you the second it's back.",
                 icon: "bell.fill"
             )
             : Snackbar(
-                title: "We Won't Let You Know",
-                message: "You'll hear nothing more about this one.",
+                title: "Off the List",
+                message: "We'll keep quiet about this one.",
                 icon: "bell.slash"
             )
     }
@@ -98,13 +98,13 @@ public final class StockAlertButtonViewModel: ObservableObject {
     private func prompt(_ isOn: Bool) -> AuthenticationPrompt {
         isOn
             ? AuthenticationPrompt(
-                title: "We'll Tell You When It's Back",
-                message: "Log in or create an account and we'll let you know.",
+                title: "Want to Know When It's Back?",
+                message: "Sign in and we'll tell you.",
                 icon: "bell.fill"
             )
             : AuthenticationPrompt(
-                title: "Manage Your Reminders",
-                message: "Log in or create an account to change what we tell you about.",
+                title: "Your Waitlist",
+                message: "Sign in to change what we tell you about.",
                 icon: "bell.slash"
             )
     }

@@ -83,9 +83,9 @@ public struct WishlistUIDI {
         list(
             viewModel: favesViewModel(),
             title: "My Faves",
-            emptyTitle: "No Saved Items",
+            emptyTitle: "Nothing Saved Yet",
             emptyIcon: "heart",
-            emptyMessage: "Tap the heart on a product to save it here."
+            emptyMessage: "Tap the heart on anything you like the look of."
         )
     }
 
@@ -97,7 +97,7 @@ public struct WishlistUIDI {
             title: "Waitlist",
             emptyTitle: "Nothing to Wait For",
             emptyIcon: "bell",
-            emptyMessage: "Tap the bell on anything that's sold out and it'll wait here."
+            emptyMessage: "Hit the bell on anything sold out and it waits here."
         )
     }
 
@@ -109,7 +109,7 @@ public struct WishlistUIDI {
             title: "Back in Stock",
             emptyTitle: "Nothing Back Yet",
             emptyIcon: "sparkles",
-            emptyMessage: "Anything you're waiting on shows up here the moment it returns."
+            emptyMessage: "Anything you're waiting on lands here the second it's back."
         )
     }
 
@@ -201,7 +201,7 @@ public struct WishlistUIDI {
             },
             lookUpProducts: lookUpProducts,
             snackbar: snackbarPresenter,
-            couldNotLoad: "Couldn't Load Your Faves",
+            couldNotLoad: "Faves Won't Load",
             clear: { [removeProductFromWishlist] ids in
                 for id in ids { _ = await removeProductFromWishlist(productId: id) }
             }
@@ -213,12 +213,12 @@ public struct WishlistUIDI {
     /// rule about stock inside a DI container.
     @MainActor
     private func waitlistViewModel() -> AlertedProductsViewModel {
-        alertedProducts(from: { [getWaitlistProducts] in await getWaitlistProducts() }, couldNotLoad: "Couldn't Load Your Waitlist")
+        alertedProducts(from: { [getWaitlistProducts] in await getWaitlistProducts() }, couldNotLoad: "Waitlist Won't Load")
     }
 
     @MainActor
     private func backInStockViewModel() -> AlertedProductsViewModel {
-        alertedProducts(from: { [getBackInStockProducts] in await getBackInStockProducts() }, couldNotLoad: "Couldn't Load Back in Stock")
+        alertedProducts(from: { [getBackInStockProducts] in await getBackInStockProducts() }, couldNotLoad: "That List Won't Load")
     }
 
     @MainActor
