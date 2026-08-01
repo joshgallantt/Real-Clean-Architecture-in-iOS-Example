@@ -54,8 +54,8 @@ public final class BagButtonViewModel: ObservableObject {
 
         let navigation = navigation
         snackbarPresenter.show(Snackbar(
-            title: "Added to Bag",
-            message: "View it any time in your bag.",
+            title: "In the Bag",
+            message: "It'll be there when you're ready.",
             icon: "bag.fill",
             action: .view { navigation.switchToBagTab() }
         ))

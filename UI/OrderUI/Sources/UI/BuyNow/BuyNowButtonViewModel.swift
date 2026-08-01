@@ -66,8 +66,8 @@ public final class BuyNowButtonViewModel: ObservableObject {
         /// carry on if they signed in. A shopper who backs out is left where they were.
         case .failure(.unauthenticated):
             guard await authPresenter.show(AuthenticationPrompt(
-                title: "Sign In to Buy",
-                message: "Log in or create an account so we know where to send it.",
+                title: "Almost Yours",
+                message: "Sign in so we know where to send it.",
                 icon: "bag.fill"
             )) else {
                 return
@@ -77,14 +77,14 @@ public final class BuyNowButtonViewModel: ObservableObject {
         case .failure(.paymentDeclined):
             snackbarPresenter.show(Snackbar(
                 title: "Payment Declined",
-                message: "That payment didn't go through. Try another way to pay.",
+                message: "That card didn't go through. Try another one.",
                 icon: "creditcard.trianglebadge.exclamationmark"
             ))
 
         case .failure(.unavailable):
             snackbarPresenter.show(Snackbar(
-                title: "Couldn't Complete Your Order",
-                message: "We couldn't reach the till just now.",
+                title: "That Didn't Go Through",
+                message: "Our end, not yours. Give it another go.",
                 icon: "exclamationmark.triangle",
                 action: .retry { self.didTap() }
             ))

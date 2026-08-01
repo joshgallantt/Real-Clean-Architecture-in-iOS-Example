@@ -67,8 +67,8 @@ public final class CatalogResultsViewModel: ObservableObject {
             hasMore = value.count == pageSize
         case .failure:
             snackbar.show(Snackbar(
-                title: "Couldn't Load Products",
-                message: "Check your connection and try again.",
+                title: "Nothing's Loading",
+                message: "Check your signal and give it another go.",
                 icon: "wifi.exclamationmark",
                 action: .retry { [weak self] in
                     Task { await self?.load(reset: reset) }

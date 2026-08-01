@@ -73,8 +73,8 @@ public struct WishlistScreenView: View {
                     title: "Waitlist",
                     icon: "bell.fill",
                     tint: .orange,
-                    description: "Sold out, and you asked to hear when they're back.",
-                    emptyMessage: "Tap the bell on anything that's sold out and it'll wait here.",
+                    description: "Sold out. You asked, so we'll tell you.",
+                    emptyMessage: "Hit the bell on anything sold out and it waits here.",
                     onSelect: { navigation.openProductDetails(product: $0) },
                     onViewAll: { navigation.openAllWaitlist() },
                     accessory: waitlistAccessories.trailing,
@@ -91,8 +91,8 @@ public struct WishlistScreenView: View {
                     title: "Back in Stock",
                     icon: "sparkles",
                     tint: .green,
-                    description: "You asked to be told — here they are. Grab them before they go again.",
-                    emptyMessage: "Anything you're waiting on shows up here the moment it returns.",
+                    description: "You asked, they're back. Get in before they go again.",
+                    emptyMessage: "Anything you're waiting on lands here the second it's back.",
                     onSelect: { navigation.openProductDetails(product: $0) },
                     onViewAll: { navigation.openAllBackInStock() },
                     accessory: backInStockAccessories.trailing,
@@ -106,8 +106,8 @@ public struct WishlistScreenView: View {
                     title: "My Faves",
                     icon: "heart.fill",
                     tint: .accentColor,
-                    description: "Everything you've saved, ready when you are.",
-                    emptyMessage: "Tap the heart on a product to save it here.",
+                    description: "Everything you've saved. No rush.",
+                    emptyMessage: "Tap the heart on anything you like the look of.",
                     onSelect: { navigation.openProductDetails(product: $0) },
                     onViewAll: { navigation.openAllFaves() },
                     accessory: favesAccessories.trailing,
@@ -122,20 +122,20 @@ public struct WishlistScreenView: View {
 
     private var guestPrompt: some View {
         ContentUnavailableView {
-            Label("Save Your Favourites", systemImage: "heart")
+            Label("Keep Your Faves", systemImage: "heart")
         } description: {
-            Text("Log in or create an account to build your wishlist.")
+            Text("Sign in and everything you save sticks around.")
         } actions: {
             Button {
                 Task {
                     await authPresenter.show(AuthenticationPrompt(
-                        title: "Save Your Favourites",
-                        message: "Log in or create an account to build your wishlist.",
+                        title: "Keep Your Faves",
+                        message: "Sign in and everything you save sticks around.",
                         icon: "heart.fill"
                     ))
                 }
             } label: {
-                Text("Log In or Create Account")
+                Text("Sign In")
                     .frame(maxWidth: .infinity)
             }
             .buttonStyle(.borderedProminent)

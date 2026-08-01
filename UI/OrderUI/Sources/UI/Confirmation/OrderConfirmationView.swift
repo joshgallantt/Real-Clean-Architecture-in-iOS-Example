@@ -25,9 +25,9 @@ public struct OrderConfirmationView: View {
                 .padding(.top, 48)
 
             VStack(spacing: 6) {
-                Text("Order Placed")
+                Text("Nice One")
                     .font(.title2.bold())
-                Text("Thanks — we're getting it ready.")
+                Text("That's yours. We're getting it ready.")
                     .font(.subheadline)
                     .foregroundStyle(.secondary)
             }

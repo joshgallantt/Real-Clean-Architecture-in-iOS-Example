@@ -36,9 +36,9 @@ public struct ProductDetailsScreen: View {
                 ProgressView()
             } else if viewModel.loadFailed {
                 ContentUnavailableView(
-                    "Product Unavailable",
+                    "Can't Find That One",
                     systemImage: "exclamationmark.triangle",
-                    description: Text("This product couldn't be loaded.")
+                    description: Text("It might be gone, or we might be having a moment.")
                 )
             }
         }
@@ -107,7 +107,7 @@ public struct ProductDetailsScreen: View {
     private func availabilityText(_ availability: Availability) -> String {
         switch availability {
         case .inStock: "In stock"
-        case .outOfStock: "Out of stock"
+        case .outOfStock: "Sold out"
         }
     }
 }

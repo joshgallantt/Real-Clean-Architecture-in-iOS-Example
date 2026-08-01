@@ -67,29 +67,29 @@ struct NoticeSection: Identifiable, Equatable {
 
         switch kind {
         case .outOfStock:
-            title = "Out Of Stock"
-            description = "Sold out for now, so they've hopped out of your bag. Tap the bell and we'll ping you the moment they're back."
+            title = "Sold Out"
+            description = "Gone for now, so they're out of your bag. Hit the bell and we'll tell you the second they're back."
             icon = "shippingbox"
             tint = .warning
             accessory = .tellMeWhenItIsBack
 
         case .onlySomeLeft:
-            title = "Not Enough Left"
-            description = "Going fast. We've matched these to whatever's still on the shelf."
+            title = "Nearly Gone"
+            description = "Going fast. We've dropped you to what's actually left."
             icon = "exclamationmark.triangle"
             tint = .warning
             accessory = .nothing
 
         case .priceWentUp:
-            title = "Price Increases"
-            description = "Prices went up on these. Rude, we know. Keep them or take them out — your call."
+            title = "Went Up"
+            description = "These got more expensive. Rude. Keep them or lose them — up to you."
             icon = "arrow.up.circle"
             tint = .warning
             accessory = .removeFromBag
 
         case .priceWentDown:
-            title = "Price Decreases"
-            description = "Good news, these got cheaper. You're welcome — the lower price is already in your total."
+            title = "Went Down"
+            description = "These got cheaper. You're welcome. The new price is already in your total."
             icon = "arrow.down.circle"
             tint = .good
             accessory = .nothing
@@ -138,7 +138,7 @@ struct NoticeRow: Identifiable, Equatable {
     private static func says(about notice: Notice) -> Says {
         switch notice {
         case .onlySomeLeft(_, let available):
-            .howManyLeft(available == 1 ? "Only 1 left" : "Only \(available) left")
+            .howManyLeft(available == 1 ? "Last one" : "\(available) left")
 
         case .priceWentUp(_, let from, let to):
             .priceMoved(PriceMove(was: from.formatted(), now: to.formatted(), isCheaper: false))

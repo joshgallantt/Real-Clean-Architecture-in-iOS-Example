@@ -36,9 +36,9 @@ public struct BagScreenView: View {
         Group {
             if viewModel.isEmpty && !viewModel.hasNews {
                 ContentUnavailableView(
-                    "Your Bag is Empty",
+                    "Nothing in Here Yet",
                     systemImage: "bag",
-                    description: Text("Items you add to your bag will appear here.")
+                    description: Text("Anything you add shows up here.")
                 )
             } else {
                 List {
@@ -60,7 +60,7 @@ public struct BagScreenView: View {
             Button("Remove All", role: .destructive) { viewModel.didRemoveEverything() }
             Button("Cancel", role: .cancel) {}
         } message: {
-            Text("This empties your bag. It cannot be undone.")
+            Text("This clears your whole bag. No undo.")
         }
     }
     
@@ -242,7 +242,7 @@ public struct BagScreenView: View {
                 "Your Bag",
                 icon: "bag",
                 tint: .accentColor,
-                description: "The good stuff. Swipe to drop a line, or start over."
+                description: "The good stuff. Swipe to lose one, or clear the lot."
             ) {
                 Button("Remove All", role: .destructive) { isConfirmingRemoveAll = true }
             }
