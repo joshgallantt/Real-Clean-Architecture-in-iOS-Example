@@ -476,7 +476,9 @@ Views bind to `@Published` properties and delegate all actions to the ViewModel.
 
 ### Shared UI Components
 
-`ProductUI` is a UI package with no tab of its own. It owns the product card, the paginating product grid, and the product details screen — the things `SearchUI` and `WishlistUI` both need and neither should own. Its views take an `accessory` closure so a host feature can slot in, say, a wishlist button without `ProductUI` learning what a wishlist is.
+`ProductUI` is a UI package with no tab of its own. It owns the product card, the two ways the shop arranges cards — a paginating grid down the screen and a scrolling row across it — and the product details screen. These are the things `HomeUI`, `SearchUI` and `WishlistUI` all need and none should own. Its views take an `accessory` closure so a host feature can slot in, say, a wishlist button without `ProductUI` learning what a wishlist is.
+
+The row makes the point sharply. A carousel on Home and a carousel on the wishlist tab are the same row of the same cards; the only difference is the heading above them, which each feature keeps. Had the row stayed in `HomeUI`, `WishlistUI` would have had to import it — and `HomeUI` already imports `WishlistUI` to render hearts, so that is a cycle SwiftPM refuses to build. The arrangement of a card belongs with the card.
 
 `ProductActionsUI` is the same idea one level down, and it is named for what it *is* rather than for who uses it. It holds the three things a shopper can do to a product — save it, buy it, be told when it is back — and the decision of which to offer for a given availability.
 
@@ -499,16 +501,19 @@ Each feature module exposes a DI container that constructs its view hierarchy. T
 public struct HomeUIDI {
     private let navigation: HomeNavigation
     private let browseCatalog: BrowseCatalogUseCase
+    private let browseCategories: BrowseCategoriesUseCase
     private let snackbar: SnackbarPresenting
+    private let wishlistUIDI: WishlistUIDI
+    private let productActionsUIDI: ProductActionsUIDI
 
     @MainActor
     public func mainView() -> some View { /* HomeScreenView + HomeScreenViewModel */ }
 }
 ```
 
-**Why individual use cases, not the whole `ProductDI` container?** This is the Interface Segregation Principle applied to dependency injection. `HomeUIDI` needs exactly one capability — listing products. Injecting the full `ProductDI` would give it visibility into `getProductUseCase` and `getCategoriesUseCase` too, dependencies it never calls. Fowler warns against this shape under the name Service Locator: injecting a container that *can* resolve anything, rather than the collaborator actually needed, blurs the boundary the layering is meant to enforce. Only the composition root holds whole component containers.
+**Why individual use cases, not the whole `ProductDI` container?** This is the Interface Segregation Principle applied to dependency injection. The Home feed needs exactly two of `Product`'s capabilities: listing the shop's categories, and listing the products in one. Injecting the full `ProductDI` would hand it `viewProductUseCase` and `lookUpProductsUseCase` as well, dependencies it never calls. Fowler warns against this shape under the name Service Locator: injecting a container that *can* resolve anything, rather than the collaborator actually needed, blurs the boundary the layering is meant to enforce. Only the composition root holds whole component containers.
 
-The exception is one UI container injecting another — `SearchUIDI` takes `WishlistUIDI` so search results can render wishlist buttons. That is a view-construction dependency between peers, not a reach into a component's domain wiring.
+The exception is one UI container injecting another — `HomeUIDI` takes `WishlistUIDI` and `ProductActionsUIDI` so a card in a carousel can carry a heart and a bag button, and `SearchUIDI` takes the same pair for the same reason. That is a view-construction dependency between peers, not a reach into a component's domain wiring. Note where it stops: the peer containers reach `HomeUIDI`, not `HomeUI`. The screen itself is handed two closures, `(ProductID) -> AnyView` and `(Product) -> AnyView`, and never learns that a wishlist exists.
 
 ---
 
@@ -965,7 +970,8 @@ iPhone (App)
 │                                              SnackbarUI, AuthUI
 ├── ProductUIDI  ──▶  ProductUI   ──▶  Product
 │                ──▶  ProductActionsUIDI
-├── HomeUIDI     ──▶  HomeUI      ──▶  Product, Money, SnackbarUI
+├── HomeUIDI     ──▶  HomeUI      ──▶  Product, Money, ProductUI, SnackbarUI
+│                ──▶  WishlistUIDI, ProductActionsUIDI
 ├── SearchUIDI   ──▶  SearchUI    ──▶  Product, Money, SearchHistory, ProductUI, SnackbarUI
 │                ──▶  WishlistUIDI, BagUIDI
 ├── WishlistUIDI ──▶  WishlistUI  ──▶  Wishlist, StockAlert, Product, Session, ProductUI,
