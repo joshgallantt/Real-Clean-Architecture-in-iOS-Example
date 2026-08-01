@@ -24,7 +24,7 @@ public final class HomeScreenViewModel: ObservableObject {
     private let navigation: HomeNavigation
     private let snackbar: SnackbarPresenting
 
-    private var hasLoadedSuccessfully = false
+    private var hasDrawnTheFeed = false
 
     private let maxCarousels = 3
     private let carouselFloor = 5
@@ -43,29 +43,33 @@ public final class HomeScreenViewModel: ObservableObject {
     }
 
     func onAppear() async {
-        guard !hasLoadedSuccessfully else { return }
+        guard !hasDrawnTheFeed else { return }
         await load()
     }
 
+    /// Evans, Ch. 10 — Supple Design, Side-Effect-Free Functions: "keep the commands and queries
+    /// strictly segregated in different operations." Asking the shop is a query answering with a
+    /// `FeedDraw`; `show(_:)` is the one command that moves what a shopper sees.
     private func load() async {
         isLoading = true
         defer { isLoading = false }
 
+        show(await drawFeed())
+    }
+
+    private func drawFeed() async -> FeedDraw {
         switch await browseCategories() {
         case .failure:
-            showRetrySnackbar()
+            return .unreachable
         case .success(let categories) where categories.isEmpty:
-            carousels = []
-            isEmpty = true
-            hasLoadedSuccessfully = true
+            return .nothingToOrganise
         case .success(let categories):
-            isEmpty = false
-            await loadCarousels(for: Array(categories.shuffled().prefix(maxCarousels)))
+            return await drawCarousels(for: Array(categories.shuffled().prefix(maxCarousels)))
         }
     }
 
-    private func loadCarousels(for categories: [ProductCategory]) async {
-        var loaded: [HomeCarousel] = []
+    private func drawCarousels(for categories: [ProductCategory]) async -> FeedDraw {
+        var drawn: [HomeCarousel] = []
         var failures = 0
 
         for category in categories {
@@ -74,21 +78,30 @@ public final class HomeScreenViewModel: ObservableObject {
             case .success(let products):
                 let shown = Array(products.prefix(carouselCap))
                 if shown.count >= carouselFloor {
-                    loaded.append(HomeCarousel(category: category, products: shown))
+                    drawn.append(HomeCarousel(category: category, products: shown))
                 }
             case .failure:
                 failures += 1
             }
         }
 
-        guard failures < categories.count else {
+        return failures < categories.count ? .carousels(drawn) : .unreachable
+    }
+
+    private func show(_ draw: FeedDraw) {
+        switch draw {
+        case .unreachable:
             carousels = []
             showRetrySnackbar()
-            return
+        case .nothingToOrganise:
+            carousels = []
+            isEmpty = true
+            hasDrawnTheFeed = true
+        case .carousels(let drawn):
+            carousels = drawn
+            isEmpty = false
+            hasDrawnTheFeed = true
         }
-
-        carousels = loaded
-        hasLoadedSuccessfully = true
     }
 
     private func showRetrySnackbar() {
@@ -109,4 +122,14 @@ public final class HomeScreenViewModel: ObservableObject {
     func didTapViewAll(for carousel: HomeCarousel) {
         navigation.openCatalog(filter: .category(carousel.category))
     }
+}
+
+/// Evans, *Domain-Driven Design* (2003), Ch. 9 — Making Implicit Concepts Explicit: what one attempt
+/// at the feed came back with. A shop that cannot be reached, a shop with nothing to organise into
+/// categories, and the carousels the shop's categories earned are three outcomes, not three
+/// arrangements of the same fields.
+private enum FeedDraw {
+    case unreachable
+    case nothingToOrganise
+    case carousels([HomeCarousel])
 }

@@ -7,8 +7,9 @@ import ProductUI
 /// where View All goes all arrive as arguments, which is what lets one carousel be both lists on
 /// this tab.
 ///
-/// It shows the same `ProductCardView` the grids show. A card that looked different here would be
-/// a second card to keep in step with the first, and a shopper would have to learn it twice.
+/// It shows the same `ProductCardRowView` the home feed shows, of the same `ProductCardView` the
+/// grids show. A card or a row that looked different here would be a second of each to keep in step
+/// with the first, and a shopper would have to learn it twice.
 struct SavedProductsCarousel: View {
     @State private var isConfirmingClear = false
 
@@ -28,10 +29,6 @@ struct SavedProductsCarousel: View {
     let onViewAll: () -> Void
     let accessory: (Product) -> AnyView
     let leadingAccessory: (Product) -> AnyView
-
-    /// Wide enough to read a name and a price on, narrow enough that the next card is visibly cut
-    /// off — which is what tells a shopper the row scrolls without a hint saying so.
-    private let cardWidth: CGFloat = 150
 
     /// A row is a sample, not the list. Ten is far more than anybody scrolls sideways through, and
     /// View All is right there for the rest — so the tab stays a summary of three things rather
@@ -62,7 +59,12 @@ struct SavedProductsCarousel: View {
                     .padding(.horizontal)
                     .padding(.vertical, 8)
             } else {
-                cards
+                ProductCardRowView(
+                    products: Array(products.prefix(atMost)),
+                    onSelect: onSelect,
+                    accessory: accessory,
+                    leadingAccessory: leadingAccessory
+                )
             }
         }
         /// On the carousel rather than offered as something the caller must remember to attach.
@@ -79,30 +81,4 @@ struct SavedProductsCarousel: View {
             Text("This empties \(title). It cannot be undone.")
         }
     }
-
-    private var cards: some View {
-        ScrollView(.horizontal, showsIndicators: false) {
-            LazyHStack(alignment: .top, spacing: 12) {
-                ForEach(products.prefix(atMost)) { product in
-                    Button {
-                        onSelect(product)
-                    } label: {
-                        ProductCardView(
-                            product: product,
-                            accessory: { accessory(product) },
-                            leadingAccessory: { leadingAccessory(product) }
-                        )
-                        .frame(width: cardWidth)
-                    }
-                    .buttonStyle(.plain)
-                }
-            }
-            .padding(.horizontal)
-        }
-        /// The row scrolls; the screen it sits on scrolls the other way. Without this the outer
-        /// scroll view claims the gesture and the carousel only moves if a drag starts perfectly
-        /// horizontally.
-        .scrollClipDisabled()
-    }
 }
-
