@@ -34,6 +34,32 @@ playground.xcworkspace
 
 .build/
 
+# Build output
+#
+# xcodebuild is driven here with an explicit -derivedDataPath, and swift build
+# with an explicit --scratch-path, so build output lands wherever it was pointed
+# rather than only in ~/Library. These are the paths this repo has been pointed
+# at. Note that build/ was previously covered only by a global gitignore, so a
+# fresh clone did not have it.
+
+build/
+DerivedData/
+tmp/
+*.xcresult
+
+# Code coverage
+*.profraw
+*.profdata
+
+# Xcode's own package metadata
+#
+# Kept file-by-file rather than ignoring .swiftpm wholesale, so that a shared
+# scheme committed under .swiftpm/xcode/xcshareddata/ still shows up.
+
+.swiftpm/configuration/registries.json
+.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
+.netrc
+
 # CocoaPods
 #
 # We recommend against adding the Pods directory to your .gitignore. However
