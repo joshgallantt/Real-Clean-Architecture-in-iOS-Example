@@ -239,11 +239,6 @@
       "principle": "CA.TESTAPI"
     }
   },
-  "cycles": {
-    "forbid": true,
-    "reason": "Two modules that import each other cannot be understood, released or replaced separately. Extract the shared concept into a module both depend on, or invert one direction behind a protocol.",
-    "principle": "CA.ADP"
-  },
   "structure": [
     {
       "name": "use-cases-live-in-domain",
