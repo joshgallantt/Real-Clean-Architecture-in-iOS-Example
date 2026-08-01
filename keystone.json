@@ -1,0 +1,451 @@
+{
+  "name": "Swift Clean Architecture (SPM multi-package)",
+  "languages": [
+    "swift"
+  ],
+  "modules": {
+    "@data": {
+      "match": [
+        "*Data"
+      ],
+      "description": "A component's data target: repositories, clients, stores, DTOs."
+    },
+    "@host": {
+      "match": [
+        "*DI"
+      ],
+      "description": "A DI container. Hosts wire concrete types; features must depend on ports instead."
+    },
+    "@feature": {
+      "match": [
+        "*UI"
+      ],
+      "description": "A presentation module."
+    },
+    "@port": {
+      "match": [
+        "SnackbarUI",
+        "AuthUI",
+        "SheetUI"
+      ],
+      "description": "Cross-cutting UI ports — a protocol a feature calls, whose host is linked only by the composition root."
+    },
+    "@domain": {
+      "match": [
+        "Product",
+        "Session",
+        "Bag",
+        "Wishlist",
+        "Order",
+        "SearchHistory",
+        "StockAlert"
+      ],
+      "description": "Component domain targets."
+    },
+    "@library": {
+      "match": [
+        "Money",
+        "Networking"
+      ],
+      "description": "No domain knowledge; depended on by anyone."
+    },
+    "@appleUI": {
+      "match": [
+        "SwiftUI",
+        "UIKit",
+        "AppKit",
+        "WatchKit"
+      ]
+    },
+    "@infrastructure": {
+      "match": [
+        "Networking",
+        "CryptoKit",
+        "CoreData",
+        "SwiftData"
+      ]
+    }
+  },
+  "layers": {
+    "composition-root": {
+      "paths": [
+        "iPhone/**"
+      ],
+      "description": "The one place that knows every concrete type. Wiring only.",
+      "principle": "DI.COMPOSITIONROOT"
+    },
+    "library": {
+      "paths": [
+        "Library/*/Sources/**"
+      ],
+      "description": "Domain-free utilities. Money and Networking know nothing about this app.",
+      "imports": {
+        "deny": [
+          "@domain",
+          "@data",
+          "@feature",
+          "@host",
+          "@appleUI"
+        ],
+        "reason": "A Library/ module must stay ignorant of the app that links it. If it needs a domain type, it is not a library — move it into the component that owns the concept."
+      },
+      "principle": "CA.CCP"
+    },
+    "domain": {
+      "paths": [
+        "Component/*/Sources/Domain/**"
+      ],
+      "description": "Entities, use cases and repository contracts. The stable core.",
+      "imports": {
+        "allow": [
+          "Foundation",
+          "Combine",
+          "Money",
+          "@domain"
+        ],
+        "deny": [
+          "@appleUI",
+          "@data",
+          "@feature",
+          "@host",
+          "@infrastructure"
+        ],
+        "reason": "Domain declares protocols; infrastructure implements them. Declare the contract in Sources/Domain/Repository/ and put the implementation in Sources/Data/ — then wire the conformance in Sources/DI/. Source code dependencies must point only inward.",
+        "notes": [
+          "Combine is deliberate and load-bearing: the architecture is reactive, and the domain publishes change rather than being polled for it. Do not remove it in the name of framework purity.",
+          "@domain is allowed because a domain may depend on and execute another domain and its use cases. Wishlist requiring a Session, and a use case composing other use cases, are business rules — not leaks."
+        ]
+      },
+      "principle": "CA.RULES"
+    },
+    "data": {
+      "paths": [
+        "Component/*/Sources/Data/**"
+      ],
+      "description": "Implements domain contracts. Knows networking, persistence and hashing.",
+      "imports": {
+        "allow": [
+          "Foundation",
+          "Combine",
+          "@domain",
+          "@library",
+          "@infrastructure"
+        ],
+        "deny": [
+          "@appleUI",
+          "@feature",
+          "@host"
+        ],
+        "reason": "The data layer answers to the domain, never to a screen. If a repository needs something from the UI, the dependency is inverted — pass it in from the composition root instead."
+      },
+      "principle": "PoEAA.REPOSITORY"
+    },
+    "component-di": {
+      "paths": [
+        "Component/*/Sources/DI/**"
+      ],
+      "description": "A component's container: the only place its domain meets its data.",
+      "imports": {
+        "deny": [
+          "@appleUI",
+          "@feature"
+        ],
+        "reason": "A component container wires domain to data. It has no business knowing which screens exist."
+      },
+      "principle": "DI.COMPOSITIONROOT"
+    },
+    "presentation": {
+      "paths": [
+        "UI/*/Sources/UI/**"
+      ],
+      "description": "Views and ViewModels. Views are passive; ViewModels delegate to use cases.",
+      "imports": {
+        "deny": [
+          "@data",
+          "@host",
+          "@infrastructure"
+        ],
+        "reason": "UI reaches the domain, never storage, and depends on ports rather than hosts. Inject the use case protocol through the initialiser and let Sources/DI/ decide the concrete type. Importing a @host here links a whole dependency graph into a screen that only needed one protocol."
+      },
+      "principle": "CA.HUMBLE"
+    },
+    "ui-port": {
+      "paths": [
+        "UI/*/Sources/*UI/**"
+      ],
+      "description": "A cross-cutting UI port: the protocol a feature calls, with no implementation behind it here.",
+      "principle": "PoEAA.SEPARATEDIF",
+      "imports": {
+        "deny": [
+          "@data",
+          "@host",
+          "@infrastructure"
+        ],
+        "reason": "A port is the interface, declared where it is used. It must not reach a host, a data target or infrastructure — that is what makes it substitutable."
+      }
+    },
+    "ui-port-host": {
+      "paths": [
+        "UI/*/Sources/*UIHost/**"
+      ],
+      "description": "The implementation behind a port. Linked only by the composition root.",
+      "principle": "CA.HUMBLE",
+      "imports": {
+        "deny": [
+          "@data"
+        ],
+        "reason": "A host builds and presents the port's UI. It reaches a component through that component's container, never into its data target."
+      }
+    },
+    "ui-port-di": {
+      "paths": [
+        "UI/*/Sources/*UIDI/**"
+      ],
+      "description": "A port's container: the one place the port meets its host.",
+      "principle": "DI.COMPOSITIONROOT"
+    },
+    "feature-navigation": {
+      "paths": [
+        "UI/*/Sources/Navigation/**"
+      ],
+      "description": "A feature's navigation protocol — what it can ask for, not who answers.",
+      "imports": {
+        "deny": [
+          "@data",
+          "@host"
+        ],
+        "reason": "Navigation declares intent as a protocol. The composition root supplies the implementation."
+      },
+      "principle": "CA.DIP"
+    },
+    "feature-di": {
+      "paths": [
+        "UI/*/Sources/DI/**"
+      ],
+      "description": "A feature's container. May take peer containers to build child views.",
+      "imports": {
+        "deny": [
+          "@data"
+        ],
+        "reason": "A feature container composes views and use cases. It reaches a component through that component's container, never into its data target."
+      },
+      "principle": "DI.COMPOSITIONROOT"
+    },
+    "tests": {
+      "paths": [
+        "**/Tests/**"
+      ],
+      "description": "A package's two test tiers: an acceptance suite driven through a testing API in the shopper's language, and a unit suite in the language of the system.",
+      "principle": "CA.TESTAPI"
+    }
+  },
+  "cycles": {
+    "forbid": true,
+    "reason": "Two modules that import each other cannot be understood, released or replaced separately. Extract the shared concept into a module both depend on, or invert one direction behind a protocol.",
+    "principle": "CA.ADP"
+  },
+  "structure": [
+    {
+      "name": "use-cases-live-in-domain",
+      "match": {
+        "declaration": "(protocol|struct|final class)\\s+\\w*UseCase\\b"
+      },
+      "require": {
+        "inPaths": [
+          "Component/*/Sources/Domain/UseCases/**",
+          "Component/*/Sources/DI/**",
+          "**/Tests/**"
+        ]
+      },
+      "reason": "A use case is application-specific business logic. It belongs in Sources/Domain/UseCases/, not beside a view or a repository. A test may declare one: standing in for a collaborator is what a test double is for, and the unit tier writes them in the language of the system.",
+      "principle": "CA.RULES"
+    },
+    {
+      "name": "repository-contracts-live-in-domain",
+      "match": {
+        "declaration": "protocol\\s+\\w*Repository\\b"
+      },
+      "require": {
+        "inPaths": [
+          "Component/*/Sources/Domain/Repository/**"
+        ]
+      },
+      "reason": "The contract belongs to the domain; only the implementation belongs to data.",
+      "principle": "PoEAA.SEPARATEDIF"
+    },
+    {
+      "name": "repository-implementations-live-in-data",
+      "match": {
+        "declaration": "(struct|final class|actor)\\s+\\w*Repository\\b"
+      },
+      "require": {
+        "inPaths": [
+          "Component/*/Sources/Data/**",
+          "**/Tests/**",
+          "iPhone/Composition/**"
+        ]
+      },
+      "reason": "A concrete repository is infrastructure. Put it in Sources/Data/ and let Sources/DI/ hand it to the domain as its protocol.",
+      "principle": "PoEAA.REPOSITORY"
+    },
+    {
+      "name": "dtos-live-in-data",
+      "match": {
+        "declaration": "(struct|enum)\\s+\\w*DTO\\b"
+      },
+      "require": {
+        "inPaths": [
+          "Component/*/Sources/Data/DTO/**"
+        ]
+      },
+      "reason": "A DTO is a wire-format concern. It must not escape the data layer — map it to a domain type at the boundary.",
+      "principle": "PoEAA.DTO"
+    },
+    {
+      "name": "view-models-live-in-presentation",
+      "match": {
+        "declaration": "class\\s+\\w*ViewModel\\b"
+      },
+      "require": {
+        "inPaths": [
+          "UI/*/Sources/UI/**",
+          "UI/*/Sources/*UIHost/**",
+          "iPhone/Main/**"
+        ]
+      },
+      "reason": "ViewModels are presentation. A ViewModel outside a UI target means business logic has followed it there.",
+      "principle": "CA.HUMBLE"
+    },
+    {
+      "name": "screens-map-domain-types-rather-than-extending-them",
+      "match": {
+        "files": [
+          "UI/*/Sources/**/*.swift"
+        ]
+      },
+      "require": {
+        "contentForbids": "\\bextension\\s+(Product|Session|Bag|Wishlist|Order|SearchHistory|StockAlert)\\b"
+      },
+      "reason": "A UI module may not add members to a domain type. An extension gives one type a different surface depending on which module is reading it — a member exists on Order in the package that declared it and silently does not in the package next door, which grows its own copy of the same rule instead. Build a presentation model: a struct of already-worded values, mapped from the domain type by an init in its own body. Wording belongs to the screen, so pre-word it there and let the view move data into the GUI without processing it. This forbids the aggregate roots only; extending a type a UI module owns, or a domain type inside a test fixture, is fine.",
+      "principle": "CA.HUMBLE"
+    },
+    {
+      "name": "tests-belong-to-one-of-the-two-tiers",
+      "match": {
+        "files": [
+          "**/Tests/**/*.swift"
+        ]
+      },
+      "require": {
+        "inPaths": [
+          "**/Tests/*AcceptanceTests/**",
+          "**/Tests/*UnitTests/**",
+          "Library/*/Tests/**"
+        ]
+      },
+      "reason": "A test file belongs to one of two tiers: an acceptance suite driven through a testing API, or a unit suite driven through the seams of the code. A new behaviour is a new journey on an existing driver or a new case in an existing unit suite — not a new target.",
+      "principle": "CA.TESTAPI"
+    },
+    {
+      "name": "acceptance-tests-speak-the-shoppers-language",
+      "match": {
+        "files": [
+          "**/Tests/*AcceptanceTests/*Tests.swift"
+        ]
+      },
+      "require": {
+        "contentForbids": "\\b(\\w*Repository|\\w*Store|\\w*DTO|Default\\w*UseCase)\\b"
+      },
+      "reason": "No acceptance test may name a repository, store, DTO or Default*UseCase. Drive the feature through its testing API — Shopper, Shop, Account, Saver, Searcher — so the feature can be rearranged underneath the suite without touching it. Support/ files and the unit tier may name concrete types; the acceptance suite may not.",
+      "principle": "CA.TESTAPI"
+    },
+    {
+      "name": "no-todo-comments",
+      "match": {
+        "files": [
+          "**/Sources/**/*.swift"
+        ]
+      },
+      "require": {
+        "contentForbids": "//\\s*(TODO|FIXME|HACK|XXX)\\b"
+      },
+      "reason": "Do the work or delete the code. A tracked issue outlives a comment nobody reads.",
+      "severity": "warn",
+      "principle": "CC.COMMENTS"
+    }
+  ],
+  "manifests": [
+    {
+      "name": "domain-target-stays-pure",
+      "files": [
+        "Component/*/Package.swift"
+      ],
+      "forbid": [
+        "name:\\s*\"[A-Z]\\w*(?<!Data)(?<!DI)(?<!UI)(?<!Tests)\",\\s*\\n\\s*dependencies:\\s*\\[[^\\]]*\\b\\w+(Data|UI|DI)\\b"
+      ],
+      "reason": "A component's domain target may not gain a Data, UI or DI dependency. Package.swift is what makes the dependency rule real — the compiler enforces it only because this file says so. If the domain needs something, invert it: declare a protocol in Sources/Domain/Repository/ and satisfy it from Sources/Data/.",
+      "principle": "CA.DEPENDENCY"
+    },
+    {
+      "name": "components-take-no-third-party-dependencies",
+      "files": [
+        "Component/*/Package.swift"
+      ],
+      "forbid": [
+        "\\.package\\(\\s*url:"
+      ],
+      "reason": "Domain and data stay first-party. A third-party package in a component is a volatile dependency pointing at the stable core — put the adapter in Library/ behind a protocol instead.",
+      "principle": "CA.SDP"
+    },
+    {
+      "name": "no-test-target-beyond-the-two-tiers",
+      "files": [
+        "**/Package.swift"
+      ],
+      "forbid": [
+        "\\.testTarget[\\s\\S]*\\.testTarget[\\s\\S]*\\.testTarget"
+      ],
+      "reason": "A package declares at most two test targets: one acceptance suite and one unit suite. A third test target is a layer test in disguise.",
+      "principle": "CA.TESTAPI"
+    }
+  ],
+  "ignorePaths": [
+    "**/Package.swift",
+    "iPhone/Resources/**"
+  ],
+  "tests": {
+    "principle": "TCC.PYRAMID",
+    "tiers": [
+      {
+        "name": "unit",
+        "paths": [
+          "**/Tests/*UnitTests/**",
+          "Library/*/Tests/**"
+        ],
+        "countPattern": "@Test(?:\\(\"([^\"]*)\"\\))?|func\\s+(test\\w+)",
+        "requiredFor": [
+          "Component/*"
+        ],
+        "principle": "TCC.UNITTESTS",
+        "reason": "Every component needs a unit tier: tests written by programmers, in the language of the system, naming the unit that broke. An acceptance failure says checkout is broken; a unit failure says which rule is wrong. Required of Component/* and deliberately not of UI/*: a UI package earns a unit tier by having a ViewModel, and OnboardingUI, SheetUI and SnackbarUI have none, so requiring one of every UI/* would demand a suite for nothing. requiredFor takes path globs alone, so \"a UI package with a ViewModel needs a unit tier\" cannot be stated here, and naming the nine that qualify today would be a roster that goes stale rather than a rule. Every UI package with a ViewModel has one; that one is held in review."
+      },
+      {
+        "name": "acceptance",
+        "paths": [
+          "**/Tests/*AcceptanceTests/**"
+        ],
+        "countPattern": "@Test\\(\"([^\"]*)\"",
+        "requiredFor": [
+          "Component/*"
+        ],
+        "namesReadAsProse": true,
+        "principle": "TCC.COMPONENTTESTS",
+        "reason": "Every component needs an acceptance tier stating its business rules as a journey a person takes, readable by someone who does not know the code."
+      }
+    ],
+    "pyramid": [
+      "unit",
+      "acceptance"
+    ]
+  }
+}
