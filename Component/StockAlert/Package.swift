@@ -58,6 +58,14 @@ let package = Package(
             path: "Sources/DI"
         ),
         .testTarget(
+            name: "StockAlertUnitTests",
+            dependencies: [
+                "StockAlert",
+                .product(name: "Product", package: "Product")
+            ],
+            path: "Tests/StockAlertUnitTests"
+        ),
+        .testTarget(
             name: "StockAlertAcceptanceTests",
             dependencies: [
                 "StockAlertDI",

@@ -36,6 +36,15 @@ let package = Package(
             path: "Sources",
             exclude: ["AuthUI"],
             sources: ["AuthUIHost", "AuthUIDI"]
+        ),
+        .testTarget(
+            name: "AuthUIUnitTests",
+            dependencies: [
+                "AuthUIDI",
+                .product(name: "Session", package: "Session"),
+                .product(name: "SheetUI", package: "SheetUI")
+            ],
+            path: "Tests/AuthUIUnitTests"
         )
     ]
 )

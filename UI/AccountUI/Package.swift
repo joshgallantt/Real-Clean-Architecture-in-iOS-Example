@@ -38,6 +38,14 @@ let package = Package(
                 .product(name: "AuthUIDI", package: "AuthUI")
             ],
             path: "Sources/DI"
+        ),
+        .testTarget(
+            name: "AccountUIUnitTests",
+            dependencies: [
+                "AccountUI",
+                .product(name: "Session", package: "Session")
+            ],
+            path: "Tests/AccountUIUnitTests"
         )
     ]
 )
