@@ -1,12 +1,11 @@
 import Foundation
 import Money
 import Product
-import SnackbarUI
 @testable import HomeUI
 
 @MainActor
 /// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the testing API. A test says what
-/// a shopper saw and tapped, never which type stored it.
+/// a shopper saw and tapped, never which type stored it or how it shaped that state.
 ///
 /// Only one thing is genuinely faked — `Shop`, standing in for `ProductRepository`. Everything
 /// between it and the screen is real: `DefaultBrowseCatalogUseCase`, `DefaultBrowseCategoriesUseCase`
@@ -14,21 +13,67 @@ import SnackbarUI
 final class Shopper {
     let shop = Shop()
     let navigation = StubNavigation()
-    let snackbar = SpySnackbarPresenter()
 
-    func opensHome() -> HomeScreenViewModel {
-        HomeScreenViewModel(
-            browseCatalog: DefaultBrowseCatalogUseCase(productRepository: shop),
-            browseCategories: DefaultBrowseCategoriesUseCase(productRepository: shop),
-            navigation: navigation,
-            snackbar: snackbar
-        )
-    }
+    private var home: HomeScreenViewModel?
 
     // MARK: - What the shop sells
 
     func sells(_ category: ProductCategory, _ products: [Product]) {
         shop.sell(category, products)
+    }
+
+    // MARK: - What a shopper does
+
+    @discardableResult
+    func opensHome() async -> Shopper {
+        let viewModel = home ?? HomeScreenViewModel(
+            browseCatalog: DefaultBrowseCatalogUseCase(productRepository: shop),
+            browseCategories: DefaultBrowseCategoriesUseCase(productRepository: shop),
+            navigation: navigation
+        )
+        home = viewModel
+        await viewModel.onAppear()
+        return self
+    }
+
+    func selects(_ product: Product) {
+        home?.didSelect(product)
+    }
+
+    func tapsViewAll(for category: ProductCategory) {
+        guard let carousel = carouselsShown.first(where: { $0.category.id == category.id }) else { return }
+        home?.didTapViewAll(for: carousel)
+    }
+
+    func triesAgain() async {
+        home?.didTapRetry()
+        await settle()
+    }
+
+    // MARK: - What a shopper sees
+
+    /// One carousel per category the feed drew, in the order it drew them. Empty while the feed is
+    /// loading, while it cannot be reached, and while the shop genuinely has nothing to show — those
+    /// three are told apart by `isToldTheShopCannotBeReached` and `seesNothingHereYet` below, never by
+    /// this being empty on its own.
+    var carouselsShown: [HomeCarousel] {
+        guard let home, case .loaded(let feed) = home.state else { return [] }
+        return feed.carousels
+    }
+
+    /// Row 2 of the feed's two-tier failure policy: something failed reaching it, so a shopper is
+    /// told the shop cannot be reached rather than shown an empty Home.
+    var isToldTheShopCannotBeReached: Bool {
+        guard let home else { return false }
+        if case .error = home.state { return true }
+        return false
+    }
+
+    /// Row 3: nothing failed, and the shop genuinely has nothing to show — "Nothing Here Yet", never
+    /// mistaken for the shop being unreachable.
+    var seesNothingHereYet: Bool {
+        guard let home, case .loaded(let feed) = home.state else { return false }
+        return feed.carousels.isEmpty
     }
 }
 
@@ -106,15 +151,6 @@ final class StubNavigation: HomeNavigation {
 
     nonisolated func openCatalog(filter: CatalogFilter) {
         MainActor.assumeIsolated { openedCatalogs.append(filter) }
-    }
-}
-
-@MainActor
-final class SpySnackbarPresenter: SnackbarPresenting {
-    private(set) var shown: [Snackbar] = []
-
-    func show(_ snackbar: Snackbar) {
-        shown.append(snackbar)
     }
 }
 

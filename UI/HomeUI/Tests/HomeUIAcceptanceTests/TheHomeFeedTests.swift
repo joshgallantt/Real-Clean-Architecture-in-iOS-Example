@@ -14,11 +14,10 @@ struct TheHomeFeedTests {
     func showsCarouselsNotAList() async {
         let shopper = Shopper()
         shopper.sells(.beauty, products(1...6, category: "beauty"))
-        let home = shopper.opensHome()
 
-        await home.onAppear()
+        await shopper.opensHome()
 
-        #expect(home.carousels.map(\.category.name) == ["Beauty"])
+        #expect(shopper.carouselsShown.map(\.category.name) == ["Beauty"])
     }
 }
 
@@ -32,12 +31,11 @@ struct HowManyCarouselsTests {
         shopper.sells(.beauty, products(1...6, category: "beauty"))
         shopper.sells(.fragrances, products(101...106, category: "fragrances"))
         shopper.sells(.furniture, products(201...206, category: "furniture"))
-        let home = shopper.opensHome()
 
-        await home.onAppear()
+        await shopper.opensHome()
 
-        #expect(Set(home.carousels.map(\.category.name)) == ["Beauty", "Fragrances", "Furniture"])
-        #expect(home.carousels.count == 3)
+        #expect(Set(shopper.carouselsShown.map(\.category.name)) == ["Beauty", "Fragrances", "Furniture"])
+        #expect(shopper.carouselsShown.count == 3)
     }
 
     // HomeFeedCarousels-03: Fewer than 3 categories means one carousel per category that exists,
@@ -46,12 +44,11 @@ struct HowManyCarouselsTests {
     func fewerThanFewCategories() async {
         let shopper = Shopper()
         shopper.sells(.beauty, products(1...6, category: "beauty"))
-        let home = shopper.opensHome()
 
-        await home.onAppear()
+        await shopper.opensHome()
 
-        #expect(home.carousels.count == 1)
-        #expect(home.carousels.first?.category.name == "Beauty")
+        #expect(shopper.carouselsShown.count == 1)
+        #expect(shopper.carouselsShown.first?.category.name == "Beauty")
     }
 
     // HomeFeedCarousels-04: More than 3 categories means only 3 are shown, and each is a real,
@@ -63,12 +60,11 @@ struct HowManyCarouselsTests {
         for category in categories {
             shopper.sells(category, products(1...10, category: category.id.rawValue))
         }
-        let home = shopper.opensHome()
 
-        await home.onAppear()
+        await shopper.opensHome()
 
-        #expect(home.carousels.count == 3)
-        let shown = Set(home.carousels.map(\.category.id))
+        #expect(shopper.carouselsShown.count == 3)
+        let shown = Set(shopper.carouselsShown.map(\.category.id))
         #expect(shown.count == 3)
         #expect(shown.isSubset(of: Set(categories.map(\.id))))
     }
@@ -82,13 +78,12 @@ struct HowManyCarouselsTests {
         for category in categories {
             shopper.sells(category, products(1...10, category: category.id.rawValue))
         }
-        let home = shopper.opensHome()
-        await home.onAppear()
-        let firstVisit = home.carousels.map(\.category.id)
+        await shopper.opensHome()
+        let firstVisit = shopper.carouselsShown.map(\.category.id)
 
-        await home.onAppear()
+        await shopper.opensHome()
 
-        #expect(home.carousels.map(\.category.id) == firstVisit)
+        #expect(shopper.carouselsShown.map(\.category.id) == firstVisit)
         #expect(shopper.shop.categoriesAskedCount == 1)
     }
 }

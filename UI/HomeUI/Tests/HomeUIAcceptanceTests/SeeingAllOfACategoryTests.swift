@@ -13,15 +13,13 @@ import Product
 struct SeeingAllOfACategoryTests {
     // HomeFeedCarousels-13: View All opens that category's results, not another's.
     @Test("View All opens that category's results, not another's")
-    func viewAllOpensItsOwnCategory() async throws {
+    func viewAllOpensItsOwnCategory() async {
         let shopper = Shopper()
         shopper.sells(.beauty, products(1...5, category: "beauty"))
         shopper.sells(.fragrances, products(101...105, category: "fragrances"))
-        let home = shopper.opensHome()
-        await home.onAppear()
-        let fragrances = try #require(home.carousels.first { $0.category.name == "Fragrances" })
+        await shopper.opensHome()
 
-        home.didTapViewAll(for: fragrances)
+        shopper.tapsViewAll(for: .fragrances)
 
         #expect(shopper.navigation.openedCatalogs == [.category(.fragrances)])
     }
@@ -29,14 +27,12 @@ struct SeeingAllOfACategoryTests {
     // HomeFeedCarousels-14: Every carousel offers a View All button, whether or not the category
     // has more products than the carousel showed.
     @Test("Every carousel offers a View All button that leads to its own category")
-    func everyCarouselOffersViewAll() async throws {
+    func everyCarouselOffersViewAll() async {
         let shopper = Shopper()
         shopper.sells(.beauty, products(1...5, category: "beauty"))
-        let home = shopper.opensHome()
-        await home.onAppear()
-        let beauty = try #require(home.carousels.first)
+        await shopper.opensHome()
 
-        home.didTapViewAll(for: beauty)
+        shopper.tapsViewAll(for: .beauty)
 
         #expect(shopper.navigation.openedCatalogs == [.category(.beauty)])
     }
@@ -44,16 +40,14 @@ struct SeeingAllOfACategoryTests {
     // HomeFeedCarousels-15: Tapping View All does not change what Home itself is showing, so
     // coming back to it shows exactly what was left — same categories, same products, same order.
     @Test("Tapping View All does not change what Home itself is showing")
-    func viewAllDoesNotChangeHome() async throws {
+    func viewAllDoesNotChangeHome() async {
         let shopper = Shopper()
         shopper.sells(.beauty, products(1...5, category: "beauty"))
-        let home = shopper.opensHome()
-        await home.onAppear()
-        let before = home.carousels
-        let beauty = try #require(home.carousels.first)
+        await shopper.opensHome()
+        let before = shopper.carouselsShown
 
-        home.didTapViewAll(for: beauty)
+        shopper.tapsViewAll(for: .beauty)
 
-        #expect(home.carousels == before)
+        #expect(shopper.carouselsShown == before)
     }
 }

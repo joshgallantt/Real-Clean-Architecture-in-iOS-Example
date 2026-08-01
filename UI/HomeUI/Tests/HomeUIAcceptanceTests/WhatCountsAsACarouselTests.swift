@@ -27,15 +27,14 @@ struct WhatCountsAsACarouselTests {
         let shopper = Shopper()
         let stock = example.available > 0 ? products(1...example.available, category: "beauty") : []
         shopper.sells(.beauty, stock)
-        let home = shopper.opensHome()
 
-        await home.onAppear()
+        await shopper.opensHome()
 
         if let expectedShown = example.expectedShown {
-            #expect(home.carousels.count == 1)
-            #expect(home.carousels.first?.products.count == expectedShown)
+            #expect(shopper.carouselsShown.count == 1)
+            #expect(shopper.carouselsShown.first?.products.count == expectedShown)
         } else {
-            #expect(home.carousels.isEmpty)
+            #expect(shopper.carouselsShown.isEmpty)
         }
     }
 
@@ -47,11 +46,10 @@ struct WhatCountsAsACarouselTests {
         var items = products(1...5, category: "beauty")
         items[0] = Product.fixture(id: 1, category: "beauty", availability: .outOfStock)
         shopper.sells(.beauty, items)
-        let home = shopper.opensHome()
 
-        await home.onAppear()
+        await shopper.opensHome()
 
-        #expect(home.carousels.first?.products.count == 5)
-        #expect(home.carousels.first?.products.first?.availability == .outOfStock)
+        #expect(shopper.carouselsShown.first?.products.count == 5)
+        #expect(shopper.carouselsShown.first?.products.first?.availability == .outOfStock)
     }
 }
