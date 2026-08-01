@@ -1,5 +1,4 @@
 import SwiftUI
-import Order
 
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: it is handed the
 /// order that was placed and renders it. There is nothing to fetch and nothing that can fail —
@@ -9,10 +8,10 @@ import Order
 /// are called today. That is not a shortcut: an order is a record of a payment, and a confirmation
 /// that went looking for product names would break for anything since withdrawn.
 public struct OrderConfirmationView: View {
-    private let order: Order
+    private let order: OrderSummary
     private let done: () -> Void
 
-    public init(order: Order, done: @escaping () -> Void) {
+    public init(order: OrderSummary, done: @escaping () -> Void) {
         self.order = order
         self.done = done
     }
@@ -35,9 +34,9 @@ public struct OrderConfirmationView: View {
             VStack(spacing: 12) {
                 row("Order", order.reference)
                 Divider()
-                row("Items", order.itemCountSummary)
+                row("Items", order.itemCount)
                 Divider()
-                row("Total", order.total?.formatted() ?? "")
+                row("Total", order.total)
             }
             .padding()
             .background(Color(uiColor: .secondarySystemBackground), in: RoundedRectangle(cornerRadius: 16))

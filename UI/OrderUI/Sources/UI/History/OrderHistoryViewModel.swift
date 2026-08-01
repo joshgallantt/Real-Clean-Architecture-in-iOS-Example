@@ -10,14 +10,14 @@ import Order
 /// what was paid, so history renders in full for products the shop has since withdrawn — which is
 /// exactly the case a screen built on product lookups would get wrong.
 public final class OrderHistoryViewModel: ObservableObject {
-    @Published private(set) var orders: [Order] = []
+    @Published private(set) var orders: [OrderSummary] = []
 
     private var cancellables = Set<AnyCancellable>()
 
     public init(observeOrders: ObserveOrdersUseCase) {
         observeOrders()
             .sink { [weak self] orders in
-                self?.orders = orders.all
+                self?.orders = orders.all.map(OrderSummary.init)
             }
             .store(in: &cancellables)
     }
