@@ -33,8 +33,10 @@ struct WhatCountsAsACarouselTests {
         if let expectedShown = example.expectedShown {
             #expect(shopper.carouselsShown.count == 1)
             #expect(shopper.carouselsShown.first?.products.count == expectedShown)
+            #expect(!shopper.isOfferedAnotherGo)
         } else {
             #expect(shopper.carouselsShown.isEmpty)
+            #expect(shopper.isOfferedAnotherGo)
         }
     }
 

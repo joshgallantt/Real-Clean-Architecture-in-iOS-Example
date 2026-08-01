@@ -1,7 +1,6 @@
 import Foundation
 import Money
 import Product
-import SnackbarUI
 @testable import HomeUI
 
 @MainActor
@@ -42,12 +41,12 @@ final class StubNavigation: HomeNavigation {
     }
 }
 
-@MainActor
-final class SpySnackbarPresenter: SnackbarPresenting {
-    private(set) var shown: [Snackbar] = []
-
-    func show(_ snackbar: Snackbar) {
-        shown.append(snackbar)
+/// The carousels a loaded Home drew, or none at all. A unit test may name the state it expects
+/// directly; this is only so the ones about *what was drawn* do not have to unwrap it each time.
+extension HomeScreenState {
+    var carousels: [HomeCarousel] {
+        guard case .loaded(let feed) = self else { return [] }
+        return feed.carousels
     }
 }
 

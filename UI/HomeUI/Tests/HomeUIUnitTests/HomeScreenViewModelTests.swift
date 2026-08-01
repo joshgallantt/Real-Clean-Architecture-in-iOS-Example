@@ -9,15 +9,18 @@ struct HomeScreenViewModelTests {
     private func makeViewModel(
         browseCatalog: StubBrowseCatalog = StubBrowseCatalog(),
         browseCategories: StubBrowseCategories = StubBrowseCategories(),
-        navigation: StubNavigation = StubNavigation(),
-        snackbar: SpySnackbarPresenter = SpySnackbarPresenter()
+        navigation: StubNavigation = StubNavigation()
     ) -> HomeScreenViewModel {
         HomeScreenViewModel(
             browseCatalog: browseCatalog,
             browseCategories: browseCategories,
-            navigation: navigation,
-            snackbar: snackbar
+            navigation: navigation
         )
+    }
+
+    @Test("Before anything is asked of the shop, Home is loading")
+    func startsLoading() {
+        #expect(makeViewModel().state == .loading)
     }
 
     @Test("Appearing draws a carousel for each category that qualifies")
@@ -30,8 +33,8 @@ struct HomeScreenViewModelTests {
 
         await viewModel.onAppear()
 
-        #expect(viewModel.carousels.map(\.category.name) == ["Beauty"])
-        #expect(viewModel.carousels.first?.products.map(\.id) == (1...6).map(pid))
+        #expect(viewModel.state.carousels.map(\.category.name) == ["Beauty"])
+        #expect(viewModel.state.carousels.first?.products.map(\.id) == (1...6).map(pid))
         #expect(browseCatalog.queries.first?.pageSize == 10)
     }
 
@@ -58,9 +61,9 @@ struct HomeScreenViewModelTests {
         await viewModel.onAppear()
 
         if let expectedShown = example.expectedShown {
-            #expect(viewModel.carousels.first?.products.count == expectedShown)
+            #expect(viewModel.state.carousels.first?.products.count == expectedShown)
         } else {
-            #expect(viewModel.carousels.isEmpty)
+            #expect(viewModel.state == .error)
         }
     }
 
@@ -77,8 +80,8 @@ struct HomeScreenViewModelTests {
 
         await viewModel.onAppear()
 
-        #expect(viewModel.carousels.count <= 3)
-        let shown = Set(viewModel.carousels.map(\.category.id))
+        #expect(viewModel.state.carousels.count <= 3)
+        let shown = Set(viewModel.state.carousels.map(\.category.id))
         #expect(shown.isSubset(of: Set(categories.map(\.id))))
     }
 
@@ -89,57 +92,47 @@ struct HomeScreenViewModelTests {
         let browseCatalog = StubBrowseCatalog()
         browseCatalog.resultsByCategory[.init(rawValue: "beauty")] = .success(products(1...5, category: "beauty"))
         browseCatalog.resultsByCategory[.init(rawValue: "fragrances")] = .failure(.unavailable)
-        let snackbar = SpySnackbarPresenter()
-        let viewModel = makeViewModel(browseCatalog: browseCatalog, browseCategories: browseCategories, snackbar: snackbar)
+        let viewModel = makeViewModel(browseCatalog: browseCatalog, browseCategories: browseCategories)
 
         await viewModel.onAppear()
 
-        #expect(viewModel.carousels.map(\.category.name) == ["Beauty"])
-        #expect(snackbar.shown.isEmpty)
+        #expect(viewModel.state.carousels.map(\.category.name) == ["Beauty"])
     }
 
-    @Test("If every category the feed tried fails to load, that reads as the shop being unreachable")
-    func everyCategoryFailingToLoadIsTreatedAsShopUnreachable() async {
+    @Test("If every category the feed tried fails to load, Home has nothing to draw")
+    func everyCategoryFailingToLoadLeavesNothingToDraw() async {
         let browseCategories = StubBrowseCategories()
         browseCategories.result = .success([.beauty, .fragrances])
         let browseCatalog = StubBrowseCatalog()
         browseCatalog.resultsByCategory[.init(rawValue: "beauty")] = .failure(.unavailable)
         browseCatalog.resultsByCategory[.init(rawValue: "fragrances")] = .failure(.unavailable)
-        let snackbar = SpySnackbarPresenter()
-        let viewModel = makeViewModel(browseCatalog: browseCatalog, browseCategories: browseCategories, snackbar: snackbar)
+        let viewModel = makeViewModel(browseCatalog: browseCatalog, browseCategories: browseCategories)
 
         await viewModel.onAppear()
 
-        #expect(viewModel.carousels.isEmpty)
-        #expect(snackbar.shown.first?.title == "Nothing's Loading")
-        #expect(snackbar.shown.first?.action != nil)
+        #expect(viewModel.state == .error)
     }
 
-    @Test("A shop that cannot even be asked for its categories offers to try again")
-    func cannotReachCategoriesOffersRetry() async {
+    @Test("A shop that cannot even be asked for its categories leaves Home with nothing to draw")
+    func cannotReachCategoriesLeavesNothingToDraw() async {
         let browseCategories = StubBrowseCategories()
         browseCategories.result = .failure(.unavailable)
-        let snackbar = SpySnackbarPresenter()
-        let viewModel = makeViewModel(browseCategories: browseCategories, snackbar: snackbar)
+        let viewModel = makeViewModel(browseCategories: browseCategories)
 
         await viewModel.onAppear()
 
-        #expect(viewModel.carousels.isEmpty)
-        #expect(snackbar.shown.first?.title == "Nothing's Loading")
+        #expect(viewModel.state == .error)
     }
 
-    @Test("A shop with no categories to organise into is not a failure")
-    func noCategoriesIsNotAFailure() async {
+    @Test("A shop with no categories to organise into leaves Home with nothing to draw")
+    func noCategoriesLeavesNothingToDraw() async {
         let browseCategories = StubBrowseCategories()
         browseCategories.result = .success([])
-        let snackbar = SpySnackbarPresenter()
-        let viewModel = makeViewModel(browseCategories: browseCategories, snackbar: snackbar)
+        let viewModel = makeViewModel(browseCategories: browseCategories)
 
         await viewModel.onAppear()
 
-        #expect(viewModel.carousels.isEmpty)
-        #expect(viewModel.isEmpty == true)
-        #expect(snackbar.shown.isEmpty)
+        #expect(viewModel.state == .error)
     }
 
     @Test("Appearing again once something has already loaded asks nothing more")
@@ -156,20 +149,35 @@ struct HomeScreenViewModelTests {
         #expect(browseCategories.callCount == 1)
     }
 
-    @Test("Retrying asks the shop again, and what succeeds this time is shown")
+    /// Only a loaded Home is settled. Coming back to one that had nothing to draw asks again, which
+    /// is what having no `hasDrawnTheFeed` flag to consult amounts to.
+    @Test("Appearing again after Home had nothing to draw asks the shop again")
+    func appearingAgainAfterNothingToDrawAsksAgain() async {
+        let browseCategories = StubBrowseCategories()
+        browseCategories.result = .failure(.unavailable)
+        let viewModel = makeViewModel(browseCategories: browseCategories)
+        await viewModel.onAppear()
+
+        await viewModel.onAppear()
+
+        #expect(browseCategories.callCount == 2)
+    }
+
+    @Test("Trying again asks the shop again, and what succeeds this time is shown")
     func retryingAsksAgainAndShowsWhatSucceeds() async {
         let browseCategories = StubBrowseCategories()
         browseCategories.result = .failure(.unavailable)
-        let snackbar = SpySnackbarPresenter()
-        let viewModel = makeViewModel(browseCategories: browseCategories, snackbar: snackbar)
+        let browseCatalog = StubBrowseCatalog()
+        browseCatalog.resultsByCategory[.init(rawValue: "beauty")] = .success(products(1...5, category: "beauty"))
+        let viewModel = makeViewModel(browseCatalog: browseCatalog, browseCategories: browseCategories)
         await viewModel.onAppear()
 
-        browseCategories.result = .success([])
-        snackbar.shown.first?.action?.handler()
+        browseCategories.result = .success([.beauty])
+        viewModel.didTapRetry()
         await settle()
 
         #expect(browseCategories.callCount == 2)
-        #expect(viewModel.isEmpty == true)
+        #expect(viewModel.state.carousels.map(\.category.name) == ["Beauty"])
     }
 
     @Test("Selecting a product opens its details")
@@ -192,5 +200,23 @@ struct HomeScreenViewModelTests {
         viewModel.didTapViewAll(for: carousel)
 
         #expect(navigation.openedCatalogs == [.category(.fragrances)])
+    }
+}
+
+@Suite("A home feed")
+/// The invariant `HomeScreenState` leans on: `.loaded` cannot stand for a screen with nothing on it,
+/// because a feed with no carousels cannot be built in the first place.
+struct HomeFeedTests {
+    @Test("A feed with no carousels is not a feed")
+    func noCarouselsIsNotAFeed() {
+        #expect(HomeFeed(carousels: []) == nil)
+    }
+
+    @Test("A feed keeps the carousels it was drawn with, in order")
+    func keepsItsCarouselsInOrder() {
+        let beauty = HomeCarousel(category: .beauty, products: products(1...5, category: "beauty"))
+        let fragrances = HomeCarousel(category: .fragrances, products: products(101...105, category: "fragrances"))
+
+        #expect(HomeFeed(carousels: [beauty, fragrances])?.carousels == [beauty, fragrances])
     }
 }

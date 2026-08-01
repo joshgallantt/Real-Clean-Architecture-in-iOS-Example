@@ -21,7 +21,6 @@ let package = Package(
         .package(path: "../../Component/Product"),
         .package(path: "../../Library/Money"),
         .package(path: "../ProductUI"),
-        .package(path: "../SnackbarUI"),
         .package(path: "../WishlistUI"),
         .package(path: "../ProductActionsUI")
     ],
@@ -31,8 +30,7 @@ let package = Package(
             dependencies: [
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
-                .product(name: "ProductUI", package: "ProductUI"),
-                .product(name: "SnackbarUI", package: "SnackbarUI")
+                .product(name: "ProductUI", package: "ProductUI")
             ],
             path: "Sources",
             exclude: ["DI"],
@@ -44,7 +42,6 @@ let package = Package(
                 "HomeUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
-                .product(name: "SnackbarUI", package: "SnackbarUI"),
                 .product(name: "WishlistUIDI", package: "WishlistUI"),
                 .product(name: "ProductActionsUIDI", package: "ProductActionsUI")
             ],
@@ -55,8 +52,7 @@ let package = Package(
             dependencies: [
                 "HomeUI",
                 .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money"),
-                .product(name: "SnackbarUI", package: "SnackbarUI")
+                .product(name: "Money", package: "Money")
             ],
             path: "Tests/HomeUIAcceptanceTests"
         ),
@@ -65,8 +61,7 @@ let package = Package(
             dependencies: [
                 "HomeUI",
                 .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money"),
-                .product(name: "SnackbarUI", package: "SnackbarUI")
+                .product(name: "Money", package: "Money")
             ],
             path: "Tests/HomeUIUnitTests"
         )

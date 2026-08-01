@@ -139,7 +139,6 @@ struct PresentationAssembler {
             navigation: navigator,
             browseCatalog: catalog.browseCatalog,
             browseCategories: catalog.browseCategories,
-            snackbar: snackbar.presenter,
             wishlistUIDI: wishlist,
             productActionsUIDI: productActions
         )

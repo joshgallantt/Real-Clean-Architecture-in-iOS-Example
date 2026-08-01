@@ -1,7 +1,6 @@
 import SwiftUI
 import HomeUI
 import Product
-import SnackbarUI
 import WishlistUIDI
 import ProductActionsUIDI
 
@@ -16,7 +15,6 @@ public struct HomeUIDI {
     private let navigation: HomeNavigation
     private let browseCatalog: BrowseCatalogUseCase
     private let browseCategories: BrowseCategoriesUseCase
-    private let snackbar: SnackbarPresenting
     private let wishlistUIDI: WishlistUIDI
     private let productActionsUIDI: ProductActionsUIDI
 
@@ -24,14 +22,12 @@ public struct HomeUIDI {
         navigation: HomeNavigation,
         browseCatalog: BrowseCatalogUseCase,
         browseCategories: BrowseCategoriesUseCase,
-        snackbar: SnackbarPresenting,
         wishlistUIDI: WishlistUIDI,
         productActionsUIDI: ProductActionsUIDI
     ) {
         self.navigation = navigation
         self.browseCatalog = browseCatalog
         self.browseCategories = browseCategories
-        self.snackbar = snackbar
         self.wishlistUIDI = wishlistUIDI
         self.productActionsUIDI = productActionsUIDI
     }
@@ -42,8 +38,7 @@ public struct HomeUIDI {
             viewModel: HomeScreenViewModel(
                 browseCatalog: browseCatalog,
                 browseCategories: browseCategories,
-                navigation: navigation,
-                snackbar: snackbar
+                navigation: navigation
             ),
             wishlistButton: { id in AnyView(wishlistUIDI.button(productId: id)) },
             bagButton: { product in AnyView(productActionsUIDI.cardActionButton(product: product)) }
