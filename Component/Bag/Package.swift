@@ -58,6 +58,15 @@ let package = Package(
             path: "Sources/DI"
         ),
         .testTarget(
+            name: "BagUnitTests",
+            dependencies: [
+                "Bag",
+                .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money")
+            ],
+            path: "Tests/BagUnitTests"
+        ),
+        .testTarget(
             name: "BagAcceptanceTests",
             dependencies: [
                 "BagDI",

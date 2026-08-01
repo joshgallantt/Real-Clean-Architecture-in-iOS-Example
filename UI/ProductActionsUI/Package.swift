@@ -21,6 +21,7 @@ let package = Package(
         .package(path: "../../Component/Bag"),
         .package(path: "../../Component/StockAlert"),
         .package(path: "../../Component/Product"),
+        .package(path: "../../Library/Money"),
         .package(path: "../AuthUI"),
         .package(path: "../SnackbarUI")
     ],
@@ -64,6 +65,20 @@ let package = Package(
                 .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
             path: "Tests/ProductActionsUIAcceptanceTests"
+        ),
+        .testTarget(
+            name: "ProductActionsUIUnitTests",
+            dependencies: [
+                "ProductActionsUI",
+                .product(name: "Wishlist", package: "Wishlist"),
+                .product(name: "Bag", package: "Bag"),
+                .product(name: "StockAlert", package: "StockAlert"),
+                .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
+                .product(name: "AuthUI", package: "AuthUI"),
+                .product(name: "SnackbarUI", package: "SnackbarUI")
+            ],
+            path: "Tests/ProductActionsUIUnitTests"
         )
     ]
 )

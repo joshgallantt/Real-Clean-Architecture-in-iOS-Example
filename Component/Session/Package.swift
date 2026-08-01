@@ -44,6 +44,11 @@ let package = Package(
             path: "Sources/DI"
         ),
         .testTarget(
+            name: "SessionUnitTests",
+            dependencies: ["Session"],
+            path: "Tests/SessionUnitTests"
+        ),
+        .testTarget(
             name: "SessionAcceptanceTests",
             dependencies: ["SessionDI", "SessionData"],
             path: "Tests/SessionAcceptanceTests"
