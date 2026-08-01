@@ -19,7 +19,7 @@ struct OrderHistoryViewModelTests {
         let order = Order.fixture()
         let viewModel = OrderHistoryViewModel(observeOrders: StubObserveOrders(Orders([order])))
 
-        #expect(viewModel.orders == [order])
+        #expect(viewModel.orders == [OrderSummary(order)])
         #expect(viewModel.isEmpty == false)
     }
 

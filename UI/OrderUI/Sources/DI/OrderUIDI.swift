@@ -84,7 +84,7 @@ public struct OrderUIDI {
     private var confirm: (Order) -> Void {
         { order in
             sheetPresenter.present {
-                OrderConfirmationView(order: order) { sheetPresenter.dismiss() }
+                OrderConfirmationView(order: OrderSummary(order)) { sheetPresenter.dismiss() }
             }
         }
     }
