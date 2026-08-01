@@ -8,4 +8,5 @@ import Product
 /// one protocol per feature, so nothing depends on another feature's routes.
 public protocol HomeNavigation: AnyObject {
     func openProductDetails(product: Product)
+    func openCatalog(filter: CatalogFilter)
 }

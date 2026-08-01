@@ -1,42 +1,41 @@
 import SwiftUI
 import Product
-import Kingfisher
 
 public struct HomeScreenView: View {
     @ObservedObject var viewModel: HomeScreenViewModel
-    let navigation: HomeNavigation
+    let wishlistButton: (ProductID) -> AnyView
+    let bagButton: (Product) -> AnyView
 
-    public init(viewModel: HomeScreenViewModel, navigation: HomeNavigation) {
+    public init(
+        viewModel: HomeScreenViewModel,
+        wishlistButton: @escaping (ProductID) -> AnyView,
+        bagButton: @escaping (Product) -> AnyView
+    ) {
         self.viewModel = viewModel
-        self.navigation = navigation
+        self.wishlistButton = wishlistButton
+        self.bagButton = bagButton
     }
 
     public var body: some View {
-        List(viewModel.products) { product in
-            Button {
-                viewModel.didSelect(product)
-                navigation.openProductDetails(product: product)
-            } label: {
-                HStack {
-                    KFImage(URL(string: product.thumbnail))
-                        .resizable()
-                        .placeholder { ProgressView() }
-                        .aspectRatio(contentMode: .fit)
-                        .frame(width: 44, height: 44)
-
-                    VStack(alignment: .leading) {
-                        Text(product.title).font(.headline)
-                        Text(product.price.formatted())
-                            .font(.subheadline)
-                            .foregroundStyle(.secondary)
-                    }
+        ScrollView {
+            LazyVStack(alignment: .leading, spacing: 24) {
+                ForEach(viewModel.carousels) { carousel in
+                    HomeCarouselView(
+                        carousel: carousel,
+                        onSelect: { viewModel.didSelect($0) },
+                        onViewAll: { viewModel.didTapViewAll(for: carousel) },
+                        accessory: { product in wishlistButton(product.id) },
+                        leadingAccessory: { product in bagButton(product) }
+                    )
                 }
             }
-            .buttonStyle(.plain)
+            .padding(.vertical)
         }
         .overlay {
-            if viewModel.isLoading && viewModel.products.isEmpty {
+            if viewModel.isLoading && viewModel.carousels.isEmpty {
                 ProgressView()
+            } else if viewModel.isEmpty {
+                ContentUnavailableView("Nothing Here Yet", systemImage: "bag")
             }
         }
         .task {
