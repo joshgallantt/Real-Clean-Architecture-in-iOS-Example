@@ -47,6 +47,16 @@ let package = Package(
             path: "Sources/DI"
         ),
         .testTarget(
+            name: "HomeUIAcceptanceTests",
+            dependencies: [
+                "HomeUI",
+                .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
+                .product(name: "SnackbarUI", package: "SnackbarUI")
+            ],
+            path: "Tests/HomeUIAcceptanceTests"
+        ),
+        .testTarget(
             name: "HomeUIUnitTests",
             dependencies: [
                 "HomeUI",
