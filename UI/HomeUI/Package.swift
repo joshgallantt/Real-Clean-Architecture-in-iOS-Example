@@ -20,8 +20,10 @@ let package = Package(
     dependencies: [
         .package(path: "../../Component/Product"),
         .package(path: "../../Library/Money"),
+        .package(path: "../ProductUI"),
         .package(path: "../SnackbarUI"),
-        .package(url: "https://github.com/onevcat/Kingfisher.git", from: "8.0.0")
+        .package(path: "../WishlistUI"),
+        .package(path: "../ProductActionsUI")
     ],
     targets: [
         .target(
@@ -29,8 +31,8 @@ let package = Package(
             dependencies: [
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
-                .product(name: "SnackbarUI", package: "SnackbarUI"),
-                .product(name: "Kingfisher", package: "Kingfisher")
+                .product(name: "ProductUI", package: "ProductUI"),
+                .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
             path: "Sources",
             exclude: ["DI"],
@@ -42,7 +44,9 @@ let package = Package(
                 "HomeUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
-                .product(name: "SnackbarUI", package: "SnackbarUI")
+                .product(name: "SnackbarUI", package: "SnackbarUI"),
+                .product(name: "WishlistUIDI", package: "WishlistUI"),
+                .product(name: "ProductActionsUIDI", package: "ProductActionsUI")
             ],
             path: "Sources/DI"
         ),

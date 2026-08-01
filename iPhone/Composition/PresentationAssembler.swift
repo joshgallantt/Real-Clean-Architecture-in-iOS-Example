@@ -138,7 +138,10 @@ struct PresentationAssembler {
         home = HomeUIDI(
             navigation: navigator,
             browseCatalog: catalog.browseCatalog,
-            snackbar: snackbar.presenter
+            browseCategories: catalog.browseCategories,
+            snackbar: snackbar.presenter,
+            wishlistUIDI: wishlist,
+            productActionsUIDI: productActions
         )
         let search = SearchUIDI(
             navigation: navigator,
