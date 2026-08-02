@@ -18,7 +18,7 @@ struct TheScreenReactsToSessionChangesTests {
         #expect(shopper.sectionsShown == ["Notifications", "Bag"])
         #expect(shopper.isOn(.favoritesWaitlistSection) == nil)
 
-        shopper.signIn(settings: Settings(favoritesWaitlistSection: false))
+        shopper.signIn(settings: Settings([.favoritesWaitlistSection: false]))
 
         #expect(shopper.sectionsShown == ["Notifications", "Bag", "Favorites"])
         #expect(shopper.isOn(.favoritesWaitlistSection) == false)
@@ -28,11 +28,11 @@ struct TheScreenReactsToSessionChangesTests {
     // and the remaining rows switch to the guest's own settings.
     @Test("Signing out while the screen is open makes Favorites disappear immediately, and the rest switches to the guest's own settings")
     func signingOutHidesFavoritesImmediately() {
-        let shopper = Shopper(signedIn: true, settings: Settings(pushNotifications: true))
+        let shopper = Shopper(signedIn: true, settings: Settings([.pushNotifications: true]))
         shopper.opensScreen()
         #expect(shopper.sectionsShown == ["Notifications", "Bag", "Favorites"])
 
-        shopper.signOut(settings: Settings(pushNotifications: false))
+        shopper.signOut(settings: Settings([.pushNotifications: false]))
 
         #expect(shopper.sectionsShown == ["Notifications", "Bag"])
         #expect(shopper.isOn(.favoritesWaitlistSection) == nil)

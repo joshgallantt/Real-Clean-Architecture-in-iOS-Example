@@ -34,7 +34,7 @@ struct TheFavoritesSettingsBelongToSomebodyTests {
         shopper.signIn(asUserId: 42)
 
         #expect(await shopper.turn(.favoritesWaitlistSection, false).failure == nil)
-        #expect(shopper.settings.favoritesWaitlistSection == false)
+        #expect(shopper.settings.value(for: .favoritesWaitlistSection) == false)
     }
 
     // SettingsMenu-07: Signing back out refuses the favorites settings again — the rule follows the

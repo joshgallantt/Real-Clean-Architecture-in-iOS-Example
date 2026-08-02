@@ -40,7 +40,7 @@ struct OpeningSettingsTests {
     func rowsAreWordedAndCurrent() {
         let shopper = Shopper(
             signedIn: true,
-            settings: Settings(pushNotifications: true, bagPriceIncreases: false)
+            settings: Settings([.pushNotifications: true, .bagPriceIncreases: false])
         )
 
         shopper.opensScreen()

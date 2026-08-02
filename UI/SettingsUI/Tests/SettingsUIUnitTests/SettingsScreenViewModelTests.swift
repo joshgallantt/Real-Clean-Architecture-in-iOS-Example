@@ -84,7 +84,7 @@ struct SettingsScreenViewModelTests {
     @Test("Every row shows the value it was handed")
     func rowsShowTheValueTheyWereHanded() {
         let handed = Setting.offered(
-            from: Settings(pushNotifications: true, bagPriceIncreases: false),
+            from: Settings([.pushNotifications: true, .bagPriceIncreases: false]),
             signedIn: true
         )
         let viewModel = makeViewModel(showing: handed)

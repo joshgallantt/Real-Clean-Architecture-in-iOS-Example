@@ -13,10 +13,10 @@ struct WhatAShopperStartsWithTests {
     func guestDefaults() {
         let shopper = Shopper()
 
-        #expect(shopper.settings.pushNotifications == false)
-        #expect(shopper.settings.bagOutOfStockNotice == true)
-        #expect(shopper.settings.bagPriceIncreases == true)
-        #expect(shopper.settings.bagPriceDecreases == true)
+        #expect(shopper.settings.value(for: .pushNotifications) == false)
+        #expect(shopper.settings.value(for: .bagOutOfStockNotice) == true)
+        #expect(shopper.settings.value(for: .bagPriceIncreases) == true)
+        #expect(shopper.settings.value(for: .bagPriceDecreases) == true)
     }
 
     // SettingsMenu-02: A newly signed-in shopper's settings start at the same defaults, including
@@ -25,11 +25,11 @@ struct WhatAShopperStartsWithTests {
     func signedInDefaults() {
         let shopper = Shopper(signedInAs: 42)
 
-        #expect(shopper.settings.pushNotifications == false)
-        #expect(shopper.settings.bagOutOfStockNotice == true)
-        #expect(shopper.settings.bagPriceIncreases == true)
-        #expect(shopper.settings.bagPriceDecreases == true)
-        #expect(shopper.settings.favoritesWaitlistSection == true)
-        #expect(shopper.settings.favoritesBackInStockSection == true)
+        #expect(shopper.settings.value(for: .pushNotifications) == false)
+        #expect(shopper.settings.value(for: .bagOutOfStockNotice) == true)
+        #expect(shopper.settings.value(for: .bagPriceIncreases) == true)
+        #expect(shopper.settings.value(for: .bagPriceDecreases) == true)
+        #expect(shopper.settings.value(for: .favoritesWaitlistSection) == true)
+        #expect(shopper.settings.value(for: .favoritesBackInStockSection) == true)
     }
 }

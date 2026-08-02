@@ -19,7 +19,7 @@ struct ObserveOfferedSettingsUseCaseTests {
 
     @Test("A guest is published the settings they are offered, with the values they hold")
     func aGuestIsPublishedWhatTheyAreOffered() {
-        let settings = StubObserveSettings(Settings(pushNotifications: true))
+        let settings = StubObserveSettings(Settings([.pushNotifications: true]))
         let recorder = Recorder(makeUseCase(settings: settings, session: StubObserveSession())())
 
         #expect(recorder.latest.map(\.key) == [
@@ -45,7 +45,7 @@ struct ObserveOfferedSettingsUseCaseTests {
         let settings = StubObserveSettings()
         let recorder = Recorder(makeUseCase(settings: settings, session: StubObserveSession())())
 
-        settings.send(Settings(pushNotifications: true))
+        settings.send(Settings([.pushNotifications: true]))
 
         #expect(recorder.published.count == 2)
         #expect(recorder.latest.first { $0.key == .pushNotifications }?.isOn == true)

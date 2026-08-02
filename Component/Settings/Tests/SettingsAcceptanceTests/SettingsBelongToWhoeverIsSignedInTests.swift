@@ -33,10 +33,10 @@ struct SettingsBelongToWhoeverIsSignedInTests {
         await shopper.turn(.pushNotifications, true)
 
         shopper.signIn(asUserId: 2)
-        #expect(shopper.settings.pushNotifications == false)
+        #expect(shopper.settings.value(for: .pushNotifications) == false)
 
         shopper.signIn(asUserId: 1)
-        #expect(shopper.settings.pushNotifications == true)
+        #expect(shopper.settings.value(for: .pushNotifications) == true)
     }
 
     // SettingsMenu-10: Signing in and back out again does not carry settings between the guest and
@@ -47,12 +47,12 @@ struct SettingsBelongToWhoeverIsSignedInTests {
         await shopper.turn(.pushNotifications, true)
 
         shopper.signIn(asUserId: 42)
-        #expect(shopper.settings.pushNotifications == false)
+        #expect(shopper.settings.value(for: .pushNotifications) == false)
 
         await shopper.turn(.bagPriceIncreases, false)
         shopper.signOut()
 
-        #expect(shopper.settings.pushNotifications == true)
-        #expect(shopper.settings.bagPriceIncreases == true)
+        #expect(shopper.settings.value(for: .pushNotifications) == true)
+        #expect(shopper.settings.value(for: .bagPriceIncreases) == true)
     }
 }
