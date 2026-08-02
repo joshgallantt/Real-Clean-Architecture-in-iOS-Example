@@ -37,6 +37,9 @@
 		FADE010200000000000000A1 /* OrderData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010200000000000000A2 /* OrderData */; };
 		FADE010300000000000000A1 /* OrderUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010300000000000000A2 /* OrderUIDI */; };
 		FADE011100000000000000A1 /* HomeDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE011100000000000000A2 /* HomeDI */; };
+		745F0BE8EEEA50B543B999D2 /* SettingsData in Frameworks */ = {isa = PBXBuildFile; productRef = C500C19B9FBAC79597612384 /* SettingsData */; };
+		4E26A71E805B07E3A3FDB2B7 /* SettingsDI in Frameworks */ = {isa = PBXBuildFile; productRef = C68D82F55C1C2508109B344C /* SettingsDI */; };
+		345D3EFC6271AB3E4F68AC5E /* SettingsUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 15C9A5888A5B8EE7D759C93E /* SettingsUIDI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -101,6 +104,9 @@
 				FADE001000000000000000A1 /* BagDI in Frameworks */,
 				FADE001100000000000000A1 /* ProductActionsUIDI in Frameworks */,
 				FADE011100000000000000A1 /* HomeDI in Frameworks */,
+				745F0BE8EEEA50B543B999D2 /* SettingsData in Frameworks */,
+				4E26A71E805B07E3A3FDB2B7 /* SettingsDI in Frameworks */,
+				345D3EFC6271AB3E4F68AC5E /* SettingsUIDI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -176,6 +182,9 @@
 				FADE001000000000000000A2 /* BagDI */,
 				FADE001100000000000000A2 /* ProductActionsUIDI */,
 				FADE011100000000000000A2 /* HomeDI */,
+				C500C19B9FBAC79597612384 /* SettingsData */,
+				C68D82F55C1C2508109B344C /* SettingsDI */,
+				15C9A5888A5B8EE7D759C93E /* SettingsUIDI */,
 			);
 			productName = iPhone;
 			productReference = 1418DD6E2E3E53DC00191417 /* iPhone.app */;
@@ -543,6 +552,14 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Component/Home;
 		};
+		37B2D02CCECD59EFFCBACC68 /* XCLocalSwiftPackageReference "Component/Settings" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/Settings;
+		};
+		64A1277599C7DE0F41808B36 /* XCLocalSwiftPackageReference "UI/SettingsUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/SettingsUI;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -695,6 +712,21 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FADE011100000000000000B1 /* XCLocalSwiftPackageReference "Component/Home" */;
 			productName = HomeDI;
+		};
+		C500C19B9FBAC79597612384 /* SettingsData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 37B2D02CCECD59EFFCBACC68 /* XCLocalSwiftPackageReference "Component/Settings" */;
+			productName = SettingsData;
+		};
+		C68D82F55C1C2508109B344C /* SettingsDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 37B2D02CCECD59EFFCBACC68 /* XCLocalSwiftPackageReference "Component/Settings" */;
+			productName = SettingsDI;
+		};
+		15C9A5888A5B8EE7D759C93E /* SettingsUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 64A1277599C7DE0F41808B36 /* XCLocalSwiftPackageReference "UI/SettingsUI" */;
+			productName = SettingsUIDI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

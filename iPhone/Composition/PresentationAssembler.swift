@@ -15,6 +15,8 @@ import OnboardingUIDI
 import ProductUIDI
 import SearchUIDI
 import ProductActionsUIDI
+import SettingsDI
+import SettingsUIDI
 import SheetUIDI
 import SnackbarUIDI
 import WishlistUIDI
@@ -44,6 +46,7 @@ struct PresentationAssembler {
     let wishlist: WishlistUIDI
     let bag: BagUIDI
     let order: OrderUIDI
+    let settings: SettingsUIDI
     let account: AccountUIDI
 
     /// Built once at startup. If `TabScreen` called `mainView()` on each render, SwiftUI would
@@ -155,6 +158,12 @@ struct PresentationAssembler {
         )
         self.search = search
 
+        let settings = SettingsUIDI(
+            observeOfferedSettings: domain.settings.observeOfferedSettingsUseCase,
+            setSetting: domain.settings.setSettingUseCase
+        )
+        self.settings = settings
+
         let account = AccountUIDI(
             getSession: session.getSessionUseCase,
             observeSession: session.observeSessionUseCase,
@@ -165,6 +174,11 @@ struct PresentationAssembler {
             ordersRow: AnyView(
                 NavigationLink(value: Destination.orderHistory) {
                     Label("Your Orders", systemImage: "shippingbox")
+                }
+            ),
+            settingsRow: AnyView(
+                NavigationLink(value: Destination.settings) {
+                    Label("Settings", systemImage: "gearshape")
                 }
             )
         )

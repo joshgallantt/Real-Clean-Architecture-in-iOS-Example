@@ -8,15 +8,18 @@ public struct AccountScreenView: View {
     /// goes somewhere this package cannot name, arriving already built the way `loginButton` does.
     /// `AccountUI` never learns there is an order domain or what the route to it is called.
     private let ordersRow: AnyView
+    private let settingsRow: AnyView
 
     public init(
         viewModel: AccountScreenViewModel,
         loginButton: AnyView,
-        ordersRow: AnyView
+        ordersRow: AnyView,
+        settingsRow: AnyView
     ) {
         self.viewModel = viewModel
         self.loginButton = loginButton
         self.ordersRow = ordersRow
+        self.settingsRow = settingsRow
     }
 
     public var body: some View {
@@ -37,6 +40,10 @@ public struct AccountScreenView: View {
 
             Section("Orders") {
                 ordersRow
+            }
+
+            Section("Settings") {
+                settingsRow
             }
         }
         .onAppear {
