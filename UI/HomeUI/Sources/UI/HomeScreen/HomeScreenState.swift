@@ -1,3 +1,5 @@
+import Home
+
 /// Evans, *Domain-Driven Design* (2003), Ch. 9 — Making Implicit Concepts Explicit: what Home is
 /// showing, as one fact with three cases rather than three properties a reader has to combine.
 ///

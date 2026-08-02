@@ -1,5 +1,6 @@
 import Foundation
 import BagDI
+import HomeDI
 import OrderDI
 import SearchHistoryDI
 import SessionDI
@@ -7,8 +8,9 @@ import StockAlertDI
 import WishlistDI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the second phase. Each
-/// component container is handed the data sources it cannot invent and hands back use case
-/// protocols; the repositories never escape their packages.
+/// component container is handed the data sources it cannot invent — or, where it owns no storage,
+/// the use cases it composes — and hands back use case protocols; the repositories never escape
+/// their packages.
 ///
 /// Fowler, *Inversion of Control Containers and the Dependency Injection Pattern* (2004) —
 /// Dependency Injection: every collaborator arrives through an initialiser. Nothing here looks
@@ -21,6 +23,7 @@ import WishlistDI
 struct DomainAssembler {
     let session: SessionDI
     let catalog: Catalog
+    let home: HomeDI
     let searchHistory: SearchHistoryDI
     let wishlist: WishlistDI
     let bag: BagDI
@@ -29,6 +32,13 @@ struct DomainAssembler {
 
     init(data: DataAssembler, catalog: Catalog) {
         self.catalog = catalog
+
+        /// The one component here with no store of its own: Home derives a feed from the catalog
+        /// rather than keeping one, so it is built from use cases alone.
+        home = HomeDI(
+            browseCatalog: catalog.browseCatalog,
+            browseCategories: catalog.browseCategories
+        )
 
         let session = SessionDI(
             sessionStore: data.sessionStore,

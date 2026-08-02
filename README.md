@@ -75,7 +75,8 @@ Each module in this project has a single axis of change. A new screen design tou
 │   ├── Wishlist/               # Per-user wishlist, gated on authentication
 │   ├── Bag/                    # Per-shopper bag, and the notices the shop leaves on it
 │   ├── Order/                  # What a shopper bought, for how much, and when
-│   └── StockAlert/             # Who asked to be told when something is back
+│   ├── StockAlert/             # Who asked to be told when something is back
+│   └── Home/                   # What the Home feed draws — Domain only, it stores nothing
 ├── UI/                         # Presentation packages
 │   ├── HomeUI/                 # Home tab
 │   ├── SearchUI/               # Search tab: categories, suggestions, results
@@ -275,6 +276,32 @@ public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
 ```
 
 `.unauthenticated` is a domain outcome. The UI's job is to *react* to it — see [Authentication as a Domain Outcome](#authentication-as-a-domain-outcome) — not to predict it. A new caller of this use case cannot forget the rule, because it is not their rule to remember.
+
+**A component that is only composition.** `Home` takes this to its limit: its one use case draws the feed by calling two of `Product`'s — list the shop's categories, list a category's products — and decides which categories earn a carousel and how many. It has no repository, no store and no `Sources/Data` target at all, because a feed is derived on every draw rather than kept. A component is a reason to change, not a folder layout. What Home owns is a rule, and the rule has to live somewhere no screen can quietly bend it.
+
+**[`Component/Home/Sources/Domain/UseCases/DrawHomeFeedUseCase.swift`](Component/Home/Sources/Domain/UseCases/DrawHomeFeedUseCase.swift)**
+```swift
+public struct DefaultDrawHomeFeedUseCase: DrawHomeFeedUseCase {
+    private let browseCatalog: BrowseCatalogUseCase
+    private let browseCategories: BrowseCategoriesUseCase
+
+    public func callAsFunction() async -> Result<HomeFeed, HomeError> {
+        guard case .success(let categories) = await browseCategories(), !categories.isEmpty else {
+            return .failure(.unavailable)
+        }
+        var carousels: [HomeCarousel] = []
+        for category in categories.shuffled() {
+            guard carousels.count < maxCarousels else { break }
+            guard let products = await qualifyingProducts(for: category) else { continue }
+            carousels.append(HomeCarousel(category: category, products: products))
+        }
+        guard let feed = HomeFeed(carousels: carousels) else { return .failure(.unavailable) }
+        return .success(feed)
+    }
+}
+```
+
+`HomeFeed`'s initialiser is failable and refuses an empty list, so "the shop had nothing worth drawing" cannot be mistaken for a feed a screen should render. `HomeScreenViewModel` is left holding three states and four delegating methods.
 
 ### Repository Contracts
 
@@ -500,9 +527,7 @@ Each feature module exposes a DI container that constructs its view hierarchy. T
 ```swift
 public struct HomeUIDI {
     private let navigation: HomeNavigation
-    private let browseCatalog: BrowseCatalogUseCase
-    private let browseCategories: BrowseCategoriesUseCase
-    private let snackbar: SnackbarPresenting
+    private let drawHomeFeed: DrawHomeFeedUseCase
     private let wishlistUIDI: WishlistUIDI
     private let productActionsUIDI: ProductActionsUIDI
 
@@ -511,7 +536,7 @@ public struct HomeUIDI {
 }
 ```
 
-**Why individual use cases, not the whole `ProductDI` container?** This is the Interface Segregation Principle applied to dependency injection. The Home feed needs exactly two of `Product`'s capabilities: listing the shop's categories, and listing the products in one. Injecting the full `ProductDI` would hand it `viewProductUseCase` and `lookUpProductsUseCase` as well, dependencies it never calls. Fowler warns against this shape under the name Service Locator: injecting a container that *can* resolve anything, rather than the collaborator actually needed, blurs the boundary the layering is meant to enforce. Only the composition root holds whole component containers.
+**Why individual use cases, not the whole `ProductDI` container?** This is the Interface Segregation Principle applied to dependency injection. `HomeUIDI` needs exactly one capability — draw the feed — so one is what it is handed. `HomeDI`, a layer further in, needs exactly two of `Product`'s: listing the shop's categories, and listing the products in one. Injecting the full `ProductDI` at either point would hand over `viewProductUseCase` and `lookUpProductsUseCase` as well, dependencies neither calls. Fowler warns against this shape under the name Service Locator: injecting a container that *can* resolve anything, rather than the collaborator actually needed, blurs the boundary the layering is meant to enforce. Only the composition root holds whole component containers.
 
 The exception is one UI container injecting another — `HomeUIDI` takes `WishlistUIDI` and `ProductActionsUIDI` so a card in a carousel can carry a heart and a bag button, and `SearchUIDI` takes the same pair for the same reason. That is a view-construction dependency between peers, not a reach into a component's domain wiring. Note where it stops: the peer containers reach `HomeUIDI`, not `HomeUI`. The screen itself is handed two closures, `(ProductID) -> AnyView` and `(Product) -> AnyView`, and never learns that a wishlist exists.
 
@@ -944,7 +969,7 @@ That is not a stylistic preference. The first thing this rewrite found was that 
 
 **Why does this matter?** Tests that require a simulator run slowly and fail for infrastructure reasons unrelated to the logic being tested. Tests that depend on a real network are non-deterministic. Protocol-based design means a whole feature can be assembled and driven in-process, deterministically, in milliseconds. No third-party mocking libraries are needed — a conforming struct is sufficient.
 
-The UI packages other than `BagUI`, `OrderUI`, `ProductActionsUI` and `WishlistUI` are not yet covered — the seams are in place, the tests are not.
+The UI packages other than `BagUI`, `HomeUI`, `OrderUI`, `ProductActionsUI` and `WishlistUI` are not yet covered — the seams are in place, the tests are not.
 
 ---
 
@@ -963,6 +988,7 @@ iPhone (App)
 │                ◀──  BagData  ──▶  Session
 ├── OrderDI      ──▶  Order    ──▶  Product, Money, Session
 │                ◀──  OrderData
+├── HomeDI       ──▶  Home     ──▶  Product
 ├── SheetUIDI    ──▶  SheetUI
 ├── SnackbarUIDI ──▶  SnackbarUI
 ├── AuthUIDI     ──▶  AuthUI, Session, SheetUI
@@ -970,7 +996,7 @@ iPhone (App)
 │                                              SnackbarUI, AuthUI
 ├── ProductUIDI  ──▶  ProductUI   ──▶  Product
 │                ──▶  ProductActionsUIDI
-├── HomeUIDI     ──▶  HomeUI      ──▶  Product, Money, ProductUI, SnackbarUI
+├── HomeUIDI     ──▶  HomeUI      ──▶  Home, Product, Money, ProductUI
 │                ──▶  WishlistUIDI, ProductActionsUIDI
 ├── SearchUIDI   ──▶  SearchUI    ──▶  Product, Money, SearchHistory, ProductUI, SnackbarUI
 │                ──▶  WishlistUIDI, BagUIDI
