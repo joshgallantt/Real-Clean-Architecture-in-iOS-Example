@@ -4,6 +4,7 @@ import HomeDI
 import OrderDI
 import SearchHistoryDI
 import SessionDI
+import SettingsDI
 import StockAlertDI
 import WishlistDI
 
@@ -27,6 +28,7 @@ struct DomainAssembler {
     let searchHistory: SearchHistoryDI
     let wishlist: WishlistDI
     let bag: BagDI
+    let settings: SettingsDI
     let stockAlerts: StockAlertDI
     let orders: OrderDI
 
@@ -61,6 +63,11 @@ struct DomainAssembler {
             observeSession: session.observeSessionUseCase,
             lookUpProducts: catalog.lookUpProducts,
             store: data.bagStore
+        )
+        settings = SettingsDI(
+            getSession: session.getSessionUseCase,
+            observeSession: session.observeSessionUseCase,
+            store: data.settingsStore
         )
         stockAlerts = StockAlertDI(
             getSession: session.getSessionUseCase,

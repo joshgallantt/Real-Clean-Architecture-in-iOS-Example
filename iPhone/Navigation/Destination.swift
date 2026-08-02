@@ -10,6 +10,7 @@ import BagUI
 import OrderUIDI
 import ProductActionsUI
 import ProductUIDI
+import SettingsUIDI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: every route in one place, in
 /// the only layer that may know all the features. It also declares navigation policy — which
@@ -21,6 +22,7 @@ public enum Destination: Hashable {
     case allFaves
     case allWaitlist
     case allBackInStock
+    case settings
 
     public enum ProductReference: Hashable {
         case id(ProductID)
@@ -29,7 +31,9 @@ public enum Destination: Hashable {
 
     var requiresAuthentication: Bool {
         switch self {
-        case .catalog, .productDetails:
+        /// A guest has real settings of their own — see `Component/Settings` — so there is nothing
+        /// to gate here, unlike `orderHistory` and the two saved lists below.
+        case .catalog, .productDetails, .settings:
             return false
         /// Everything a shopper keeps. Orders, faves and the things they are waiting on all belong
         /// to somebody, so there is nothing to show a guest — and the prompt happens here, where
@@ -56,6 +60,8 @@ public enum Destination: Hashable {
             CompositionRoot.shared.presentation.wishlist.allWaitlistView()
         case .allBackInStock:
             CompositionRoot.shared.presentation.wishlist.allBackInStockView()
+        case .settings:
+            CompositionRoot.shared.presentation.settings.mainView()
         }
     }
 }

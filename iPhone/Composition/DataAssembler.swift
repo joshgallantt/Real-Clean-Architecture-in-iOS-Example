@@ -4,6 +4,7 @@ import SearchHistoryData
 import SessionData
 import Order
 import OrderData
+import SettingsData
 import StockAlertData
 import WishlistData
 
@@ -24,6 +25,7 @@ struct DataAssembler {
     let searchHistoryStore: SearchHistoryStore
     let wishlistStore: WishlistStore
     let bagStore: BagStore
+    let settingsStore: SettingsStore
     let stockAlertStore: StockAlertStore
     let orderStore: OrderStore
 
@@ -43,6 +45,7 @@ struct DataAssembler {
         searchHistoryStore = UserDefaultsSearchHistoryStore(defaults: defaults)
         wishlistStore = FileWishlistStore()
         bagStore = FileBagStore()
+        settingsStore = FileSettingsStore()
         stockAlertStore = FileStockAlertStore()
         orderStore = FileOrderStore()
         paymentClient = FakePaymentClient()
