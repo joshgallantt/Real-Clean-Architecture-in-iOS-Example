@@ -1,46 +1,25 @@
 import Foundation
 import Money
 import Product
-import Home
-@testable import HomeUI
+@testable import Home
 
-@MainActor
-final class StubDrawHomeFeed: DrawHomeFeedUseCase, @unchecked Sendable {
-    var result: Result<HomeFeed, HomeError> = .failure(.unavailable)
-    private(set) var callCount = 0
+final class StubBrowseCatalog: BrowseCatalogUseCase, @unchecked Sendable {
+    var resultsByCategory: [CategoryID: Result<[Product], ProductError>] = [:]
+    private(set) var queries: [CatalogQuery] = []
 
-    func callAsFunction() async -> Result<HomeFeed, HomeError> {
-        callCount += 1
-        return result
+    func callAsFunction(matching query: CatalogQuery) async -> Result<[Product], ProductError> {
+        queries.append(query)
+        guard case .category(let category) = query.filter else { return .success([]) }
+        return resultsByCategory[category.id] ?? .success([])
     }
 }
 
-@MainActor
-final class StubNavigation: HomeNavigation {
-    private(set) var openedProducts: [ProductID] = []
-    private(set) var openedCatalogs: [CatalogFilter] = []
+final class StubBrowseCategories: BrowseCategoriesUseCase, @unchecked Sendable {
+    var result: Result<[ProductCategory], ProductError> = .success([])
 
-    nonisolated func openProductDetails(product: Product) {
-        MainActor.assumeIsolated { openedProducts.append(product.id) }
+    func callAsFunction() async -> Result<[ProductCategory], ProductError> {
+        result
     }
-
-    nonisolated func openCatalog(filter: CatalogFilter) {
-        MainActor.assumeIsolated { openedCatalogs.append(filter) }
-    }
-}
-
-/// The carousels a loaded Home drew, or none at all. A unit test may name the state it expects
-/// directly; this is only so the ones about *what was drawn* do not have to unwrap it each time.
-extension HomeScreenState {
-    var carousels: [HomeCarousel] {
-        guard case .loaded(let feed) = self else { return [] }
-        return feed.carousels
-    }
-}
-
-@MainActor
-func settle() async {
-    for _ in 0..<200 { await Task.yield() }
 }
 
 // MARK: - Fixtures
@@ -83,4 +62,9 @@ extension Product {
 extension ProductCategory {
     static let beauty = ProductCategory(id: CategoryID(rawValue: "beauty"), name: "Beauty")
     static let fragrances = ProductCategory(id: CategoryID(rawValue: "fragrances"), name: "Fragrances")
+    static let furniture = ProductCategory(id: CategoryID(rawValue: "furniture"), name: "Furniture")
+    static let kitchen = ProductCategory(id: CategoryID(rawValue: "kitchen"), name: "Kitchen")
+    static let sports = ProductCategory(id: CategoryID(rawValue: "sports"), name: "Sports")
+    static let toys = ProductCategory(id: CategoryID(rawValue: "toys"), name: "Toys")
+    static let books = ProductCategory(id: CategoryID(rawValue: "books"), name: "Books")
 }

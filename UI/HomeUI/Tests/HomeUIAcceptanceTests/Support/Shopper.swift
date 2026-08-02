@@ -1,36 +1,38 @@
 import Foundation
 import Money
 import Product
+import Home
 @testable import HomeUI
 
 @MainActor
-/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the testing API. A test says what
-/// a shopper saw and tapped, never which type stored it or how it shaped that state.
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the testing API. A test says
+/// what a shopper saw and tapped, never which type drew it or how.
 ///
-/// Only one thing is genuinely faked — `Shop`, standing in for `ProductRepository`. Everything
-/// between it and the screen is real: `DefaultBrowseCatalogUseCase`, `DefaultBrowseCategoriesUseCase`
-/// and `HomeScreenViewModel` itself.
+/// Only one thing is genuinely faked — `StubDrawHomeFeed`, standing in for `DrawHomeFeedUseCase`.
+/// Everything between it and the screen is real: `HomeScreenViewModel` itself.
 final class Shopper {
-    let shop = Shop()
+    private let drawHomeFeed = StubDrawHomeFeed()
     let navigation = StubNavigation()
 
     private var home: HomeScreenViewModel?
+    private var carousels: [HomeCarousel] = []
 
     // MARK: - What the shop sells
 
     func sells(_ category: ProductCategory, _ products: [Product]) {
-        shop.sell(category, products)
+        carousels.append(HomeCarousel(category: category, products: products))
+        drawHomeFeed.result = .success(HomeFeed(carousels: carousels)!)
+    }
+
+    func theShopCannotDrawAFeed() {
+        drawHomeFeed.result = .failure(.unavailable)
     }
 
     // MARK: - What a shopper does
 
     @discardableResult
     func opensHome() async -> Shopper {
-        let viewModel = home ?? HomeScreenViewModel(
-            browseCatalog: DefaultBrowseCatalogUseCase(productRepository: shop),
-            browseCategories: DefaultBrowseCategoriesUseCase(productRepository: shop),
-            navigation: navigation
-        )
+        let viewModel = home ?? HomeScreenViewModel(drawHomeFeed: drawHomeFeed, navigation: navigation)
         home = viewModel
         await viewModel.onAppear()
         return self
@@ -60,73 +62,25 @@ final class Shopper {
         return feed.carousels
     }
 
-    /// Home has nothing to show and says so, with a way to try again. A shop that cannot be reached
-    /// and a shop with nothing worth drawing both land here.
+    /// Home has nothing to show and says so, with a way to try again.
     var isOfferedAnotherGo: Bool {
         guard let home else { return false }
         if case .error = home.state { return true }
         return false
     }
+
+    var drawAttempts: Int { drawHomeFeed.callCount }
 }
 
 // MARK: - The one thing faked
 
-/// Fowler, *PoEAA* (2002), Ch. 13 — Repository: a working double a shopper's shop, not a store of
-/// canned answers per call. Categories and products are added the way a shop stocks a shelf, and the
-/// real use cases read them back.
-final class Shop: ProductRepository, @unchecked Sendable {
-    private let lock = NSLock()
-    private var _categories: [ProductCategory] = []
-    private var _productsByCategory: [CategoryID: [Product]] = [:]
-    private var _cannotBeReached = false
-    private var _unreachableCategories: Set<CategoryID> = []
-    private var _categoriesAskedCount = 0
-    private var _categoryProductRequests: [CategoryID] = []
+final class StubDrawHomeFeed: DrawHomeFeedUseCase, @unchecked Sendable {
+    var result: Result<HomeFeed, HomeError> = .failure(.unavailable)
+    private(set) var callCount = 0
 
-    // MARK: - Test control
-
-    var cannotBeReached: Bool {
-        get { lock.withLock { _cannotBeReached } }
-        set { lock.withLock { _cannotBeReached = newValue } }
-    }
-
-    func makeUnreachable(_ categoryId: CategoryID) {
-        lock.withLock { _ = _unreachableCategories.insert(categoryId) }
-    }
-
-    var categoriesAskedCount: Int { lock.withLock { _categoriesAskedCount } }
-    var categoryProductRequests: [CategoryID] { lock.withLock { _categoryProductRequests } }
-
-    func sell(_ category: ProductCategory, _ products: [Product]) {
-        lock.withLock {
-            if !_categories.contains(category) { _categories.append(category) }
-            _productsByCategory[category.id] = products
-        }
-    }
-
-    // MARK: - ProductRepository
-
-    func getCategories() async -> Result<[ProductCategory], ProductError> {
-        lock.withLock { _categoriesAskedCount += 1 }
-        if cannotBeReached { return .failure(.unavailable) }
-        return .success(lock.withLock { _categories })
-    }
-
-    func getProducts(matching query: CatalogQuery) async -> Result<[Product], ProductError> {
-        guard case .category(let category) = query.filter else { return .success([]) }
-        lock.withLock { _categoryProductRequests.append(category.id) }
-        if cannotBeReached { return .failure(.unavailable) }
-        if lock.withLock({ _unreachableCategories.contains(category.id) }) { return .failure(.unavailable) }
-        let all = lock.withLock { _productsByCategory[category.id] ?? [] }
-        return .success(Array(all.prefix(query.pageSize)))
-    }
-
-    func getProducts(ids: [ProductID]) async -> Result<[Product], ProductError> {
-        .success([])
-    }
-
-    func getProduct(id: ProductID) async -> Result<Product, ProductError> {
-        .failure(.notFound)
+    func callAsFunction() async -> Result<HomeFeed, HomeError> {
+        callCount += 1
+        return result
     }
 }
 
@@ -192,6 +146,4 @@ extension ProductCategory {
     static let beauty = ProductCategory(id: CategoryID(rawValue: "beauty"), name: "Beauty")
     static let fragrances = ProductCategory(id: CategoryID(rawValue: "fragrances"), name: "Fragrances")
     static let furniture = ProductCategory(id: CategoryID(rawValue: "furniture"), name: "Furniture")
-    static let kitchen = ProductCategory(id: CategoryID(rawValue: "kitchen"), name: "Kitchen")
-    static let sports = ProductCategory(id: CategoryID(rawValue: "sports"), name: "Sports")
 }

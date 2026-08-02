@@ -1,5 +1,6 @@
 import Combine
 import Foundation
+import Home
 import Product
 
 @MainActor
@@ -7,26 +8,17 @@ import Product
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
 ///
-/// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
-/// a container that could resolve anything.
+/// Martin, Ch. 10 — Interface Segregation Principle: it is injected the one capability it calls.
+/// What a category needs to earn a carousel, and how many carousels Home draws, are
+/// `DrawHomeFeedUseCase`'s business, not this screen's.
 public final class HomeScreenViewModel: ObservableObject {
     @Published private(set) var state: HomeScreenState = .loading
 
-    private let browseCatalog: BrowseCatalogUseCase
-    private let browseCategories: BrowseCategoriesUseCase
+    private let drawHomeFeed: DrawHomeFeedUseCase
     private let navigation: HomeNavigation
 
-    private let maxCarousels = 3
-    private let carouselFloor = 5
-    private let carouselCap = 10
-
-    public init(
-        browseCatalog: BrowseCatalogUseCase,
-        browseCategories: BrowseCategoriesUseCase,
-        navigation: HomeNavigation
-    ) {
-        self.browseCatalog = browseCatalog
-        self.browseCategories = browseCategories
+    public init(drawHomeFeed: DrawHomeFeedUseCase, navigation: HomeNavigation) {
+        self.drawHomeFeed = drawHomeFeed
         self.navigation = navigation
     }
 
@@ -39,41 +31,15 @@ public final class HomeScreenViewModel: ObservableObject {
         Task { await load() }
     }
 
-    /// Evans, Ch. 10 — Supple Design, Side-Effect-Free Functions: "keep the commands and queries
-    /// strictly segregated in different operations." Asking the shop is a query answering with a
-    /// `HomeScreenState`; `load()` is the one command that moves what a shopper sees.
     private func load() async {
         state = .loading
 
-        state = await drawFeed()
-    }
-
-    private func drawFeed() async -> HomeScreenState {
-        switch await browseCategories() {
+        switch await drawHomeFeed() {
+        case .success(let feed):
+            state = .loaded(feed)
         case .failure:
-            return .error
-        case .success(let categories):
-            return await drawCarousels(for: Array(categories.shuffled().prefix(maxCarousels)))
+            state = .error
         }
-    }
-
-    /// A category that fails is simply absent, the same as one that never earned a carousel — so
-    /// the shop being unreachable needs no counting of its own: nothing drawn is `.error`.
-    private func drawCarousels(for categories: [ProductCategory]) async -> HomeScreenState {
-        var drawn: [HomeCarousel] = []
-
-        for category in categories {
-            let query = CatalogQuery(filter: .category(category), page: 0, pageSize: carouselCap)
-            if case .success(let products) = await browseCatalog(matching: query) {
-                let shown = Array(products.prefix(carouselCap))
-                if shown.count >= carouselFloor {
-                    drawn.append(HomeCarousel(category: category, products: shown))
-                }
-            }
-        }
-
-        guard let feed = HomeFeed(carousels: drawn) else { return .error }
-        return .loaded(feed)
     }
 
     func didSelect(_ product: Product) {

@@ -5,6 +5,7 @@ import Product
 
 @MainActor
 @Suite("What a shopper can do from a carousel")
+/// A card on Home is the same card as anywhere else in the shop, and leads to the same place.
 struct WhatAShopperCanDoTests {
     // HomeFeedCarousels-16: Tapping a product in a carousel opens its details, the same as tapping
     // it anywhere else in the shop.
@@ -18,18 +19,5 @@ struct WhatAShopperCanDoTests {
         shopper.selects(product)
 
         #expect(shopper.navigation.openedProducts == [product.id])
-    }
-
-    // HomeFeedCarousels-17: Reaching the end of a carousel does not fetch more for that category —
-    // a carousel holds at most 10 and stops there; seeing more is what View All is for.
-    @Test("Reaching the end of a carousel does not fetch more for that category")
-    func noFurtherPagingWithinACarousel() async {
-        let shopper = Shopper()
-        shopper.sells(.beauty, products(1...20, category: "beauty"))
-
-        await shopper.opensHome()
-
-        #expect(shopper.carouselsShown.first?.products.count == 10)
-        #expect(shopper.shop.categoryProductRequests.filter { $0 == CategoryID(rawValue: "beauty") }.count == 1)
     }
 }

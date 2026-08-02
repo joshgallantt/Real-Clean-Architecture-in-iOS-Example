@@ -1,5 +1,6 @@
 import SwiftUI
 import BagDI
+import HomeDI
 import OrderDI
 import SearchHistoryDI
 import SessionDI
@@ -137,8 +138,7 @@ struct PresentationAssembler {
         )
         home = HomeUIDI(
             navigation: navigator,
-            browseCatalog: catalog.browseCatalog,
-            browseCategories: catalog.browseCategories,
+            drawHomeFeed: domain.home.drawHomeFeedUseCase,
             wishlistUIDI: wishlist,
             productActionsUIDI: productActions
         )

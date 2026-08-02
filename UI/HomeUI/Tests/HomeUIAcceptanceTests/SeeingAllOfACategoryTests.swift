@@ -24,17 +24,21 @@ struct SeeingAllOfACategoryTests {
         #expect(shopper.navigation.openedCatalogs == [.category(.fragrances)])
     }
 
-    // HomeFeedCarousels-14: Every carousel offers a View All button, whether or not the category
-    // has more products than the carousel showed.
-    @Test("Every carousel offers a View All button that leads to its own category")
+    // HomeFeedCarousels-14: Every carousel shown offers its own working View All button — not
+    // only the first one, and not only the one a shopper happens to tap.
+    @Test("Every carousel shown offers its own working View All button")
     func everyCarouselOffersViewAll() async {
         let shopper = Shopper()
         shopper.sells(.beauty, products(1...5, category: "beauty"))
+        shopper.sells(.fragrances, products(101...105, category: "fragrances"))
+        shopper.sells(.furniture, products(201...206, category: "furniture"))
         await shopper.opensHome()
 
-        shopper.tapsViewAll(for: .beauty)
+        for category in [ProductCategory.beauty, .fragrances, .furniture] {
+            shopper.tapsViewAll(for: category)
+        }
 
-        #expect(shopper.navigation.openedCatalogs == [.category(.beauty)])
+        #expect(shopper.navigation.openedCatalogs == [.category(.beauty), .category(.fragrances), .category(.furniture)])
     }
 
     // HomeFeedCarousels-15: Tapping View All does not change what Home itself is showing, so

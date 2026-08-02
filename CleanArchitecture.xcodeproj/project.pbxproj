@@ -36,6 +36,7 @@
 		FADE010100000000000000A1 /* OrderDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010100000000000000A2 /* OrderDI */; };
 		FADE010200000000000000A1 /* OrderData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010200000000000000A2 /* OrderData */; };
 		FADE010300000000000000A1 /* OrderUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010300000000000000A2 /* OrderUIDI */; };
+		FADE011100000000000000A1 /* HomeDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE011100000000000000A2 /* HomeDI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -99,6 +100,7 @@
 				FADE000900000000000000A1 /* SheetUI in Frameworks */,
 				FADE001000000000000000A1 /* BagDI in Frameworks */,
 				FADE001100000000000000A1 /* ProductActionsUIDI in Frameworks */,
+				FADE011100000000000000A1 /* HomeDI in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -173,6 +175,7 @@
 				FADE000900000000000000A2 /* SheetUI */,
 				FADE001000000000000000A2 /* BagDI */,
 				FADE001100000000000000A2 /* ProductActionsUIDI */,
+				FADE011100000000000000A2 /* HomeDI */,
 			);
 			productName = iPhone;
 			productReference = 1418DD6E2E3E53DC00191417 /* iPhone.app */;
@@ -536,6 +539,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = UI/OrderUI;
 		};
+		FADE011100000000000000B1 /* XCLocalSwiftPackageReference "Component/Home" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/Home;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -683,6 +690,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FADE010300000000000000B1 /* XCLocalSwiftPackageReference "UI/OrderUI" */;
 			productName = OrderUIDI;
+		};
+		FADE011100000000000000A2 /* HomeDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE011100000000000000B1 /* XCLocalSwiftPackageReference "Component/Home" */;
+			productName = HomeDI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};
