@@ -1,8 +1,10 @@
 /// Evans, *Domain-Driven Design* (2003), Ch. 5 — Entities, Value Objects, Services: identifies one
-/// of the six settings without a caller reaching for a raw string. Ch. 9 — Making Implicit Concepts
-/// Explicit: which section a key belongs to, and whether it requires an account, are rules of the
-/// key itself rather than facts a caller has to already know.
-public enum SettingKey: CaseIterable, Equatable, Hashable, Sendable {
+/// of the six settings without a caller naming it. Ch. 9 — Making Implicit Concepts Explicit: which
+/// section a key belongs to, what it is worth before anybody has chosen anything, and whether it
+/// requires an account, are rules of the key itself rather than facts a caller has to already know.
+/// The six names are written here and nowhere else; the raw value is what one is filed under at the
+/// storage boundary, derived from the case rather than restated there.
+public enum SettingKey: String, CaseIterable, Equatable, Hashable, Sendable {
     case pushNotifications
     case bagOutOfStockNotice
     case bagPriceIncreases
@@ -18,6 +20,19 @@ public enum SettingKey: CaseIterable, Equatable, Hashable, Sendable {
             .bag
         case .favoritesWaitlistSection, .favoritesBackInStockSection:
             .favorites
+        }
+    }
+
+    /// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: what a setting is worth before
+    /// a shopper has chosen anything is a rule of the key, decided once here rather than by whoever
+    /// happens to build a `Settings`.
+    var defaultValue: Bool {
+        switch self {
+        case .pushNotifications:
+            false
+        case .bagOutOfStockNotice, .bagPriceIncreases, .bagPriceDecreases,
+             .favoritesWaitlistSection, .favoritesBackInStockSection:
+            true
         }
     }
 

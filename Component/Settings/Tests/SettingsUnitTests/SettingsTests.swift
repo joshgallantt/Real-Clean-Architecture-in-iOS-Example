@@ -11,12 +11,12 @@ struct SettingsTests {
     func defaults() {
         let settings = Settings()
 
-        #expect(settings.pushNotifications == false)
-        #expect(settings.bagOutOfStockNotice == true)
-        #expect(settings.bagPriceIncreases == true)
-        #expect(settings.bagPriceDecreases == true)
-        #expect(settings.favoritesWaitlistSection == true)
-        #expect(settings.favoritesBackInStockSection == true)
+        #expect(settings.value(for: .pushNotifications) == false)
+        #expect(settings.value(for: .bagOutOfStockNotice) == true)
+        #expect(settings.value(for: .bagPriceIncreases) == true)
+        #expect(settings.value(for: .bagPriceDecreases) == true)
+        #expect(settings.value(for: .favoritesWaitlistSection) == true)
+        #expect(settings.value(for: .favoritesBackInStockSection) == true)
     }
 
     @Test("Setting one key changes only that key", arguments: SettingKey.allCases)
@@ -36,7 +36,7 @@ struct SettingsTests {
         let before = Settings()
         _ = before.setting(.pushNotifications, to: true)
 
-        #expect(before.pushNotifications == false)
+        #expect(before.value(for: .pushNotifications) == false)
     }
 
     @Test("Two Settings holding the same values are the same")

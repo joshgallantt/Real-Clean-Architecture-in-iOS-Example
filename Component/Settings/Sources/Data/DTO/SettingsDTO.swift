@@ -1,32 +1,24 @@
 import Settings
 
 /// Fowler, *PoEAA* (2002), Ch. 15 — Data Transfer Object: the serialisation shape, kept out of the
-/// domain. It maps at the boundary, so a wire format change stops here.
+/// domain. It maps at the boundary, so a wire format change stops here — including the one place a
+/// `SettingKey` becomes a string and has to be recognised again coming back.
 struct SettingsDTO: Codable, Sendable {
-    let pushNotifications: Bool
-    let bagOutOfStockNotice: Bool
-    let bagPriceIncreases: Bool
-    let bagPriceDecreases: Bool
-    let favoritesWaitlistSection: Bool
-    let favoritesBackInStockSection: Bool
+    let values: [String: Bool]
 
     init(settings: Settings) {
-        self.pushNotifications = settings.pushNotifications
-        self.bagOutOfStockNotice = settings.bagOutOfStockNotice
-        self.bagPriceIncreases = settings.bagPriceIncreases
-        self.bagPriceDecreases = settings.bagPriceDecreases
-        self.favoritesWaitlistSection = settings.favoritesWaitlistSection
-        self.favoritesBackInStockSection = settings.favoritesBackInStockSection
+        values = Dictionary(
+            uniqueKeysWithValues: SettingKey.allCases.map { ($0.rawValue, settings.value(for: $0)) }
+        )
     }
 
     func toDomain() -> Settings {
         Settings(
-            pushNotifications: pushNotifications,
-            bagOutOfStockNotice: bagOutOfStockNotice,
-            bagPriceIncreases: bagPriceIncreases,
-            bagPriceDecreases: bagPriceDecreases,
-            favoritesWaitlistSection: favoritesWaitlistSection,
-            favoritesBackInStockSection: favoritesBackInStockSection
+            Dictionary(
+                uniqueKeysWithValues: values.compactMap { name, isOn in
+                    SettingKey(rawValue: name).map { ($0, isOn) }
+                }
+            )
         )
     }
 }

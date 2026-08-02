@@ -37,6 +37,6 @@ struct ChangingASettingTests {
         await shopper.turn(.pushNotifications, true)
         let returning = shopper.leaveAndComeBack()
 
-        #expect(returning.settings.pushNotifications == true)
+        #expect(returning.settings.value(for: .pushNotifications) == true)
     }
 }
