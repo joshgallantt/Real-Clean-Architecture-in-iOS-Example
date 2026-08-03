@@ -90,6 +90,12 @@ fastlane/Preview.html
 fastlane/screenshots/**/*.png
 fastlane/test_output
 
-# Claude Code local state — personal, not the project's
-.claude/settings.local.json
-.claude/worktrees/
+# Claude Code state — personal, or generated, and in neither case the project's.
+#
+# The whole directory rather than the two files that used to be named here. The
+# architecture rules were once generated into .claude/architecture.md and
+# committed; keystone now hands them to the agent at the start of each session,
+# from keystone.json, so this repository carries no copy of its own rules. What
+# is left under .claude/ is one person's settings and the hook wiring that
+# `keystone --add-to-claude` writes, which every clone does for itself.
+.claude/
