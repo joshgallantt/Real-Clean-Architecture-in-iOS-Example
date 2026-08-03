@@ -7,27 +7,27 @@ import Settings
 /// Evans, *Domain-Driven Design* (2003), Ch. 6 — Repositories. Fowler, *PoEAA* (2002), Ch. 13 —
 /// Repository: it keeps and hands back the aggregate and decides nothing about what it means.
 ///
-/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: takes an owner and a
-/// stream of owners, never a `Session`. It needs to know whose settings are live, not to understand
-/// identity.
+/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: takes a session and a
+/// stream of sessions, and reads only who is signed in. It needs to know whose settings are live,
+/// not to understand identity, so it compares ids — a changed profile is not a changed owner.
 public final class DefaultSettingsRepository: SettingsRepository {
     private let store: SettingsStore
     private let subject: CurrentValueSubject<Settings, Never>
-    private var owner: Owner
+    private var session: Session
     private var cancellables = Set<AnyCancellable>()
 
     public init(
         store: SettingsStore,
-        owner: Owner,
-        ownerPublisher: AnyPublisher<Owner, Never>
+        session: Session,
+        sessionPublisher: AnyPublisher<Session, Never>
     ) {
         self.store = store
-        self.owner = owner
-        self.subject = CurrentValueSubject(store.getSettings(for: owner))
+        self.session = session
+        self.subject = CurrentValueSubject(store.getSettings(for: session))
 
-        ownerPublisher
-            .sink { [weak self] owner in
-                self?.switchOwner(to: owner)
+        sessionPublisher
+            .sink { [weak self] session in
+                self?.switchSession(to: session)
             }
             .store(in: &cancellables)
     }
@@ -40,13 +40,13 @@ public final class DefaultSettingsRepository: SettingsRepository {
     /// and writing behind it would show the shopper a setting that does not exist anywhere, with no
     /// honest moment to take it back.
     public func save(_ settings: Settings) async throws {
-        try await store.setSettings(settings, for: owner)
+        try await store.setSettings(settings, for: session)
         subject.value = settings
     }
 
-    private func switchOwner(to owner: Owner) {
-        guard owner != self.owner else { return }
-        self.owner = owner
-        subject.value = store.getSettings(for: owner)
+    private func switchSession(to session: Session) {
+        guard session.user?.id != self.session.user?.id else { return }
+        self.session = session
+        subject.value = store.getSettings(for: session)
     }
 }

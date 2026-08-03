@@ -92,7 +92,7 @@ final class Waiter {
     }
 
     private var signedInUserId: Int? {
-        if case .signedIn(let id) = Owner(sessions.value) { return id.rawValue }
+        if case .authenticated(let user) = sessions.value { return user.id.rawValue }
         return nil
     }
 

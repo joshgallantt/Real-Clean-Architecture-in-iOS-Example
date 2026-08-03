@@ -176,36 +176,3 @@ struct SessionStateTests {
     }
 }
 
-@Suite("Owner")
-struct OwnerTests {
-    private let ada = User(
-        id: UserID(rawValue: 7),
-        email: Email("ada@example.com"),
-        name: PersonName(first: "Ada", last: nil)
-    )
-
-    @Test("A guest session owns a guest's things")
-    func guest() {
-        #expect(Owner(.guest) == .guest)
-    }
-
-    @Test("A signed-in session owns them under that person's id")
-    func signedIn() {
-        #expect(Owner(.authenticated(ada)) == .signedIn(UserID(rawValue: 7)))
-    }
-
-    @Test("Two people never share an owner")
-    func differentPeople() {
-        let grace = User(
-            id: UserID(rawValue: 8),
-            email: Email("grace@example.com"),
-            name: PersonName(first: "Grace", last: nil)
-        )
-        #expect(Owner(.authenticated(ada)) != Owner(.authenticated(grace)))
-    }
-
-    @Test("A guest is not the same owner as anybody signed in")
-    func guestIsNobody() {
-        #expect(Owner(.guest) != Owner(.authenticated(ada)))
-    }
-}

@@ -20,15 +20,14 @@ public struct SearchHistoryDI {
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase
     ) {
-        /// Evans, *Domain-Driven Design* (2003) — Bounded Context: turning a session into an owner
-        /// happens here, once, at the wiring boundary. What the repository receives is whose
+        /// Evans, *Domain-Driven Design* (2003) — Bounded Context: the session reaches storage here, at the wiring
+        /// boundary, and nowhere else decides whose data is live. What the repository receives is whose
         /// history it is keeping.
         let repository = DefaultSearchHistoryRepository(
             store: store,
-            owner: Owner(getSession()),
-            ownerPublisher: observeSession()
-                .map(Owner.init)
-                .removeDuplicates()
+            session: getSession(),
+            sessionPublisher: observeSession()
+                .removeDuplicates(by: { $0.user?.id == $1.user?.id })
                 .eraseToAnyPublisher()
         )
         self.getSearchHistoryUseCase = DefaultGetSearchHistoryUseCase(repository: repository)

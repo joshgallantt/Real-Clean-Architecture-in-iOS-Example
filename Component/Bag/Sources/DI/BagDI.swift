@@ -29,15 +29,14 @@ public struct BagDI {
         lookUpProducts: LookUpProductsUseCase,
         store: BagStore = FileBagStore()
     ) {
-        /// Evans, *Domain-Driven Design* (2003), Ch. 14 — Bounded Context: turning a session into an owner
-        /// happens here, once, at the wiring boundary. What the repository receives is who the bag
+        /// Evans, *Domain-Driven Design* (2003), Ch. 14 — Bounded Context: the session reaches storage here, at the wiring
+        /// boundary, and nowhere else decides whose data is live. What the repository receives is who the bag
         /// belongs to.
         let repository = DefaultBagRepository(
             store: store,
-            owner: Owner(getSession()),
-            ownerPublisher: observeSession()
-                .map(Owner.init)
-                .removeDuplicates()
+            session: getSession(),
+            sessionPublisher: observeSession()
+                .removeDuplicates(by: { $0.user?.id == $1.user?.id })
                 .eraseToAnyPublisher()
         )
         self.repository = repository

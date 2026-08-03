@@ -141,7 +141,7 @@
         ],
         "reason": "The data layer answers to the domain, never to a screen. If a repository needs something from the UI, the dependency is inverted — pass it in from the composition root instead.",
         "notes": [
-          "Owner and UserID stay in Session, and the *Data targets that key data per shopper import the whole module to reach them. That is the Common Reuse Principle deliberately given up, not overlooked. Martin's tension diagram (Ch. 13) puts an early project on the right of the triangle, where develop-ability beats reuse and the only sacrifice is reuse; Owner changes when Session changes, so the Common Closure Principle says they belong together while nothing else draws on them. What the sacrifice costs is that the coupling is nominal today and could become real tomorrow, so data-takes-an-owner-not-a-session pins it: the import is allowed, the rest of the module is not. Extract an Identity component when another project draws on these types, or when that rule starts having to grant exceptions — not before."
+          "Storage keys on the Session itself. There was an Owner type projecting a session down to guest-or-id, and it was removed: two types with the same shape, one holding only an id, is more to learn than it saves while nothing else draws on it. Martin's tension diagram (Ch. 13) puts an early project on the right of the triangle, where develop-ability beats reuse. What the projection did buy was that the comparison could not be got wrong; passing a Session gives that back to the caller, so the repositories compare user?.id rather than the whole session — a changed name is not a changed owner. data-reads-who-is-signed-in-and-nothing-else keeps the rest of the module out. Split the key back out when a second project needs it, or when that rule starts granting exceptions — not before."
         ]
       },
       "principle": "PoEAA.REPOSITORY"
@@ -390,7 +390,7 @@
       "principle": "CC.COMMENTS"
     },
     {
-      "name": "data-takes-an-owner-not-a-session",
+      "name": "data-reads-who-is-signed-in-and-nothing-else",
       "match": {
         "files": [
           "Component/!(Session)/Sources/Data/**"
@@ -399,7 +399,7 @@
       "require": {
         "contentForbids": "\\b(SessionRepository|LoginError|CreateAccountError|PersonName|Password|AuthToken|GetSessionUseCase|ObserveSessionUseCase|LoginUseCase|CreateAccountUseCase|LogoutUseCase)\\b"
       },
-      "reason": "A *Data target imports Session to reach Owner and UserID, and may use nothing else from it. It needs to know whose data is live, not to understand identity. If you need the session itself, you are writing a rule, not storage — put it in a use case and let Sources/DI/ turn the session into an owner, as BagDI does.",
+      "reason": "A *Data target takes a Session so it knows whose data is live, and may use nothing else from that module. Read who is signed in and compare ids — a session also changes when a profile does, and that is not a change of owner. If you need the session for a decision rather than a key, you are writing a rule, not storage: put it in a use case.",
       "principle": "CA.CRP"
     }
   ],

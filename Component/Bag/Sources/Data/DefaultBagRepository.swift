@@ -7,32 +7,33 @@ import Session
 /// Evans, *Domain-Driven Design* (2003), Ch. 6 — Repositories. Fowler, *PoEAA* (2002), Ch. 13 —
 /// Repository: it keeps and hands back aggregates and decides nothing about what they mean.
 ///
-/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: takes an owner and a
-/// stream of owners, never a `Session`. It needs to know whose bag is live, not to understand
-/// identity.
+/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: takes a session and a
+/// stream of sessions, and reads only who is signed in. It needs to know whose bag is
+/// live, not to understand identity — so it compares ids, and a changed profile is not a
+/// changed owner.
 public final class DefaultBagRepository: BagRepository {
     private let store: BagStore
     private let bagSubject: CurrentValueSubject<Bag, Never>
     private let noticesSubject: CurrentValueSubject<Notices, Never>
-    private var owner: Owner
+    private var session: Session
     private var cancellables = Set<AnyCancellable>()
     private var pendingWrite: Task<Void, Never>?
 
     public init(
         store: BagStore,
-        owner: Owner,
-        ownerPublisher: AnyPublisher<Owner, Never>
+        session: Session,
+        sessionPublisher: AnyPublisher<Session, Never>
     ) {
         self.store = store
-        self.owner = owner
+        self.session = session
 
-        let kept = store.getBag(for: owner)
+        let kept = store.getBag(for: session)
         self.bagSubject = CurrentValueSubject(kept.bag)
         self.noticesSubject = CurrentValueSubject(kept.notices)
 
-        ownerPublisher
-            .sink { [weak self] owner in
-                self?.switchOwner(to: owner)
+        sessionPublisher
+            .sink { [weak self] session in
+                self?.switchSession(to: session)
             }
             .store(in: &cancellables)
     }
@@ -50,11 +51,11 @@ public final class DefaultBagRepository: BagRepository {
         noticesSubject.value = notices
 
         let store = store
-        let owner = owner
+        let session = session
         let previous = pendingWrite
         pendingWrite = Task {
             await previous?.value
-            await store.setBag(bag, notices: notices, for: owner)
+            await store.setBag(bag, notices: notices, for: session)
         }
     }
 
@@ -62,10 +63,10 @@ public final class DefaultBagRepository: BagRepository {
         await pendingWrite?.value
     }
 
-    private func switchOwner(to owner: Owner) {
-        guard owner != self.owner else { return }
-        self.owner = owner
-        let kept = store.getBag(for: owner)
+    private func switchSession(to session: Session) {
+        guard session.user?.id != self.session.user?.id else { return }
+        self.session = session
+        let kept = store.getBag(for: session)
         bagSubject.value = kept.bag
         noticesSubject.value = kept.notices
     }
