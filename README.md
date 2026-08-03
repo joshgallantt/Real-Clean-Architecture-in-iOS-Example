@@ -1,71 +1,71 @@
 # Clean Architecture for iOS
 
-A practical implementation of Clean Architecture in SwiftUI, demonstrating how to structure an iOS application with clear separation of concerns, testability, and maintainability. The architecture is grounded in principles from Robert C. Martin's *Clean Architecture* (2017), Eric Evans' *Domain-Driven Design* (2003), and Martin Fowler's *Patterns of Enterprise Application Architecture* (2002).
+This project shows Clean Architecture in a SwiftUI application. It shows how to separate the parts of an iOS application, how to make each part testable, and how to keep the application easy to change. The architecture follows Robert C. Martin's *Clean Architecture* (2017), Eric Evans' *Domain-Driven Design* (2003), and Martin Fowler's *Patterns of Enterprise Application Architecture* (2002).
 
 ---
 
-## Why Architecture Matters
+## Why architecture is important
 
 > *"The goal of software architecture is to minimize the human resources required to build and maintain the required system."*
 > — Robert C. Martin, *Clean Architecture* (2017), Chapter 1
 
-Every architectural decision in this project is an answer to the same underlying question: **how do we keep the cost of change low as the application grows?**
+Each architectural decision in this project answers the same question: **how do you keep the cost of a change low while the application becomes larger?**
 
-Without deliberate structure, iOS codebases tend toward a familiar failure mode: ViewModels that call URLSession directly, business rules scattered across UI handlers, and navigation logic tangled into screen transitions. The result is code that cannot be tested without a simulator, cannot be changed without reading all of it first, and cannot be extended without risking breakage in unrelated features.
+An iOS codebase with no deliberate structure usually fails in the same way. ViewModels call URLSession directly. Business rules occur in many different UI handlers. Navigation logic becomes part of the screen transitions. You cannot then test the code without a simulator. You cannot change the code until you read all of it. You cannot add to the code without a risk to features that are not related.
 
-The layers and patterns here are not ceremony. Each one solves a specific coupling problem.
+The layers and the patterns in this project are not decoration. Each one prevents a specified type of coupling.
 
 ---
 
-## Architecture Principles
+## Architecture principles
 
-### The Dependency Rule
+### The dependency rule
 
 > *"Source code dependencies must point only inward, toward higher-level policies."*
 > — Robert C. Martin, *Clean Architecture* (2017), Chapter 22
 
-Dependencies point inward. The domain layer knows nothing about the data or presentation layers. The data layer knows about the domain but not the UI. The presentation layer depends on the domain but not on any specific data source.
+Dependencies point inward. The domain layer knows nothing about the data layer or the presentation layer. The data layer knows the domain layer, but not the UI. The presentation layer depends on the domain layer, but not on a data source.
 
 ```
 Presentation ──▶ Domain ◀── Data
      └──────────────────────────▶ (never)
 ```
 
-**Why this matters:** If the domain layer depended on the data layer, changing your persistence mechanism would require touching business logic. If business logic lived in ViewModels, you couldn't test it without constructing a SwiftUI view. The Dependency Rule is the mechanism that makes each layer independently replaceable and testable. The direction of dependencies is the architecture.
+**Why this is important.** If the domain layer depended on the data layer, a change of the persistence mechanism would change the business logic. If the business logic were in the ViewModels, you could not test it without a SwiftUI view. The dependency rule keeps each layer replaceable and testable on its own. The direction of the dependencies is the architecture.
 
-### SOLID Principles
+### SOLID principles
 
-Robert C. Martin collected the five principles that Michael Feathers later named SOLID in *Agile Software Development, Principles, Patterns, and Practices* (2002), and revisits each of them in *Clean Architecture* (2017), Chapters 7–11. Each principle addresses a specific way that code becomes hard to change:
+Robert C. Martin collected the five principles that Michael Feathers subsequently called SOLID in *Agile Software Development, Principles, Patterns, and Practices* (2002). He examines each of them again in *Clean Architecture* (2017), Chapters 7 to 11. Each principle prevents a different cause of code that is difficult to change.
 
-- **Single Responsibility** — Each type has one reason to change. `AuthViewModel` manages the state of one authentication sheet. `DefaultSessionRepository` manages session data access. When requirements change, you know exactly which file to open — and which files are safe to leave closed.
+- **Single responsibility** — *"A module should be responsible to one, and only one, actor"* (Ch. 7). An actor is the group of people who ask for a change. The older words — one reason to change — are the historical form that the book replaces, and they hide the point: the reason is always a person, and the defect is two groups of people that share one module. `Component/Bag` answers to the people who decide what a bag holds and which notices the shop leaves on it. `BagUI` answers to the people who decide how a bag row looks. Merchandising and design change on different days, thus they do not share a file. This principle also causes the package layout: it becomes the Common Closure Principle at the level of components, and the axis of change that draws the architectural boundaries above that.
 
-- **Open/Closed** — Behaviour is extended through protocols, not modification. Adding a new `AuthClient` implementation requires no changes to `DefaultSessionRepository`. If the repository constructed `FakeAuthClient` directly, every new auth backend would require modifying tested, working code.
+- **Open-closed** — *"A software artifact should be open for extension but closed for modification"* (Ch. 8). New behaviour must come as new code, not as changes to code that already operates. `BagUI` is the example: the application gives checkout to it as a completed `AnyView`, in the same way that it gives a stock alert bell to it. Thus `Order` and `StockAlert` added to the bag screen with no change to `BagUI`. Note what this principle is not: to put one `AuthClient` implementation in the place of another is dependency inversion, not the open-closed principle. To replace a detail keeps the behaviour the same; the open-closed principle adds behaviour.
 
-- **Liskov Substitution** — `FakeAuthClient` is a drop-in replacement for any real `AuthClient`. ViewModels accept any `LoginUseCase`, not a concrete type. Violations of this principle mean that "replacing" a component actually requires auditing all of its callers.
+- **Liskov substitution** — this project has no class inheritance: there is no `override` in the tree. In this condition the principle applies to protocols, and Martin makes that reading explicit — *"the LSP can, and should, be extended to the level of architecture"* (Ch. 9), where the example in the chapter is a REST interface and not a subclass. The principle requires that a conforming type obeys the contract and does not make it smaller. `FakeAuthClient` can replace a real client only because it fails in the way that the real client fails. A double that threw an error where the real client returns an error would let each caller be correct in the tests and incorrect in production. The sign of a violation is a caller that must ask which implementation it holds.
 
-- **Interface Segregation** — Navigation protocols and presentation ports are small and feature-scoped. `SnackbarPresenting` has exactly one method: a feature says what happened and has no say in how long it shows or how it goes away. Fat interfaces force implementations to depend on methods they don't use.
+- **Interface segregation** — *"avoid depending on things that they don't use"* (Ch. 10). The load falls on the **client**, not on the implementer: a large protocol makes each caller compile against, replace in tests, and understand the methods that it never calls. `SnackbarPresenting` has one method only. Thus a feature says what occurred, and has no control of how long the message stays or how it goes away. Without that limit, a feature that only wants to report an event would also depend on dismissal and duration that it never calls.
 
-- **Dependency Inversion** — High-level modules (`DefaultSessionRepository`) depend on abstractions (`AuthClient`, `SessionStore`), not concretions. This is what makes the entire testing strategy possible — every concrete dependency can be swapped for a test double at the protocol boundary.
+- **Dependency inversion** — *"source code dependencies refer only to abstractions, not to concretions"* (Ch. 11). High-level policy must not depend on a low-level detail. The high-level policy here is the use case. `DefaultLoginUseCase` is in `Sources/Domain`, and it depends on the `SessionRepository` **protocol, which is declared in `Sources/Domain` with it** — the domain owns the contract. `DefaultSessionRepository` implements that protocol from `Sources/Data`. Thus the import points from Data to Domain, while the calls go from Domain to Data. That opposition is the inversion, and Swift Package Manager makes it structural: `Session` has no dependency on `SessionData`, thus the compiler refuses the opposite direction. A repository implementation is a detail on the low side of that line, not a high-level module.
 
-### Separation of Concerns
+### Separation of concerns
 
 > *"Gather into components those classes that change for the same reasons and at the same times. Separate into different components those classes that change at different times and for different reasons."*
 > — Robert C. Martin, *Clean Architecture* (2017), Chapter 13 — the Common Closure Principle
 
-UI changes for design reasons. Business rules change for product reasons. Data access changes for infrastructure reasons. When these are co-located, a design change requires a code archaeologist to determine which parts are safe to touch and which parts carry business logic that must not break.
+The UI changes for design reasons. Business rules change for product reasons. Data access changes for infrastructure reasons. If these three are in the same module, a person who makes a design change must first find which parts are safe to change and which parts hold business logic that must not break.
 
-Each module in this project has a single axis of change. A new screen design touches only `*UI` modules. A new business rule touches only the domain. A new backend touches only the data layer.
+Each module in this project has one axis of change. A new screen design changes only the `*UI` modules. A new business rule changes only the domain. A new backend changes only the data layer.
 
-### Repository Pattern
+### Repository pattern
 
 > *"Mediates between the domain and data mapping layers using a collection-like interface for accessing domain objects."*
 > — Martin Fowler, *Patterns of Enterprise Application Architecture* (2002), Chapter 13
 
-**Why this matters:** Without a repository abstraction, use cases call data access code directly. The moment a use case imports `URLSession` or `UserDefaults`, it can no longer be tested without that infrastructure being present. The repository protocol defines *what* the domain needs from data access. The implementation defines *how* it is satisfied. The domain never knows the difference.
+**Why this is important.** Without a repository abstraction, a use case calls the data access code directly. As soon as a use case imports `URLSession` or `UserDefaults`, you cannot test that use case unless the infrastructure is available. The repository protocol states *what* the domain needs from data access. The implementation states *how* the data access satisfies it. The domain does not know the difference.
 
 ---
 
-## Project Structure
+## Project structure
 
 ```
 ├── Component/                  # Domain + Data packages
@@ -76,7 +76,8 @@ Each module in this project has a single axis of change. A new screen design tou
 │   ├── Bag/                    # Per-shopper bag, and the notices the shop leaves on it
 │   ├── Order/                  # What a shopper bought, for how much, and when
 │   ├── StockAlert/             # Who asked to be told when something is back
-│   └── Home/                   # What the Home feed draws — Domain only, it stores nothing
+│   ├── Home/                   # What the Home feed draws — Domain only, it stores nothing
+│   └── Money/                  # Exact amounts with their currency — Domain only, it stores nothing
 ├── UI/                         # Presentation packages
 │   ├── HomeUI/                 # Home tab
 │   ├── SearchUI/               # Search tab: categories, suggestions, results
@@ -91,23 +92,22 @@ Each module in this project has a single axis of change. A new screen design tou
 │   ├── SheetUI/                # Generic sheet presentation primitive
 │   └── SnackbarUI/             # Transient notifications with Undo/Retry/View
 ├── Library/
-│   ├── Networking/             # Shared HTTP client, no domain dependencies
-│   └── Money/                  # Exact amounts with their currency, no domain dependencies
+│   └── Networking/             # Shared HTTP client, no domain dependencies
 └── iPhone/                     # Application layer — composition root
     ├── Composition/            # CompositionRoot + its three assemblers, Catalog, and the demo's second root
     ├── Navigation/             # Navigator + Destination
     └── Main/                   # App entry point, phases, tab screen
 ```
 
-Every one of those directories is a separate Swift Package. This is not just organisation — it is enforcement. The Swift compiler guarantees that `HomeUI` cannot import `WishlistUI` unless that dependency is declared explicitly. Architectural boundaries that rely only on convention erode over time. Module boundaries that rely on the compiler do not.
+Each of these directories is a different Swift package. This is not only organization, it is enforcement. The Swift compiler makes sure that `HomeUI` cannot import `WishlistUI` unless the package declares that dependency. Architectural boundaries that depend on convention become weak with time. Module boundaries that depend on the compiler do not.
 
-Packages are grouped by role — `Component/` for domain+data, `UI/` for presentation, `Library/` for shared infrastructure with no domain dependencies — so the folder tree reads as architecture, not an alphabetical list.
+The packages are grouped by role. `Component/` holds domain and data, `UI/` holds presentation, and `Library/` holds shared infrastructure with no domain dependencies. Thus the folder tree reads as the architecture and not as an alphabetical list.
 
-The app has five tabs. **Home** and **Search** browse the real [DummyJSON](https://dummyjson.com) product catalog. **Wishlist** requires an account. **Bag** works for guests too, and tells the shopper what the shop changed while they were away. **Account** shows the signed-in profile or a guest state. The app supports guest use throughout — authentication is asked for at the moment it is actually needed, not as a gate at launch.
+The application has five tabs. **Home** and **Search** show the real [DummyJSON](https://dummyjson.com) product catalog. **Wishlist** needs an account. **Bag** also operates for a guest, and tells the shopper what the shop changed while they were away. **Account** shows the profile of the signed-in shopper, or a guest state. A guest can use the application throughout. The application asks for authentication at the moment it is necessary, and not as a gate at start-up.
 
 ---
 
-## Architecture Layers
+## Architecture layers
 
 ```
 ┌──────────────────────────────────────────┐
@@ -133,18 +133,18 @@ The app has five tabs. **Home** and **Search** browse the real [DummyJSON](https
 
 ---
 
-## Domain Layer
+## Domain layer
 
-The domain layer contains pure business logic with **zero dependencies** on external frameworks, UI, or data sources. It can be compiled, tested, and reasoned about in isolation.
+The domain layer holds the business logic. It has **no dependencies** on external frameworks, on the UI, or on data sources. You can compile it, test it and understand it on its own.
 
-**Why isolate the domain?** The domain is the most valuable and most stable part of the application. Business rules change for business reasons — not because SwiftUI released a new API or the backend switched from REST to GraphQL. Keeping the domain free of framework dependencies means it survives technology changes intact. Martin calls this the *Stable Dependencies Principle*: depend in the direction of stability.
+**Why the domain layer is isolated.** The domain is the most valuable and the most stable part of the application. Business rules change for business reasons. They do not change because SwiftUI has a new API, or because the backend changed from REST to GraphQL. A domain with no framework dependencies stays correct through a change of technology. Martin calls this the *Stable Dependencies Principle*: depend in the direction of stability.
 
 ### Entities
 
 > *"An object defined primarily by its identity is called an ENTITY."*
 > — Eric Evans, *Domain-Driven Design* (2003), Chapter 5
 
-Entities are the core business objects. They are immutable, framework-independent, and carry no persistence or UI concerns. A `User` is a `User` regardless of how it was fetched, how it is displayed, or where it is stored.
+Entities are the primary business objects. They are immutable and independent of the frameworks. They hold no persistence data and no UI data. A `User` is a `User` whatever fetched it, whatever shows it, and wherever it is kept.
 
 **[`Component/Session/Sources/Domain/Model/User.swift`](Component/Session/Sources/Domain/Model/User.swift)**
 ```swift
@@ -155,12 +155,9 @@ public struct User: Equatable, Sendable, Identifiable {
 }
 ```
 
-Every field is a type rather than a `String` or an `Int`. `UserID` cannot be passed where a
-`ProductID` was meant. `Email` has been past the rule about what an address is, which a
-`String` has not. `PersonName` says out loud that a last name is optional — plenty of people
-have one name — instead of leaving that intent in a test.
+Each field is a type and not a `String` or an `Int`. You cannot give a `UserID` where a `ProductID` is necessary. An `Email` has satisfied the rule about the format of an address; a `String` has not. `PersonName` states that a last name is optional, because many people have one name only. Without the type, that intent stays in a test.
 
-Authentication state is modelled as a sum type rather than an optional user plus a boolean flag — the two-field version admits states that cannot exist ("logged in, no user"), and the enum does not.
+The authentication state is a sum type, not an optional user with a boolean flag. The two-field form permits states that cannot exist, for example "logged in, no user". The enumeration does not permit them.
 
 **[`Component/Session/Sources/Domain/Model/Session.swift`](Component/Session/Sources/Domain/Model/Session.swift)**
 ```swift
@@ -173,11 +170,7 @@ public enum Session: Equatable, Sendable {
 }
 ```
 
-`CategoryID` and `ProductID` are similarly deliberate: a raw `String` category is
-interchangeable with a title, a search term, or a product name, and a raw `Int` product id is
-interchangeable with a user id or a quantity. The compiler cannot tell you when those get
-crossed. Wrapping them removes a whole class of bug — and identity is the one part of another
-aggregate a context may safely hold, which is exactly why it is worth a type.
+`CategoryID` and `ProductID` are deliberate for the same reason. A raw `String` category is interchangeable with a title, a search term or a product name. A raw `Int` product id is interchangeable with a user id or a quantity. The compiler cannot tell you when a caller exchanges them. A wrapper type removes that group of faults. An identity is also the one part of another aggregate that a context can safely hold, which is why it earns a type.
 
 **[`Component/Product/Sources/Domain/Model/Product.swift`](Component/Product/Sources/Domain/Model/Product.swift)**
 ```swift
@@ -192,14 +185,9 @@ public struct Product: Equatable, Hashable, Sendable, Identifiable {
 }
 ```
 
-`price` is `Money`, not `Double`. A price like 9.99 has no exact binary representation, so
-totals built by adding them drift and two amounts that should be equal compare unequal —
-which matters beyond tidiness here, because whether a shopper is *told* a price moved is
-decided by comparing two amounts. `Money` counts whole minor units and carries its currency.
+`price` is a `Money` and not a `Double`. A price such as 9.99 has no exact binary value. Thus a total that adds such prices moves away from the correct amount, and two amounts that must be equal compare as different. That is more than an untidy result here, because the application compares two amounts to decide if it must tell a shopper that a price changed. `Money` counts whole minor units and holds its currency with the amount.
 
-`availability` is one idea, not a stock count plus a will-it-return flag. The flag is only
-meaningful when the count is zero, so every caller has to know that to read either, and
-callers end up rebuilding the same three states in their own way:
+`availability` is one idea, not a stock count with a will-it-return flag. The flag has a meaning only when the count is zero. Thus each caller must know that rule to read either field, and callers then build the same three states again in different ways.
 
 ```swift
 public enum Availability: Equatable, Hashable, Sendable {
@@ -209,16 +197,16 @@ public enum Availability: Equatable, Hashable, Sendable {
 }
 ```
 
-### Use Cases
+### Use cases
 
 > *"The software in this layer contains application-specific business rules... These use cases orchestrate the flow of data to and from the entities."*
 > — Robert C. Martin, *Clean Architecture* (2017), Chapter 22
 
-Each use case is a protocol naming one business operation, plus a `Default*` struct implementing it. Both live in the domain. The protocol is what callers depend on; the struct is what the DI container constructs.
+Each use case is a protocol that names one business operation, with a `Default*` struct that implements it. Both are in the domain. Callers depend on the protocol. The DI container constructs the struct.
 
-Use cases are invoked through `callAsFunction`, so a call site reads as the operation itself — `await login(email:password:)`, `await addProductToWishlist(productId:)` — rather than as bureaucracy (`loginUseCase.execute(...)`).
+The application calls a use case through `callAsFunction`. Thus a call reads as the operation itself — `await login(email:password:)`, `await addProductToWishlist(productId:)` — and not as `loginUseCase.execute(...)`.
 
-**Why use cases?** Without them, business logic leaks into ViewModels, repositories, and — eventually — views. The result is that "where does login actually happen?" has no clear answer. Use cases give business operations a home. They can be tested without UI, without a network, and without understanding the rest of the system.
+**Why use cases are necessary.** Without them, business logic moves into the ViewModels, into the repositories and finally into the views. The question "where does login occur?" then has no clear answer. A use case gives a business operation one location. You can test it with no UI, no network, and no knowledge of the remainder of the system.
 
 **[`Component/Session/Sources/Domain/UseCases/LoginUseCase.swift`](Component/Session/Sources/Domain/UseCases/LoginUseCase.swift)**
 ```swift
@@ -237,9 +225,9 @@ public struct DefaultLoginUseCase: LoginUseCase {
 }
 ```
 
-Note where the validation lives. "That is not an email address" is a business rule, not a UI concern — so it is enforced in the use case, once, and every caller inherits it. The use case decides only the *order* to ask in; what counts as a valid address is `Email`'s own rule, and what counts as a valid password is `Password`'s. The login sheet renders the resulting error; it does not decide what an error is.
+Note the location of the validation. "That is not an email address" is a business rule and not a UI concern. Thus the use case applies it one time, and each caller gets it. The use case decides only the sequence of the questions. `Email` owns the rule about a valid address, and `Password` owns the rule about a valid password. The login sheet shows the error; it does not decide what an error is.
 
-The full vocabulary of the application is discoverable by reading the domain alone:
+You can find the full vocabulary of the application when you read the domain alone.
 
 | Component | Use cases |
 | --- | --- |
@@ -250,15 +238,11 @@ The full vocabulary of the application is discoverable by reading the domain alo
 | `Bag` | `ObserveBagUseCase`, `ObserveNoticesUseCase`, `ObserveBagItemQuantityUseCase`, `AddItemToBagUseCase`, `SetBagItemQuantityUseCase`, `BringBagUpToDateUseCase`, `AcknowledgeNoticesUseCase` |
 | `Order` | `PlaceOrderUseCase`, `ObserveOrdersUseCase` |
 
-Each name is something a shopper is trying to do. That is the test a use case name has to
-pass: `LookUpProductsUseCase` describes filling in the things on a list the shopper already
-has; `getProductsByIds` would only describe the query it happens to need. When the use case
-layer is named after the repository's methods, the layer whose job is to enumerate the
-application's intentions ends up enumerating its data access instead.
+Each name states something that a shopper wants to do. That is the test that a use case name must satisfy. `LookUpProductsUseCase` describes how the application fills in the items on a list that the shopper already has. `getProductsByIds` would describe only the query that it uses. If you name the use case layer after the methods of the repository, the layer that must list the intentions of the application lists its data access instead.
 
-### Use Cases Composing Use Cases
+### Use cases that call other use cases
 
-`Wishlist`'s domain depends on `Session`'s domain, and that dependency is the point. Requiring an account to save a wishlist item is a business rule, so it is enforced in the domain — not by a view remembering to check first.
+The domain of `Wishlist` depends on the domain of `Session`, and that dependency is the point. A shopper must have an account to save a wishlist item. That is a business rule, thus the domain applies it. A view that remembers to make the check first does not.
 
 **[`Component/Wishlist/Sources/Domain/UseCases/AddProductToWishlistUseCase.swift`](Component/Wishlist/Sources/Domain/UseCases/AddProductToWishlistUseCase.swift)**
 ```swift
@@ -275,9 +259,9 @@ public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
 }
 ```
 
-`.unauthenticated` is a domain outcome. The UI's job is to *react* to it — see [Authentication as a Domain Outcome](#authentication-as-a-domain-outcome) — not to predict it. A new caller of this use case cannot forget the rule, because it is not their rule to remember.
+`.unauthenticated` is a domain outcome. The UI must respond to it — see [Authentication as a domain outcome](#authentication-as-a-domain-outcome) — and must not try to predict it. A new caller of this use case cannot forget the rule, because the rule is not the caller's to remember.
 
-**A component that is only composition.** `Home` takes this to its limit: its one use case draws the feed by calling two of `Product`'s — list the shop's categories, list a category's products — and decides which categories earn a carousel and how many. It has no repository, no store and no `Sources/Data` target at all, because a feed is derived on every draw rather than kept. A component is a reason to change, not a folder layout. What Home owns is a rule, and the rule has to live somewhere no screen can quietly bend it.
+**A component that is only composition.** `Home` is the limit of this pattern. Its one use case draws the feed with two use cases from `Product`: list the categories of the shop, and list the products of a category. It then decides which categories get a carousel, and how many. `Home` has no repository, no store and no `Sources/Data` target, because the application derives a feed at each draw and does not keep it. A component is an axis of change and not a folder layout. `Home` owns a rule, and the rule must be in a location where no screen can change it quietly.
 
 **[`Component/Home/Sources/Domain/UseCases/DrawHomeFeedUseCase.swift`](Component/Home/Sources/Domain/UseCases/DrawHomeFeedUseCase.swift)**
 ```swift
@@ -301,11 +285,11 @@ public struct DefaultDrawHomeFeedUseCase: DrawHomeFeedUseCase {
 }
 ```
 
-`HomeFeed`'s initialiser is failable and refuses an empty list, so "the shop had nothing worth drawing" cannot be mistaken for a feed a screen should render. `HomeScreenViewModel` is left holding three states and four delegating methods.
+The initialiser of `HomeFeed` can fail, and it refuses an empty list. Thus a screen cannot read "the shop had nothing to draw" as a feed that it must show. `HomeScreenViewModel` then holds three states and four methods that delegate.
 
-### Repository Contracts
+### Repository contracts
 
-Repository protocols are defined in the domain layer — not in the data layer. This is the Dependency Inversion Principle applied directly: the domain defines the interface it needs, and the data layer satisfies it. The domain is not a client of the data layer; the data layer is a plugin to the domain.
+The domain layer declares the repository protocols. The data layer does not. This is the dependency inversion principle in its direct form: the domain states the interface that it needs, and the data layer satisfies that interface. The domain is not a client of the data layer. The data layer is a plugin to the domain.
 
 **[`Component/Session/Sources/Domain/Repository/SessionRepository.swift`](Component/Session/Sources/Domain/Repository/SessionRepository.swift)**
 ```swift
@@ -319,19 +303,19 @@ public protocol SessionRepository: Sendable {
 }
 ```
 
-**Why is `SearchHistory` a separate component from `Product`?** Search history and the product catalog change for entirely different reasons and have entirely different storage: recent searches are per-user, local, and disposable; the catalog is remote and shared. Merging them would put a `UserDefaults`-backed concern and a network-backed concern behind one contract. `SearchHistory` depends on `Session` because history is scoped per user, and on `Product` only for `SearchTerm` — what counts as a search, and when two searches are the same search, is one rule and lives in one place.
+**Why `SearchHistory` is a different component from `Product`.** The search history and the product catalog change for different reasons, and they have different storage. Recent searches are local to one user and disposable. The catalog is remote and shared. If the two were one component, a concern that `UserDefaults` holds and a concern that the network holds would be behind the same contract. `SearchHistory` depends on `Session`, because the history belongs to one user. It depends on `Product` for `SearchTerm` only. What counts as a search, and when two searches are the same search, is one rule in one location.
 
 ---
 
-## Data Layer
+## Data layer
 
-The data layer implements domain contracts and handles all external concerns — network, persistence, hashing, token lifetime. It depends on the domain layer; the domain layer has no knowledge of it.
+The data layer implements the domain contracts and does all the external work: the network, persistence, hashing and token lifetime. It depends on the domain layer. The domain layer knows nothing about it.
 
-**Why a separate data layer?** Infrastructure details are volatile. APIs change. Authentication mechanisms are replaced. Caching strategies evolve. Isolating these details behind the repository contract means none of those changes propagate inward to the domain or outward to the UI.
+**Why the data layer is separate.** Infrastructure details change frequently. APIs change. An authentication mechanism is replaced. A caching strategy is improved. The repository contract keeps these details in one place, thus no such change moves inward to the domain or outward to the UI.
 
-### Repository Implementation
+### Repository implementation
 
-`DefaultSessionRepository` coordinates data sources, maps infrastructure errors to domain error types, and satisfies the `SessionRepository` contract. Error mapping at the boundary is deliberate — domain error types must not carry infrastructure-specific codes, because the domain should not know that authentication involves a client at all.
+`DefaultSessionRepository` controls the data sources, changes the infrastructure errors into domain error types, and satisfies the `SessionRepository` contract. The error mapping at the boundary is deliberate. A domain error type must not hold a code that belongs to the infrastructure, because the domain must not know that authentication uses a client.
 
 **[`Component/Session/Sources/Data/DefaultSessionRepository.swift`](Component/Session/Sources/Data/DefaultSessionRepository.swift)**
 ```swift
@@ -351,11 +335,11 @@ public struct DefaultSessionRepository: SessionRepository {
 }
 ```
 
-`AuthClientError.emailAlreadyInUse` maps to `CreateAccountError.emailAlreadyInUse` on the create-account path and collapses to `.unavailable` on the login path. The mapping is per-operation because the meaningful failures differ per operation — a single shared error enum would force every caller to handle cases that cannot occur.
+On the create-account path, `AuthClientError.emailAlreadyInUse` becomes `CreateAccountError.emailAlreadyInUse`. On the login path it becomes `.unavailable`. The mapping is different for each operation because the failures that have a meaning are different for each operation. One shared error enumeration would make each caller handle cases that cannot occur.
 
-### Data Sources
+### Data sources
 
-Data sources are protocol-driven. `DefaultSessionRepository` is tested by injecting a fake `AuthClient` and a fake `SessionStore` — no network, no simulator, no `UserDefaults`.
+The data sources are protocols. To test `DefaultSessionRepository`, give it a fake `AuthClient` and a fake `SessionStore`. The test needs no network, no simulator and no `UserDefaults`.
 
 **[`Component/Session/Sources/Data/Auth/AuthClient.swift`](Component/Session/Sources/Data/Auth/AuthClient.swift)**
 ```swift
@@ -366,9 +350,9 @@ public protocol AuthClient: Sendable {
 }
 ```
 
-`FakeAuthClient` is the implementation the app currently ships: accounts are registered on-device in a `UserStore`, passwords are stored as SHA-256 hashes, and tokens are minted locally with a deterministic user id derived from the email so the same account always maps back to the same wishlist. Swapping it for a real backend means writing one new `AuthClient` conformance and changing one line in the composition root — no domain, presentation, or navigation code moves. That is the Liskov Substitution Principle paying for itself.
+`FakeAuthClient` is the implementation that the application contains now. It registers accounts on the device in a `UserStore`. It keeps passwords as SHA-256 hashes. It makes tokens locally, with a user id that it derives from the email address, thus the same account always gives the same wishlist. To use a real backend, write one new `AuthClient` conformance and change one line in the composition root. No domain code, presentation code or navigation code moves. This is the value of the Liskov substitution principle.
 
-### Session Lifetime Is a Data Concern
+### Session lifetime is a data concern
 
 **[`Component/Session/Sources/Data/Session/SessionStore.swift`](Component/Session/Sources/Data/Session/SessionStore.swift)**
 ```swift
@@ -382,13 +366,11 @@ public protocol SessionStore: AnyObject, Sendable {
 }
 ```
 
-`DefaultSessionStore` restores a persisted session on launch if its token is still valid, drops it if not, and schedules a task to clear the session at the exact moment the token expires. Every observer of `sessionPublisher` — the wishlist repository, the account screen, the app's root phase — reacts to expiry automatically. None of them contain a line of expiry logic. The rule lives in one place, and everything downstream is a consequence.
+At start-up, `DefaultSessionStore` restores a session that it kept, if the token of that session is still valid. If the token is not valid, it removes the session. It also starts a task that clears the session at the moment that the token becomes invalid. Each observer of `sessionPublisher` then reacts to the expiry: the wishlist repository, the account screen and the root phase of the application. None of them holds expiry logic. The rule is in one location, and all the other behaviour is a result of it.
 
-### User-Scoped Storage
+### Storage for each shopper
 
-`Bag`, `Wishlist` and `SearchHistory` each persist per shopper. What they are keyed *by* is a type,
-not a string: a repeated `"guest"` literal has to be spelled the same way in every feature that
-builds one, and nothing keeps those spellings honest.
+`Bag`, `Wishlist` and `SearchHistory` each keep data for one shopper. The key is a type and not a string. A repeated `"guest"` literal must have the same spelling in each feature that makes one, and nothing keeps those spellings correct.
 
 **[`Component/Session/Sources/Domain/Model/Owner.swift`](Component/Session/Sources/Domain/Model/Owner.swift)**
 ```swift
@@ -400,13 +382,9 @@ public enum Owner: Equatable, Hashable, Sendable {
 }
 ```
 
-A guest has a real bag and a real search history — that is the whole point of letting someone shop
-before signing in — so being nobody in particular is one of the cases rather than the absence of
-one. It lives in `Session` because identity is what `Session` is for, and because one definition
-shared by two contexts is Evans' Shared Kernel, where two definitions would be two answers.
+A guest has a real bag and a real search history, because a person can shop before they sign in. Thus "no specified person" is one of the cases and not the absence of a case. `Owner` is in `Session` because identity is the subject of `Session`, and because one definition that two contexts share is Evans' Shared Kernel. Two definitions would be two answers.
 
-A wishlist is the exception, and deliberately so: a guest cannot save anything, so its owner is a
-`UserID?` and the guest case does not exist to be handled. It differs because the rule differs.
+A wishlist is the exception, deliberately. A guest cannot save an item, thus the owner of a wishlist is a `UserID?` and there is no guest case to handle. The type is different because the rule is different.
 
 **[`Component/Bag/Sources/Data/DefaultBagRepository.swift`](Component/Bag/Sources/Data/DefaultBagRepository.swift)**
 ```swift
@@ -419,23 +397,17 @@ private func switchOwner(to owner: Owner) {
 }
 ```
 
-Note what the repository is *given*: an owner and a stream of owners — not a `Session`, and not
-a session use case. It needs to know whose bag is live, not to understand identity. `BagDI`
-performs that translation once at the wiring boundary, and what a bag is *filed under* is the
-storage layer's business — the only place an owner turns back into a string is the code that
-picks a filename.
+Note what the application gives to the repository: an owner, and a stream of owners. It does not give a `Session` or a session use case. The repository must know whose bag is active. It does not have to understand identity. `BagDI` does that translation one time at the wiring boundary. The name that a bag is filed under is the business of the storage layer, and the only code that changes an owner back into a string is the code that selects a filename.
 
-`DefaultWishlistRepository` and `DefaultSearchHistoryRepository` take the same shape, for the same
-reason. All three are handed who they are keeping something for; none of them can reach a session
-to ask.
+`DefaultWishlistRepository` and `DefaultSearchHistoryRepository` have the same shape for the same reason. The application tells all three who it keeps data for. None of the three can reach a session to ask.
 
 ### DTOs
 
-DTOs live in the data layer and never leak inward. `ProductDTO`, `ProductCategoryDTO`, `WishlistItemDTO`, `BagDTO`, `BagItemDTO`, `NoticeDTO`, `OrderDTO`, `OrderLineDTO`, `SessionSnapshotDTO`, and `StoredUser` are the `Codable` types; each maps to a domain model at the repository boundary. Domain models carry no `Codable` conformance at all — serialisation is a storage detail, and making entities `Codable` silently couples the domain's shape to a wire format.
+The DTOs are in the data layer and never move inward. `ProductDTO`, `ProductCategoryDTO`, `WishlistItemDTO`, `BagDTO`, `BagItemDTO`, `NoticeDTO`, `OrderDTO`, `OrderLineDTO`, `SessionSnapshotDTO` and `StoredUser` are the `Codable` types. Each one maps to a domain model at the repository boundary. A domain model has no `Codable` conformance, because serialisation is a storage detail. A `Codable` entity couples the shape of the domain to a wire format, and it does that quietly.
 
-### Shared Networking
+### Shared networking
 
-`Library/Networking` is a dependency-free Swift Package providing `HTTPClient`, a small protocol with a `URLSessionHTTPClient` default implementation that maps transport, status, and decoding failures onto `HTTPClientError`.
+`Library/Networking` is a Swift package with no dependencies. It supplies `HTTPClient`, a small protocol with a default implementation, `URLSessionHTTPClient`. That implementation maps transport failures, status failures and decoding failures onto `HTTPClientError`.
 
 **[`Library/Networking/Sources/Networking/HTTPClient.swift`](Library/Networking/Sources/Networking/HTTPClient.swift)**
 ```swift
@@ -445,19 +417,19 @@ public protocol HTTPClient: Sendable {
 }
 ```
 
-It lives under `Library/` — not `Component/` — because it carries no domain knowledge at all. It would exist unchanged in a completely different app.
+It is in `Library/` and not in `Component/` because it holds no domain knowledge. It would be the same in a completely different application.
 
 ---
 
-## Presentation Layer
+## Presentation layer
 
-The presentation layer uses MVVM. Views are passive and display state. ViewModels hold `@Published` state and delegate business operations to use cases. Neither has any knowledge of repositories or data sources.
+The presentation layer uses MVVM. The views are passive and show state. The ViewModels hold `@Published` state and send business operations to the use cases. Neither the views nor the ViewModels know about repositories or data sources.
 
-**Why MVVM?** SwiftUI views are value types recreated frequently by the framework. Business logic placed in a view gets destroyed with it. ViewModels are reference types that survive view recreation. More importantly: views cannot be unit tested. ViewModels can. Keeping logic in ViewModels and views purely declarative means presentation behaviour can be verified without rendering a single pixel.
+**Why MVVM.** A SwiftUI view is a value type, and the framework makes it again frequently. Business logic in a view is destroyed with the view. A ViewModel is a reference type and stays through that cycle. More importantly, you cannot unit-test a view, but you can unit-test a ViewModel. If the logic is in the ViewModel and the view is only declarative, you can examine the presentation behaviour without a rendered pixel.
 
-### Feature Module Structure
+### Structure of a feature module
 
-Most feature packages follow this layout:
+Most feature packages have this layout:
 
 ```
 FeatureUI/
@@ -470,7 +442,7 @@ FeatureUI/
 
 ### ViewModels
 
-ViewModels are `@MainActor ObservableObject` classes receiving **use case protocols** through initialiser injection — never repositories, stores, or data sources. An `AuthViewModel` test needs no network stack and no session; it needs an object that satisfies `LoginUseCase`.
+A ViewModel is a `@MainActor ObservableObject` class. It receives **use case protocols** through its initialiser. It never receives a repository, a store or a data source. A test of `AuthViewModel` needs no network stack and no session. It needs an object that satisfies `LoginUseCase`.
 
 **[`UI/AuthUI/Sources/AuthUIHost/AuthViewModel.swift`](UI/AuthUI/Sources/AuthUIHost/AuthViewModel.swift)**
 ```swift
@@ -493,35 +465,35 @@ final class AuthViewModel: ObservableObject {
 }
 ```
 
-The raw text a person types becomes an `Email` and a `Password` here, at the edge — that is the only place a loose string is allowed, and the types are deliberately lenient so a half-typed address is still representable while it is being typed. `AuthenticationErrorMessages` lives inside `AuthUI` — the domain says *what* failed, presentation decides *how to say it*. Copy changes never touch `Session`.
+The text that a person types becomes an `Email` and a `Password` here, at the edge. This is the only location where a loose string is permitted. The two types are deliberately tolerant, thus a partly typed address is still valid while the person types it. `AuthenticationErrorMessages` is in `AuthUI`: the domain says *what* failed, and the presentation decides *how to say it*. A change to the text never changes `Session`.
 
-It is a type of its own rather than an extension on `LoginError`, and that is deliberate: `LoginError` is declared in another module, and behaviour bolted onto it from here would not be visible to anyone reading it. Extensions that reach across a module boundary hide a type's real surface area from the file that declares it. The rule this codebase follows is that an extension may only sit beside the type it extends — every one outside a test does.
+`AuthenticationErrorMessages` is its own type and not an extension on `LoginError`. This is deliberate. Another module declares `LoginError`, and behaviour that this module adds to it would not be visible to a person who reads that module. An extension across a module boundary hides part of a type's surface from the file that declares the type. The rule in this codebase is that an extension can only be beside the type that it extends. Each extension outside a test obeys that rule.
 
 ### Views
 
-Views bind to `@Published` properties and delegate all actions to the ViewModel. A view has no business branching, no network calls, and no navigation decisions. It answers one question: given this state, what should be on screen?
+A view binds to the `@Published` properties and sends each action to the ViewModel. A view contains no business branch, no network call and no navigation decision. It answers one question: for this state, what must be on the screen?
 
-### Shared UI Components
+### Shared UI components
 
-`ProductUI` is a UI package with no tab of its own. It owns the product card, the two ways the shop arranges cards — a paginating grid down the screen and a scrolling row across it — and the product details screen. These are the things `HomeUI`, `SearchUI` and `WishlistUI` all need and none should own. Its views take an `accessory` closure so a host feature can slot in, say, a wishlist button without `ProductUI` learning what a wishlist is.
+`ProductUI` is a UI package with no tab of its own. It owns the product card, the two arrangements of cards — a paginating grid down the screen and a scrolling row across it — and the product details screen. `HomeUI`, `SearchUI` and `WishlistUI` all need these, and none of them must own them. The views of `ProductUI` take an `accessory` closure. Thus a host feature can add a wishlist button, and `ProductUI` does not learn what a wishlist is.
 
-The row makes the point sharply. A carousel on Home and a carousel on the wishlist tab are the same row of the same cards; the only difference is the heading above them, which each feature keeps. Had the row stayed in `HomeUI`, `WishlistUI` would have had to import it — and `HomeUI` already imports `WishlistUI` to render hearts, so that is a cycle SwiftPM refuses to build. The arrangement of a card belongs with the card.
+The row shows this clearly. A carousel on Home and a carousel on the wishlist tab are the same row of the same cards. Only the heading above them is different, and each feature keeps its own heading. If the row stayed in `HomeUI`, then `WishlistUI` would import `HomeUI`. But `HomeUI` already imports `WishlistUI` to draw the hearts, thus that is a cycle, and SwiftPM refuses to build it. The arrangement of a card belongs with the card.
 
-`ProductActionsUI` is the same idea one level down, and it is named for what it *is* rather than for who uses it. It holds the three things a shopper can do to a product — save it, buy it, be told when it is back — and the decision of which to offer for a given availability.
+`ProductActionsUI` is the same idea one level lower, and its name states what it is and not who uses it. It holds the three things that a shopper can do to a product — save it, buy it, and ask to be told when it is available again — and the decision about which of them to offer for a given availability.
 
-They are not feature buttons that happen to be reused. A heart belongs to the product, not to the wishlist feature, and the set of them changes for exactly one reason: when what a shopper can do with a product changes. That is a single axis of change, which is the test for what belongs together.
+These are not feature buttons that two features share. A heart belongs to the product and not to the wishlist feature. The set of actions changes for one reason only: when what a shopper can do with a product changes. That is one axis of change, which is the test for what belongs together.
 
-There is a mechanical reason too. `BagUI` renders the heart, in the removed-items list; `WishlistUI` renders the bag button, on every row. If each button lived in its own feature's package that is a cycle, and SwiftPM refuses to build it.
+There is also a mechanical reason. `BagUI` draws the heart, in the list of removed items. `WishlistUI` draws the bag button, on each row. If each button were in the package of its own feature, that is a cycle, and SwiftPM refuses to build it.
 
-A package named `SharedUI` would invite the opposite question — a name describing a *relationship* to other packages gives no criterion for what belongs inside, so eventually everything does. Named for the concept, the rule writes itself: if it is not something a shopper can do to a product, it does not go here.
+A package with the name `SharedUI` would cause the opposite question. A name that states a *relationship* to other packages gives no criterion for what goes in it, thus everything goes in it. A name that states the concept writes the rule for you: if it is not something that a shopper can do to a product, it does not go here.
 
-**Cross-feature UI dependencies are allowed and intentional.** `SearchUI` imports `ProductUI`; `WishlistUI` imports `ProductUI`, `ProductActionsUI` and `AuthUI`. What is not allowed is a UI package importing another component's *data* layer.
+**Cross-feature UI dependencies are permitted and intentional.** `SearchUI` imports `ProductUI`. `WishlistUI` imports `ProductUI`, `ProductActionsUI` and `AuthUI`. What is not permitted is a UI package that imports the *data* layer of another component.
 
-### Feature DI Containers
+### DI containers for each feature
 
-Each feature module exposes a DI container that constructs its view hierarchy. The container accepts its dependencies through its initialiser — navigation protocols, presentation ports, and individual use cases.
+Each feature module supplies a DI container that constructs its view hierarchy. The container takes its dependencies through its initialiser: navigation protocols, presentation ports and single use cases.
 
-**Why per-feature DI containers?** A monolithic injector that constructs every view in the app conflates the wiring of unrelated features. Per-feature containers mean each feature constructs its own objects. The application-level `CompositionRoot` assembles the containers; the containers assemble the views.
+**Why each feature has its own DI container.** One large injector that constructs each view in the application mixes the wiring of features that are not related. With a container for each feature, each feature constructs its own objects. `CompositionRoot` assembles the containers, and the containers assemble the views.
 
 **[`UI/HomeUI/Sources/DI/HomeUIDI.swift`](UI/HomeUI/Sources/DI/HomeUIDI.swift)**
 ```swift
@@ -536,15 +508,15 @@ public struct HomeUIDI {
 }
 ```
 
-**Why individual use cases, not the whole `ProductDI` container?** This is the Interface Segregation Principle applied to dependency injection. `HomeUIDI` needs exactly one capability — draw the feed — so one is what it is handed. `HomeDI`, a layer further in, needs exactly two of `Product`'s: listing the shop's categories, and listing the products in one. Injecting the full `ProductDI` at either point would hand over `viewProductUseCase` and `lookUpProductsUseCase` as well, dependencies neither calls. Fowler warns against this shape under the name Service Locator: injecting a container that *can* resolve anything, rather than the collaborator actually needed, blurs the boundary the layering is meant to enforce. Only the composition root holds whole component containers.
+**Why single use cases and not the full `ProductDI` container.** This is the interface segregation principle applied to dependency injection. `HomeUIDI` needs one capability — draw the feed — thus it gets one. `HomeDI`, one layer further in, needs two capabilities from `Product`: list the categories of the shop, and list the products in one category. The full `ProductDI` at either point would also supply `viewProductUseCase` and `lookUpProductsUseCase`, which neither of them calls. Fowler warns against this shape with the name Service Locator: a container that *can* resolve anything, in the place of the collaborator that the caller actually needs, makes the boundary less clear. Only the composition root holds a full component container.
 
-The exception is one UI container injecting another — `HomeUIDI` takes `WishlistUIDI` and `ProductActionsUIDI` so a card in a carousel can carry a heart and a bag button, and `SearchUIDI` takes the same pair for the same reason. That is a view-construction dependency between peers, not a reach into a component's domain wiring. Note where it stops: the peer containers reach `HomeUIDI`, not `HomeUI`. The screen itself is handed two closures, `(ProductID) -> AnyView` and `(Product) -> AnyView`, and never learns that a wishlist exists.
+There is one exception: a UI container can take another UI container. `HomeUIDI` takes `WishlistUIDI` and `ProductActionsUIDI`, thus a card in a carousel can carry a heart and a bag button. `SearchUIDI` takes the same pair for the same reason. That is a view-construction dependency between equals and not a reach into the domain wiring of a component. Note where it stops: the two containers reach `HomeUIDI` and not `HomeUI`. The screen itself gets two closures, `(ProductID) -> AnyView` and `(Product) -> AnyView`, and never learns that a wishlist exists.
 
 ---
 
-## Ports and Hosts: Cross-Cutting UI
+## Ports and hosts: UI that crosses features
 
-Three UI concerns — sheets, snackbars, and authentication — are needed by features that must not know how any of them are implemented. Each is a package split into a **port** and a **host**:
+Three UI concerns — sheets, snackbars and authentication — are necessary for features that must not know how the application implements them. Each concern is a package in two parts: a **port** and a **host**.
 
 ```
 SnackbarUI/
@@ -555,7 +527,7 @@ SnackbarUI/
 └── product `SnackbarUIDI` = SnackbarUIHost + SnackbarUIDI
 ```
 
-**Features link the port. Only the composition root links the host.** `HomeUI` depends on `SnackbarUI` and can call `show(_:)`; it cannot see `SnackbarPresenter`, `SnackbarView`, or the `.snackbarHost(_:)` modifier, because those are in a product it does not link. The boundary is enforced by SwiftPM, not by discipline.
+**A feature links the port. Only the composition root links the host.** `HomeUI` depends on `SnackbarUI` and can call `show(_:)`. It cannot see `SnackbarPresenter`, `SnackbarView` or the `.snackbarHost(_:)` modifier, because those are in a product that `HomeUI` does not link. SwiftPM applies this boundary. Discipline does not.
 
 ### SheetUI — the primitive
 
@@ -568,9 +540,9 @@ public protocol SheetPresenting: AnyObject {
 }
 ```
 
-`SheetPresenter` guarantees only one sheet is on screen at a time. Presenting while something is already up queues the successor and lets the current one finish dismissing, so SwiftUI sees a clean dismiss/present pair. Crucially, `onDismiss` fires *only* when the user ends the sheet — not when a chained sheet supersedes it, and not on a programmatic `dismiss()`. That distinction is what makes an outcome-carrying flow possible on top of it.
+`SheetPresenter` makes sure that only one sheet is on the screen at a time. If a caller presents a sheet while a sheet is open, `SheetPresenter` puts the new sheet in a queue and lets the open sheet complete its dismissal. Thus SwiftUI receives a clean pair of one dismissal and one presentation. `onDismiss` occurs *only* when the shopper ends the sheet. It does not occur when a chained sheet replaces that sheet, and it does not occur on a `dismiss()` from code. That difference is what permits a flow that carries an outcome.
 
-### SnackbarUI — one method, on purpose
+### SnackbarUI — one method, deliberately
 
 **[`UI/SnackbarUI/Sources/SnackbarUI/Snackbar.swift`](UI/SnackbarUI/Sources/SnackbarUI/Snackbar.swift)**
 ```swift
@@ -586,9 +558,9 @@ public struct Snackbar {
 }
 ```
 
-`displayDuration` belongs to the snackbar, not to whatever is displaying it — how long something stays up is a property of the message, and a host that decided it would have to know what each message meant. Actions are supplied by the caller — `.undo` carries the inverse operation, `.retry` re-invokes the failed one, `.view` goes to the thing — so `SnackbarUI` never learns what a wishlist or a bag is.
+`displayDuration` belongs to the snackbar and not to the object that shows it. How long a message stays is a property of the message. A host that decided the duration would have to know the meaning of each message. The caller supplies the actions: `.undo` carries the opposite operation, `.retry` calls the failed operation again, and `.view` goes to the item. Thus `SnackbarUI` never learns what a wishlist or a bag is.
 
-### AuthUI — a flow behind a single call
+### AuthUI — a flow behind one call
 
 **[`UI/AuthUI/Sources/AuthUI/AuthPresenting.swift`](UI/AuthUI/Sources/AuthUI/AuthPresenting.swift)**
 ```swift
@@ -601,17 +573,17 @@ public protocol AuthPresenting: AnyObject {
 }
 ```
 
-A feature says *why* it needs an account and awaits a yes or no. It does not know that the flow is a chooser sheet that can chain into a login sheet or a create-account sheet, or that sheets are involved at all. `AuthenticationPrompt` lets the ask read as part of what the user was doing — the wishlist button asks "Log in or create an account to build your wishlist", not "Account Required".
+A feature says *why* it needs an account, then waits for yes or no. It does not know that the flow is a chooser sheet that can continue into a login sheet or a create-account sheet. It does not know that the flow uses sheets at all. `AuthenticationPrompt` lets the question read as part of what the shopper was doing: the wishlist button asks "Log in or create an account to build your wishlist", not "Account Required".
 
-**[`UI/AuthUI/Sources/AuthUIHost/AuthPresenter.swift`](UI/AuthUI/Sources/AuthUIHost/AuthPresenter.swift)** implements it as a chain of `SheetPresenting` presentations, holding every caller on a `CheckedContinuation` and resolving them all with the same answer when the flow ends. `AuthPresenter` is built on the generic sheet primitive and knows nothing about how sheets are hosted — only what this flow is.
+**[`UI/AuthUI/Sources/AuthUIHost/AuthPresenter.swift`](UI/AuthUI/Sources/AuthUIHost/AuthPresenter.swift)** implements the protocol as a chain of `SheetPresenting` presentations. It holds each caller on a `CheckedContinuation`, and gives all of them the same answer when the flow ends. `AuthPresenter` is built on the generic sheet primitive. It knows only what this flow is, and nothing about how the application hosts a sheet.
 
 ---
 
-## Authentication as a Domain Outcome
+## Authentication as a domain outcome
 
-Putting the previous two sections together produces the pattern that runs through the whole app: **the domain decides that authentication is required; the UI decides what to do about it.**
+The two sections above give the pattern that occurs through the full application: **the domain decides that authentication is necessary, and the UI decides what to do about it.**
 
-**[`UI/ProductActionsUI/Sources/UI/Buttons/WishlistButtonViewModel.swift`](UI/ProductActionsUI/Sources/UI/Buttons/WishlistButtonViewModel.swift)**
+**[`UI/ProductActionsUI/Sources/UI/Buttons/Wishlist/WishlistButtonViewModel.swift`](UI/ProductActionsUI/Sources/UI/Buttons/Wishlist/WishlistButtonViewModel.swift)**
 ```swift
 switch await add(productId: productId) {
 case .success:
@@ -633,38 +605,32 @@ case .failure(.unavailable):
 }
 ```
 
-`WishlistError` has two cases and no more: the shopper is not signed in, or the change could not be kept. A disk that would not write, a request that never arrived and an unreadable payload all arrive as `.unavailable`, because they are one fact to a shopper — their wishlist did not change — and nothing in the domain would do anything different with the distinction. Telling them apart here would be the transport's vocabulary leaking inward.
+`WishlistError` has two cases and no more: the shopper is not signed in, or the application could not keep the change. A disk that refused to write, a request that did not arrive and a payload that the application cannot read all become `.unavailable`. To a shopper these are one fact — the wishlist did not change — and no part of the domain would act differently on the difference. To separate them here would move the vocabulary of the transport inward.
 
-The switch is exhaustive, which is the point: there is no `default:` arm quietly swallowing a failure nobody thought about, and adding a third case would stop the build at every screen that has to decide what to say about it.
+The switch is exhaustive, which is the purpose. There is no `default:` arm to hide a failure that nobody examined. If a third case is added, the build stops at each screen that must decide what to say about it.
 
-**Nothing in this path is `@discardableResult`.** An operation that can fail for a reason the shopper needs telling about must not be silently ignorable — so the undo closures, which are the only callers that used to drop the answer, now report it too. A shopper whose sign-in ends between saving something and tapping Undo would otherwise watch the snackbar disappear as though it had worked.
+**No part of this path is `@discardableResult`.** An operation that can fail for a reason that the shopper must know about must not be easy to ignore. The undo closures were the only callers that discarded the answer, and they now report it. Without that, a shopper whose sign-in ends between the save and the tap on Undo would see the snackbar go away as if the operation had succeeded.
 
-The ViewModel never asks "is the user logged in?" before acting. It attempts the operation, and authentication becomes a *retryable failure* rather than a precondition scattered across every call site. The user's original intent is preserved across the entire detour: tap heart → prompt → create account → item saved, with no second tap.
+The ViewModel never asks "is the shopper logged in?" before it acts. It tries the operation, and authentication becomes a *failure that the shopper can retry* and not a precondition in each call site. The application keeps the original intention of the shopper through the full detour: tap the heart, answer the prompt, create the account, and the item is saved, with no second tap.
 
-The undo closures capture the use cases rather than `self` — a wishlist button in a lazily-rendered grid cell may be discarded the moment the user scrolls, and a snackbar action that outlives its view model must still work.
+The undo closures capture the use cases and not `self`. The application can discard a wishlist button in a grid cell as soon as the shopper scrolls, and a snackbar action that stays after its view model must still operate.
 
 ---
 
-## Application Layer
+## Application layer
 
-The application layer is the composition root — the single place where all concrete types are instantiated and wired together.
+The application layer is the composition root. It is the one location where the application constructs each concrete type and connects them.
 
 > *"A Composition Root is a (preferably) unique location in an application where modules are composed together."*
 > — Mark Seemann & Steven van Deursen, *Dependency Injection: Principles, Practices, and Patterns* (2019)
 
-**Why a composition root?** If each type constructs its own dependencies, no single place in the codebase represents how the application is wired. Wiring bugs are invisible until runtime and require searching the whole codebase to fix. The composition root makes the dependency graph explicit, visible, and located in one place. It is the only part of the app aware of all concrete types simultaneously.
+**Why a composition root is necessary.** If each type constructs its own dependencies, no location in the codebase shows how the application is connected. A wiring fault is then invisible until the application runs, and a person must search the full codebase to correct it. The composition root makes the dependency graph explicit, visible and local. It is the only part of the application that knows all the concrete types at the same time.
 
-The application layer is intentionally not unit tested — it contains no logic, only wiring.
+There are no unit tests for the application layer, deliberately: it holds no logic, only wiring.
 
-**Demos are a different catalog, not commented-out code.** The catalog reaches `CompositionRoot` as
-a `Catalog` — a set of use case protocols — so a demo supplies a different one and nothing in the
-composition root changes. `Demo.shopThatChangesItsMind()` wraps the real use cases in decorators
-that move prices and sell things out, which is how the bag's catching-up behaviour can be shown
-without waiting for a real shop to change its mind.
+**A demo is a different catalog and not code in comments.** The catalog reaches `CompositionRoot` as a `Catalog`, which is a set of use case protocols. Thus a demo supplies a different catalog, and nothing in the composition root changes. `Demo.shopThatChangesItsMind()` puts the real use cases in decorators that move prices and sell items out. This is how the application can show the catch-up behaviour of the bag without a real shop that changes its mind.
 
-The point is that *both arrangements compile at all times*. A demo switched on by uncommenting lines
-does not compile in its off state, so nothing checks it still works, and the only thing keeping it
-out of a release is that somebody reads a warning. Here it is one flag, type-checked either way:
+The important property is that *both arrangements compile at all times*. A demo that you enable when you remove comment marks does not compile in its off state, thus nothing shows that it still operates, and only a person who reads a warning keeps it out of a release. Here the demo is one flag, and the compiler checks both states:
 
 ```swift
 // Demo.swift
@@ -678,13 +644,11 @@ static let shared = CompositionRoot(
 )
 ```
 
-Nothing below the app layer knows a demo is possible. `Component/Bag` sees ordinary catalog answers
-and reacts exactly as it would in production — which is the Liskov Substitution Principle earning its
-keep, and the reason the demo is trustworthy as a demonstration at all.
+Nothing below the application layer knows that a demo is possible. `Component/Bag` receives usual catalog answers and reacts as it reacts in production. This is the value of the Liskov substitution principle, and it is the reason that the demo is a reliable demonstration.
 
-### Three Assemblers, One Root
+### Three assemblers, one root
 
-The composition root is assembled in three phases, named for the three layers the architecture already has.
+The application builds the composition root in three phases. The phases have the names of the three layers that the architecture already has.
 
 **[`iPhone/Composition/CompositionRoot.swift`](iPhone/Composition/CompositionRoot.swift)**
 ```swift
@@ -709,11 +673,11 @@ final class CompositionRoot {
 }
 ```
 
-Each phase is handed only the phase before it. `DomainAssembler` cannot reach the presentation layer it is about to be used to build, and `DataAssembler` cannot reach either — so the wiring runs one way and the reading order is the construction order.
+Each phase receives only the phase before it. `DomainAssembler` cannot reach the presentation layer that it helps to build, and `DataAssembler` can reach neither of the other two. Thus the wiring goes in one direction, and the order that you read is the order of construction.
 
-This is still **one** composition root in Seemann's sense: a single location where modules are composed. Three assemblers constructed here, in one order, are one root with its phases named — not three places where composition happens. Nothing else in the app may build any of them.
+This is still **one** composition root in Seemann's sense: one location where the application composes the modules. Three assemblers constructed here, in one sequence, are one root with named phases. They are not three locations where composition occurs. No other part of the application can build any of them.
 
-**[`iPhone/Composition/DataAssembler.swift`](iPhone/Composition/DataAssembler.swift)** — every concrete store and client, and nothing else:
+**[`iPhone/Composition/DataAssembler.swift`](iPhone/Composition/DataAssembler.swift)** — each concrete store and client, and nothing more:
 
 ```swift
 @MainActor
@@ -728,7 +692,7 @@ struct DataAssembler {
 }
 ```
 
-How long a sign-in lasts, the choice of `UserDefaults`, the choice of a file on disk — all decided *here*, and readable as one list. Martin calls this out directly in Chapter 30: the database is a detail. Giving the details their own phase is what makes them a list you can read rather than a handful of lines scattered through a longer initialiser.
+How long a sign-in stays valid, the selection of `UserDefaults`, the selection of a file on disk — the application decides all of these *here*, and you can read them as one list. Martin states this directly in Chapter 30: the database is a detail. A separate phase for the details is what makes them a list that you can read, in the place of some lines in a longer initialiser.
 
 **[`iPhone/Composition/DomainAssembler.swift`](iPhone/Composition/DomainAssembler.swift)** — the component containers, built over those stores:
 
@@ -745,9 +709,9 @@ struct DomainAssembler {
 }
 ```
 
-`Catalog` is passed in rather than built from `DataAssembler`, because a demo substitutes a whole catalog of decorated use cases. That is a *domain*-level substitution, not a choice of backend, so it does not belong to the data phase — and it arrives from outside for the same reason it always did.
+The application gives `Catalog` to this phase and does not build it from `DataAssembler`, because a demo replaces a full catalog of decorated use cases. That is a substitution at the *domain* level and not a selection of a backend, thus it does not belong to the data phase. It comes from outside for the same reason that it always did.
 
-**[`iPhone/Composition/PresentationAssembler.swift`](iPhone/Composition/PresentationAssembler.swift)** — the feature containers and the tab views, from use cases alone:
+**[`iPhone/Composition/PresentationAssembler.swift`](iPhone/Composition/PresentationAssembler.swift)** — the feature containers and the tab views, from use cases only:
 
 ```swift
 @MainActor
@@ -772,11 +736,11 @@ struct PresentationAssembler {
 }
 ```
 
-This phase does not decompose further, and the code says why: the sheet host must exist before the auth flow that presents on it, the auth flow before the navigator that gates on it, and the shared wishlist button before the two features that render one. Presentation depends on presentation. Splitting it again would mean inventing an order the graph does not have.
+This phase does not divide further, and the code shows why. The sheet host must exist before the auth flow that presents on it. The auth flow must exist before the navigator that gates on it. The shared wishlist button must exist before the two features that draw one. Presentation depends on presentation. To divide the phase again, you would have to invent an order that the graph does not have.
 
-Tab views are instantiated once at startup and held here. If `TabScreen` called `home.mainView()` on each render, SwiftUI would create a new view identity on every tab switch, destroying all `@State`, scroll positions, and in-flight async tasks.
+The application constructs the tab views one time at start-up and holds them here. If `TabScreen` called `home.mainView()` at each draw, SwiftUI would make a new view identity at each change of tab. That would destroy all `@State`, all scroll positions and all async tasks in progress.
 
-### Component DI Container
+### Component DI container
 
 **[`Component/Session/Sources/DI/SessionDI.swift`](Component/Session/Sources/DI/SessionDI.swift)**
 ```swift
@@ -792,11 +756,11 @@ public struct SessionDI {
 }
 ```
 
-The container takes the data sources it cannot invent and constructs the repository and every use case internally. Callers receive use case protocols; the repository never escapes the package.
+The container takes the data sources that it cannot make itself. It then constructs the repository and each use case internally. A caller receives use case protocols, and the repository never leaves the package.
 
-### App Entry Point
+### Application entry point
 
-There is no forced login gate. `MainViewModel` drives a small phase machine — splash, then welcome for a guest or straight to the tabs for a restored session.
+There is no login gate at start-up. `MainViewModel` operates a small phase machine: a splash screen, then a welcome screen for a guest, or the tabs directly for a session that the application restored.
 
 **[`iPhone/Main/MainViewModel.swift`](iPhone/Main/MainViewModel.swift)**
 ```swift
@@ -818,7 +782,7 @@ final class MainViewModel: ObservableObject {
 }
 ```
 
-Both guards are the same rule stated twice: whatever the splash was waiting for, a shopper who authenticated in the meantime has already moved the app on, and the timer must not move it back.
+The two guards state the same rule two times. Whatever the splash screen waited for, a shopper who authenticated in that time has already moved the application forward, and the timer must not move it back.
 
 **[`iPhone/Main/Main.swift`](iPhone/Main/Main.swift)** switches on the phase, and attaches the two hosts at the root:
 
@@ -827,17 +791,17 @@ TabScreen(navigator: ..., snackbarPresenter: ..., homeView: ..., /* ... */)
     .sheetHost(CompositionRoot.shared.presentation.sheet.presenter)
 ```
 
-`.snackbarHost(_:)` is attached inside `TabScreen` so snackbars sit above the tab bar. The hosts are the only place the app knows sheets and snackbars exist as SwiftUI constructs.
+`.snackbarHost(_:)` is attached in `TabScreen`, thus a snackbar shows above the tab bar. The hosts are the only location where the application knows that sheets and snackbars are SwiftUI constructs.
 
 ---
 
-## Navigation Architecture
+## Navigation architecture
 
-Navigation is decoupled through three collaborating components: feature navigation protocols, a central `Navigator`, and a `Destination` enum.
+Navigation uses three parts together: a navigation protocol for each feature, a central `Navigator`, and a `Destination` enumeration.
 
-**Why decouple navigation?** The naive approach gives each ViewModel a reference to a `Navigator`. Every `*UI` package would then import the application target — a feature module depending on the composition root, which completely inverts the dependency direction. Features would know about the application hosting them, rather than the application knowing about features.
+**Why navigation is decoupled.** The simple approach gives each ViewModel a reference to a `Navigator`. Each `*UI` package would then import the application target. A feature module would depend on the composition root, which reverses the correct direction of the dependencies. The features would know about the application that hosts them, in the place of the application knowing about the features.
 
-Navigation protocols invert this. Each feature declares the navigation capabilities it needs. The application satisfies them. Features remain ignorant of how or where they are hosted.
+The navigation protocols invert this. Each feature declares the navigation that it needs. The application supplies it. A feature does not know how or where the application hosts it.
 
 **[`UI/SearchUI/Sources/Navigation/SearchNavigation.swift`](UI/SearchUI/Sources/Navigation/SearchNavigation.swift)**
 ```swift
@@ -847,11 +811,11 @@ public protocol SearchNavigation: AnyObject {
 }
 ```
 
-`HomeNavigation` and `WishlistNavigation` declare only `openProductDetails(product:)`. `BagNavigation` declares `openProductDetails(id:)` and `switchToBagTab()` — a bag row holds an id and not a product, and "View" on the added-to-bag snackbar has to land somewhere. Each protocol lists exactly the moves its own feature makes, so no feature can reach a route it never asked for.
+`HomeNavigation` and `WishlistNavigation` declare `openProductDetails(product:)` only. `BagNavigation` declares `openProductDetails(id:)` and `switchToBagTab()`, because a bag row holds an id and not a product, and because "View" on the added-to-bag snackbar must go somewhere. Each protocol lists only the moves that its own feature makes. Thus a feature cannot reach a route that it did not ask for.
 
-### Destination and the Auth Gate
+### Destination and the authentication gate
 
-`Destination` is a `Hashable` enum centralising all route types. It also declares navigation *policy*: which destinations require an account.
+`Destination` is a `Hashable` enumeration that holds all the route types. It also declares navigation *policy*: which destinations need an account.
 
 **[`iPhone/Navigation/Destination.swift`](iPhone/Navigation/Destination.swift)**
 ```swift
@@ -884,9 +848,9 @@ public enum Destination: Hashable {
 }
 ```
 
-There is one `catalog` case rather than one per way of slicing the shop, because `CatalogFilter` already says what the slice is — a route per filter would restate that enum in a second place. `ProductReference` exists because a caller that already holds the product can render the screen without a round trip, and a caller holding only an id cannot; both are the same destination.
+There is one `catalog` case, and not one case for each way to divide the shop, because `CatalogFilter` already states what the division is. A route for each filter would state that enumeration a second time. `ProductReference` exists because a caller that already holds the product can draw the screen with no second request, and a caller that holds only an id cannot. Both are the same destination.
 
-Every destination is currently public, but the switch is exhaustive: adding an account-only destination forces a decision at compile time rather than leaving a gap. `makeView()` delegates construction to the owning UIDI container, keeping view creation in the DI layer — note that `.productDetails` is served by `ProductUIDI`, not by whichever feature pushed it.
+Each destination is public at present, but the switch is exhaustive. If you add a destination that needs an account, the compiler makes you decide, and does not leave a hole. `makeView()` sends the construction to the UIDI container that owns the view. Thus view creation stays in the DI layer. Note that `ProductUIDI` supplies `.productDetails`, and not the feature that pushed it.
 
 **[`iPhone/Navigation/Navigator.swift`](iPhone/Navigation/Navigator.swift)**
 ```swift
@@ -914,28 +878,28 @@ final class Navigator: ObservableObject {
 }
 ```
 
-`open` is the only way in, so the gate cannot be bypassed by a new call site — the same principle as putting the wishlist's auth check in the use case rather than at every caller. `Account` has no `NavigationPath` of its own: it is a single screen with no push destinations, so it is excluded from the `push`/`pop` switches rather than carrying dead cases.
+`open` is the only entry, thus a new call site cannot go around the gate. This is the same principle as the authentication check in the wishlist use case rather than at each caller. `Account` has no `NavigationPath` of its own, because it is one screen with no push destinations. Thus the `push` and `pop` switches do not include it, and it carries no unused cases.
 
-### Navigation Flow
+### Sequence of a navigation
 
-1. User taps a button in a `View`
-2. `View` calls its navigation protocol (e.g. `SearchNavigation`), and its `ViewModel` for any side effects
-3. `Navigator` — which conforms to every feature protocol, in `Destination.swift` where the conformance's dependencies live — receives the call
-4. `Navigator.open()` applies the auth gate if the destination requires it
-5. `push()` appends the `Destination` to the active tab's `NavigationPath`, switching tabs first if the destination targets another
-6. SwiftUI's `NavigationStack` calls `.navigationDestination(for: Destination.self)`
-7. `Destination.makeView()` constructs the view via the owning UIDI container
+1. The shopper taps a button in a `View`.
+2. The `View` calls its navigation protocol, for example `SearchNavigation`. It calls its `ViewModel` for any side effects.
+3. `Navigator` receives the call. `Navigator` conforms to each feature protocol, in `Destination.swift`, where the dependencies of the conformance are.
+4. `Navigator.open()` applies the authentication gate if the destination needs it.
+5. `push()` adds the `Destination` to the `NavigationPath` of the active tab. If the destination belongs to a different tab, it changes the tab first.
+6. The `NavigationStack` of SwiftUI calls `.navigationDestination(for: Destination.self)`.
+7. `Destination.makeView()` constructs the view through the UIDI container that owns it.
 
 ---
 
-## Testing Strategy
+## Test strategy
 
 > *"The Fragile Tests Problem: ...the system becomes rigid. Developers see that trivial changes to the system can cause massive test failures."*
 > — Robert C. Martin, *Clean Architecture* (2017), Chapter 28
 
-**Every package has exactly one test target, and it is an acceptance suite.** There are no separate domain, use case or repository test targets. A shopper never experiences a repository; they experience their bag being where they left it, at the price they were quoted. That is what is asserted.
+**Each component package has two test targets: a unit tier and an acceptance tier.** There is no separate target for the domain, the use cases or the repositories. A shopper never sees a repository. A shopper sees that the bag holds what they left in it, at the price that the shop quoted. The acceptance tier asserts that. The unit tier asserts the same rules in the language of the system, and names the unit that broke.
 
-Each suite drives its feature through a **testing API** — Martin's own remedy for fragile tests — written in the shopper's language:
+Each acceptance suite drives its feature through a **testing API**, which is Martin's own remedy for fragile tests. The testing API uses the language of the shopper.
 
 **[`Component/Bag/Tests/BagAcceptanceTests/Support/Shopper.swift`](Component/Bag/Tests/BagAcceptanceTests/Support/Shopper.swift)**
 ```swift
@@ -948,11 +912,11 @@ shopper.shopSays(shopSells(1, at: 12.99))
 #expect(shopper.bag.total == usd(12.99))
 ```
 
-No test names a repository, a store, a DTO or a `Default*UseCase`. The feature can be rearranged underneath these tests and they go on asserting the same thing — which is the whole point of a testing API, and the reason the layer tests they replaced were worth deleting rather than keeping.
+No acceptance test names a repository, a store, a DTO or a `Default*UseCase`. You can rearrange the feature below these tests, and they continue to assert the same behaviour. That is the purpose of a testing API, and the reason that the layer tests it replaced were worth removal.
 
-**What is stood in for is only what the app genuinely cannot own.** `Shopper` wires the real `BagDI` over a real `FileBagStore` in a temporary directory: real repository, real DTOs, real JSON on a real disk. `Shop` fakes the catalog at the `HTTPClient` boundary, so the real client, decoding, repository and use cases all run. `Account` uses the same `FakeAuthClient` the app ships. Only the session — which every other component is a *reader* of and never an owner — is stubbed.
+**The suites replace only what the application cannot own.** `Shopper` wires the real `BagDI` over a real `FileBagStore` in a temporary directory: a real repository, real DTOs and real JSON on a real disk. `Shop` fakes the catalog at the `HTTPClient` boundary. Thus the real client, the real decoding, the real repository and the real use cases all operate. `Account` uses the same `FakeAuthClient` that the application contains. Only the session is a stub, and each other component reads the session but never owns it.
 
-That is not a stylistic preference. The first thing this rewrite found was that one unreadable notice in a saved bag threw away the shopper's entire bag: no layer test caught it, because none of them ever went through real JSON.
+That is not a preference of style. The first fault that this rewrite found was that one unreadable notice in a saved bag discarded the full bag of the shopper. No layer test found it, because no layer test went through real JSON.
 
 | Suite | What it asserts |
 | --- | --- |
@@ -965,15 +929,15 @@ That is not a stylistic preference. The first thing this rewrite found was that 
 | [`BagUIAcceptanceTests`](UI/BagUI/Tests/BagUIAcceptanceTests/TheBagScreenTests.swift) | The bag screen: what it asks the shop, when, and what it shows while waiting |
 | [`OrderUIAcceptanceTests`](UI/OrderUI/Tests/OrderUIAcceptanceTests/BuyingFromAProductPageTests.swift) | Buy Now and checking out: what each one buys, what it leaves behind, and who it asks to sign in |
 | [`WishlistUIAcceptanceTests`](UI/WishlistUI/Tests/WishlistUIAcceptanceTests/KeepingAnEyeOnThingsTests.swift) | Both saved lists: filling them in, paging, and telling a dropped connection from a product that has gone |
-| [`MoneyTests`](Library/Money/Tests/MoneyTests/MoneyTests.swift) | The one exception — a `Library/` has no shopper, and owes exact arithmetic to whoever links it |
+| [`MoneyAcceptanceTests`](Component/Money/Tests/MoneyAcceptanceTests/PayingForABasketTests.swift) | What a basket comes to, what three of a thing cost, and which way a half-penny goes |
 
-**Why does this matter?** Tests that require a simulator run slowly and fail for infrastructure reasons unrelated to the logic being tested. Tests that depend on a real network are non-deterministic. Protocol-based design means a whole feature can be assembled and driven in-process, deterministically, in milliseconds. No third-party mocking libraries are needed — a conforming struct is sufficient.
+**Why this is important.** A test that needs a simulator operates slowly, and fails for infrastructure reasons that have no relation to the logic under test. A test that needs a real network gives different results at different times. A design that uses protocols lets you assemble a full feature and drive it in the process, with the same result each time, in milliseconds. You need no third-party framework to make a double: a conforming struct is sufficient.
 
-The UI packages other than `BagUI`, `HomeUI`, `OrderUI`, `ProductActionsUI` and `WishlistUI` are not yet covered — the seams are in place, the tests are not.
+The UI packages other than `BagUI`, `HomeUI`, `OrderUI`, `ProductActionsUI`, `SettingsUI` and `WishlistUI` have no acceptance tier yet. The seams are in place; the tests are not.
 
 ---
 
-## Module Dependencies
+## Module dependencies
 
 ```
 iPhone (App)
@@ -1010,19 +974,19 @@ iPhone (App)
                  ──▶  AuthUIDI
 ```
 
-The rules the graph obeys:
+The graph obeys these rules:
 
-- No domain module depends on a UI or data module.
-- No UI module depends on a `*Data` product. UI reaches domain, never storage.
-- Feature modules depend on **ports** (`SnackbarUI`, `AuthUI`, `SheetUI`), never on hosts. Only the composition root — and `AuthUIDI`, which is itself a host — links a `*UIDI` host product.
-- Cross-feature and cross-component dependencies are allowed where the domain genuinely relates: `Wishlist ──▶ Session` because requiring an account is a real rule, `Bag ──▶ Product` because a bag holds product ids and reads what the shop says about them, `SearchUI ──▶ ProductUI` because a search result is a product card.
-- `Bag`'s *domain* reaches `Session` not at all. Only `BagData` does, and only for `Owner` — the bag's rules do not depend on anyone being signed in, and the compiler now says so.
-- `Order`'s domain *does* reach `Session`, and the asymmetry is the point: a guest can hold a bag and cannot hold an order, so refusing one is a business rule rather than a storage detail.
-- `OrderUI ──▶ Bag`, and never the reverse. `BagUI` is handed a finished checkout button as an `AnyView`, exactly as it is handed a stock alert bell, so the payment stack stays out of the dependency list of every screen that renders a bag row or a heart. `ProductActionsUI` is untouched by checkout for the same reason.
-- One `*UIDI` container may take another — `SearchUIDI` takes `BagUIDI` so a search result can carry an add-to-bag button. That is a view-construction dependency between peers, not a reach into a component's domain wiring.
-- `Networking` and `Money` have no domain knowledge and sit under `Library/`.
+- No domain module depends on a UI module or a data module.
+- No UI module depends on a `*Data` product. The UI reaches the domain and never the storage.
+- A feature module depends on a **port** — `SnackbarUI`, `AuthUI`, `SheetUI` — and never on a host. Only the composition root links a `*UIDI` host product, and `AuthUIDI`, which is a host itself.
+- A dependency across features or across components is permitted where the domain has a real relation. `Wishlist ──▶ Session`, because a shopper must have an account. `Bag ──▶ Product`, because a bag holds product ids and reads what the shop says about them. `SearchUI ──▶ ProductUI`, because a search result is a product card.
+- The *domain* of `Bag` does not reach `Session` at all. Only `BagData` reaches it, and only for `Owner`. The rules of the bag do not depend on a signed-in shopper, and the compiler now states that.
+- The domain of `Order` *does* reach `Session`, and the difference is the point. A guest can hold a bag and cannot hold an order, thus to refuse an order is a business rule and not a storage detail.
+- `OrderUI ──▶ Bag`, and never the opposite. The application gives `BagUI` a completed checkout button as an `AnyView`, in the same way that it gives a stock alert bell. Thus the payment stack stays out of the dependency list of each screen that draws a bag row or a heart. `ProductActionsUI` is free of checkout for the same reason.
+- One `*UIDI` container can take another. `SearchUIDI` takes `BagUIDI`, thus a search result can carry an add-to-bag button. That is a view-construction dependency between equals and not a reach into the domain wiring of a component.
+- `Networking` has no domain knowledge and is in `Library/`. `Money` was beside it and is not now: exact arithmetic and same-currency addition are the business's rules about prices, thus `Money` is a domain component that each other component can depend on.
 
-All of it is enforced by the compiler through Swift Package Manager, not by convention.
+Swift Package Manager and the compiler apply all of this. Convention does not.
 
 ---
 
@@ -1037,16 +1001,16 @@ All of it is enforced by the compiler through Swift Package Manager, not by conv
 
 ---
 
-## Getting Started
+## How to start
 
-Requires Xcode with the iOS 26 SDK (packages target `.iOS(.v26)`, swift-tools 6.2).
+You need Xcode with the iOS 26 SDK. The packages target `.iOS(.v26)` and swift-tools 6.2.
 
-1. Open `CleanArchitecture.xcodeproj`
-2. Build and run the `iPhone` scheme
-3. Tap **Continue as Guest** to browse Home and Search immediately, against the real [DummyJSON](https://dummyjson.com) catalog
-4. Authentication is entirely on-device — create an account with any email and password, then log in with the same credentials. Tapping the heart on a product while signed out will prompt for an account and resume the action once you have one.
-5. Sessions persist for seven days and expire automatically; log out from the Account tab
+1. Open `CleanArchitecture.xcodeproj`.
+2. Build the `iPhone` scheme and run it.
+3. Tap **Continue as Guest** to browse Home and Search immediately, against the real [DummyJSON](https://dummyjson.com) catalog.
+4. Authentication occurs fully on the device. Create an account with any email address and password, then log in with the same data. If you tap the heart on a product while you are signed out, the application asks for an account and then completes the action.
+5. A session stays valid for seven days and then expires. To log out before that, use the Account tab.
 
 ## License
 
-See [LICENSE](LICENSE) for details.
+For the conditions, see [LICENSE](LICENSE).
