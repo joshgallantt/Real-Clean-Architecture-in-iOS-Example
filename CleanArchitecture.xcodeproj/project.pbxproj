@@ -13,8 +13,11 @@
 		1418DDBF2E3E542300191417 /* SessionDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBE2E3E542300191417 /* SessionDI */; };
 		1418DDC12E3E542300191417 /* WishlistUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDC02E3E542300191417 /* WishlistUIDI */; };
 		2A7AD030AB0C5D47D98AE192 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = 905C6EC5E3B21525CBD02EF9 /* Networking */; };
+		345D3EFC6271AB3E4F68AC5E /* SettingsUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 15C9A5888A5B8EE7D759C93E /* SettingsUIDI */; };
+		4E26A71E805B07E3A3FDB2B7 /* SettingsDI in Frameworks */ = {isa = PBXBuildFile; productRef = C68D82F55C1C2508109B344C /* SettingsDI */; };
 		5563A1BBC34EADA9E5BF613B /* SearchHistoryData in Frameworks */ = {isa = PBXBuildFile; productRef = 17E6FCA71FC7E5B3FCF60C12 /* SearchHistoryData */; };
 		6D54B0B012238C4772C7879F /* AccountUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = EDD9F67AA3E61BAD6139E5A7 /* AccountUIDI */; };
+		745F0BE8EEEA50B543B999D2 /* SettingsData in Frameworks */ = {isa = PBXBuildFile; productRef = C500C19B9FBAC79597612384 /* SettingsData */; };
 		9D7079D16B1262239E3D4564 /* SearchUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 9A079E2873908107AF3834BC /* SearchUIDI */; };
 		BE81553773C1F601F3F14A6F /* ProductDI in Frameworks */ = {isa = PBXBuildFile; productRef = 91547A9FAB7827290BA768A3 /* ProductDI */; };
 		C8D4AC912BD3E7E1CE4D20C3 /* SearchHistoryDI in Frameworks */ = {isa = PBXBuildFile; productRef = F120951C767491840AE8B42D /* SearchHistoryDI */; };
@@ -37,9 +40,6 @@
 		FADE010200000000000000A1 /* OrderData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010200000000000000A2 /* OrderData */; };
 		FADE010300000000000000A1 /* OrderUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010300000000000000A2 /* OrderUIDI */; };
 		FADE011100000000000000A1 /* HomeDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE011100000000000000A2 /* HomeDI */; };
-		745F0BE8EEEA50B543B999D2 /* SettingsData in Frameworks */ = {isa = PBXBuildFile; productRef = C500C19B9FBAC79597612384 /* SettingsData */; };
-		4E26A71E805B07E3A3FDB2B7 /* SettingsDI in Frameworks */ = {isa = PBXBuildFile; productRef = C68D82F55C1C2508109B344C /* SettingsDI */; };
-		345D3EFC6271AB3E4F68AC5E /* SettingsUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 15C9A5888A5B8EE7D759C93E /* SettingsUIDI */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -468,6 +468,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Library/Networking;
 		};
+		37B2D02CCECD59EFFCBACC68 /* XCLocalSwiftPackageReference "Component/Settings" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/Settings;
+		};
 		3964D0A04B77D53557C402E9 /* XCLocalSwiftPackageReference "UI/AuthUI" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = UI/AuthUI;
@@ -479,6 +483,10 @@
 		3FD7B96A8B93ACD063C9157B /* XCLocalSwiftPackageReference "UI/WishlistUI" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = UI/WishlistUI;
+		};
+		64A1277599C7DE0F41808B36 /* XCLocalSwiftPackageReference "UI/SettingsUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/SettingsUI;
 		};
 		7361E6683DED41458D693D2E /* XCLocalSwiftPackageReference "Component/Product" */ = {
 			isa = XCLocalSwiftPackageReference;
@@ -532,9 +540,9 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = UI/ProductActionsUI;
 		};
-		FADE002000000000000000B1 /* XCLocalSwiftPackageReference "Library/Money" */ = {
+		FADE002000000000000000B1 /* XCLocalSwiftPackageReference "Component/Money" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = Library/Money;
+			relativePath = Component/Money;
 		};
 		FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/StockAlert" */ = {
 			isa = XCLocalSwiftPackageReference;
@@ -551,14 +559,6 @@
 		FADE011100000000000000B1 /* XCLocalSwiftPackageReference "Component/Home" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Component/Home;
-		};
-		37B2D02CCECD59EFFCBACC68 /* XCLocalSwiftPackageReference "Component/Settings" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = Component/Settings;
-		};
-		64A1277599C7DE0F41808B36 /* XCLocalSwiftPackageReference "UI/SettingsUI" */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = UI/SettingsUI;
 		};
 /* End XCLocalSwiftPackageReference section */
 
@@ -593,6 +593,11 @@
 			package = 3FD7B96A8B93ACD063C9157B /* XCLocalSwiftPackageReference "UI/WishlistUI" */;
 			productName = WishlistUIDI;
 		};
+		15C9A5888A5B8EE7D759C93E /* SettingsUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 64A1277599C7DE0F41808B36 /* XCLocalSwiftPackageReference "UI/SettingsUI" */;
+			productName = SettingsUIDI;
+		};
 		17E6FCA71FC7E5B3FCF60C12 /* SearchHistoryData */ = {
 			isa = XCSwiftPackageProductDependency;
 			package = 8D80DA7DCD10C50973849D66 /* XCLocalSwiftPackageReference "Component/SearchHistory" */;
@@ -617,6 +622,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = AE4238F360E27CEF2C732155 /* XCLocalSwiftPackageReference "UI/SearchUI" */;
 			productName = SearchUIDI;
+		};
+		C500C19B9FBAC79597612384 /* SettingsData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 37B2D02CCECD59EFFCBACC68 /* XCLocalSwiftPackageReference "Component/Settings" */;
+			productName = SettingsData;
+		};
+		C68D82F55C1C2508109B344C /* SettingsDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = 37B2D02CCECD59EFFCBACC68 /* XCLocalSwiftPackageReference "Component/Settings" */;
+			productName = SettingsDI;
 		};
 		EDD9F67AA3E61BAD6139E5A7 /* AccountUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -680,7 +695,7 @@
 		};
 		FADE002100000000000000B1 /* Money */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = FADE002000000000000000B1 /* XCLocalSwiftPackageReference "Library/Money" */;
+			package = FADE002000000000000000B1 /* XCLocalSwiftPackageReference "Component/Money" */;
 			productName = Money;
 		};
 		FADE009800000000000000A2 /* StockAlertData */ = {
@@ -712,21 +727,6 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FADE011100000000000000B1 /* XCLocalSwiftPackageReference "Component/Home" */;
 			productName = HomeDI;
-		};
-		C500C19B9FBAC79597612384 /* SettingsData */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 37B2D02CCECD59EFFCBACC68 /* XCLocalSwiftPackageReference "Component/Settings" */;
-			productName = SettingsData;
-		};
-		C68D82F55C1C2508109B344C /* SettingsDI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 37B2D02CCECD59EFFCBACC68 /* XCLocalSwiftPackageReference "Component/Settings" */;
-			productName = SettingsDI;
-		};
-		15C9A5888A5B8EE7D759C93E /* SettingsUIDI */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 64A1277599C7DE0F41808B36 /* XCLocalSwiftPackageReference "UI/SettingsUI" */;
-			productName = SettingsUIDI;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

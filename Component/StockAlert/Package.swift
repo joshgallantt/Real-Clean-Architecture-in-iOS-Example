@@ -23,7 +23,7 @@ let package = Package(
     dependencies: [
         .package(path: "../Session"),
         .package(path: "../Product"),
-        .package(path: "../../Library/Money")
+        .package(path: "../Money")
     ],
     targets: [
         .target(

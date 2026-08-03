@@ -18,7 +18,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../Component/Product"),
-        .package(path: "../../Library/Money"),
+        .package(path: "../../Component/Money"),
         .package(path: "../../Component/SearchHistory"),
         .package(path: "../ProductUI"),
         .package(path: "../SnackbarUI"),

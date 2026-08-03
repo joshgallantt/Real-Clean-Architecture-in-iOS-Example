@@ -21,7 +21,7 @@ let package = Package(
         .package(path: "../../Component/Bag"),
         .package(path: "../../Component/StockAlert"),
         .package(path: "../../Component/Product"),
-        .package(path: "../../Library/Money"),
+        .package(path: "../../Component/Money"),
         .package(path: "../AuthUI"),
         .package(path: "../SnackbarUI")
     ],

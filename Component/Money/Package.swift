@@ -16,12 +16,18 @@ let package = Package(
         .target(
             name: "Money",
             dependencies: [],
-            path: "Sources/Money"
+            path: "Sources",
+            sources: ["Domain"]
         ),
         .testTarget(
-            name: "MoneyTests",
+            name: "MoneyUnitTests",
             dependencies: ["Money"],
-            path: "Tests/MoneyTests"
+            path: "Tests/MoneyUnitTests"
+        ),
+        .testTarget(
+            name: "MoneyAcceptanceTests",
+            dependencies: ["Money"],
+            path: "Tests/MoneyAcceptanceTests"
         )
     ]
 )
