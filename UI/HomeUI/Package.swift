@@ -20,7 +20,7 @@ let package = Package(
     dependencies: [
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Home"),
-        .package(path: "../../Library/Money"),
+        .package(path: "../../Component/Money"),
         .package(path: "../ProductUI"),
         .package(path: "../WishlistUI"),
         .package(path: "../ProductActionsUI")

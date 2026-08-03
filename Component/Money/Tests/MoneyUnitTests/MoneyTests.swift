@@ -3,10 +3,14 @@ import Testing
 @testable import Money
 
 @Suite("Amounts of money")
-/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary. The only tests in the repo not
-/// written as a shopper's journey, because `Money` is a `Library/` with no shopper: it ships
-/// independently of this app and owes its guarantee — exact arithmetic — to whoever links it. What
-/// a shopper notices about money is asserted where they would notice it, in the bag.
+/// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary. The unit tier, in the language
+/// of the system: `minorUnits`, rounding modes and the boundaries either side of half a penny. What
+/// a shopper notices about money — what a basket comes to — is stated as a journey in the
+/// acceptance tier, and again where they would actually notice it, in the bag.
+///
+/// This suite once opened by arguing that `Money` was a `Library/` with no shopper of its own. It is
+/// a domain component now: exact arithmetic and same-currency addition are business rules, not
+/// utility guarantees, which is why the domain had to name `Money` by hand to reach it.
 struct MoneyTests {
     // MARK: - Exactness, which is the whole reason this type exists
 

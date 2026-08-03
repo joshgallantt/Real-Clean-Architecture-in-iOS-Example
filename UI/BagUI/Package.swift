@@ -19,7 +19,7 @@ let package = Package(
     dependencies: [
         .package(path: "../../Component/Bag"),
         .package(path: "../../Component/Product"),
-        .package(path: "../../Library/Money"),
+        .package(path: "../../Component/Money"),
         .package(url: "https://github.com/onevcat/Kingfisher.git", from: "8.0.0")
     ],
     targets: [

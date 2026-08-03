@@ -20,7 +20,7 @@ let package = Package(
         .package(path: "../../Component/Wishlist"),
         .package(path: "../../Component/StockAlert"),
         .package(path: "../../Component/Product"),
-        .package(path: "../../Library/Money"),
+        .package(path: "../../Component/Money"),
         .package(path: "../../Component/Session"),
         .package(path: "../ProductUI"),
         .package(path: "../SnackbarUI"),

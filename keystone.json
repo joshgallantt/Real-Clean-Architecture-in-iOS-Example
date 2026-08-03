@@ -40,13 +40,13 @@
         "SearchHistory",
         "StockAlert",
         "Home",
-        "Settings"
+        "Settings",
+        "Money"
       ],
-      "description": "Component domain targets. A target missing from this list is not judged leniently — it is not judged at all: no layer's deny of @domain catches importing it, so every Component/*/Sources/Domain target must be named here."
+      "description": "Component domain targets. A target missing from this list is not judged leniently — it is not judged at all: no layer's deny of @domain catches importing it, so every Component/*/Sources/Domain target must be named here. Money is here rather than in @library because exact arithmetic and same-currency addition are the business's rules about prices, not a utility's guarantee about numbers. It sat in Library/ until the manifest gave it away: the domain's allowlist had to name Money by hand, and a layer that needs a by-name exception to reach one module of another layer is describing a module in the wrong layer."
     },
     "@library": {
       "match": [
-        "Money",
         "Networking"
       ],
       "description": "No domain knowledge; depended on by anyone."
@@ -81,7 +81,7 @@
       "paths": [
         "Library/*/Sources/**"
       ],
-      "description": "Domain-free utilities. Money and Networking know nothing about this app.",
+      "description": "Domain-free utilities. Networking knows nothing about this app.",
       "imports": {
         "deny": [
           "@domain",
@@ -103,7 +103,6 @@
         "allow": [
           "Foundation",
           "Combine",
-          "Money",
           "@domain"
         ],
         "deny": [

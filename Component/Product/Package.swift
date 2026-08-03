@@ -22,7 +22,7 @@ let package = Package(
     ],
     dependencies: [
         .package(path: "../../Library/Networking"),
-        .package(path: "../../Library/Money")
+        .package(path: "../Money")
     ],
     targets: [
         .target(
