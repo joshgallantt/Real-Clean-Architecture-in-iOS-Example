@@ -139,7 +139,10 @@
           "@feature",
           "@host"
         ],
-        "reason": "The data layer answers to the domain, never to a screen. If a repository needs something from the UI, the dependency is inverted — pass it in from the composition root instead."
+        "reason": "The data layer answers to the domain, never to a screen. If a repository needs something from the UI, the dependency is inverted — pass it in from the composition root instead.",
+        "notes": [
+          "Owner and UserID stay in Session, and the *Data targets that key data per shopper import the whole module to reach them. That is the Common Reuse Principle deliberately given up, not overlooked. Martin's tension diagram (Ch. 13) puts an early project on the right of the triangle, where develop-ability beats reuse and the only sacrifice is reuse; Owner changes when Session changes, so the Common Closure Principle says they belong together while nothing else draws on them. What the sacrifice costs is that the coupling is nominal today and could become real tomorrow, so data-takes-an-owner-not-a-session pins it: the import is allowed, the rest of the module is not. Extract an Identity component when another project draws on these types, or when that rule starts having to grant exceptions — not before."
+        ]
       },
       "principle": "PoEAA.REPOSITORY"
     },
@@ -385,6 +388,19 @@
       "reason": "Do the work or delete the code. A tracked issue outlives a comment nobody reads.",
       "severity": "warn",
       "principle": "CC.COMMENTS"
+    },
+    {
+      "name": "data-takes-an-owner-not-a-session",
+      "match": {
+        "files": [
+          "Component/!(Session)/Sources/Data/**"
+        ]
+      },
+      "require": {
+        "contentForbids": "\\b(SessionRepository|LoginError|CreateAccountError|PersonName|Password|AuthToken|GetSessionUseCase|ObserveSessionUseCase|LoginUseCase|CreateAccountUseCase|LogoutUseCase)\\b"
+      },
+      "reason": "A *Data target imports Session to reach Owner and UserID, and may use nothing else from it. It needs to know whose data is live, not to understand identity. If you need the session itself, you are writing a rule, not storage — put it in a use case and let Sources/DI/ turn the session into an owner, as BagDI does.",
+      "principle": "CA.CRP"
     }
   ],
   "manifests": [
