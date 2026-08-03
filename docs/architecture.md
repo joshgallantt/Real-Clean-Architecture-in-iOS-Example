@@ -372,32 +372,24 @@ At start-up, `DefaultSessionStore` restores a session that it kept, if the token
 
 ### Storage for each shopper
 
-`Bag`, `Wishlist` and `SearchHistory` each keep data for one shopper. The key is a type and not a string. A repeated `"guest"` literal must have the same spelling in each feature that makes one, and nothing keeps those spellings correct.
+`Bag`, `Settings` and `SearchHistory` each keep data for one shopper, and they key it on the `Session` itself. A guest has a real bag and a real search history, because a person can shop before they sign in. Thus the guest case of `Session` is a real owner of data and not the absence of one.
 
-**[`Component/Session/Sources/Domain/Model/Owner.swift`](../Component/Session/Sources/Domain/Model/Owner.swift)**
-```swift
-public enum Owner: Equatable, Hashable, Sendable {
-    case guest
-    case signedIn(UserID)
-
-    public init(_ session: Session) { ... }
-}
-```
-
-A guest has a real bag and a real search history, because a person can shop before they sign in. Thus "no specified person" is one of the cases and not the absence of a case. `Owner` is in `Session` because identity is the subject of `Session`, and because one definition that two contexts share is Evans' Shared Kernel. Two definitions would be two answers.
-
-A wishlist is the exception, deliberately. A guest cannot save an item, thus the owner of a wishlist is a `UserID?` and there is no guest case to handle. The type is different because the rule is different.
+There was a smaller `Owner` type between the session and the storage, which held a guest case or an id and nothing else. It is removed. Two types with the same shape, one of them holding only an id, cost more to learn than they saved while nothing else drew on them.
 
 **[`Component/Bag/Sources/Data/DefaultBagRepository.swift`](../Component/Bag/Sources/Data/DefaultBagRepository.swift)**
 ```swift
-private func switchOwner(to owner: Owner) {
-    guard owner != self.owner else { return }
-    self.owner = owner
-    let kept = store.getBag(for: owner)
+private func switchSession(to session: Session) {
+    guard session.user?.id != self.session.user?.id else { return }
+    self.session = session
+    let kept = store.getBag(for: session)
     bagSubject.value = kept.bag
     noticesSubject.value = kept.notices
 }
 ```
+
+Note the comparison. It is on the id and not on the whole session, because a session also changes when a profile does, and a changed name is not a changed owner. That is what the smaller type used to make impossible to get wrong; with a `Session` the caller must get it right, and `data-reads-who-is-signed-in-and-nothing-else` keeps the rest of the module out of the data layer.
+
+`Wishlist`, `StockAlert` and `Order` key on a `UserID?` instead. A guest cannot save an item, cannot wait for one and cannot place an order, thus there is no guest case to handle. The shape differs because the rule differs.
 
 Note what the application gives to the repository: an owner, and a stream of owners. It does not give a `Session` or a session use case. The repository must know whose bag is active. It does not have to understand identity. `BagDI` does that translation one time at the wiring boundary. The name that a bag is filed under is the business of the storage layer, and the only code that changes an owner back into a string is the code that selects a filename.
 
@@ -1033,7 +1025,7 @@ The graph obeys these rules:
 - No UI module depends on a `*Data` product. The UI reaches the domain and never the storage.
 - A feature module depends on a **port** — `SnackbarUI`, `AuthUI`, `SheetUI` — and never on a host. Only the composition root links a `*UIDI` host product, and `AuthUIDI`, which is a host itself.
 - A dependency across features or across components is permitted where the domain has a real relation. `Wishlist ──▶ Session`, because a shopper must have an account. `Bag ──▶ Product`, because a bag holds product ids and reads what the shop says about them. `SearchUI ──▶ ProductUI`, because a search result is a product card.
-- The *domain* of `Bag` does not reach `Session` at all. Only `BagData` reaches it, and only for `Owner`. The rules of the bag do not depend on a signed-in shopper, and the compiler now states that.
+- The *domain* of `Bag` does not reach `Session` at all. Only `BagData` reaches it, and only to read who is signed in. The rules of the bag do not depend on a signed-in shopper, and the compiler now states that.
 - The domain of `Order` *does* reach `Session`, and the difference is the point. A guest can hold a bag and cannot hold an order, thus to refuse an order is a business rule and not a storage detail.
 - `OrderUI ──▶ Bag`, and never the opposite. The application gives `BagUI` a completed checkout button as an `AnyView`, in the same way that it gives a stock alert bell. Thus the payment stack stays out of the dependency list of each screen that draws a bag row or a heart. `ProductActionsUI` is free of checkout for the same reason.
 - One `*UIDI` container can take another. `SearchUIDI` takes `BagUIDI`, thus a search result can carry an add-to-bag button. That is a view-construction dependency between equals and not a reach into the domain wiring of a component.

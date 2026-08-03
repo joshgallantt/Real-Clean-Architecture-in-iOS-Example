@@ -7,8 +7,8 @@ import Session
 /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the outermost ring,
 /// replaceable without anything inward moving.
 public protocol BagStore: Sendable {
-    func getBag(for owner: Owner) -> (bag: Bag, notices: Notices)
-    func setBag(_ bag: Bag, notices: Notices, for owner: Owner) async
+    func getBag(for session: Session) -> (bag: Bag, notices: Notices)
+    func setBag(_ bag: Bag, notices: Notices, for session: Session) async
 }
 
 public struct FileBagStore: BagStore, @unchecked Sendable {
@@ -25,9 +25,9 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         return base.appending(path: "Bag", directoryHint: .isDirectory)
     }
 
-    public func getBag(for owner: Owner) -> (bag: Bag, notices: Notices) {
+    public func getBag(for session: Session) -> (bag: Bag, notices: Notices) {
         guard
-            let data = try? Data(contentsOf: url(for: owner)),
+            let data = try? Data(contentsOf: url(for: session)),
             let dto = try? JSONDecoder().decode(BagDTO.self, from: data)
         else {
             return (Bag(), Notices())
@@ -35,10 +35,10 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         return dto.toDomain()
     }
 
-    public func setBag(_ bag: Bag, notices: Notices, for owner: Owner) async {
+    public func setBag(_ bag: Bag, notices: Notices, for session: Session) async {
         let dto = BagDTO(bag: bag, notices: notices)
         let directory = self.directory
-        let url = url(for: owner)
+        let url = url(for: session)
 
         await Task.detached(priority: .utility) {
             Self.write(dto, to: url, in: directory)
@@ -51,16 +51,16 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         try? data.write(to: url, options: .atomic)
     }
 
-    private func url(for owner: Owner) -> URL {
-        directory.appending(path: "\(Self.filename(for: owner)).json", directoryHint: .notDirectory)
+    private func url(for session: Session) -> URL {
+        directory.appending(path: "\(Self.filename(for: session)).json", directoryHint: .notDirectory)
     }
 
     /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: what something is
-    /// filed under is the storage layer's business. The only place an owner becomes a string.
-    private static func filename(for owner: Owner) -> String {
-        switch owner {
+    /// filed under is the storage layer's business. The only place a signed-in id becomes a string.
+    private static func filename(for session: Session) -> String {
+        switch session {
         case .guest: "guest"
-        case .signedIn(let id): String(id.rawValue)
+        case .authenticated(let user): String(user.id.rawValue)
         }
     }
 }

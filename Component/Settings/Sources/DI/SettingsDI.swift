@@ -23,15 +23,14 @@ public struct SettingsDI {
         observeSession: ObserveSessionUseCase,
         store: SettingsStore = FileSettingsStore()
     ) {
-        /// Evans, *Domain-Driven Design* (2003) — Bounded Context: turning a session into an owner
-        /// happens here, once, at the wiring boundary. What the repository receives is who the
+        /// Evans, *Domain-Driven Design* (2003) — Bounded Context: the session reaches storage here, at the wiring
+        /// boundary, and nowhere else decides whose data is live. What the repository receives is who the
         /// settings belong to.
         let repository = DefaultSettingsRepository(
             store: store,
-            owner: Owner(getSession()),
-            ownerPublisher: observeSession()
-                .map(Owner.init)
-                .removeDuplicates()
+            session: getSession(),
+            sessionPublisher: observeSession()
+                .removeDuplicates(by: { $0.user?.id == $1.user?.id })
                 .eraseToAnyPublisher()
         )
         self.repository = repository

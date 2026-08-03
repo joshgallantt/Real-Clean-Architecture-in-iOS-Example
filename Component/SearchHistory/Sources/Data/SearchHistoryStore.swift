@@ -6,8 +6,8 @@ import Session
 /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the outermost ring,
 /// replaceable without anything inward moving.
 public protocol SearchHistoryStore: Sendable {
-    func getQueries(for owner: Owner) -> [String]
-    func setQueries(_ queries: [String], for owner: Owner)
+    func getQueries(for session: Session) -> [String]
+    func setQueries(_ queries: [String], for session: Session)
 }
 
 public struct UserDefaultsSearchHistoryStore: SearchHistoryStore, @unchecked Sendable {
@@ -17,20 +17,20 @@ public struct UserDefaultsSearchHistoryStore: SearchHistoryStore, @unchecked Sen
         self.defaults = defaults
     }
 
-    public func getQueries(for owner: Owner) -> [String] {
-        defaults.stringArray(forKey: Self.key(for: owner)) ?? []
+    public func getQueries(for session: Session) -> [String] {
+        defaults.stringArray(forKey: Self.key(for: session)) ?? []
     }
 
-    public func setQueries(_ queries: [String], for owner: Owner) {
-        defaults.set(queries, forKey: Self.key(for: owner))
+    public func setQueries(_ queries: [String], for session: Session) {
+        defaults.set(queries, forKey: Self.key(for: session))
     }
 
     /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: what something is
-    /// filed under is the storage layer's business. The only place an owner becomes a string.
-    private static func key(for owner: Owner) -> String {
-        switch owner {
+    /// filed under is the storage layer's business. The only place a signed-in id becomes a string.
+    private static func key(for session: Session) -> String {
+        switch session {
         case .guest: "searchHistory.guest"
-        case .signedIn(let id): "searchHistory.\(id.rawValue)"
+        case .authenticated(let user): "searchHistory.\(user.id.rawValue)"
         }
     }
 }

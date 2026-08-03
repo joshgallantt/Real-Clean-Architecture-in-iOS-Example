@@ -108,13 +108,13 @@ final class Shopper {
 
     func writesToSettle() async {
         let onDisk = FileBagStore(directory: directory)
-        for _ in 0..<100 where onDisk.getBag(for: Owner(sessions.value)).bag != bag {
+        for _ in 0..<100 where onDisk.getBag(for: sessions.value).bag != bag {
             try? await Task.sleep(for: .milliseconds(10))
         }
     }
 
     private var signedInUserId: Int? {
-        if case .signedIn(let id) = Owner(sessions.value) { return id.rawValue }
+        if case .authenticated(let user) = sessions.value { return user.id.rawValue }
         return nil
     }
 
