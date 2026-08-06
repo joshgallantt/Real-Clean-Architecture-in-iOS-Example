@@ -23,7 +23,7 @@ public struct WishlistUIDI {
     private let getWaitlistProducts: GetWaitlistProductsUseCase
     private let getBackInStockProducts: GetBackInStockProductsUseCase
     private let setStockAlertForProduct: SetStockAlertForProductUseCase
-    private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
+    private let setProductIsWishlisted: SetProductIsWishlistedUseCase
     private let lookUpProducts: LookUpProductsUseCase
     private let observeSession: ObserveSessionUseCase
     private let authPresenter: AuthPresenting
@@ -37,7 +37,7 @@ public struct WishlistUIDI {
         getWaitlistProducts: GetWaitlistProductsUseCase,
         getBackInStockProducts: GetBackInStockProductsUseCase,
         setStockAlertForProduct: SetStockAlertForProductUseCase,
-        removeProductFromWishlist: RemoveProductFromWishlistUseCase,
+        setProductIsWishlisted: SetProductIsWishlistedUseCase,
         lookUpProducts: LookUpProductsUseCase,
         observeSession: ObserveSessionUseCase,
         authPresenter: AuthPresenting,
@@ -50,7 +50,7 @@ public struct WishlistUIDI {
         self.getWaitlistProducts = getWaitlistProducts
         self.getBackInStockProducts = getBackInStockProducts
         self.setStockAlertForProduct = setStockAlertForProduct
-        self.removeProductFromWishlist = removeProductFromWishlist
+        self.setProductIsWishlisted = setProductIsWishlisted
         self.lookUpProducts = lookUpProducts
         self.observeSession = observeSession
         self.authPresenter = authPresenter
@@ -202,8 +202,8 @@ public struct WishlistUIDI {
             lookUpProducts: lookUpProducts,
             snackbar: snackbarPresenter,
             couldNotLoad: "Faves Won't Load",
-            clear: { [removeProductFromWishlist] ids in
-                for id in ids { _ = await removeProductFromWishlist(productId: id) }
+            clear: { [setProductIsWishlisted] ids in
+                for id in ids { await setProductIsWishlisted(productId: id, isWishlisted: false) }
             }
         )
     }

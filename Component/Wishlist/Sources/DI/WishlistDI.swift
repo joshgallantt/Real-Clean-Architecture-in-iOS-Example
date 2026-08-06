@@ -15,8 +15,7 @@ public struct WishlistDI {
 
     public let observeWishlistUseCase: ObserveWishlistUseCase
     public let observeProductIsWishlistedUseCase: ObserveProductIsWishlistedUseCase
-    public let addProductToWishlistUseCase: AddProductToWishlistUseCase
-    public let removeProductFromWishlistUseCase: RemoveProductFromWishlistUseCase
+    public let setProductIsWishlistedUseCase: SetProductIsWishlistedUseCase
 
     @MainActor
     public init(
@@ -38,11 +37,7 @@ public struct WishlistDI {
 
         self.observeWishlistUseCase = DefaultObserveWishlistUseCase(repository: repository)
         self.observeProductIsWishlistedUseCase = DefaultObserveProductIsWishlistedUseCase(repository: repository)
-        self.addProductToWishlistUseCase = DefaultAddProductToWishlistUseCase(
-            repository: repository,
-            getSession: getSession
-        )
-        self.removeProductFromWishlistUseCase = DefaultRemoveProductFromWishlistUseCase(
+        self.setProductIsWishlistedUseCase = DefaultSetProductIsWishlistedUseCase(
             repository: repository,
             getSession: getSession
         )

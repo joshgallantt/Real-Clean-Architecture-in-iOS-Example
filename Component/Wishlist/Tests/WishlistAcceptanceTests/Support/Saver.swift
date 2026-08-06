@@ -44,12 +44,12 @@ final class Saver {
 
     @discardableResult
     func save(productId: Int) async -> Result<Void, WishlistError> {
-        await di.addProductToWishlistUseCase(productId: pid(productId))
+        await di.setProductIsWishlistedUseCase(productId: pid(productId), isWishlisted: true)
     }
 
     @discardableResult
     func unsave(productId: Int) async -> Result<Void, WishlistError> {
-        await di.removeProductFromWishlistUseCase(productId: pid(productId))
+        await di.setProductIsWishlistedUseCase(productId: pid(productId), isWishlisted: false)
     }
 
     /// The heart on a product card, which watches one product and nothing else.

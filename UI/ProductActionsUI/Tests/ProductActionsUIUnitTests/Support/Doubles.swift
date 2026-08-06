@@ -93,29 +93,18 @@ final class StubObserveProductIsWishlisted: ObserveProductIsWishlistedUseCase, @
 /// yet changed. The yield is the round trip: without a suspension here every call would finish
 /// before the next one could start, and no ordering would ever be at stake.
 @MainActor
-final class StubAddProductToWishlist: AddProductToWishlistUseCase, @unchecked Sendable {
+final class StubSetProductIsWishlisted: SetProductIsWishlistedUseCase, @unchecked Sendable {
     var result: Result<Void, WishlistError> = .success(())
-    var onSuccess: () -> Void = {}
-    private(set) var calls: [ProductID] = []
+    var onSuccess: (Bool) -> Void = { _ in }
+    private(set) var calls: [(productId: ProductID, isWishlisted: Bool)] = []
 
-    func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError> {
-        calls.append(productId)
+    func callAsFunction(
+        productId: ProductID,
+        isWishlisted: Bool
+    ) async -> Result<Void, WishlistError> {
+        calls.append((productId, isWishlisted))
         await Task.yield()
-        if case .success = result { onSuccess() }
-        return result
-    }
-}
-
-@MainActor
-final class StubRemoveProductFromWishlist: RemoveProductFromWishlistUseCase, @unchecked Sendable {
-    var result: Result<Void, WishlistError> = .success(())
-    var onSuccess: () -> Void = {}
-    private(set) var calls: [ProductID] = []
-
-    func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError> {
-        calls.append(productId)
-        await Task.yield()
-        if case .success = result { onSuccess() }
+        if case .success = result { onSuccess(isWishlisted) }
         return result
     }
 }
