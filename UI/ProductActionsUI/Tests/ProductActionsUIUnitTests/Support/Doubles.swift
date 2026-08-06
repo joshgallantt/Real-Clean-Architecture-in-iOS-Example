@@ -55,16 +55,21 @@ final class StubObserveWaitlistStatus: ObserveWaitlistStatusUseCase, @unchecked 
         subject = CurrentValueSubject(isWaiting)
     }
 
+    func send(_ isWaiting: Bool) { subject.value = isWaiting }
+
     func callAsFunction(productId: ProductID) -> AnyPublisher<Bool, Never> { subject.eraseToAnyPublisher() }
 }
 
 @MainActor
 final class StubSetStockAlert: SetStockAlertForProductUseCase, @unchecked Sendable {
     var result: Result<Void, StockAlertError> = .success(())
+    var onSuccess: (Bool) -> Void = { _ in }
     private(set) var calls: [(productId: ProductID, isOn: Bool)] = []
 
     func callAsFunction(productId: ProductID, isOn: Bool) async -> Result<Void, StockAlertError> {
         calls.append((productId, isOn))
+        await Task.yield()
+        if case .success = result { onSuccess(isOn) }
         return result
     }
 }

@@ -28,6 +28,7 @@ public final class StockAlertButtonViewModel: ObservableObject {
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
+    private var inFlight: Task<Void, Never>?
 
     public init(
         productId: ProductID,
@@ -48,18 +49,32 @@ public final class StockAlertButtonViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    /// Which way a tap goes is read from `isWaiting`, and that only changes once the ask has been
+    /// written down and published. Deciding at the moment of the tap meant a second tap read the
+    /// state the first one had set out to change, so tapping on and straight off again left the
+    /// shopper on the list. The decision is made inside the queued work instead, once the tap
+    /// before it has settled.
     func didTap() {
-        set(isOn: !isWaiting)
+        enqueue { [weak self] in
+            guard let self else { return }
+            await self.apply(isOn: !self.isWaiting)
+        }
     }
 
     /// Taking it off the list, whatever the bell happens to say. A minus on a waitlist card means
     /// one thing, and it must not become "put it back" because the state arrived late.
     func didTapRemove() {
-        set(isOn: false)
+        enqueue { [weak self] in await self?.apply(isOn: false) }
     }
 
-    private func set(isOn: Bool) {
-        Task { [weak self] in await self?.apply(isOn: isOn) }
+    /// One tap at a time, in the order the shopper made them, so two taps are two decisions rather
+    /// than the same decision twice.
+    private func enqueue(_ work: @escaping @MainActor () async -> Void) {
+        let previous = inFlight
+        inFlight = Task {
+            await previous?.value
+            await work()
+        }
     }
 
     private func apply(isOn: Bool) async {
