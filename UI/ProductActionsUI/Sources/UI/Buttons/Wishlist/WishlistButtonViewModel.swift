@@ -56,7 +56,6 @@ public final class WishlistButtonViewModel: ObservableObject {
 
     private func add() async {
         let add = addProductToWishlist
-        let remove = removeProductFromWishlist
         let snackbarPresenter = snackbarPresenter
         let productId = productId
 
@@ -65,11 +64,7 @@ public final class WishlistButtonViewModel: ObservableObject {
             snackbarPresenter.show(Snackbar(
                 title: "Saved",
                 message: "It's in your faves.",
-                icon: "heart.fill",
-                action: undo(
-                    by: { await remove(productId: productId) },
-                    sayingSoIfItCannot: snackbarPresenter
-                )
+                icon: "heart.fill"
             ))
         case .failure(.unauthenticated):
             guard await authPresenter.show(AuthenticationPrompt(
@@ -91,7 +86,6 @@ public final class WishlistButtonViewModel: ObservableObject {
     }
 
     private func remove() async {
-        let add = addProductToWishlist
         let remove = removeProductFromWishlist
         let snackbarPresenter = snackbarPresenter
         let productId = productId
@@ -101,11 +95,7 @@ public final class WishlistButtonViewModel: ObservableObject {
             snackbarPresenter.show(Snackbar(
                 title: "Unsaved",
                 message: "Gone from your faves.",
-                icon: "heart.slash",
-                action: undo(
-                    by: { await add(productId: productId) },
-                    sayingSoIfItCannot: snackbarPresenter
-                )
+                icon: "heart.slash"
             ))
         case .failure(.unauthenticated):
             guard await authPresenter.show(AuthenticationPrompt(
@@ -125,50 +115,4 @@ public final class WishlistButtonViewModel: ObservableObject {
             ))
         }
     }
-}
-
-/// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: an undo that could
-/// not happen has to say so. A shopper whose sign-in ended between saving something and changing
-/// their mind would otherwise watch the snackbar disappear as though it worked.
-///
-/// It cannot ask for a sign-in and resume the way the button does, because it outlives the button:
-/// a wishlist heart in a lazily-rendered grid cell is gone the moment the shopper scrolls, so this
-/// closure holds the use cases and the presenter rather than a view model. The most it can honestly
-/// do is not claim a change that did not happen.
-@MainActor
-private func undo(
-    by change: @escaping @MainActor () async -> Result<Void, WishlistError>,
-    sayingSoIfItCannot snackbarPresenter: SnackbarPresenting
-) -> SnackbarAction {
-    .undo {
-        Task {
-            switch await change() {
-            case .success:
-                break
-            case .failure(.unauthenticated):
-                snackbarPresenter.show(Snackbar(
-                    title: "Couldn't Undo That",
-                    message: "Sign in to change what you've saved.",
-                    icon: "heart.slash"
-                ))
-            case .failure(.unavailable):
-                snackbarPresenter.show(Snackbar(
-                    title: "Couldn't Undo That",
-                    message: "That didn't stick. Try again?",
-                    icon: "heart.slash",
-                    action: .retry(undoAgain(change, sayingSoIfItCannot: snackbarPresenter))
-                ))
-            }
-        }
-    }
-}
-
-/// The retry on a failed undo is the same undo again, so it is built the same way — otherwise a
-/// second failure would be the one that goes quiet.
-@MainActor
-private func undoAgain(
-    _ change: @escaping @MainActor () async -> Result<Void, WishlistError>,
-    sayingSoIfItCannot snackbarPresenter: SnackbarPresenting
-) -> @MainActor () -> Void {
-    { undo(by: change, sayingSoIfItCannot: snackbarPresenter).handler() }
 }

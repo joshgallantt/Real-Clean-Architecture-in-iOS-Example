@@ -66,19 +66,15 @@ struct WishlistButtonViewModelTests {
         #expect(addProductToWishlist.calls.isEmpty)
     }
 
-    @Test("Saving shows a snackbar that can undo it")
-    func savingOffersUndo() async {
-        let removeProductFromWishlist = StubRemoveProductFromWishlist()
+    @Test("Saving tells the shopper it saved")
+    func savingSaysSo() async {
         let snackbarPresenter = SpySnackbarPresenter()
-        let viewModel = makeViewModel(removeProductFromWishlist: removeProductFromWishlist, snackbarPresenter: snackbarPresenter)
+        let viewModel = makeViewModel(snackbarPresenter: snackbarPresenter)
 
         viewModel.didTap()
         await settle()
 
-        #expect(snackbarPresenter.shown.first?.title == "Saved")
-        snackbarPresenter.shown.first?.action?.handler()
-        await settle()
-        #expect(removeProductFromWishlist.calls == [pid(1)])
+        #expect(snackbarPresenter.shown.map(\.title) == ["Saved"])
     }
 
     @Test("A guest is asked to sign in, and saving resumes once they have")
