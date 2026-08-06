@@ -15,6 +15,5 @@ public protocol ObserveOrdersUseCase: Sendable {
 /// page, or everything in their bag — is decided by whoever calls it, and the rule is the same
 /// either way.
 public protocol PlaceOrderUseCase: Sendable {
-    @MainActor
     func callAsFunction(_ lines: [OrderLine]) async -> Result<Order, OrderError>
 }

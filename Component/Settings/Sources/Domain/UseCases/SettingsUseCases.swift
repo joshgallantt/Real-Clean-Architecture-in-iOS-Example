@@ -18,6 +18,5 @@ public protocol ObserveOfferedSettingsUseCase: Sendable {
 }
 
 public protocol SetSettingUseCase: Sendable {
-    @MainActor
     func callAsFunction(_ key: SettingKey, isOn: Bool) async -> Result<Void, SettingsError>
 }

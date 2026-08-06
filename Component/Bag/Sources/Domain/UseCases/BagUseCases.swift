@@ -23,7 +23,6 @@ public protocol AddItemToBagUseCase: Sendable {
 /// `GetSessionUseCase` the same way: a use case may compose another component's use cases, and
 /// asking is part of catching up rather than something a screen does on its behalf.
 public protocol BringBagUpToDateUseCase: Sendable {
-    @MainActor
     @discardableResult
     func callAsFunction() async -> [Product]
 }

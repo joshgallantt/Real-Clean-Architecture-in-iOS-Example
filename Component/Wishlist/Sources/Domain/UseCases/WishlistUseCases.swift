@@ -23,7 +23,6 @@ public protocol ObserveWishlistUseCase: Sendable {
 /// had to work out which of the two its own current state implied. Now a caller says what it wants
 /// to be true and the domain works out what that takes.
 public protocol SetProductIsWishlistedUseCase: Sendable {
-    @MainActor
     @discardableResult
     func callAsFunction(productId: ProductID, isWishlisted: Bool) async -> Result<Void, WishlistError>
 }
