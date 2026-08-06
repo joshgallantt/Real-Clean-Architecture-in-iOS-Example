@@ -262,6 +262,34 @@
       "principle": "CA.RULES"
     },
     {
+      "name": "use-case-contracts-are-the-components-published-api",
+      "match": {
+        "declaration": "protocol\\s+\\w*UseCase\\b"
+      },
+      "require": {
+        "inPaths": [
+          "Component/*/Sources/Domain/UseCases/*UseCases.swift",
+          "**/Tests/**"
+        ]
+      },
+      "reason": "Every use case protocol a component publishes goes in one file — Sources/Domain/UseCases/<Component>UseCases.swift — because what a component can be asked to do is one thing to know, and knowing it should not mean opening every file in a directory to collect it. Scattered one per file, the list exists only in a reader's head, and nothing shows when it has grown a thirteenth entry nobody meant to publish.",
+      "principle": "CA.RULES"
+    },
+    {
+      "name": "use-case-implementations-live-behind-the-api",
+      "match": {
+        "declaration": "(struct|final class|actor)\\s+\\w*UseCase\\b"
+      },
+      "require": {
+        "inPaths": [
+          "Component/*/Sources/Domain/UseCases/Impl/**",
+          "**/Tests/**"
+        ]
+      },
+      "reason": "The Default* struct that answers a use case goes in Sources/Domain/UseCases/Impl/, one per file, the file named for the type it holds — DefaultLoginUseCase.swift. Keeping it out of the API file is what lets that file stay readable as a list: a contract is a few lines, an implementation is however many the rule takes, and a file holding both is read as neither.",
+      "principle": "CA.RULES"
+    },
+    {
       "name": "repository-contracts-live-in-domain",
       "match": {
         "declaration": "protocol\\s+\\w*Repository\\b"

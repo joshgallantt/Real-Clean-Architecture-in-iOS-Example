@@ -1,28 +1,5 @@
 import Product
 
-/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002), Ch. 9 —
-/// Service Layer.
-///
-/// Evans, *Domain-Driven Design* (2003), Ch. 9 — Making Implicit Concepts Explicit: what the
-/// shopper is still waiting for. Not the asks — the asks include things that have already arrived —
-/// but the ones the shop still has none of.
-public protocol GetWaitlistProductsUseCase: Sendable {
-    @MainActor
-    func callAsFunction() async -> Result<[Product], StockAlertError>
-}
-
-/// Evans, *Domain-Driven Design* (2003), Ch. 9 — Making Implicit Concepts Explicit: the other half,
-/// and the one the bell was tapped for.
-///
-/// A product stays on the waitlist when it comes back. The ask is a record of wanting to be told,
-/// and whether the shop has any is a fact about the shop, not about the ask — so nothing is removed
-/// on the shopper's behalf and something that sells out again simply moves back. Only
-/// `SetStockAlertForProductUseCase(isOn: false)` takes something off.
-public protocol GetBackInStockProductsUseCase: Sendable {
-    @MainActor
-    func callAsFunction() async -> Result<[Product], StockAlertError>
-}
-
 public struct DefaultGetWaitlistProductsUseCase: GetWaitlistProductsUseCase {
     private let waitlist: WaitlistProducts
 

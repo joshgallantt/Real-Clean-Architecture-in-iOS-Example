@@ -206,16 +206,21 @@ public enum Availability: Equatable, Hashable, Sendable {
 
 Each use case is a protocol that names one business operation, with a `Default*` struct that implements it. Both are in the domain. Callers depend on the protocol. The DI container constructs the struct.
 
+The two live apart. Every protocol a component publishes is in one file — `Sources/Domain/UseCases/<Component>UseCases.swift` — so what a component can be asked to do is one file to open rather than a list a reader has to assemble from a directory. Each `Default*` struct is in `Sources/Domain/UseCases/Impl/`, one per file, the file named for the type it holds. A reader who wants to know what `Bag` can do reads `BagUseCases.swift` and stops.
+
 The application calls a use case through `callAsFunction`. Thus a call reads as the operation itself — `await login(email:password:)`, `await addProductToWishlist(productId:)` — and not as `loginUseCase.execute(...)`.
 
 **Why use cases are necessary.** Without them, business logic moves into the ViewModels, into the repositories and finally into the views. The question "where does login occur?" then has no clear answer. A use case gives a business operation one location. You can test it with no UI, no network, and no knowledge of the remainder of the system.
 
-**[`Component/Session/Sources/Domain/UseCases/LoginUseCase.swift`](../Component/Session/Sources/Domain/UseCases/LoginUseCase.swift)**
+**[`Component/Session/Sources/Domain/UseCases/SessionUseCases.swift`](../Component/Session/Sources/Domain/UseCases/SessionUseCases.swift)**
 ```swift
 public protocol LoginUseCase: Sendable {
     func callAsFunction(email: Email, password: Password) async -> Result<Void, LoginError>
 }
+```
 
+**[`Component/Session/Sources/Domain/UseCases/Impl/DefaultLoginUseCase.swift`](../Component/Session/Sources/Domain/UseCases/Impl/DefaultLoginUseCase.swift)**
+```swift
 public struct DefaultLoginUseCase: LoginUseCase {
     private let sessionRepository: SessionRepository
 
@@ -246,7 +251,7 @@ Each name states something that a shopper wants to do. That is the test that a u
 
 The domain of `Wishlist` depends on the domain of `Session`, and that dependency is the point. A shopper must have an account to save a wishlist item. That is a business rule, thus the domain applies it. A view that remembers to make the check first does not.
 
-**[`Component/Wishlist/Sources/Domain/UseCases/AddProductToWishlistUseCase.swift`](../Component/Wishlist/Sources/Domain/UseCases/AddProductToWishlistUseCase.swift)**
+**[`Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultAddProductToWishlistUseCase.swift`](../Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultAddProductToWishlistUseCase.swift)**
 ```swift
 public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
     private let repository: WishlistRepository
@@ -265,7 +270,7 @@ public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
 
 **A component that is only composition.** `Home` is the limit of this pattern. Its one use case draws the feed with two use cases from `Product`: list the categories of the shop, and list the products of a category. It then decides which categories get a carousel, and how many. `Home` has no repository, no store and no `Sources/Data` target, because the application derives a feed at each draw and does not keep it. A component is an axis of change and not a folder layout. `Home` owns a rule, and the rule must be in a location where no screen can change it quietly.
 
-**[`Component/Home/Sources/Domain/UseCases/DrawHomeFeedUseCase.swift`](../Component/Home/Sources/Domain/UseCases/DrawHomeFeedUseCase.swift)**
+**[`Component/Home/Sources/Domain/UseCases/Impl/DefaultDrawHomeFeedUseCase.swift`](../Component/Home/Sources/Domain/UseCases/Impl/DefaultDrawHomeFeedUseCase.swift)**
 ```swift
 public struct DefaultDrawHomeFeedUseCase: DrawHomeFeedUseCase {
     private let browseCatalog: BrowseCatalogUseCase
@@ -604,11 +609,7 @@ case .success:
     snackbarPresenter.show(Snackbar(
         title: "Saved",
         message: "It's in your faves.",
-        icon: "heart.fill",
-        action: undo(
-            by: { await remove(productId: productId) },
-            sayingSoIfItCannot: snackbarPresenter
-        )
+        icon: "heart.fill"
     ))
 case .failure(.unauthenticated):
     guard await authPresenter.show(AuthenticationPrompt(
@@ -633,11 +634,9 @@ case .failure(.unavailable):
 
 The switch is exhaustive, which is the purpose. There is no `default:` arm to hide a failure that nobody examined. If a third case is added, the build stops at each screen that must decide what to say about it.
 
-**No part of this path is `@discardableResult`.** An operation that can fail for a reason that the shopper must know about must not be easy to ignore. The undo closures were the only callers that discarded the answer, and they now report it. Without that, a shopper whose sign-in ends between the save and the tap on Undo would see the snackbar go away as if the operation had succeeded.
+**No part of this path is `@discardableResult`.** An operation that can fail for a reason that the shopper must know about must not be easy to ignore: a caller that drops the answer leaves a shopper believing a change happened when it did not.
 
 The ViewModel never asks "is the shopper logged in?" before it acts. It tries the operation, and authentication becomes a *failure that the shopper can retry* and not a precondition in each call site. The application keeps the original intention of the shopper through the full detour: tap the heart, answer the prompt, create the account, and the item is saved, with no second tap.
-
-The undo closures capture the use cases and not `self`. The application can discard a wishlist button in a grid cell as soon as the shopper scrolls, and a snackbar action that stays after its view model must still operate.
 
 ---
 

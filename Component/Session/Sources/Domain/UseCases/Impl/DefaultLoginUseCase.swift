@@ -1,11 +1,3 @@
-/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002) — Service
-/// Layer.
-///
-/// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces.
-public protocol LoginUseCase: Sendable {
-    func callAsFunction(email: Email, password: Password) async -> Result<Void, LoginError>
-}
-
 public struct DefaultLoginUseCase: LoginUseCase {
     private let sessionRepository: SessionRepository
 

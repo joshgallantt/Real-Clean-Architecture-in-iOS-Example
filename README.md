@@ -76,7 +76,7 @@ The view above it is thinner still. It binds to `isInWishlist` and calls `didTap
 
 The tap becomes a call to a use case. Here is the whole of it:
 
-**[`Component/Wishlist/Sources/Domain/UseCases/AddProductToWishlistUseCase.swift`](Component/Wishlist/Sources/Domain/UseCases/AddProductToWishlistUseCase.swift)**
+**[`Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultAddProductToWishlistUseCase.swift`](Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultAddProductToWishlistUseCase.swift)**
 ```swift
 public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
     private let repository: WishlistRepository
@@ -171,11 +171,7 @@ case .success:
     snackbarPresenter.show(Snackbar(
         title: "Saved",
         message: "It's in your faves.",
-        icon: "heart.fill",
-        action: undo(
-            by: { await remove(productId: productId) },
-            sayingSoIfItCannot: snackbarPresenter
-        )
+        icon: "heart.fill"
     ))
 case .failure(.unauthenticated):
     guard await authPresenter.show(AuthenticationPrompt(

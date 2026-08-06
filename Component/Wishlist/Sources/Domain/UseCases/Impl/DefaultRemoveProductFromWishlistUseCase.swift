@@ -1,15 +1,6 @@
 import Product
 import Session
 
-/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002) — Service
-/// Layer.
-///
-/// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces.
-public protocol RemoveProductFromWishlistUseCase: Sendable {
-    @MainActor
-    func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError>
-}
-
 public struct DefaultRemoveProductFromWishlistUseCase: RemoveProductFromWishlistUseCase {
     private let repository: WishlistRepository
     private let getSession: GetSessionUseCase

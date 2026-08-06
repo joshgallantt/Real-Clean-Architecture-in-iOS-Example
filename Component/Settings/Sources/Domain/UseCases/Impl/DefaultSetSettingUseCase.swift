@@ -1,14 +1,5 @@
 import Session
 
-/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002) — Service
-/// Layer.
-///
-/// Evans, *Domain-Driven Design* (2003) — Intention-Revealing Interfaces.
-public protocol SetSettingUseCase: Sendable {
-    @MainActor
-    func callAsFunction(_ key: SettingKey, isOn: Bool) async -> Result<Void, SettingsError>
-}
-
 /// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: requiring a signed-in shopper for a
 /// favorites setting is not something the aggregate can decide for itself — it needs the session —
 /// so supplying the session is the use case's job. What is refused is exactly what

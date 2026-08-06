@@ -1,15 +1,6 @@
 import Combine
 import Session
 
-/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002), Ch. 9 —
-/// Service Layer.
-///
-/// Evans, *Domain-Driven Design* (2003), Ch. 10 — Intention-Revealing Interfaces.
-public protocol ObserveOfferedSettingsUseCase: Sendable {
-    @MainActor
-    func callAsFunction() -> AnyPublisher<[Setting], Never>
-}
-
 /// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: which settings a shopper is offered
 /// needs the session, so it is not something `Settings` can answer for itself.
 ///

@@ -1,15 +1,6 @@
 import Combine
 import Product
 
-/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002), Ch. 9 — Service
-/// Layer.
-///
-/// Evans, *Domain-Driven Design* (2003), Ch. 10 — Intention-Revealing Interfaces.
-public protocol ObserveBagItemQuantityUseCase: Sendable {
-    @MainActor
-    func callAsFunction(productId: ProductID) -> AnyPublisher<Int, Never>
-}
-
 public struct DefaultObserveBagItemQuantityUseCase: ObserveBagItemQuantityUseCase {
     private let repository: BagRepository
 
