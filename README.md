@@ -39,7 +39,7 @@ Five files, in the order the tap reaches them:
  ①  WishlistButtonViewModel      UI/ProductActionsUI     presentation
        │  calls a use case protocol
        ▼
- ②  AddProductToWishlistUseCase  Component/Wishlist      domain  ── the rule
+ ②  SetProductIsWishlistedUseCase Component/Wishlist     domain  ── the rule
        │  calls a repository protocol
        ▼
  ③  WishlistRepository           Component/Wishlist      domain  ── the contract
@@ -60,13 +60,12 @@ Note where the line at ③ falls. The contract is in the **domain**; the thing t
 public final class WishlistButtonViewModel: ObservableObject {
     @Published private(set) var isInWishlist = false
 
-    private let addProductToWishlist: AddProductToWishlistUseCase
-    private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
+    private let setProductIsWishlisted: SetProductIsWishlistedUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
 ```
 
-Read what it holds. Not a repository. Not a network client. Not a database. Four protocols, each one a capability it actually calls.
+Read what it holds. Not a repository. Not a network client. Not a database. Three protocols, each one a capability it actually calls — plus the fourth it subscribed to in its initialiser to know whether the heart is filled.
 
 This is the first payoff, and it is worth stating plainly: **to test this button you need no network, no disk and no simulator.** You need four small conforming structs. That is not a testing trick — it falls out of the button never having been given anything bigger than what it uses.
 
@@ -76,20 +75,28 @@ The view above it is thinner still. It binds to `isInWishlist` and calls `didTap
 
 The tap becomes a call to a use case. Here is the whole of it:
 
-**[`Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultAddProductToWishlistUseCase.swift`](Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultAddProductToWishlistUseCase.swift)**
+**[`Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultSetProductIsWishlistedUseCase.swift`](Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultSetProductIsWishlistedUseCase.swift)**
 ```swift
-public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
+public struct DefaultSetProductIsWishlistedUseCase: SetProductIsWishlistedUseCase {
     private let repository: WishlistRepository
     private let getSession: GetSessionUseCase
 
     @MainActor
-    public func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError> {
+    public func callAsFunction(
+        productId: ProductID,
+        isWishlisted: Bool
+    ) async -> Result<Void, WishlistError> {
         guard getSession().isLoggedIn else {
             return .failure(.unauthenticated)
         }
 
+        let wishlist = repository.wishlist
+        let updated = isWishlisted
+            ? wishlist.adding(WishlistItem(productId: productId))
+            : wishlist.removing(productId: productId)
+
         do {
-            try await repository.save(repository.wishlist.adding(WishlistItem(productId: productId)))
+            try await repository.save(updated)
             return .success(())
         } catch {
             return .failure(.unavailable)
@@ -98,7 +105,9 @@ public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
 }
 ```
 
-Three things are happening, and each one is a decision you could have made differently.
+Four things are happening, and each one is a decision you could have made differently.
+
+**One use case with a state, not one for saving and another for unsaving.** Saving and unsaving differ in a single side-effect-free call on the aggregate; everything around it — who may do it, what a refused write means — is the same rule written twice. Split in two, the button had to hold both and work out which of them its own current state implied, which is a toggle re-derived from the thing it was toggling. `ObserveProductIsWishlistedUseCase` reports it and this sets it, and the pair reads as one fact about a product.
 
 **"You must be signed in to save something" is a business rule, so it is in the domain.** It is not in the button. A second screen that saves a product cannot forget it, because forgetting it is not available to them — they call this, and this checks. Put that guard in the button instead and the rule is now in as many places as there are buttons, which is how a rule quietly becomes untrue.
 
@@ -166,28 +175,18 @@ Now the path that shows why all of this was worth it. The shopper was **not sign
 
 **[`UI/ProductActionsUI/Sources/UI/Buttons/Wishlist/WishlistButtonViewModel.swift`](UI/ProductActionsUI/Sources/UI/Buttons/Wishlist/WishlistButtonViewModel.swift)**
 ```swift
-switch await add(productId: productId) {
+switch await setProductIsWishlisted(productId: productId, isWishlisted: isWishlisted) {
 case .success:
-    snackbarPresenter.show(Snackbar(
-        title: "Saved",
-        message: "It's in your faves.",
-        icon: "heart.fill"
-    ))
+    snackbarPresenter.show(told(isWishlisted))
 case .failure(.unauthenticated):
-    guard await authPresenter.show(AuthenticationPrompt(
-        title: "Keep Your Faves",
-        message: "Sign in and everything you save sticks around.",
-        icon: "heart.fill"
-    )) else {
-        return
-    }
-    await self.add()          // signed in now — resume what they asked for
+    guard await authPresenter.show(prompt(isWishlisted)) else { return }
+    await apply(isWishlisted: isWishlisted)   // signed in now — resume what they asked for
 case .failure(.unavailable):
     snackbarPresenter.show(Snackbar(
-        title: "Didn't Save",
+        title: isWishlisted ? "Didn't Save" : "Didn't Change",
         message: "That didn't stick. Try again?",
         icon: "heart.slash",
-        action: .retry { Task { await self.add() } }
+        action: .retry { Task { await self.apply(isWishlisted: isWishlisted) } }
     ))
 }
 ```
@@ -207,7 +206,7 @@ Two smaller things, both deliberate:
 
 You have now seen every principle the project rests on, working, in one feature. Here they are, named — in the order you met them, with the code you have already read.
 
-**Dependency inversion** — ③, the one that does the work. `DefaultAddProductToWishlistUseCase` is in `Sources/Domain` and depends on `WishlistRepository`, *declared in `Sources/Domain` beside it*. `DefaultWishlistRepository` implements it from `Sources/Data`. So the import runs Data → Domain while the call runs Domain → Data. Those two arrows pointing opposite ways **are** the inversion. Swift Package Manager makes it structural: the domain target does not depend on the data target, so the compiler refuses the reverse.
+**Dependency inversion** — ③, the one that does the work. `DefaultSetProductIsWishlistedUseCase` is in `Sources/Domain` and depends on `WishlistRepository`, *declared in `Sources/Domain` beside it*. `DefaultWishlistRepository` implements it from `Sources/Data`. So the import runs Data → Domain while the call runs Domain → Data. Those two arrows pointing opposite ways **are** the inversion. Swift Package Manager makes it structural: the domain target does not depend on the data target, so the compiler refuses the reverse.
 
 **Single responsibility** — *"a module should be responsible to one, and only one, actor"* (Ch. 7). An actor is the group of people who ask for a change. `Component/Wishlist` answers to whoever decides what saving means; `ProductActionsUI` answers to whoever decides how a heart looks. They change on different days, so they are not in the same file. (The older phrasing — "one reason to change" — is the form the book supersedes; the reason is always somebody.)
 

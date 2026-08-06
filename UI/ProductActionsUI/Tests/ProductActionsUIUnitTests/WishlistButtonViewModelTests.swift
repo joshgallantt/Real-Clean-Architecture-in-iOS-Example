@@ -9,16 +9,14 @@ struct WishlistButtonViewModelTests {
     private func makeViewModel(
         productId: ProductID = pid(1),
         observeProductIsWishlisted: StubObserveProductIsWishlisted = StubObserveProductIsWishlisted(),
-        addProductToWishlist: StubAddProductToWishlist = StubAddProductToWishlist(),
-        removeProductFromWishlist: StubRemoveProductFromWishlist = StubRemoveProductFromWishlist(),
+        setProductIsWishlisted: StubSetProductIsWishlisted = StubSetProductIsWishlisted(),
         authPresenter: StubAuthPresenter = StubAuthPresenter(),
         snackbarPresenter: SpySnackbarPresenter = SpySnackbarPresenter()
     ) -> WishlistButtonViewModel {
         WishlistButtonViewModel(
             productId: productId,
             observeProductIsWishlisted: observeProductIsWishlisted,
-            addProductToWishlist: addProductToWishlist,
-            removeProductFromWishlist: removeProductFromWishlist,
+            setProductIsWishlisted: setProductIsWishlisted,
             authPresenter: authPresenter,
             snackbarPresenter: snackbarPresenter
         )
@@ -31,61 +29,52 @@ struct WishlistButtonViewModelTests {
         #expect(viewModel.isInWishlist)
     }
 
-    @Test("Tapping while not saved adds it, and only it")
-    func tappingWhenNotSavedAddsIt() async {
-        let addProductToWishlist = StubAddProductToWishlist()
-        let removeProductFromWishlist = StubRemoveProductFromWishlist()
+    @Test("Tapping while not saved saves it")
+    func tappingWhenNotSavedSavesIt() async {
+        let setProductIsWishlisted = StubSetProductIsWishlisted()
         let viewModel = makeViewModel(
             productId: pid(1),
-            addProductToWishlist: addProductToWishlist,
-            removeProductFromWishlist: removeProductFromWishlist
+            setProductIsWishlisted: setProductIsWishlisted
         )
 
         viewModel.didTap()
         await settle()
 
-        #expect(addProductToWishlist.calls == [pid(1)])
-        #expect(removeProductFromWishlist.calls.isEmpty)
+        #expect(setProductIsWishlisted.calls.map(\.productId) == [pid(1)])
+        #expect(setProductIsWishlisted.calls.map(\.isWishlisted) == [true])
     }
 
-    @Test("Tapping while already saved removes it, and only it")
-    func tappingWhenSavedRemovesIt() async {
-        let addProductToWishlist = StubAddProductToWishlist()
-        let removeProductFromWishlist = StubRemoveProductFromWishlist()
+    @Test("Tapping while already saved unsaves it")
+    func tappingWhenSavedUnsavesIt() async {
+        let setProductIsWishlisted = StubSetProductIsWishlisted()
         let viewModel = makeViewModel(
             productId: pid(1),
             observeProductIsWishlisted: StubObserveProductIsWishlisted(true),
-            addProductToWishlist: addProductToWishlist,
-            removeProductFromWishlist: removeProductFromWishlist
+            setProductIsWishlisted: setProductIsWishlisted
         )
 
         viewModel.didTap()
         await settle()
 
-        #expect(removeProductFromWishlist.calls == [pid(1)])
-        #expect(addProductToWishlist.calls.isEmpty)
+        #expect(setProductIsWishlisted.calls.map(\.isWishlisted) == [false])
     }
 
     @Test("Two taps in a row are two decisions, so it ends where it started")
     func tappingTwiceEndsWhereItStarted() async {
         let observeProductIsWishlisted = StubObserveProductIsWishlisted()
-        let addProductToWishlist = StubAddProductToWishlist()
-        let removeProductFromWishlist = StubRemoveProductFromWishlist()
-        addProductToWishlist.onSuccess = { observeProductIsWishlisted.send(true) }
-        removeProductFromWishlist.onSuccess = { observeProductIsWishlisted.send(false) }
+        let setProductIsWishlisted = StubSetProductIsWishlisted()
+        setProductIsWishlisted.onSuccess = { observeProductIsWishlisted.send($0) }
         let viewModel = makeViewModel(
             productId: pid(1),
             observeProductIsWishlisted: observeProductIsWishlisted,
-            addProductToWishlist: addProductToWishlist,
-            removeProductFromWishlist: removeProductFromWishlist
+            setProductIsWishlisted: setProductIsWishlisted
         )
 
         viewModel.didTap()
         viewModel.didTap()
         await settle()
 
-        #expect(addProductToWishlist.calls == [pid(1)])
-        #expect(removeProductFromWishlist.calls == [pid(1)])
+        #expect(setProductIsWishlisted.calls.map(\.isWishlisted) == [true, false])
         #expect(viewModel.isInWishlist == false)
     }
 
@@ -100,29 +89,47 @@ struct WishlistButtonViewModelTests {
         #expect(snackbarPresenter.shown.map(\.title) == ["Saved"])
     }
 
+    @Test("Unsaving tells the shopper it is gone")
+    func unsavingSaysSo() async {
+        let snackbarPresenter = SpySnackbarPresenter()
+        let viewModel = makeViewModel(
+            observeProductIsWishlisted: StubObserveProductIsWishlisted(true),
+            snackbarPresenter: snackbarPresenter
+        )
+
+        viewModel.didTap()
+        await settle()
+
+        #expect(snackbarPresenter.shown.map(\.title) == ["Unsaved"])
+    }
+
     @Test("A guest is asked to sign in, and saving resumes once they have")
     func guestIsAskedThenResumes() async {
-        let addProductToWishlist = StubAddProductToWishlist()
-        addProductToWishlist.result = .failure(.unauthenticated)
-        let authPresenter = StubAuthPresenter(onSignIn: { addProductToWishlist.result = .success(()) })
+        let setProductIsWishlisted = StubSetProductIsWishlisted()
+        setProductIsWishlisted.result = .failure(.unauthenticated)
+        let authPresenter = StubAuthPresenter(onSignIn: { setProductIsWishlisted.result = .success(()) })
         authPresenter.signsIn = true
-        let viewModel = makeViewModel(addProductToWishlist: addProductToWishlist, authPresenter: authPresenter)
+        let viewModel = makeViewModel(setProductIsWishlisted: setProductIsWishlisted, authPresenter: authPresenter)
 
         viewModel.didTap()
         await settle()
 
         #expect(authPresenter.timesAsked == 1)
-        #expect(addProductToWishlist.calls.count == 2)
+        #expect(setProductIsWishlisted.calls.count == 2)
     }
 
     @Test("A guest who backs out of signing in is not left thinking it saved")
     func guestWhoBacksOutIsNotLeftThinkingItSaved() async {
-        let addProductToWishlist = StubAddProductToWishlist()
-        addProductToWishlist.result = .failure(.unauthenticated)
+        let setProductIsWishlisted = StubSetProductIsWishlisted()
+        setProductIsWishlisted.result = .failure(.unauthenticated)
         let authPresenter = StubAuthPresenter()
         authPresenter.signsIn = false
         let snackbarPresenter = SpySnackbarPresenter()
-        let viewModel = makeViewModel(addProductToWishlist: addProductToWishlist, authPresenter: authPresenter, snackbarPresenter: snackbarPresenter)
+        let viewModel = makeViewModel(
+            setProductIsWishlisted: setProductIsWishlisted,
+            authPresenter: authPresenter,
+            snackbarPresenter: snackbarPresenter
+        )
 
         viewModel.didTap()
         await settle()

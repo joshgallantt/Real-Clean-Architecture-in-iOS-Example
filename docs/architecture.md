@@ -208,7 +208,7 @@ Each use case is a protocol that names one business operation, with a `Default*`
 
 The two live apart. Every protocol a component publishes is in one file — `Sources/Domain/UseCases/<Component>UseCases.swift` — so what a component can be asked to do is one file to open rather than a list a reader has to assemble from a directory. Each `Default*` struct is in `Sources/Domain/UseCases/Impl/`, one per file, the file named for the type it holds. A reader who wants to know what `Bag` can do reads `BagUseCases.swift` and stops.
 
-The application calls a use case through `callAsFunction`. Thus a call reads as the operation itself — `await login(email:password:)`, `await addProductToWishlist(productId:)` — and not as `loginUseCase.execute(...)`.
+The application calls a use case through `callAsFunction`. Thus a call reads as the operation itself — `await login(email:password:)`, `await setProductIsWishlisted(productId:isWishlisted:)` — and not as `loginUseCase.execute(...)`.
 
 **Why use cases are necessary.** Without them, business logic moves into the ViewModels, into the repositories and finally into the views. The question "where does login occur?" then has no clear answer. A use case gives a business operation one location. You can test it with no UI, no network, and no knowledge of the remainder of the system.
 
@@ -241,7 +241,7 @@ You can find the full vocabulary of the application when you read the domain alo
 | `Session` | `LoginUseCase`, `CreateAccountUseCase`, `LogoutUseCase`, `GetSessionUseCase`, `ObserveSessionUseCase` |
 | `Product` | `BrowseCatalogUseCase`, `ViewProductUseCase`, `LookUpProductsUseCase`, `BrowseCategoriesUseCase` |
 | `SearchHistory` | `GetSearchHistoryUseCase`, `RecordSearchUseCase`, `ClearSearchHistoryUseCase` |
-| `Wishlist` | `ObserveWishlistUseCase`, `ObserveProductIsWishlistedUseCase`, `AddProductToWishlistUseCase`, `RemoveProductFromWishlistUseCase` |
+| `Wishlist` | `ObserveWishlistUseCase`, `ObserveProductIsWishlistedUseCase`, `SetProductIsWishlistedUseCase` |
 | `Bag` | `ObserveBagUseCase`, `ObserveNoticesUseCase`, `ObserveBagItemQuantityUseCase`, `AddItemToBagUseCase`, `SetBagItemQuantityUseCase`, `BringBagUpToDateUseCase`, `AcknowledgeNoticesUseCase` |
 | `Order` | `PlaceOrderUseCase`, `ObserveOrdersUseCase` |
 
@@ -251,17 +251,30 @@ Each name states something that a shopper wants to do. That is the test that a u
 
 The domain of `Wishlist` depends on the domain of `Session`, and that dependency is the point. A shopper must have an account to save a wishlist item. That is a business rule, thus the domain applies it. A view that remembers to make the check first does not.
 
-**[`Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultAddProductToWishlistUseCase.swift`](../Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultAddProductToWishlistUseCase.swift)**
+**[`Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultSetProductIsWishlistedUseCase.swift`](../Component/Wishlist/Sources/Domain/UseCases/Impl/DefaultSetProductIsWishlistedUseCase.swift)**
 ```swift
-public struct DefaultAddProductToWishlistUseCase: AddProductToWishlistUseCase {
+public struct DefaultSetProductIsWishlistedUseCase: SetProductIsWishlistedUseCase {
     private let repository: WishlistRepository
     private let getSession: GetSessionUseCase
 
     @MainActor
-    public func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError> {
+    public func callAsFunction(
+        productId: ProductID,
+        isWishlisted: Bool
+    ) async -> Result<Void, WishlistError> {
         guard getSession().isLoggedIn else { return .failure(.unauthenticated) }
-        repository.save(repository.wishlist.adding(WishlistItem(productId: productId)))
-        return .success(())
+
+        let wishlist = repository.wishlist
+        let updated = isWishlisted
+            ? wishlist.adding(WishlistItem(productId: productId))
+            : wishlist.removing(productId: productId)
+
+        do {
+            try await repository.save(updated)
+            return .success(())
+        } catch {
+            return .failure(.unavailable)
+        }
     }
 }
 ```
@@ -604,28 +617,18 @@ The two sections above give the pattern that occurs through the full application
 
 **[`UI/ProductActionsUI/Sources/UI/Buttons/Wishlist/WishlistButtonViewModel.swift`](../UI/ProductActionsUI/Sources/UI/Buttons/Wishlist/WishlistButtonViewModel.swift)**
 ```swift
-switch await add(productId: productId) {
+switch await setProductIsWishlisted(productId: productId, isWishlisted: isWishlisted) {
 case .success:
-    snackbarPresenter.show(Snackbar(
-        title: "Saved",
-        message: "It's in your faves.",
-        icon: "heart.fill"
-    ))
+    snackbarPresenter.show(told(isWishlisted))
 case .failure(.unauthenticated):
-    guard await authPresenter.show(AuthenticationPrompt(
-        title: "Keep Your Faves",
-        message: "Sign in and everything you save sticks around.",
-        icon: "heart.fill"
-    )) else {
-        return
-    }
-    await self.add()          // authenticated now — resume what they asked for
+    guard await authPresenter.show(prompt(isWishlisted)) else { return }
+    await apply(isWishlisted: isWishlisted)   // authenticated now — resume what they asked for
 case .failure(.unavailable):
     snackbarPresenter.show(Snackbar(
-        title: "Didn't Save",
+        title: isWishlisted ? "Didn't Save" : "Didn't Change",
         message: "That didn't stick. Try again?",
         icon: "heart.slash",
-        action: .retry { Task { await self.add() } }
+        action: .retry { Task { await self.apply(isWishlisted: isWishlisted) } }
     ))
 }
 ```

@@ -12,12 +12,15 @@ import SnackbarUI
 ///
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
+///
+/// One use case with a state, rather than one for saving and another for unsaving. Two use cases
+/// meant this had to read its own `isInWishlist` to decide which to call — a toggle re-derived from
+/// the thing it was toggling.
 public final class WishlistButtonViewModel: ObservableObject {
     @Published private(set) var isInWishlist = false
 
     private let productId: ProductID
-    private let addProductToWishlist: AddProductToWishlistUseCase
-    private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
+    private let setProductIsWishlisted: SetProductIsWishlistedUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
@@ -26,14 +29,12 @@ public final class WishlistButtonViewModel: ObservableObject {
     public init(
         productId: ProductID,
         observeProductIsWishlisted: ObserveProductIsWishlistedUseCase,
-        addProductToWishlist: AddProductToWishlistUseCase,
-        removeProductFromWishlist: RemoveProductFromWishlistUseCase,
+        setProductIsWishlisted: SetProductIsWishlistedUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting
     ) {
         self.productId = productId
-        self.addProductToWishlist = addProductToWishlist
-        self.removeProductFromWishlist = removeProductFromWishlist
+        self.setProductIsWishlisted = setProductIsWishlisted
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
 
@@ -44,83 +45,71 @@ public final class WishlistButtonViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
-    /// Which way a tap goes is decided from `isInWishlist`, and that only becomes true once the save
-    /// has been kept and published. A second tap arriving before then would read the state the first
-    /// one set out to change and repeat it, so tapping on and straight off again left it on. Each tap
-    /// waits for the one before it to settle, which is what makes two taps two decisions rather than
-    /// the same decision twice.
+    /// Which way a tap goes is read from `isInWishlist`, and that only changes once the save has
+    /// been kept and published. Deciding at the moment of the tap meant a second tap read the state
+    /// the first one had set out to change, so tapping on and straight off again left it on. The
+    /// decision is made inside the queued work instead, once the tap before it has settled.
     func didTap() {
-        let previous = inFlight
-        inFlight = Task { [weak self] in
-            await previous?.value
+        enqueue { [weak self] in
             guard let self else { return }
-            if self.isInWishlist {
-                await self.remove()
-            } else {
-                await self.add()
-            }
+            await self.apply(isWishlisted: !self.isInWishlist)
         }
     }
 
-    private func add() async {
-        let add = addProductToWishlist
-        let snackbarPresenter = snackbarPresenter
-        let productId = productId
+    /// One tap at a time, in the order the shopper made them, so two taps are two decisions rather
+    /// than the same decision twice.
+    private func enqueue(_ work: @escaping @MainActor () async -> Void) {
+        let previous = inFlight
+        inFlight = Task {
+            await previous?.value
+            await work()
+        }
+    }
 
-        switch await add(productId: productId) {
+    private func apply(isWishlisted: Bool) async {
+        switch await setProductIsWishlisted(productId: productId, isWishlisted: isWishlisted) {
         case .success:
+            snackbarPresenter.show(told(isWishlisted))
+
+        case .failure(.unauthenticated):
+            guard await authPresenter.show(prompt(isWishlisted)) else { return }
+            await apply(isWishlisted: isWishlisted)
+
+        case .failure(.unavailable):
             snackbarPresenter.show(Snackbar(
+                title: isWishlisted ? "Didn't Save" : "Didn't Change",
+                message: "That didn't stick. Try again?",
+                icon: "heart.slash",
+                action: .retry { Task { await self.apply(isWishlisted: isWishlisted) } }
+            ))
+        }
+    }
+
+    private func told(_ isWishlisted: Bool) -> Snackbar {
+        isWishlisted
+            ? Snackbar(
                 title: "Saved",
                 message: "It's in your faves.",
                 icon: "heart.fill"
-            ))
-        case .failure(.unauthenticated):
-            guard await authPresenter.show(AuthenticationPrompt(
-                title: "Keep Your Faves",
-                message: "Sign in and everything you save sticks around.",
-                icon: "heart.fill"
-            )) else {
-                return
-            }
-            await self.add()
-        case .failure(.unavailable):
-            snackbarPresenter.show(Snackbar(
-                title: "Didn't Save",
-                message: "That didn't stick. Try again?",
-                icon: "heart.slash",
-                action: .retry { Task { await self.add() } }
-            ))
-        }
-    }
-
-    private func remove() async {
-        let remove = removeProductFromWishlist
-        let snackbarPresenter = snackbarPresenter
-        let productId = productId
-
-        switch await remove(productId: productId) {
-        case .success:
-            snackbarPresenter.show(Snackbar(
+            )
+            : Snackbar(
                 title: "Unsaved",
                 message: "Gone from your faves.",
                 icon: "heart.slash"
-            ))
-        case .failure(.unauthenticated):
-            guard await authPresenter.show(AuthenticationPrompt(
+            )
+    }
+
+    private func prompt(_ isWishlisted: Bool) -> AuthenticationPrompt {
+        isWishlisted
+            ? AuthenticationPrompt(
+                title: "Keep Your Faves",
+                message: "Sign in and everything you save sticks around.",
+                icon: "heart.fill"
+            )
+            : AuthenticationPrompt(
                 title: "Your Faves",
                 message: "Sign in to change what you've saved.",
                 icon: "heart.slash"
-            )) else {
-                return
-            }
-            await self.remove()
-        case .failure(.unavailable):
-            snackbarPresenter.show(Snackbar(
-                title: "Didn't Change",
-                message: "That didn't stick. Try again?",
-                icon: "heart.slash",
-                action: .retry { Task { await self.remove() } }
-            ))
-        }
+            )
     }
 }

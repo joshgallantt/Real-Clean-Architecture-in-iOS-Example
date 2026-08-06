@@ -83,8 +83,7 @@ struct PresentationAssembler {
         let productActions = ProductActionsUIDI(
             navigation: navigator,
             observeProductIsWishlisted: domain.wishlist.observeProductIsWishlistedUseCase,
-            addProductToWishlist: domain.wishlist.addProductToWishlistUseCase,
-            removeProductFromWishlist: domain.wishlist.removeProductFromWishlistUseCase,
+            setProductIsWishlisted: domain.wishlist.setProductIsWishlistedUseCase,
             observeBagItemQuantity: domain.bag.observeBagItemQuantityUseCase,
             addItemToBag: domain.bag.addItemToBagUseCase,
             observeWaitlistStatus: domain.stockAlerts.observeWaitlistStatusUseCase,
@@ -125,7 +124,7 @@ struct PresentationAssembler {
             getWaitlistProducts: domain.stockAlerts.getWaitlistProductsUseCase,
             getBackInStockProducts: domain.stockAlerts.getBackInStockProductsUseCase,
             setStockAlertForProduct: domain.stockAlerts.setStockAlertForProductUseCase,
-            removeProductFromWishlist: domain.wishlist.removeProductFromWishlistUseCase,
+            setProductIsWishlisted: domain.wishlist.setProductIsWishlistedUseCase,
             lookUpProducts: catalog.lookUpProducts,
             observeSession: session.observeSessionUseCase,
             authPresenter: auth.presenter,

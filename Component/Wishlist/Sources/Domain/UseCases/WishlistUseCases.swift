@@ -7,11 +7,6 @@ import Product
 // Everything a shopper can ask of their wishlist. Those three hold for every protocol below, so
 // they are cited once; a comment on any one of them says only what is true of that one.
 
-public protocol AddProductToWishlistUseCase: Sendable {
-    @MainActor
-    func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError>
-}
-
 public protocol ObserveProductIsWishlistedUseCase: Sendable {
     @MainActor
     func callAsFunction(productId: ProductID) -> AnyPublisher<Bool, Never>
@@ -22,7 +17,13 @@ public protocol ObserveWishlistUseCase: Sendable {
     func callAsFunction() -> AnyPublisher<Wishlist, Never>
 }
 
-public protocol RemoveProductFromWishlistUseCase: Sendable {
+/// One heart, with a state — the setter for what `ObserveProductIsWishlistedUseCase` reports, and
+/// named to say so. It was two use cases, saving and unsaving, which is two ways of writing one
+/// toggle: every caller had to hold both and pick between them, so the button that draws the heart
+/// had to work out which of the two its own current state implied. Now a caller says what it wants
+/// to be true and the domain works out what that takes.
+public protocol SetProductIsWishlistedUseCase: Sendable {
     @MainActor
-    func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError>
+    @discardableResult
+    func callAsFunction(productId: ProductID, isWishlisted: Bool) async -> Result<Void, WishlistError>
 }

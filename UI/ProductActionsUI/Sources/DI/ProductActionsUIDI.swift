@@ -20,8 +20,7 @@ public struct ProductActionsUIDI {
     private let navigation: ProductActionsNavigation
 
     private let observeProductIsWishlisted: ObserveProductIsWishlistedUseCase
-    private let addProductToWishlist: AddProductToWishlistUseCase
-    private let removeProductFromWishlist: RemoveProductFromWishlistUseCase
+    private let setProductIsWishlisted: SetProductIsWishlistedUseCase
 
     private let observeBagItemQuantity: ObserveBagItemQuantityUseCase
     private let addItemToBag: AddItemToBagUseCase
@@ -35,8 +34,7 @@ public struct ProductActionsUIDI {
     public init(
         navigation: ProductActionsNavigation,
         observeProductIsWishlisted: ObserveProductIsWishlistedUseCase,
-        addProductToWishlist: AddProductToWishlistUseCase,
-        removeProductFromWishlist: RemoveProductFromWishlistUseCase,
+        setProductIsWishlisted: SetProductIsWishlistedUseCase,
         observeBagItemQuantity: ObserveBagItemQuantityUseCase,
         addItemToBag: AddItemToBagUseCase,
         observeWaitlistStatus: ObserveWaitlistStatusUseCase,
@@ -46,8 +44,7 @@ public struct ProductActionsUIDI {
     ) {
         self.navigation = navigation
         self.observeProductIsWishlisted = observeProductIsWishlisted
-        self.addProductToWishlist = addProductToWishlist
-        self.removeProductFromWishlist = removeProductFromWishlist
+        self.setProductIsWishlisted = setProductIsWishlisted
         self.observeBagItemQuantity = observeBagItemQuantity
         self.addItemToBag = addItemToBag
         self.observeWaitlistStatus = observeWaitlistStatus
@@ -108,8 +105,7 @@ public struct ProductActionsUIDI {
         WishlistButtonViewModel(
             productId: productId,
             observeProductIsWishlisted: observeProductIsWishlisted,
-            addProductToWishlist: addProductToWishlist,
-            removeProductFromWishlist: removeProductFromWishlist,
+            setProductIsWishlisted: setProductIsWishlisted,
             authPresenter: authPresenter,
             snackbarPresenter: snackbarPresenter
         )
