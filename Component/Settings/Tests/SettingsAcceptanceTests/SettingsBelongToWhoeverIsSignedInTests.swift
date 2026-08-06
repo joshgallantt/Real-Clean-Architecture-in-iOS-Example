@@ -20,9 +20,9 @@ struct SettingsBelongToWhoeverIsSignedInTests {
 
         let returning = shopper.leaveAndComeBack()
 
-        #expect(returning.settings.value(for: key) == !defaults.value(for: key))
+        #expect(returning.isOn(key) == !defaults.value(for: key))
         for other in SettingKey.allCases where other != key {
-            #expect(returning.settings.value(for: other) == defaults.value(for: other))
+            #expect(returning.isOn(other) == defaults.value(for: other))
         }
     }
 
@@ -33,10 +33,10 @@ struct SettingsBelongToWhoeverIsSignedInTests {
         await shopper.turn(.pushNotifications, true)
 
         shopper.signIn(asUserId: 2)
-        #expect(shopper.settings.value(for: .pushNotifications) == false)
+        #expect(shopper.isOn(.pushNotifications) == false)
 
         shopper.signIn(asUserId: 1)
-        #expect(shopper.settings.value(for: .pushNotifications) == true)
+        #expect(shopper.isOn(.pushNotifications) == true)
     }
 
     // SettingsMenu-10: Signing in and back out again does not carry settings between the guest and
@@ -47,12 +47,12 @@ struct SettingsBelongToWhoeverIsSignedInTests {
         await shopper.turn(.pushNotifications, true)
 
         shopper.signIn(asUserId: 42)
-        #expect(shopper.settings.value(for: .pushNotifications) == false)
+        #expect(shopper.isOn(.pushNotifications) == false)
 
         await shopper.turn(.bagPriceIncreases, false)
         shopper.signOut()
 
-        #expect(shopper.settings.value(for: .pushNotifications) == true)
-        #expect(shopper.settings.value(for: .bagPriceIncreases) == true)
+        #expect(shopper.isOn(.pushNotifications) == true)
+        #expect(shopper.isOn(.bagPriceIncreases) == true)
     }
 }

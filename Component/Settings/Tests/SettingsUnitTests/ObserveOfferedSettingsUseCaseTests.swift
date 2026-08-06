@@ -11,15 +11,15 @@ import Session
 @Suite("Observing the settings a shopper is offered")
 struct ObserveOfferedSettingsUseCaseTests {
     private func makeUseCase(
-        settings: StubObserveSettings,
+        settings: StubSettingsRepository,
         session: StubObserveSession
     ) -> DefaultObserveOfferedSettingsUseCase {
-        DefaultObserveOfferedSettingsUseCase(observeSettings: settings, observeSession: session)
+        DefaultObserveOfferedSettingsUseCase(repository: settings, observeSession: session)
     }
 
     @Test("A guest is published the settings they are offered, with the values they hold")
     func aGuestIsPublishedWhatTheyAreOffered() {
-        let settings = StubObserveSettings(Settings([.pushNotifications: true]))
+        let settings = StubSettingsRepository(Settings([.pushNotifications: true]))
         let recorder = Recorder(makeUseCase(settings: settings, session: StubObserveSession())())
 
         #expect(recorder.latest.map(\.key) == [
@@ -34,7 +34,7 @@ struct ObserveOfferedSettingsUseCaseTests {
     @Test("A signed-in shopper is published all of them")
     func aSignedInShopperIsPublishedAllOfThem() {
         let recorder = Recorder(
-            makeUseCase(settings: StubObserveSettings(), session: StubObserveSession(.shopper))()
+            makeUseCase(settings: StubSettingsRepository(), session: StubObserveSession(.shopper))()
         )
 
         #expect(recorder.latest.map(\.key) == SettingKey.allCases)
@@ -42,7 +42,7 @@ struct ObserveOfferedSettingsUseCaseTests {
 
     @Test("It publishes again the moment a setting changes")
     func republishesWhenASettingChanges() {
-        let settings = StubObserveSettings()
+        let settings = StubSettingsRepository()
         let recorder = Recorder(makeUseCase(settings: settings, session: StubObserveSession())())
 
         settings.send(Settings([.pushNotifications: true]))
@@ -54,7 +54,7 @@ struct ObserveOfferedSettingsUseCaseTests {
     @Test("It publishes again the moment the shopper signs in, and again when they sign out")
     func republishesWhenTheSessionChanges() {
         let session = StubObserveSession()
-        let recorder = Recorder(makeUseCase(settings: StubObserveSettings(), session: session)())
+        let recorder = Recorder(makeUseCase(settings: StubSettingsRepository(), session: session)())
 
         session.send(.shopper)
         #expect(recorder.latest.map(\.key) == SettingKey.allCases)

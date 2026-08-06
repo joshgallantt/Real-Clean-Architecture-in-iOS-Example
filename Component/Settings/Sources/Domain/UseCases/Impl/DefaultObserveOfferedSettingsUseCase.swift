@@ -5,20 +5,21 @@ import Session
 /// needs the session, so it is not something `Settings` can answer for itself.
 ///
 /// Evans, *Domain-Driven Design* (2003), Ch. 6 — Aggregates: a rule spanning two aggregates belongs
-/// outside both, which is why this composes the two use cases that publish them rather than reaching
-/// into either.
+/// outside both. The session arrives as a use case because it belongs to another component and this
+/// must not reach past what `Session` publishes; the record arrives as the repository because it is
+/// this component's own, which is how every other use case here reads what it needs.
 public struct DefaultObserveOfferedSettingsUseCase: ObserveOfferedSettingsUseCase {
-    private let observeSettings: ObserveSettingsUseCase
+    private let repository: SettingsRepository
     private let observeSession: ObserveSessionUseCase
 
-    public init(observeSettings: ObserveSettingsUseCase, observeSession: ObserveSessionUseCase) {
-        self.observeSettings = observeSettings
+    public init(repository: SettingsRepository, observeSession: ObserveSessionUseCase) {
+        self.repository = repository
         self.observeSession = observeSession
     }
 
     @MainActor
     public func callAsFunction() -> AnyPublisher<[Setting], Never> {
-        observeSettings()
+        repository.settingsPublisher
             .combineLatest(observeSession()) { Setting.offered(from: $0, signedIn: $1.isLoggedIn) }
             .eraseToAnyPublisher()
     }

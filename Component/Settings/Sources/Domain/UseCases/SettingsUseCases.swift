@@ -6,14 +6,15 @@ import Combine
 // Everything a shopper can ask of their settings. Those three hold for every protocol below, so
 // they are cited once; a comment on any one of them says only what is true of that one.
 
+/// The only way out of this component for what a shopper has chosen, and it answers in the settings
+/// they are offered rather than the record behind them. A guest and a signed-in shopper are asked
+/// the same question and told different things, which is the rule rather than a caller's business
+/// to apply. Nothing outside here needs the whole record, and publishing it would be publishing a
+/// value for a key the shopper was never offered — the thing `Setting.offered(from:signedIn:)`
+/// exists to make unreachable.
 public protocol ObserveOfferedSettingsUseCase: Sendable {
     @MainActor
     func callAsFunction() -> AnyPublisher<[Setting], Never>
-}
-
-public protocol ObserveSettingsUseCase: Sendable {
-    @MainActor
-    func callAsFunction() -> AnyPublisher<Settings, Never>
 }
 
 public protocol SetSettingUseCase: Sendable {

@@ -21,7 +21,11 @@ struct TheFavoritesSettingsBelongToSomebodyTests {
         let outcome = await shopper.turn(key, false)
 
         #expect(outcome.failure == .unauthenticated)
-        #expect(shopper.settings.value(for: key) == true)
+        /// That the refusal left the record exactly as it was is asserted in `SetSettingUseCaseTests`
+        /// rather than here. A guest is not shown this setting at all, so there is nothing a shopper
+        /// could look at to see it — and a suite that speaks their language cannot assert on a value
+        /// no shopper is ever handed.
+        #expect(shopper.isOn(key) == nil)
     }
 
     // SettingsMenu-06: Signing in after being refused, the shopper can now change the setting they
@@ -34,7 +38,7 @@ struct TheFavoritesSettingsBelongToSomebodyTests {
         shopper.signIn(asUserId: 42)
 
         #expect(await shopper.turn(.favoritesWaitlistSection, false).failure == nil)
-        #expect(shopper.settings.value(for: .favoritesWaitlistSection) == false)
+        #expect(shopper.isOn(.favoritesWaitlistSection) == false)
     }
 
     // SettingsMenu-07: Signing back out refuses the favorites settings again — the rule follows the

@@ -19,7 +19,8 @@ final class Shopper {
     private let di: SettingsDI
     private var cancellables = Set<AnyCancellable>()
 
-    private(set) var settings = Settings()
+    /// What the settings screen is showing them, which for a guest is not every setting there is.
+    private(set) var offered: [Setting] = []
 
     init(in directory: URL = .newTemporaryDirectory, signedInAs userId: Int? = nil) {
         self.directory = directory
@@ -30,10 +31,20 @@ final class Shopper {
             store: FileSettingsStore(directory: directory)
         )
 
-        di.observeSettingsUseCase()
-            .sink { [weak self] in self?.settings = $0 }
+        di.observeOfferedSettingsUseCase()
+            .sink { [weak self] in self?.offered = $0 }
             .store(in: &cancellables)
     }
+
+    // MARK: - What the shopper sees
+
+    /// `nil` when they are not offered it at all, which is a different answer from off. A guest is
+    /// not shown the favorites settings, so there is no value for them to be shown.
+    func isOn(_ key: SettingKey) -> Bool? {
+        offered.first { $0.key == key }?.isOn
+    }
+
+    var keysOffered: [SettingKey] { offered.map(\.key) }
 
     // MARK: - What a shopper does
 
