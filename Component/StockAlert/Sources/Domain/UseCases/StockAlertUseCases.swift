@@ -12,7 +12,6 @@ import Product
 /// asks — the asks include things that have already arrived — but the ones the shop still has none
 /// of.
 public protocol GetWaitlistProductsUseCase: Sendable {
-    @MainActor
     func callAsFunction() async -> Result<[Product], StockAlertError>
 }
 
@@ -24,7 +23,6 @@ public protocol GetWaitlistProductsUseCase: Sendable {
 /// on the shopper's behalf and something that sells out again simply moves back. Only
 /// `SetStockAlertForProductUseCase(isOn: false)` takes something off.
 public protocol GetBackInStockProductsUseCase: Sendable {
-    @MainActor
     func callAsFunction() async -> Result<[Product], StockAlertError>
 }
 
@@ -47,7 +45,6 @@ public protocol ObserveWaitlistUseCase: Sendable {
 /// one toggle — and every caller had to hold both and pick, so the button that renders it had to
 /// know which of the two its own current state implied.
 public protocol SetStockAlertForProductUseCase: Sendable {
-    @MainActor
     @discardableResult
     func callAsFunction(productId: ProductID, isOn: Bool) async -> Result<Void, StockAlertError>
 }
