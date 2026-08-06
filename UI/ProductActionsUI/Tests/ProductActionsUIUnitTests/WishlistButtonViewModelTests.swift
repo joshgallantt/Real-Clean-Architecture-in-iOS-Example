@@ -66,6 +66,29 @@ struct WishlistButtonViewModelTests {
         #expect(addProductToWishlist.calls.isEmpty)
     }
 
+    @Test("Two taps in a row are two decisions, so it ends where it started")
+    func tappingTwiceEndsWhereItStarted() async {
+        let observeProductIsWishlisted = StubObserveProductIsWishlisted()
+        let addProductToWishlist = StubAddProductToWishlist()
+        let removeProductFromWishlist = StubRemoveProductFromWishlist()
+        addProductToWishlist.onSuccess = { observeProductIsWishlisted.send(true) }
+        removeProductFromWishlist.onSuccess = { observeProductIsWishlisted.send(false) }
+        let viewModel = makeViewModel(
+            productId: pid(1),
+            observeProductIsWishlisted: observeProductIsWishlisted,
+            addProductToWishlist: addProductToWishlist,
+            removeProductFromWishlist: removeProductFromWishlist
+        )
+
+        viewModel.didTap()
+        viewModel.didTap()
+        await settle()
+
+        #expect(addProductToWishlist.calls == [pid(1)])
+        #expect(removeProductFromWishlist.calls == [pid(1)])
+        #expect(viewModel.isInWishlist == false)
+    }
+
     @Test("Saving tells the shopper it saved")
     func savingSaysSo() async {
         let snackbarPresenter = SpySnackbarPresenter()
