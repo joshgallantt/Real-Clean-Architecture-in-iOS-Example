@@ -77,16 +77,26 @@ final class StubObserveProductIsWishlisted: ObserveProductIsWishlistedUseCase, @
         subject = CurrentValueSubject(isWishlisted)
     }
 
+    func send(_ isWishlisted: Bool) { subject.value = isWishlisted }
+
     func callAsFunction(productId: ProductID) -> AnyPublisher<Bool, Never> { subject.eraseToAnyPublisher() }
 }
 
+/// `onSuccess` is how a test makes a saved product start reading as saved. The real use case writes
+/// through a repository that publishes what it kept, so anything observing it has heard before the
+/// call returns; a stub that only counted calls could never show a caller reading state it had not
+/// yet changed. The yield is the round trip: without a suspension here every call would finish
+/// before the next one could start, and no ordering would ever be at stake.
 @MainActor
 final class StubAddProductToWishlist: AddProductToWishlistUseCase, @unchecked Sendable {
     var result: Result<Void, WishlistError> = .success(())
+    var onSuccess: () -> Void = {}
     private(set) var calls: [ProductID] = []
 
     func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError> {
         calls.append(productId)
+        await Task.yield()
+        if case .success = result { onSuccess() }
         return result
     }
 }
@@ -94,10 +104,13 @@ final class StubAddProductToWishlist: AddProductToWishlistUseCase, @unchecked Se
 @MainActor
 final class StubRemoveProductFromWishlist: RemoveProductFromWishlistUseCase, @unchecked Sendable {
     var result: Result<Void, WishlistError> = .success(())
+    var onSuccess: () -> Void = {}
     private(set) var calls: [ProductID] = []
 
     func callAsFunction(productId: ProductID) async -> Result<Void, WishlistError> {
         calls.append(productId)
+        await Task.yield()
+        if case .success = result { onSuccess() }
         return result
     }
 }

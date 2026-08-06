@@ -21,6 +21,7 @@ public final class WishlistButtonViewModel: ObservableObject {
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
+    private var inFlight: Task<Void, Never>?
 
     public init(
         productId: ProductID,
@@ -43,8 +44,15 @@ public final class WishlistButtonViewModel: ObservableObject {
             .store(in: &cancellables)
     }
 
+    /// Which way a tap goes is decided from `isInWishlist`, and that only becomes true once the save
+    /// has been kept and published. A second tap arriving before then would read the state the first
+    /// one set out to change and repeat it, so tapping on and straight off again left it on. Each tap
+    /// waits for the one before it to settle, which is what makes two taps two decisions rather than
+    /// the same decision twice.
     func didTap() {
-        Task { [weak self] in
+        let previous = inFlight
+        inFlight = Task { [weak self] in
+            await previous?.value
             guard let self else { return }
             if self.isInWishlist {
                 await self.remove()
