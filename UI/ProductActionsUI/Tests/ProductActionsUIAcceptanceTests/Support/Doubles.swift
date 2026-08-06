@@ -40,7 +40,11 @@ final class InMemoryStockAlertRepository: StockAlertRepository {
 
     var session: GetSessionUseCase { Session_(repository: self) }
 
+    /// The yield is the round trip. A store that keeps something suspends before it has kept it,
+    /// and a shopper can tap again inside that gap — which is only true of this stand-in if it
+    /// suspends too.
     func save(_ alerts: StockAlerts) async throws {
+        await Task.yield()
         if whenItCannotKeep { throw CouldNotKeep() }
         subject.value = alerts
     }

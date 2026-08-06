@@ -89,6 +89,20 @@ struct AskingToBeToldTests {
         #expect(shown.snackbarTitles == ["You're on the List", "Off the List"])
     }
 
+    @Test("Changing their mind twice in a row leaves them off the list, not on it")
+    func changingTheirMindTwiceQuickly() async {
+        let shown = AProduct(.fixture(id: 1, availability: .outOfStock))
+        let bell = shown.stockAlertButton()
+
+        bell.didTap()
+        bell.didTap()
+        await shown.settle()
+
+        #expect(shown.waitingFor.isEmpty)
+        #expect(bell.isWaiting == false)
+        #expect(shown.snackbarTitles == ["You're on the List", "Off the List"])
+    }
+
     @Test("A guest is asked to sign in, because there is nowhere to tell them otherwise")
     func guestIsAskedToSignIn() async {
         let shown = AProduct(.fixture(id: 1, availability: .outOfStock), signedIn: false)

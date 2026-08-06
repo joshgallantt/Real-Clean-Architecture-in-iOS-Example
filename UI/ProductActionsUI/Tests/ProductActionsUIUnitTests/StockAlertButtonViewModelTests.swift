@@ -56,6 +56,42 @@ struct StockAlertButtonViewModelTests {
         #expect(setStockAlert.calls.map(\.isOn) == [false])
     }
 
+    @Test("Two taps in a row are two decisions, so it ends where it started")
+    func tappingTwiceEndsWhereItStarted() async {
+        let observeWaitlistStatus = StubObserveWaitlistStatus(false)
+        let setStockAlert = StubSetStockAlert()
+        setStockAlert.onSuccess = { observeWaitlistStatus.send($0) }
+        let viewModel = makeViewModel(
+            observeWaitlistStatus: observeWaitlistStatus,
+            setStockAlert: setStockAlert
+        )
+
+        viewModel.didTap()
+        viewModel.didTap()
+        await settle()
+
+        #expect(setStockAlert.calls.map(\.isOn) == [true, false])
+        #expect(viewModel.isWaiting == false)
+    }
+
+    @Test("Removing waits its turn, and still takes it off whatever the bell says")
+    func removeAfterATapStillTurnsItOff() async {
+        let observeWaitlistStatus = StubObserveWaitlistStatus(false)
+        let setStockAlert = StubSetStockAlert()
+        setStockAlert.onSuccess = { observeWaitlistStatus.send($0) }
+        let viewModel = makeViewModel(
+            observeWaitlistStatus: observeWaitlistStatus,
+            setStockAlert: setStockAlert
+        )
+
+        viewModel.didTap()
+        viewModel.didTapRemove()
+        await settle()
+
+        #expect(setStockAlert.calls.map(\.isOn) == [true, false])
+        #expect(viewModel.isWaiting == false)
+    }
+
     @Test("Removing always takes it off the list, whatever the bell currently says")
     func didTapRemoveAlwaysTurnsItOff() async {
         let setStockAlert = StubSetStockAlert()
