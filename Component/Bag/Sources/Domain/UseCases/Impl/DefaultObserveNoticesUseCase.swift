@@ -1,14 +1,5 @@
 import Combine
 
-/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002), Ch. 9 —
-/// Service Layer.
-///
-/// Evans, *Domain-Driven Design* (2003), Ch. 10 — Intention-Revealing Interfaces.
-public protocol ObserveNoticesUseCase: Sendable {
-    @MainActor
-    func callAsFunction() -> AnyPublisher<Notices, Never>
-}
-
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: the rule about which
 /// notices are still worth telling is applied here, so a screen is handed news it can render as-is
 /// rather than being trusted to filter it.

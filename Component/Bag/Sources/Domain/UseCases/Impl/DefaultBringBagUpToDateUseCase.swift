@@ -1,25 +1,4 @@
-import Money
 import Product
-
-/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002), Ch. 9 —
-/// Service Layer.
-///
-/// It asks the shop itself rather than being handed the answer. `PlaceOrderUseCase` reaches for
-/// `GetSessionUseCase` the same way: a use case may compose another component's use cases, and
-/// asking is part of catching up rather than something a screen does on its behalf.
-///
-/// That is also what makes silence mean something. A shop that has stopped selling a product does
-/// not describe it — it stops answering for it — so hearing that requires knowing what was asked.
-/// While a caller did the asking, "absent" and "never mentioned" arrived as the same input and this
-/// had to guess; it guessed "leave it alone", which kept a line nobody could ever be sold.
-///
-/// What it heard is handed back, because the screen that draws names and pictures wants the same
-/// answer. Asking twice over the same ids is a second round trip for a reply already received.
-public protocol BringBagUpToDateUseCase: Sendable {
-    @MainActor
-    @discardableResult
-    func callAsFunction() async -> [Product]
-}
 
 /// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: application work, not a rule either
 /// aggregate owns. It reads both and writes both — the bag knows what a line cost but not what price

@@ -1,17 +1,6 @@
 import Money
 import Session
 
-/// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules. Fowler, *PoEAA* (2002), Ch. 9 —
-/// Service Layer.
-///
-/// Evans, *Domain-Driven Design* (2003), Ch. 10 — Intention-Revealing Interfaces: checking out is
-/// not a module, it is this. What a shopper is checking out — one product from its page, or
-/// everything in their bag — is decided by whoever calls it, and the rule is the same either way.
-public protocol PlaceOrderUseCase: Sendable {
-    @MainActor
-    func callAsFunction(_ lines: [OrderLine]) async -> Result<Order, OrderError>
-}
-
 /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: "These use cases
 /// orchestrate the flow of data to and from the entities." Three steps in order — may they, does it
 /// go through, write it down — and no entity owns the sequence because no entity can see all three.
