@@ -22,7 +22,7 @@ struct WhenASettingCannotBeKeptTests {
 
         await shopper.turn(.pushNotifications, true)
 
-        #expect(shopper.settings.value(for: .pushNotifications) == false)
+        #expect(shopper.isOn(.pushNotifications) == false)
     }
 
     // SettingsMenu-13: Not being signed in and not being able to save are different answers.

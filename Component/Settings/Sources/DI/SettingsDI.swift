@@ -13,7 +13,6 @@ import SettingsData
 public struct SettingsDI {
     private let repository: SettingsRepository
 
-    public let observeSettingsUseCase: ObserveSettingsUseCase
     public let observeOfferedSettingsUseCase: ObserveOfferedSettingsUseCase
     public let setSettingUseCase: SetSettingUseCase
 
@@ -35,9 +34,8 @@ public struct SettingsDI {
         )
         self.repository = repository
 
-        self.observeSettingsUseCase = DefaultObserveSettingsUseCase(repository: repository)
         self.observeOfferedSettingsUseCase = DefaultObserveOfferedSettingsUseCase(
-            observeSettings: observeSettingsUseCase,
+            repository: repository,
             observeSession: observeSession
         )
         self.setSettingUseCase = DefaultSetSettingUseCase(repository: repository, getSession: getSession)

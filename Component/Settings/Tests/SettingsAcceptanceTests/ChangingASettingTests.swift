@@ -18,14 +18,14 @@ struct ChangingASettingTests {
     )
     func changingOneLeavesTheRest(_ key: SettingKey) async {
         let shopper = Shopper()
-        let before = shopper.settings
+        let before = shopper.offered
 
-        await shopper.turn(key, !before.value(for: key))
+        await shopper.turn(key, !(shopper.isOn(key) ?? false))
 
-        for other in SettingKey.allCases where other != key {
-            #expect(shopper.settings.value(for: other) == before.value(for: other))
+        for other in before.map(\.key) where other != key {
+            #expect(shopper.isOn(other) == before.first { $0.key == other }?.isOn)
         }
-        #expect(shopper.settings.value(for: key) == !before.value(for: key))
+        #expect(shopper.isOn(key) == !(before.first { $0.key == key }?.isOn ?? false))
     }
 
     // SettingsMenu-04: A changed setting is still changed the next time the shopper's settings are
@@ -37,6 +37,6 @@ struct ChangingASettingTests {
         await shopper.turn(.pushNotifications, true)
         let returning = shopper.leaveAndComeBack()
 
-        #expect(returning.settings.value(for: .pushNotifications) == true)
+        #expect(returning.isOn(.pushNotifications) == true)
     }
 }

@@ -13,10 +13,10 @@ struct WhatAShopperStartsWithTests {
     func guestDefaults() {
         let shopper = Shopper()
 
-        #expect(shopper.settings.value(for: .pushNotifications) == false)
-        #expect(shopper.settings.value(for: .bagOutOfStockNotice) == true)
-        #expect(shopper.settings.value(for: .bagPriceIncreases) == true)
-        #expect(shopper.settings.value(for: .bagPriceDecreases) == true)
+        #expect(shopper.isOn(.pushNotifications) == false)
+        #expect(shopper.isOn(.bagOutOfStockNotice) == true)
+        #expect(shopper.isOn(.bagPriceIncreases) == true)
+        #expect(shopper.isOn(.bagPriceDecreases) == true)
     }
 
     // SettingsMenu-02: A newly signed-in shopper's settings start at the same defaults, including
@@ -25,11 +25,21 @@ struct WhatAShopperStartsWithTests {
     func signedInDefaults() {
         let shopper = Shopper(signedInAs: 42)
 
-        #expect(shopper.settings.value(for: .pushNotifications) == false)
-        #expect(shopper.settings.value(for: .bagOutOfStockNotice) == true)
-        #expect(shopper.settings.value(for: .bagPriceIncreases) == true)
-        #expect(shopper.settings.value(for: .bagPriceDecreases) == true)
-        #expect(shopper.settings.value(for: .favoritesWaitlistSection) == true)
-        #expect(shopper.settings.value(for: .favoritesBackInStockSection) == true)
+        #expect(shopper.isOn(.pushNotifications) == false)
+        #expect(shopper.isOn(.bagOutOfStockNotice) == true)
+        #expect(shopper.isOn(.bagPriceIncreases) == true)
+        #expect(shopper.isOn(.bagPriceDecreases) == true)
+        #expect(shopper.isOn(.favoritesWaitlistSection) == true)
+        #expect(shopper.isOn(.favoritesBackInStockSection) == true)
+    }
+
+    // A guest is not shown the favorites settings at all, which is why nothing above asks what they
+    // are set to: there is no value to show somebody who is not offered the setting.
+    @Test("A guest is not shown the favorites settings at all")
+    func guestIsNotShownFavorites() {
+        let shopper = Shopper()
+
+        #expect(shopper.isOn(.favoritesWaitlistSection) == nil)
+        #expect(shopper.isOn(.favoritesBackInStockSection) == nil)
     }
 }
