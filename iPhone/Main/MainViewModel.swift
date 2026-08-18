@@ -1,15 +1,15 @@
-import Combine
 import Foundation
 import Session
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
 ///
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
-final class MainViewModel: ObservableObject {
+final class MainViewModel {
     enum Phase: Hashable {
         case splash
         case welcome
@@ -17,7 +17,7 @@ final class MainViewModel: ObservableObject {
         case main
     }
 
-    @Published private(set) var phase: Phase = .splash
+    private(set) var phase: Phase = .splash
 
     private let getSession: GetSessionUseCase
 

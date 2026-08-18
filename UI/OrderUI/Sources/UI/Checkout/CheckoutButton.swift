@@ -4,10 +4,10 @@ import UIKit
 /// The bag's way out. It shows the total it is about to charge, because a button that takes money
 /// should say how much before it is tapped rather than after.
 public struct CheckoutButton: View {
-    @StateObject private var viewModel: CheckoutButtonViewModel
+    @State private var viewModel: CheckoutButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> CheckoutButtonViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     public var body: some View {

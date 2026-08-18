@@ -5,6 +5,7 @@ import SnackbarUI
 import StockAlert
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: it calls one use
 /// case and publishes what came back. Which products belong on this list is not decided here — it
 /// is decided by which use case this was handed, and that is the whole point.
@@ -12,9 +13,9 @@ import StockAlert
 /// Martin, Ch. 10 — Interface Segregation Principle: `SavedProductsViewModel` fills in a list of
 /// ids the shopper is holding, which is what a wishlist is. This does not: the domain already
 /// answers with products, so there is nothing to fill in and no ids to page through.
-public final class AlertedProductsViewModel: ObservableObject {
-    @Published private(set) var products: [Product] = []
-    @Published private(set) var isLoading = false
+public final class AlertedProductsViewModel {
+    private(set) var products: [Product] = []
+    private(set) var isLoading = false
 
     private let load: @MainActor () async -> Result<[Product], StockAlertError>
     private let changes: () -> AnyPublisher<StockAlerts, Never>

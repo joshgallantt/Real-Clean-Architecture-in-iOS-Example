@@ -9,7 +9,7 @@ public struct SavedProductsListView: View {
     /// Owned, not observed. Unlike the tab's own screen — built once at startup and held — this is
     /// built by `makeView()` every time the navigation stack re-evaluates. Observing a view model
     /// handed in fresh each render would reset the list and re-ask the shop on every redraw.
-    @StateObject private var viewModel: SavedProductsViewModel
+    @State private var viewModel: SavedProductsViewModel
 
     let title: String
     let emptyTitle: String
@@ -29,7 +29,7 @@ public struct SavedProductsListView: View {
         accessory: @escaping (Product) -> AnyView,
         leadingAccessory: @escaping (Product) -> AnyView
     ) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
         self.title = title
         self.emptyTitle = emptyTitle
         self.emptyIcon = emptyIcon

@@ -2,10 +2,10 @@ import SwiftUI
 import UIKit
 
 public struct WishlistButtonView: View {
-    @StateObject private var viewModel: WishlistButtonViewModel
+    @State private var viewModel: WishlistButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> WishlistButtonViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     public var body: some View {

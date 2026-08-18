@@ -4,10 +4,10 @@ import UIKit
 /// The bell that takes the bag button's place on a card when the shop has run out but expects it
 /// back. A bag it cannot fill would be a promise the shop cannot keep; this is the one it can.
 public struct StockAlertButtonView: View {
-    @StateObject private var viewModel: StockAlertButtonViewModel
+    @State private var viewModel: StockAlertButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> StockAlertButtonViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     public var body: some View {
@@ -34,10 +34,10 @@ public struct StockAlertButtonView: View {
 /// It takes the bell's shape and place — a circle on the corner of a card — so the two are tapped
 /// the same way and a shopper does not have to learn a second control.
 public struct RemoveFromWaitlistButton: View {
-    @StateObject private var viewModel: StockAlertButtonViewModel
+    @State private var viewModel: StockAlertButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> StockAlertButtonViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     public var body: some View {
@@ -59,10 +59,10 @@ public struct RemoveFromWaitlistButton: View {
 
 /// The same thing said at full width, where the details screen would otherwise offer Add to Bag.
 public struct NotifyMeButton: View {
-    @StateObject private var viewModel: StockAlertButtonViewModel
+    @State private var viewModel: StockAlertButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> StockAlertButtonViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     public var body: some View {

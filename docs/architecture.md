@@ -435,7 +435,7 @@ It is in `Library/` and not in `Component/` because it holds no domain knowledge
 
 ## Presentation layer
 
-The presentation layer uses MVVM. The views are passive and show state. The ViewModels hold `@Published` state and send business operations to the use cases. Neither the views nor the ViewModels know about repositories or data sources.
+The presentation layer uses MVVM. The views are passive and show state. The ViewModels hold observable state and send business operations to the use cases. Neither the views nor the ViewModels know about repositories or data sources.
 
 **Why MVVM.** A SwiftUI view is a value type, and the framework makes it again frequently. Business logic in a view is destroyed with the view. A ViewModel is a reference type and stays through that cycle. More importantly, you cannot unit-test a view, but you can unit-test a ViewModel. If the logic is in the ViewModel and the view is only declarative, you can examine the presentation behaviour without a rendered pixel.
 
@@ -454,20 +454,21 @@ FeatureUI/
 
 ### ViewModels
 
-A ViewModel is a `@MainActor ObservableObject` class. It receives **use case protocols** through its initialiser. It never receives a repository, a store or a data source. A test of `AuthViewModel` needs no network stack and no session. It needs an object that satisfies `LoginUseCase`.
+A ViewModel is a `@MainActor @Observable` class. It receives **use case protocols** through its initialiser. It never receives a repository, a store or a data source. A test of `AuthViewModel` needs no network stack and no session. It needs an object that satisfies `LoginUseCase`.
 
 **[`UI/AuthUI/Sources/AuthUIHost/AuthViewModel.swift`](../UI/AuthUI/Sources/AuthUIHost/AuthViewModel.swift)**
 ```swift
 @MainActor
-final class AuthViewModel: ObservableObject {
+@Observable
+final class AuthViewModel {
     private let loginUseCase: LoginUseCase
     private let createAccountUseCase: CreateAccountUseCase
     private let onAuthenticated: () -> Void
 
-    @Published var email = ""
-    @Published var password = ""
-    @Published var isLoading = false
-    @Published var error: String?
+    var email = ""
+    var password = ""
+    var isLoading = false
+    var error: String?
 
     func submit() async {
         guard canSubmit else { return }
@@ -497,7 +498,7 @@ The text that a person types becomes an `Email` and a `Password` here, at the ed
 
 ### Views
 
-A view binds to the `@Published` properties and sends each action to the ViewModel. A view contains no business branch, no network call and no navigation decision. It answers one question: for this state, what must be on the screen?
+A view binds to the observable properties and sends each action to the ViewModel. A view contains no business branch, no network call and no navigation decision. It answers one question: for this state, what must be on the screen?
 
 ### Shared UI components
 
@@ -790,10 +791,11 @@ There is no login gate at start-up. `MainViewModel` operates a small phase machi
 **[`iPhone/Main/MainViewModel.swift`](../iPhone/Main/MainViewModel.swift)**
 ```swift
 @MainActor
-final class MainViewModel: ObservableObject {
+@Observable
+final class MainViewModel {
     enum Phase: Hashable { case splash, welcome, onboarding, main }
 
-    @Published private(set) var phase: Phase = .splash
+    private(set) var phase: Phase = .splash
 
     func onAppear() async {
         guard phase == .splash else { return }
@@ -896,14 +898,15 @@ The policy is in the enumeration and not in the screens. A guest can open the ca
 **[`iPhone/Navigation/Navigator.swift`](../iPhone/Navigation/Navigator.swift)**
 ```swift
 @MainActor
-final class Navigator: ObservableObject {
+@Observable
+final class Navigator {
     enum Tabs: Hashable { case home, search, bag, wishlist, account }
 
-    @Published var selectedTab: Tabs = .home
-    @Published var homePath = NavigationPath()
-    @Published var searchPath = NavigationPath()
-    @Published var bagPath = NavigationPath()
-    @Published var wishlistPath = NavigationPath()
+    var selectedTab: Tabs = .home
+    var homePath = NavigationPath()
+    var searchPath = NavigationPath()
+    var bagPath = NavigationPath()
+    var wishlistPath = NavigationPath()
 
     /// Single entry point for all navigation — taps and deep links alike.
     func open(_ destination: Destination, tab: Tabs? = nil) {

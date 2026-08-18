@@ -7,7 +7,7 @@ import AccountUIDI
 import SnackbarUIDI
 
 struct TabScreen: View {
-    @ObservedObject var navigator: Navigator
+    @Bindable var navigator: Navigator
     let snackbarPresenter: SnackbarPresenter
     let homeView: AnyView
     let searchView: AnyView

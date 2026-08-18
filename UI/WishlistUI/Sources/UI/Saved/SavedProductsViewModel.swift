@@ -4,6 +4,7 @@ import Product
 import SnackbarUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing.
 ///
@@ -15,10 +16,10 @@ import SnackbarUI
 /// Martin, Ch. 10 — Interface Segregation Principle: it is given a stream of ids, not a wishlist
 /// and not a set of stock alerts. Neither aggregate reaches this file, which is why one type can
 /// serve both without knowing that either exists.
-public final class SavedProductsViewModel: ObservableObject {
-    @Published private(set) var products: [Product] = []
-    @Published private(set) var isLoading = false
-    @Published private(set) var isLoadingMore = false
+public final class SavedProductsViewModel {
+    private(set) var products: [Product] = []
+    private(set) var isLoading = false
+    private(set) var isLoadingMore = false
 
 
     private let pageSize: Int

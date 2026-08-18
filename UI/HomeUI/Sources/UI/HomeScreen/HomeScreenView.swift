@@ -3,7 +3,7 @@ import Home
 import Product
 
 public struct HomeScreenView: View {
-    @ObservedObject var viewModel: HomeScreenViewModel
+    let viewModel: HomeScreenViewModel
     let wishlistButton: (ProductID) -> AnyView
     let bagButton: (Product) -> AnyView
 

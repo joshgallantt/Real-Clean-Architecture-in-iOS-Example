@@ -3,17 +3,18 @@ import Product
 import SnackbarUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
 ///
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
-public final class CatalogResultsViewModel: ObservableObject {
+public final class CatalogResultsViewModel {
     let filter: CatalogFilter
-    @Published private(set) var results: [Product] = []
-    @Published private(set) var isLoading = false
-    @Published private(set) var isLoadingMore = false
+    private(set) var results: [Product] = []
+    private(set) var isLoading = false
+    private(set) var isLoadingMore = false
 
     private let browseCatalog: BrowseCatalogUseCase
     private let snackbar: SnackbarPresenting

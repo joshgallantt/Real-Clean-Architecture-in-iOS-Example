@@ -4,16 +4,17 @@ import SearchHistory
 import SnackbarUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
 ///
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
-public final class SearchTabScreenViewModel: ObservableObject {
-    @Published var query: String = ""
-    @Published var isSearchActive: Bool = false
-    @Published private(set) var categories: [ProductCategory] = []
+public final class SearchTabScreenViewModel {
+    var query: String = ""
+    var isSearchActive: Bool = false
+    private(set) var categories: [ProductCategory] = []
 
     private let browseCategories: BrowseCategoriesUseCase
     private let recordSearch: RecordSearchUseCase

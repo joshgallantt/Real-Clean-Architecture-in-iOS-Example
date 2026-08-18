@@ -6,7 +6,7 @@ import SnackbarUIDI
 
 @main
 struct Main: App {
-    @StateObject private var viewModel = CompositionRoot.shared.makeMainViewModel()
+    @State private var viewModel = CompositionRoot.shared.makeMainViewModel()
 
     var body: some Scene {
         WindowGroup {

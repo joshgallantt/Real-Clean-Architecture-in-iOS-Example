@@ -3,16 +3,17 @@ import Product
 import SearchHistory
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
 ///
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
-public final class SearchingViewModel: ObservableObject {
-    @Published private(set) var history = SearchHistory()
-    @Published private(set) var suggestions: [Product] = []
-    @Published private(set) var isSuggesting: Bool = false
+public final class SearchingViewModel {
+    private(set) var history = SearchHistory()
+    private(set) var suggestions: [Product] = []
+    private(set) var isSuggesting: Bool = false
 
     private let getSearchHistory: GetSearchHistoryUseCase
     private let clearSearchHistory: ClearSearchHistoryUseCase

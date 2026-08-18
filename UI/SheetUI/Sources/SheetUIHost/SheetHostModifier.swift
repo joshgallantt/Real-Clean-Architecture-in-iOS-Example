@@ -1,7 +1,7 @@
 import SwiftUI
 
 private struct SheetHostModifier: ViewModifier {
-    @ObservedObject var presenter: SheetPresenter
+    @Bindable var presenter: SheetPresenter
 
     func body(content: Content) -> some View {
         content

@@ -11,7 +11,7 @@ import ProductUI
 public struct AlertedProductsListView: View {
     /// Owned, not observed. `makeView()` builds it afresh on every navigation re-evaluation, and an
     /// observed one handed in each render would reload on every redraw.
-    @StateObject private var viewModel: AlertedProductsViewModel
+    @State private var viewModel: AlertedProductsViewModel
 
     let title: String
     let emptyTitle: String
@@ -31,7 +31,7 @@ public struct AlertedProductsListView: View {
         accessory: @escaping (Product) -> AnyView,
         leadingAccessory: @escaping (Product) -> AnyView
     ) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
         self.title = title
         self.emptyTitle = emptyTitle
         self.emptyIcon = emptyIcon

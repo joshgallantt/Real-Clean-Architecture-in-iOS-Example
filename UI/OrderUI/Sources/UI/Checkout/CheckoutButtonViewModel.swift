@@ -8,15 +8,16 @@ import AuthUI
 import SnackbarUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing.
 ///
 /// Martin, Ch. 13 — Component Cohesion: this lives in `OrderUI` rather than `BagUI` because it
 /// changes when ordering changes, not when the bag does. `BagUI` is handed a finished button and
 /// never learns there is an order domain, the same way it is handed a stock alert bell.
-public final class CheckoutButtonViewModel: ObservableObject {
-    @Published private(set) var isPlacing = false
-    @Published private(set) var bag = Bag()
+public final class CheckoutButtonViewModel {
+    private(set) var isPlacing = false
+    private(set) var bag = Bag()
 
     private let placeOrder: PlaceOrderUseCase
     private let setBagItemQuantity: SetBagItemQuantityUseCase

@@ -1,9 +1,9 @@
-import Combine
 import Foundation
 import Home
 import Product
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
@@ -11,8 +11,8 @@ import Product
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the one capability it calls.
 /// What a category needs to earn a carousel, and how many carousels Home draws, are
 /// `DrawHomeFeedUseCase`'s business, not this screen's.
-public final class HomeScreenViewModel: ObservableObject {
-    @Published private(set) var state: HomeScreenState = .loading
+public final class HomeScreenViewModel {
+    private(set) var state: HomeScreenState = .loading
 
     private let drawHomeFeed: DrawHomeFeedUseCase
     private let navigation: HomeNavigation

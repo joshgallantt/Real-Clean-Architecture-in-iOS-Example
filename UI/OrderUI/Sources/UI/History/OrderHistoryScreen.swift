@@ -1,10 +1,10 @@
 import SwiftUI
 
 public struct OrderHistoryScreen: View {
-    @StateObject private var viewModel: OrderHistoryViewModel
+    @State private var viewModel: OrderHistoryViewModel
 
     public init(viewModel: @autoclosure @escaping () -> OrderHistoryViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     public var body: some View {

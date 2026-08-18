@@ -3,6 +3,7 @@ import Foundation
 import Settings
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
@@ -10,8 +11,8 @@ import Settings
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything. Which settings a shopper is offered is not one of them —
 /// it is handed the ones they are offered, and decides only their wording and their order.
-public final class SettingsScreenViewModel: ObservableObject {
-    @Published private(set) var sections: [SettingsSectionModel] = []
+public final class SettingsScreenViewModel {
+    private(set) var sections: [SettingsSectionModel] = []
 
     private let observeOfferedSettings: ObserveOfferedSettingsUseCase
     private let setSetting: SetSettingUseCase

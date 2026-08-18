@@ -4,21 +4,22 @@ import Session
 import AuthUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
 ///
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
-final class AuthViewModel: ObservableObject {
-    @Published private(set) var mode: AuthMode
-    @Published var firstName = ""
-    @Published var lastName = ""
-    @Published var email = ""
-    @Published var password = ""
-    @Published var isLoading = false
-    @Published var error: String?
-    @Published private(set) var confirmationMessage: String?
+final class AuthViewModel {
+    private(set) var mode: AuthMode
+    var firstName = ""
+    var lastName = ""
+    var email = ""
+    var password = ""
+    var isLoading = false
+    var error: String?
+    private(set) var confirmationMessage: String?
 
     private let openedMode: AuthMode
     private let prompt: AuthenticationPrompt?

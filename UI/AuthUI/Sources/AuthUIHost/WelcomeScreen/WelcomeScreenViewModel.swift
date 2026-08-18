@@ -1,7 +1,8 @@
 import Foundation
 
 @MainActor
-public final class WelcomeScreenViewModel: ObservableObject {
+@Observable
+public final class WelcomeScreenViewModel {
     private let presenter: AuthPresenter
     private let onContinueAsGuest: () -> Void
     private let onAuthenticated: () -> Void

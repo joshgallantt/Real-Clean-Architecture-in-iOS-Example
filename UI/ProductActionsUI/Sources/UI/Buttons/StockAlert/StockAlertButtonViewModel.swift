@@ -6,6 +6,7 @@ import AuthUI
 import SnackbarUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
@@ -20,8 +21,8 @@ import SnackbarUI
 /// One use case with a state, rather than one for asking and another for stopping. Two use cases
 /// meant this had to read its own `isWaiting` to decide which to call — a toggle re-derived from
 /// the thing it was toggling.
-public final class StockAlertButtonViewModel: ObservableObject {
-    @Published private(set) var isWaiting = false
+public final class StockAlertButtonViewModel {
+    private(set) var isWaiting = false
 
     private let productId: ProductID
     private let setStockAlert: SetStockAlertForProductUseCase

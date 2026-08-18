@@ -1,12 +1,12 @@
 import SwiftUI
 
 struct AuthSheetView: View {
-    @StateObject private var viewModel: AuthViewModel
+    @State private var viewModel: AuthViewModel
     @Environment(\.dismiss) private var dismiss
     @State private var isConfirmingDiscard = false
 
     init(viewModel: @autoclosure @escaping () -> AuthViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     var body: some View {

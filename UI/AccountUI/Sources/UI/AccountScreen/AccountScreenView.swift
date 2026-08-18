@@ -1,7 +1,7 @@
 import SwiftUI
 
 public struct AccountScreenView: View {
-    @ObservedObject var viewModel: AccountScreenViewModel
+    let viewModel: AccountScreenViewModel
     private let loginButton: AnyView
 
     /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: a row that
