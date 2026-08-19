@@ -24,7 +24,7 @@ struct SavedProductsCarousel: View {
     let icon: String
     let tint: Color
     let description: String
-    let emptyMessage: String
+    let emptyMessage: String?
     let onSelect: (Product) -> Void
     let onViewAll: () -> Void
     let accessory: (Product) -> AnyView
@@ -35,7 +35,14 @@ struct SavedProductsCarousel: View {
     /// than three lists a shopper has to get past.
     private let atMost = 10
 
+    @ViewBuilder
     var body: some View {
+        if !products.isEmpty || emptyMessage != nil {
+            section
+        }
+    }
+
+    private var section: some View {
         VStack(alignment: .leading, spacing: 12) {
             SavedSectionHeader(title: title, icon: icon, tint: tint, description: description) {
                 /// Nothing to offer about an empty list: neither seeing the rest of it nor emptying
@@ -52,7 +59,7 @@ struct SavedProductsCarousel: View {
                 }
             }
 
-            if products.isEmpty {
+            if products.isEmpty, let emptyMessage {
                 Text(emptyMessage)
                     .font(.footnote)
                     .foregroundStyle(.secondary)
