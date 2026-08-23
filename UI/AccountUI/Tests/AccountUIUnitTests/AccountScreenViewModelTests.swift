@@ -1,7 +1,9 @@
 import Foundation
+import SessionTestSupport
 import Testing
 import Session
 @testable import AccountUI
+@testable import AccountUITestSupport
 
 @MainActor
 @Suite("Account screen")

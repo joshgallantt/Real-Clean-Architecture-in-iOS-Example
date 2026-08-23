@@ -32,11 +32,9 @@ public struct Money: Equatable, Hashable, Sendable {
     public func formatted() -> String {
         amount.formatted(.currency(code: currency.code))
     }
-}
 
-// MARK: - Arithmetic
+    // MARK: Arithmetic
 
-extension Money {
     /// Fowler, *PoEAA* (2002) — Money: nothing at all for an empty sequence, because there is no
     /// currency in it to name an amount in.
     ///

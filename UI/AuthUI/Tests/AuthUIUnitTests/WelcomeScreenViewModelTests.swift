@@ -1,4 +1,6 @@
+@testable import AuthUITestSupport
 import Foundation
+import SessionTestSupport
 import Testing
 import Session
 import SheetUI

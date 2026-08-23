@@ -19,7 +19,7 @@ import SnackbarUI
 final class AShopper {
     let orders = InMemoryOrderRepository()
     let bag = InMemoryBagRepository()
-    let till = StubPaymentClient()
+    let till = StubPaymentService()
     let snackbars = SpySnackbarPresenter()
 
     /// Signing in at the prompt actually signs them in, so the retry that follows behaves the way
@@ -107,7 +107,7 @@ final class InMemoryBagRepository: BagRepository {
     }
 }
 
-final class StubPaymentClient: PaymentClient, @unchecked Sendable {
+final class StubPaymentService: PaymentService, @unchecked Sendable {
     private let lock = NSLock()
     private var _outcome: Result<PaymentReference, PaymentFailure> = .success(PaymentReference(rawValue: "ref"))
     private var _amountsAskedFor: [Money] = []

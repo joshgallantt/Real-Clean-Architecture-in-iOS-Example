@@ -3,6 +3,7 @@ import Testing
 import Bag
 import Product
 @testable import ProductActionsUI
+@testable import ProductActionsUITestSupport
 
 @MainActor
 @Suite("The bag button")

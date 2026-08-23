@@ -4,6 +4,7 @@ import Bag
 import Money
 import Product
 @testable import BagUI
+@testable import BagUITestSupport
 
 @MainActor
 @Suite("What the bag screen delegates, and to what")

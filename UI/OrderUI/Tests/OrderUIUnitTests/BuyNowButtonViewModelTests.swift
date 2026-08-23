@@ -4,6 +4,7 @@ import Money
 import Order
 import Product
 @testable import OrderUI
+@testable import OrderUITestSupport
 
 @MainActor
 @Suite("Buy Now")

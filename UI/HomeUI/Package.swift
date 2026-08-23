@@ -13,11 +13,16 @@ let package = Package(
             targets: ["HomeUI"]
         ),
         .library(
+            name: "HomeUITestSupport",
+            targets: ["HomeUITestSupport"]
+        ),
+        .library(
             name: "HomeUIDI",
             targets: ["HomeUIDI"]
         )
     ],
     dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Home"),
         .package(path: "../../Component/Money"),
@@ -60,15 +65,40 @@ let package = Package(
             ],
             path: "Tests/HomeUIAcceptanceTests"
         ),
+        .target(
+            name: "HomeUITestSupport",
+            dependencies: [
+                "HomeUI",
+                .product(name: "Product", package: "Product"),
+                .product(name: "Home", package: "Home"),
+                .product(name: "Money", package: "Money"),
+                .product(name: "ProductUI", package: "ProductUI"),
+            ],
+            path: "Sources/TestSupport"
+        ),
         .testTarget(
             name: "HomeUIUnitTests",
             dependencies: [
                 "HomeUI",
+                "HomeUITestSupport",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Home", package: "Home"),
                 .product(name: "Money", package: "Money")
             ],
             path: "Tests/HomeUIUnitTests"
+        ),
+        .testTarget(
+            name: "HomeUISnapshotTests",
+            dependencies: [
+                "HomeUI",
+                "HomeUITestSupport",
+                .product(name: "Product", package: "Product"),
+                .product(name: "Home", package: "Home"),
+                .product(name: "Money", package: "Money"),
+                .product(name: "ProductUI", package: "ProductUI"),
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+            ],
+            path: "Tests/HomeUISnapshotTests"
         )
     ]
 )

@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import Order
 @testable import OrderUI
+@testable import OrderUITestSupport
 
 @MainActor
 @Suite("Order history")

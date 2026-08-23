@@ -12,11 +12,16 @@ let package = Package(
             targets: ["SettingsUI"]
         ),
         .library(
+            name: "SettingsUITestSupport",
+            targets: ["SettingsUITestSupport"]
+        ),
+        .library(
             name: "SettingsUIDI",
             targets: ["SettingsUIDI"]
         )
     ],
     dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Settings")
     ],
     targets: [
@@ -37,10 +42,16 @@ let package = Package(
             ],
             path: "Sources/DI"
         ),
+        .target(
+            name: "SettingsUITestSupport",
+            dependencies: [.product(name: "Settings", package: "Settings")],
+            path: "Sources/TestSupport"
+        ),
         .testTarget(
             name: "SettingsUIUnitTests",
             dependencies: [
                 "SettingsUI",
+                "SettingsUITestSupport",
                 .product(name: "Settings", package: "Settings")
             ],
             path: "Tests/SettingsUIUnitTests"
@@ -52,6 +63,16 @@ let package = Package(
                 .product(name: "Settings", package: "Settings")
             ],
             path: "Tests/SettingsUIAcceptanceTests"
+        ),
+        .testTarget(
+            name: "SettingsUISnapshotTests",
+            dependencies: [
+                "SettingsUI",
+                "SettingsUITestSupport",
+                .product(name: "Settings", package: "Settings"),
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+            ],
+            path: "Tests/SettingsUISnapshotTests"
         )
     ]
 )

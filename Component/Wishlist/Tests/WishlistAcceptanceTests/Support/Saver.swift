@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import Product
 import Session
+import SessionTestSupport
 import Wishlist
 import WishlistData
 import WishlistDI
@@ -93,20 +94,6 @@ final class Saver {
 }
 
 // MARK: - The session, which the wishlist only ever reads
-
-private struct StubGetSession: GetSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    @MainActor
-    func callAsFunction() -> Session { sessions.value }
-}
-
-private struct StubObserveSession: ObserveSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    @MainActor
-    func callAsFunction() -> AnyPublisher<Session, Never> { sessions.eraseToAnyPublisher() }
-}
 
 // MARK: - Fixtures
 

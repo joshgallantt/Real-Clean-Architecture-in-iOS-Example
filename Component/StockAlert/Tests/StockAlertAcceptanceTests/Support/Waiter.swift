@@ -3,6 +3,7 @@ import Foundation
 import Money
 import Product
 import Session
+import SessionTestSupport
 import StockAlert
 import StockAlertData
 import StockAlertDI
@@ -46,7 +47,6 @@ final class Waiter {
     func theCatalogStillSells(_ shelf: OnTheShelf...) {
         shop.stock = shelf
     }
-
 
     // MARK: - The two lists a shopper sees
 
@@ -110,20 +110,6 @@ final class Waiter {
 
 // MARK: - The session, which the alerts only ever read
 
-private struct StubGetSession: GetSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    @MainActor
-    func callAsFunction() -> Session { sessions.value }
-}
-
-private struct StubObserveSession: ObserveSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    @MainActor
-    func callAsFunction() -> AnyPublisher<Session, Never> { sessions.eraseToAnyPublisher() }
-}
-
 // MARK: - Fixtures
 
 extension URL {
@@ -148,9 +134,7 @@ extension Result where Success == Void, Failure: Equatable {
     var failure: Failure? { if case .failure(let error) = self { error } else { nil } }
 }
 
-
 // MARK: - What the app cannot own
-
 
 /// The catalog, which answers about what it still sells and says nothing about the rest.
 final class StubCatalog: LookUpProductsUseCase, @unchecked Sendable {

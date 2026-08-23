@@ -58,6 +58,8 @@ let package = Package(
         .testTarget(
             name: "ProductAcceptanceTests",
             dependencies: [
+                "Product",
+                .product(name: "Networking", package: "Networking"),
                 "ProductDI",
                 "ProductData",
                 .product(name: "Money", package: "Money")

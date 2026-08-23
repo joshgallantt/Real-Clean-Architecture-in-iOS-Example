@@ -9,10 +9,10 @@ import Session
 /// aggregate, holding no state.
 public struct DefaultPlaceOrderUseCase: PlaceOrderUseCase {
     private let repository: OrderRepository
-    private let payment: PaymentClient
+    private let payment: PaymentService
     private let getSession: GetSessionUseCase
 
-    public init(repository: OrderRepository, payment: PaymentClient, getSession: GetSessionUseCase) {
+    public init(repository: OrderRepository, payment: PaymentService, getSession: GetSessionUseCase) {
         self.repository = repository
         self.payment = payment
         self.getSession = getSession

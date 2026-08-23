@@ -12,11 +12,16 @@ let package = Package(
             targets: ["OrderUI"]
         ),
         .library(
+            name: "OrderUITestSupport",
+            targets: ["OrderUITestSupport"]
+        ),
+        .library(
             name: "OrderUIDI",
             targets: ["OrderUIDI"]
         )
     ],
     dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Order"),
         .package(path: "../../Component/Bag"),
         .package(path: "../../Component/Product"),
@@ -68,10 +73,24 @@ let package = Package(
             ],
             path: "Tests/OrderUIAcceptanceTests"
         ),
+        .target(
+            name: "OrderUITestSupport",
+            dependencies: [
+                "OrderUI",
+                .product(name: "Order", package: "Order"),
+                .product(name: "Bag", package: "Bag"),
+                .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
+                .product(name: "AuthUI", package: "AuthUI"),
+                .product(name: "SnackbarUI", package: "SnackbarUI"),
+            ],
+            path: "Sources/TestSupport"
+        ),
         .testTarget(
             name: "OrderUIUnitTests",
             dependencies: [
                 "OrderUI",
+                "OrderUITestSupport",
                 .product(name: "Order", package: "Order"),
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "Product", package: "Product"),
@@ -80,6 +99,21 @@ let package = Package(
                 .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
             path: "Tests/OrderUIUnitTests"
+        ),
+        .testTarget(
+            name: "OrderUISnapshotTests",
+            dependencies: [
+                "OrderUI",
+                "OrderUITestSupport",
+                .product(name: "Order", package: "Order"),
+                .product(name: "Bag", package: "Bag"),
+                .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
+                .product(name: "AuthUI", package: "AuthUI"),
+                .product(name: "SnackbarUI", package: "SnackbarUI"),
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+            ],
+            path: "Tests/OrderUISnapshotTests"
         )
     ]
 )

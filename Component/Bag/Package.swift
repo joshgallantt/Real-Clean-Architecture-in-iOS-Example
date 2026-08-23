@@ -53,6 +53,7 @@ let package = Package(
             dependencies: [
                 "Bag",
                 "BagData",
+                .product(name: "Product", package: "Product"),
                 .product(name: "Session", package: "Session")
             ],
             path: "Sources/DI"
@@ -69,6 +70,8 @@ let package = Package(
         .testTarget(
             name: "BagAcceptanceTests",
             dependencies: [
+                .product(name: "SessionTestSupport", package: "Session"),
+                "Bag",
                 "BagDI",
                 "BagData",
                 .product(name: "Session", package: "Session"),

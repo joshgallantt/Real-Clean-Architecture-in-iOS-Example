@@ -1,14 +1,16 @@
 import Foundation
+import SessionTestSupport
 import Testing
 import Session
 @testable import WishlistUI
+@testable import WishlistUITestSupport
 
 @MainActor
 @Suite("The wishlist tab")
 struct WishlistScreenViewModelTests {
     @Test("A guest is not shown as signed in")
     func guestIsNotAuthenticated() {
-        let viewModel = WishlistScreenViewModel(observeSession: StubObserveSession())
+        let viewModel = WishlistScreenViewModel(observeSession: SpyObserveSession())
 
         viewModel.onAppear()
 
@@ -17,7 +19,7 @@ struct WishlistScreenViewModelTests {
 
     @Test("Someone already signed in when the tab appears is shown as signed in")
     func alreadySignedInIsAuthenticated() {
-        let viewModel = WishlistScreenViewModel(observeSession: StubObserveSession(initial: .authenticated(.fixture())))
+        let viewModel = WishlistScreenViewModel(observeSession: SpyObserveSession(initial: .authenticated(.fixture())))
 
         viewModel.onAppear()
 
@@ -26,7 +28,7 @@ struct WishlistScreenViewModelTests {
 
     @Test("Signing in after arriving is picked up too")
     func signingInLaterIsPickedUp() {
-        let observeSession = StubObserveSession()
+        let observeSession = SpyObserveSession()
         let viewModel = WishlistScreenViewModel(observeSession: observeSession)
         viewModel.onAppear()
 
@@ -37,7 +39,7 @@ struct WishlistScreenViewModelTests {
 
     @Test("Signing out after arriving is picked up too")
     func signingOutLaterIsPickedUp() {
-        let observeSession = StubObserveSession(initial: .authenticated(.fixture()))
+        let observeSession = SpyObserveSession(initial: .authenticated(.fixture()))
         let viewModel = WishlistScreenViewModel(observeSession: observeSession)
         viewModel.onAppear()
 
@@ -48,7 +50,7 @@ struct WishlistScreenViewModelTests {
 
     @Test("Appearing subscribes to session changes only once, however often it happens")
     func subscribesOnce() {
-        let observeSession = StubObserveSession()
+        let observeSession = SpyObserveSession()
         let viewModel = WishlistScreenViewModel(observeSession: observeSession)
 
         viewModel.onAppear()

@@ -12,11 +12,16 @@ let package = Package(
             targets: ["AccountUI"]
         ),
         .library(
+            name: "AccountUITestSupport",
+            targets: ["AccountUITestSupport"]
+        ),
+        .library(
             name: "AccountUIDI",
             targets: ["AccountUIDI"]
         )
     ],
     dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Session"),
         .package(path: "../AuthUI")
     ],
@@ -39,13 +44,35 @@ let package = Package(
             ],
             path: "Sources/DI"
         ),
+        .target(
+            name: "AccountUITestSupport",
+            dependencies: [
+                .product(name: "SessionTestSupport", package: "Session"),
+                "AccountUI",
+                .product(name: "Session", package: "Session"),
+            ],
+            path: "Sources/TestSupport"
+        ),
         .testTarget(
             name: "AccountUIUnitTests",
             dependencies: [
+                "AccountUITestSupport",
+                .product(name: "SessionTestSupport", package: "Session"),
                 "AccountUI",
                 .product(name: "Session", package: "Session")
             ],
             path: "Tests/AccountUIUnitTests"
+        ),
+        .testTarget(
+            name: "AccountUISnapshotTests",
+            dependencies: [
+                .product(name: "SessionTestSupport", package: "Session"),
+                "AccountUI",
+                "AccountUITestSupport",
+                .product(name: "Session", package: "Session"),
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+            ],
+            path: "Tests/AccountUISnapshotTests"
         )
     ]
 )

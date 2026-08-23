@@ -16,6 +16,9 @@ let package = Package(
             targets: ["SnackbarUIDI"]
         )
     ],
+    dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0")
+    ],
     targets: [
         .target(
             name: "SnackbarUI",
@@ -28,6 +31,15 @@ let package = Package(
             path: "Sources",
             exclude: ["SnackbarUI"],
             sources: ["SnackbarUIHost", "SnackbarUIDI"]
+        ),
+        .testTarget(
+            name: "SnackbarUISnapshotTests",
+            dependencies: [
+                "SnackbarUI",
+                "SnackbarUIDI",
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+            ],
+            path: "Tests/SnackbarUISnapshotTests"
         )
     ]
 )

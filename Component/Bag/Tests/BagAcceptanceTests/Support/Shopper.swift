@@ -6,6 +6,7 @@ import BagDI
 import Money
 import Product
 import Session
+import SessionTestSupport
 
 @MainActor
 /// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the testing API. Tests say what
@@ -131,20 +132,6 @@ final class Shopper {
 }
 
 // MARK: - The session, which the bag only ever reads
-
-private struct StubGetSession: GetSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    @MainActor
-    func callAsFunction() -> Session { sessions.value }
-}
-
-private struct StubObserveSession: ObserveSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    @MainActor
-    func callAsFunction() -> AnyPublisher<Session, Never> { sessions.eraseToAnyPublisher() }
-}
 
 // MARK: - Fixtures
 

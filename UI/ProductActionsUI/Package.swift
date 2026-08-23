@@ -12,16 +12,22 @@ let package = Package(
             targets: ["ProductActionsUI"]
         ),
         .library(
+            name: "ProductActionsUITestSupport",
+            targets: ["ProductActionsUITestSupport"]
+        ),
+        .library(
             name: "ProductActionsUIDI",
             targets: ["ProductActionsUIDI"]
         )
     ],
     dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Wishlist"),
         .package(path: "../../Component/Bag"),
         .package(path: "../../Component/StockAlert"),
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Money"),
+        .package(path: "../../Component/Session"),
         .package(path: "../AuthUI"),
         .package(path: "../SnackbarUI")
     ],
@@ -56,6 +62,9 @@ let package = Package(
         .testTarget(
             name: "ProductActionsUIAcceptanceTests",
             dependencies: [
+                "ProductActionsUI",
+                .product(name: "Money", package: "Money"),
+                .product(name: "Session", package: "Session"),
                 "ProductActionsUIDI",
                 .product(name: "Wishlist", package: "Wishlist"),
                 .product(name: "Bag", package: "Bag"),
@@ -66,10 +75,25 @@ let package = Package(
             ],
             path: "Tests/ProductActionsUIAcceptanceTests"
         ),
+        .target(
+            name: "ProductActionsUITestSupport",
+            dependencies: [
+                .product(name: "Money", package: "Money"),
+                "ProductActionsUI",
+                .product(name: "Wishlist", package: "Wishlist"),
+                .product(name: "Bag", package: "Bag"),
+                .product(name: "StockAlert", package: "StockAlert"),
+                .product(name: "Product", package: "Product"),
+                .product(name: "AuthUI", package: "AuthUI"),
+                .product(name: "SnackbarUI", package: "SnackbarUI"),
+            ],
+            path: "Sources/TestSupport"
+        ),
         .testTarget(
             name: "ProductActionsUIUnitTests",
             dependencies: [
                 "ProductActionsUI",
+                "ProductActionsUITestSupport",
                 .product(name: "Wishlist", package: "Wishlist"),
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "StockAlert", package: "StockAlert"),
@@ -79,6 +103,22 @@ let package = Package(
                 .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
             path: "Tests/ProductActionsUIUnitTests"
+        ),
+        .testTarget(
+            name: "ProductActionsUISnapshotTests",
+            dependencies: [
+                .product(name: "Money", package: "Money"),
+                "ProductActionsUI",
+                "ProductActionsUITestSupport",
+                .product(name: "Wishlist", package: "Wishlist"),
+                .product(name: "Bag", package: "Bag"),
+                .product(name: "StockAlert", package: "StockAlert"),
+                .product(name: "Product", package: "Product"),
+                .product(name: "AuthUI", package: "AuthUI"),
+                .product(name: "SnackbarUI", package: "SnackbarUI"),
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+            ],
+            path: "Tests/ProductActionsUISnapshotTests"
         )
     ]
 )

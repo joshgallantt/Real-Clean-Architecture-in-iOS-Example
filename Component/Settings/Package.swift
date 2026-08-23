@@ -55,6 +55,7 @@ let package = Package(
         .testTarget(
             name: "SettingsUnitTests",
             dependencies: [
+                .product(name: "SessionTestSupport", package: "Session"),
                 "Settings",
                 .product(name: "Session", package: "Session")
             ],
@@ -63,6 +64,8 @@ let package = Package(
         .testTarget(
             name: "SettingsAcceptanceTests",
             dependencies: [
+                .product(name: "SessionTestSupport", package: "Session"),
+                "Settings",
                 "SettingsDI",
                 "SettingsData",
                 .product(name: "Session", package: "Session")

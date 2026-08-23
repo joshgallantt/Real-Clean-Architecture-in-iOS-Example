@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import Product
 @testable import ProductActionsUI
+@testable import ProductActionsUITestSupport
 
 @MainActor
 @Suite("The stock alert bell")

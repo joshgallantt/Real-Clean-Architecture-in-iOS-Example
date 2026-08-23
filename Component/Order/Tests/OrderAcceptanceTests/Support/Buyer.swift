@@ -6,6 +6,7 @@ import OrderData
 import OrderDI
 import Product
 import Session
+import SessionTestSupport
 
 @MainActor
 /// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the testing API. Tests say what
@@ -25,7 +26,7 @@ final class Buyer {
     init(
         in directory: URL = .newTemporaryDirectory,
         signedInAs userId: Int? = 1,
-        theShopTakesPayment outcome: FakePaymentClient.Outcome = .succeeds
+        theShopTakesPayment outcome: FakePaymentService.Outcome = .succeeds
     ) {
         self.directory = directory
         self.sessions = CurrentValueSubject(Self.session(forUserId: userId))
@@ -33,7 +34,7 @@ final class Buyer {
             getSession: StubGetSession(sessions: sessions),
             observeSession: StubObserveSession(sessions: sessions),
             store: FileOrderStore(directory: directory),
-            payment: FakePaymentClient(outcome)
+            payment: FakePaymentService(outcome)
         )
 
         di.observeOrdersUseCase()
@@ -91,20 +92,6 @@ final class Buyer {
 }
 
 // MARK: - The session, which orders only ever read
-
-private struct StubGetSession: GetSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    @MainActor
-    func callAsFunction() -> Session { sessions.value }
-}
-
-private struct StubObserveSession: ObserveSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    @MainActor
-    func callAsFunction() -> AnyPublisher<Session, Never> { sessions.eraseToAnyPublisher() }
-}
 
 // MARK: - Fixtures
 

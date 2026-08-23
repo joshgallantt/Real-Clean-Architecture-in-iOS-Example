@@ -21,7 +21,7 @@ public struct OrderDI {
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
         store: OrderStore = FileOrderStore(),
-        payment: PaymentClient = FakePaymentClient()
+        payment: PaymentService = FakePaymentService()
     ) {
         /// Evans, *Domain-Driven Design* (2003), Ch. 14 — Bounded Context: turning a session into an
         /// owner happens here, once, at the wiring boundary.

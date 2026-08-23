@@ -66,6 +66,8 @@ let package = Package(
         .testTarget(
             name: "SearchHistoryAcceptanceTests",
             dependencies: [
+                .product(name: "SessionTestSupport", package: "Session"),
+                "SearchHistory",
                 "SearchHistoryDI",
                 "SearchHistoryData",
                 .product(name: "Session", package: "Session"),

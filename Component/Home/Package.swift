@@ -50,6 +50,7 @@ let package = Package(
         .testTarget(
             name: "HomeAcceptanceTests",
             dependencies: [
+                "Home",
                 "HomeDI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money")

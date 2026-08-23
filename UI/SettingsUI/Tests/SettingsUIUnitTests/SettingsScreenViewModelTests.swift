@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import Settings
 @testable import SettingsUI
+@testable import SettingsUITestSupport
 
 /// Martin, *The Clean Coder* (2011), Ch. 8 — Unit Tests: the screen's own rules, driven through its
 /// seams rather than the Shopper testing API. The acceptance suite says what a shopper sees and

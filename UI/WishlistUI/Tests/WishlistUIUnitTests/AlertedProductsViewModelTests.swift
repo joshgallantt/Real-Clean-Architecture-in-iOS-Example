@@ -3,6 +3,7 @@ import Testing
 import Product
 import StockAlert
 @testable import WishlistUI
+@testable import WishlistUITestSupport
 
 @MainActor
 @Suite("A list built from what the shop says about a set of asks")

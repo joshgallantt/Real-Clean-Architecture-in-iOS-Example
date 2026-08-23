@@ -12,11 +12,16 @@ let package = Package(
             targets: ["AuthUI"]
         ),
         .library(
+            name: "AuthUITestSupport",
+            targets: ["AuthUITestSupport"]
+        ),
+        .library(
             name: "AuthUIDI",
             targets: ["AuthUIDI"]
         )
     ],
     dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Session"),
         .package(path: "../SheetUI")
     ],
@@ -37,14 +42,39 @@ let package = Package(
             exclude: ["AuthUI"],
             sources: ["AuthUIHost", "AuthUIDI"]
         ),
+        .target(
+            name: "AuthUITestSupport",
+            dependencies: [
+                "AuthUIDI",
+                .product(name: "Session", package: "Session"),
+                .product(name: "SessionTestSupport", package: "Session"),
+                .product(name: "SheetUI", package: "SheetUI"),
+                "AuthUI",
+            ],
+            path: "Sources/TestSupport"
+        ),
         .testTarget(
             name: "AuthUIUnitTests",
             dependencies: [
+                "AuthUITestSupport",
+                .product(name: "SessionTestSupport", package: "Session"),
                 "AuthUIDI",
                 .product(name: "Session", package: "Session"),
                 .product(name: "SheetUI", package: "SheetUI")
             ],
             path: "Tests/AuthUIUnitTests"
+        ),
+        .testTarget(
+            name: "AuthUISnapshotTests",
+            dependencies: [
+                .product(name: "Session", package: "Session"),
+                "AuthUIDI",
+                .product(name: "SessionTestSupport", package: "Session"),
+                "AuthUI",
+                "AuthUITestSupport",
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+            ],
+            path: "Tests/AuthUISnapshotTests"
         )
     ]
 )

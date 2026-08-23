@@ -68,6 +68,8 @@ let package = Package(
         .testTarget(
             name: "StockAlertAcceptanceTests",
             dependencies: [
+                .product(name: "SessionTestSupport", package: "Session"),
+                "StockAlert",
                 "StockAlertDI",
                 "StockAlertData",
                 .product(name: "Money", package: "Money"),

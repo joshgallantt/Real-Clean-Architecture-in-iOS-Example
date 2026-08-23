@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import Session
+import SessionTestSupport
 @testable import Settings
 
 @MainActor
@@ -29,30 +30,6 @@ final class StubSettingsRepository: SettingsRepository, @unchecked Sendable {
     func send(_ settings: Settings) { subject.send(settings) }
 
     struct CouldNotKeep: Error {}
-}
-
-@MainActor
-final class StubGetSession: GetSessionUseCase, @unchecked Sendable {
-    var session: Session
-
-    init(_ session: Session = .guest) {
-        self.session = session
-    }
-
-    func callAsFunction() -> Session { session }
-}
-
-@MainActor
-final class StubObserveSession: ObserveSessionUseCase, @unchecked Sendable {
-    private let subject: CurrentValueSubject<Session, Never>
-
-    init(_ session: Session = .guest) {
-        subject = CurrentValueSubject(session)
-    }
-
-    func callAsFunction() -> AnyPublisher<Session, Never> { subject.eraseToAnyPublisher() }
-
-    func send(_ session: Session) { subject.send(session) }
 }
 
 /// Every value a publisher put out, in order, so a test can say what changed as well as what is

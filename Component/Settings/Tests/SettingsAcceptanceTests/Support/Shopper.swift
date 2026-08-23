@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import Session
+import SessionTestSupport
 import Settings
 import SettingsData
 import SettingsDI
@@ -87,20 +88,6 @@ final class Shopper {
 }
 
 // MARK: - The session, which Settings only ever reads
-
-private struct StubGetSession: GetSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    @MainActor
-    func callAsFunction() -> Session { sessions.value }
-}
-
-private struct StubObserveSession: ObserveSessionUseCase, @unchecked Sendable {
-    let sessions: CurrentValueSubject<Session, Never>
-
-    @MainActor
-    func callAsFunction() -> AnyPublisher<Session, Never> { sessions.eraseToAnyPublisher() }
-}
 
 // MARK: - Fixtures
 

@@ -70,6 +70,8 @@ let package = Package(
         .testTarget(
             name: "OrderAcceptanceTests",
             dependencies: [
+                .product(name: "SessionTestSupport", package: "Session"),
+                "Order",
                 "OrderDI",
                 "OrderData",
                 .product(name: "Product", package: "Product"),

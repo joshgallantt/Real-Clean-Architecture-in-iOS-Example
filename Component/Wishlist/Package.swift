@@ -67,6 +67,8 @@ let package = Package(
         .testTarget(
             name: "WishlistAcceptanceTests",
             dependencies: [
+                .product(name: "SessionTestSupport", package: "Session"),
+                "Wishlist",
                 "WishlistDI",
                 "WishlistData",
                 .product(name: "Session", package: "Session"),

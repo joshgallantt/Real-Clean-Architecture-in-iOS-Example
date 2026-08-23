@@ -3,6 +3,7 @@ import Testing
 import Product
 import Home
 @testable import HomeUI
+@testable import HomeUITestSupport
 
 @MainActor
 @Suite("The home screen")

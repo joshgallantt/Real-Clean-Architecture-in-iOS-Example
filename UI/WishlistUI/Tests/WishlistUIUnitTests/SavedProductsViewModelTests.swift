@@ -2,6 +2,7 @@ import Foundation
 import Testing
 import Product
 @testable import WishlistUI
+@testable import WishlistUITestSupport
 
 @MainActor
 @Suite("A list of saved ids, filled in from the catalog")

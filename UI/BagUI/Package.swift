@@ -12,11 +12,16 @@ let package = Package(
             targets: ["BagUI"]
         ),
         .library(
+            name: "BagUITestSupport",
+            targets: ["BagUITestSupport"]
+        ),
+        .library(
             name: "BagUIDI",
             targets: ["BagUIDI"]
         )
     ],
     dependencies: [
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Bag"),
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Money"),
@@ -55,15 +60,40 @@ let package = Package(
             ],
             path: "Tests/BagUIAcceptanceTests"
         ),
+        .target(
+            name: "BagUITestSupport",
+            dependencies: [
+                "BagUI",
+                .product(name: "Bag", package: "Bag"),
+                .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
+                .product(name: "Kingfisher", package: "Kingfisher"),
+            ],
+            path: "Sources/TestSupport"
+        ),
         .testTarget(
             name: "BagUIUnitTests",
             dependencies: [
                 "BagUI",
+                "BagUITestSupport",
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money")
             ],
             path: "Tests/BagUIUnitTests"
+        ),
+        .testTarget(
+            name: "BagUISnapshotTests",
+            dependencies: [
+                "BagUI",
+                "BagUITestSupport",
+                .product(name: "Bag", package: "Bag"),
+                .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
+                .product(name: "Kingfisher", package: "Kingfisher"),
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+            ],
+            path: "Tests/BagUISnapshotTests"
         )
     ]
 )

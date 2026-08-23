@@ -17,6 +17,10 @@ let package = Package(
             targets: ["SessionData"]
         ),
         .library(
+            name: "SessionTestSupport",
+            targets: ["SessionTestSupport"]
+        ),
+        .library(
             name: "SessionDI",
             targets: ["SessionDI"]
         )
@@ -26,7 +30,7 @@ let package = Package(
             name: "Session",
             dependencies: [],
             path: "Sources",
-            exclude: ["DI", "Data"],
+            exclude: ["DI", "Data", "TestSupport"],
             sources: ["Domain"]
         ),
         .target(
@@ -35,13 +39,18 @@ let package = Package(
                 "Session"
             ],
             path: "Sources",
-            exclude: ["Domain", "DI"],
+            exclude: ["Domain", "DI", "TestSupport"],
             sources: ["Data"]
         ),
         .target(
             name: "SessionDI",
             dependencies: ["Session", "SessionData"],
             path: "Sources/DI"
+        ),
+        .target(
+            name: "SessionTestSupport",
+            dependencies: ["Session"],
+            path: "Sources/TestSupport"
         ),
         .testTarget(
             name: "SessionUnitTests",
@@ -50,7 +59,7 @@ let package = Package(
         ),
         .testTarget(
             name: "SessionAcceptanceTests",
-            dependencies: ["SessionDI", "SessionData"],
+            dependencies: ["Session", "SessionDI", "SessionData"],
             path: "Tests/SessionAcceptanceTests"
         )
     ]
