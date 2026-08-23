@@ -3,7 +3,7 @@ import Money
 import Product
 @testable import Home
 
-final class StubBrowseCatalog: BrowseCatalogUseCase, @unchecked Sendable {
+final class StubBrowseCatalogByCategory: BrowseCatalogUseCase, @unchecked Sendable {
     var resultsByCategory: [CategoryID: Result<[Product], ProductError>] = [:]
     private(set) var queries: [CatalogQuery] = []
 

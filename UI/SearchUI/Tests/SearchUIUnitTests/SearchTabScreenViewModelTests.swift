@@ -1,4 +1,5 @@
 import Foundation
+import SnackbarUITestSupport
 import Testing
 import Product
 @testable import SearchUI
@@ -7,7 +8,7 @@ import Product
 @Suite("The search tab")
 struct SearchTabScreenViewModelTests {
     private func makeViewModel(
-        browseCategories: StubBrowseCategories = StubBrowseCategories(),
+        browseCategories: SpyBrowseCategories = SpyBrowseCategories(),
         recordSearch: SpyRecordSearch = SpyRecordSearch(),
         snackbar: SpySnackbarPresenter = SpySnackbarPresenter()
     ) -> SearchTabScreenViewModel {
@@ -17,7 +18,7 @@ struct SearchTabScreenViewModelTests {
     @Test("Appearing loads the categories the shop divides itself into")
     func appearingLoadsCategories() async {
         let category = ProductCategory(id: CategoryID(rawValue: "beauty"), name: "Beauty")
-        let browseCategories = StubBrowseCategories()
+        let browseCategories = SpyBrowseCategories()
         browseCategories.result = .success([category])
         let viewModel = makeViewModel(browseCategories: browseCategories)
 
@@ -28,7 +29,7 @@ struct SearchTabScreenViewModelTests {
 
     @Test("Appearing again once categories have already loaded asks for them nothing more")
     func appearingAgainLoadsNothingMore() async {
-        let browseCategories = StubBrowseCategories()
+        let browseCategories = SpyBrowseCategories()
         browseCategories.result = .success([ProductCategory(id: CategoryID(rawValue: "beauty"), name: "Beauty")])
         let viewModel = makeViewModel(browseCategories: browseCategories)
         await viewModel.onAppear()
@@ -40,7 +41,7 @@ struct SearchTabScreenViewModelTests {
 
     @Test("A shop that cannot be reached offers to try again")
     func failureOffersRetry() async {
-        let browseCategories = StubBrowseCategories()
+        let browseCategories = SpyBrowseCategories()
         browseCategories.result = .failure(.unavailable)
         let snackbar = SpySnackbarPresenter()
         let viewModel = makeViewModel(browseCategories: browseCategories, snackbar: snackbar)

@@ -1,3 +1,5 @@
+import BagTestSupport
+import SnackbarUITestSupport
 import Combine
 import Foundation
 import Bag
@@ -89,24 +91,6 @@ final class InMemoryOrderRepository: OrderRepository {
     }
 }
 
-@MainActor
-/// A working repository rather than a stub with canned answers, so the real bag use cases genuinely
-/// read, apply and save.
-final class InMemoryBagRepository: BagRepository {
-    private let bagSubject = CurrentValueSubject<Bag, Never>(Bag())
-    private let noticesSubject = CurrentValueSubject<Notices, Never>(Notices())
-
-    var bag: Bag { bagSubject.value }
-    var bagPublisher: AnyPublisher<Bag, Never> { bagSubject.eraseToAnyPublisher() }
-    var notices: Notices { noticesSubject.value }
-    var noticesPublisher: AnyPublisher<Notices, Never> { noticesSubject.eraseToAnyPublisher() }
-
-    func save(bag: Bag, notices: Notices) {
-        bagSubject.value = bag
-        noticesSubject.value = notices
-    }
-}
-
 final class StubPaymentService: PaymentService, @unchecked Sendable {
     private let lock = NSLock()
     private var _outcome: Result<PaymentReference, PaymentFailure> = .success(PaymentReference(rawValue: "ref"))
@@ -145,13 +129,6 @@ final class StubAuthPresenter: AuthPresenting {
         if signsIn { onSignIn() }
         return signsIn
     }
-}
-
-@MainActor
-final class SpySnackbarPresenter: SnackbarPresenting {
-    private(set) var shown: [Snackbar] = []
-
-    func show(_ snackbar: Snackbar) { shown.append(snackbar) }
 }
 
 private struct StubGetSession: GetSessionUseCase, @unchecked Sendable {

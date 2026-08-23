@@ -1,5 +1,6 @@
 import Combine
 import Product
+import SnackbarUITestSupport
 import SnapshotTesting
 import SwiftUI
 import Testing

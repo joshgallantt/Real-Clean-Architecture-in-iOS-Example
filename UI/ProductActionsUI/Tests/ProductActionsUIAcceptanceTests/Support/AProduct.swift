@@ -1,3 +1,4 @@
+import BagTestSupport
 import Combine
 import Foundation
 import Bag
@@ -17,9 +18,9 @@ final class AProduct {
 
     private let bagRepository = InMemoryBagRepository()
     private let alertRepository = InMemoryStockAlertRepository()
-    private let auth = StubAuthPresenter()
+    private let auth = SpyAuthPresenter()
     private let snackbars = RecordingSnackbarPresenter()
-    private let navigation = StubNavigation()
+    private let navigation = StubProductActionsNavigation()
 
     init(_ product: Product = .fixture(id: 1), signedIn: Bool = true) {
         self.product = product

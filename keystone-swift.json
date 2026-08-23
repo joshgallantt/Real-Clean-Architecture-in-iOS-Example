@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "name": "Clean Architecture for iOS",
+  "consistency": {
+    "exempt": [
+      "Component/Product:Sources/Data/*Store.swift",
+      "Component/SearchHistory:Sources/Data/DTO/",
+      "Component/Session:Sources/Data/*Store.swift"
+    ],
+    "notes": [
+      "Product keeps no store: the catalogue is fetched, never persisted, so ProductClient is the whole of its data layer.",
+      "SearchHistory keeps no DTO: it is stored locally and never crosses a wire, so there is no payload shape to map away from.",
+      "Session keeps its stores under Data/Auth and Data/Session rather than at the top of Data. It has eight files there where its neighbours have two to four, and grouping them is what that size asks for."
+    ]
+  }
+}

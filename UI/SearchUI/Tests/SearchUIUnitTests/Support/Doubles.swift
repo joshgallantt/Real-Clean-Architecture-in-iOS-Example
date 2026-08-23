@@ -1,3 +1,4 @@
+import SnackbarUITestSupport
 import Foundation
 import Money
 import Product
@@ -17,7 +18,7 @@ final class StubBrowseCatalog: BrowseCatalogUseCase, @unchecked Sendable {
 }
 
 @MainActor
-final class StubBrowseCategories: BrowseCategoriesUseCase, @unchecked Sendable {
+final class SpyBrowseCategories: BrowseCategoriesUseCase, @unchecked Sendable {
     var result: Result<[ProductCategory], ProductError> = .success([])
     private(set) var callCount = 0
 
@@ -49,15 +50,6 @@ final class SpyRecordSearch: RecordSearchUseCase, @unchecked Sendable {
 
     func callAsFunction(_ term: SearchTerm) {
         recorded.append(term)
-    }
-}
-
-@MainActor
-final class SpySnackbarPresenter: SnackbarPresenting {
-    private(set) var shown: [Snackbar] = []
-
-    func show(_ snackbar: Snackbar) {
-        shown.append(snackbar)
     }
 }
 

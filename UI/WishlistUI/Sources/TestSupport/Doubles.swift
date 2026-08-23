@@ -3,6 +3,7 @@
 // be an ordinary module — marked visible to tests alone, which is what keeps
 // it out of the app.
 
+import SnackbarUITestSupport
 import Combine
 import Foundation
 import Money
@@ -12,15 +13,6 @@ import SessionTestSupport
 import SnackbarUI
 import StockAlert
 @testable import WishlistUI
-
-@MainActor
-final class SpySnackbarPresenter: SnackbarPresenting {
-    private(set) var shown: [Snackbar] = []
-
-    func show(_ snackbar: Snackbar) {
-        shown.append(snackbar)
-    }
-}
 
 @MainActor
 final class StubGetAlertedProducts {

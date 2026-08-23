@@ -94,7 +94,7 @@ final class FakeShop: BagRepository {
 /// The app layer conforms `Navigator` to this. The bag screen only ever pushes product details, so
 /// that is all the test needs to know about.
 @MainActor
-final class StubNavigation: BagNavigation {
+final class StubBagNavigation: BagNavigation {
     private(set) var openedProducts: [ProductID] = []
 
     nonisolated func openProductDetails(id: ProductID) {

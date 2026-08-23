@@ -10,7 +10,7 @@ import Product
 /// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: what the use case sequences, and
 /// what it keeps.
 struct BagScreenViewModelTests {
-    private let navigation = StubNavigation()
+    private let navigation = StubBagNavigation()
 
     private func makeViewModel(shop: FakeShop) -> BagScreenViewModel {
         BagScreenViewModel(
@@ -399,7 +399,7 @@ struct BagScreenViewModelTests {
 /// A shopper who has been away a while comes back to a screenful of notices. Clearing them one tap
 /// at a time is the same work the shop made for them; each section can be accepted in one go.
 struct DealingWithAWholeSectionTests {
-    private let navigation = StubNavigation()
+    private let navigation = StubBagNavigation()
 
     private func makeViewModel(shop: FakeShop) -> BagScreenViewModel {
         BagScreenViewModel(
@@ -515,9 +515,9 @@ private func settle(_ shop: FakeShop, untilAskedTimes times: Int = 1) async {
 @Suite("Going from the bag to a product", .serialized)
 /// Evans, *Domain-Driven Design* (2003), Ch. 2 — Ubiquitous Language: a shopper taps a line and
 /// expects the thing. These went untested while opening a product was called straight out of the
-/// view — there was a `StubNavigation` and nothing that could assert on it.
+/// view — there was a `StubBagNavigation` and nothing that could assert on it.
 struct GoingFromTheBagToAProductTests {
-    private let navigation = StubNavigation()
+    private let navigation = StubBagNavigation()
 
     private func makeViewModel(shop: FakeShop) -> BagScreenViewModel {
         BagScreenViewModel(

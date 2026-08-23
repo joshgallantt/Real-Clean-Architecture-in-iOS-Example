@@ -16,6 +16,10 @@ let package = Package(
             targets: ["BagData"]
         ),
         .library(
+            name: "BagTestSupport",
+            targets: ["BagTestSupport"]
+        ),
+        .library(
             name: "BagDI",
             targets: ["BagDI"]
         )
@@ -33,7 +37,7 @@ let package = Package(
                 .product(name: "Money", package: "Money")
             ],
             path: "Sources",
-            exclude: ["DI", "Data"],
+            exclude: ["DI", "Data", "TestSupport"],
             sources: ["Domain"]
         ),
         .target(
@@ -45,8 +49,13 @@ let package = Package(
                 .product(name: "Money", package: "Money")
             ],
             path: "Sources",
-            exclude: ["Domain", "DI"],
+            exclude: ["Domain", "DI", "TestSupport"],
             sources: ["Data"]
+        ),
+        .target(
+            name: "BagTestSupport",
+            dependencies: ["Bag"],
+            path: "Sources/TestSupport"
         ),
         .target(
             name: "BagDI",

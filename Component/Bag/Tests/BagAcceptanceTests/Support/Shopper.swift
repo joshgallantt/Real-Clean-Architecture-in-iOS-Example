@@ -25,7 +25,7 @@ final class Shopper {
 
     /// The catalog, which is the one thing here the app cannot own — it is somebody else's shop,
     /// over HTTP. Everything else in this driver is the real thing.
-    let shop = StubCatalog()
+    let shop = StubFallibleCatalog()
 
     private(set) var bag = Bag()
     private(set) var news = Notices()
@@ -154,7 +154,7 @@ func pid(_ value: Int) -> ProductID {
 /// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the catalog, faked where the
 /// app genuinely cannot own it. It answers about what it stocks and says nothing about the rest,
 /// exactly as the real one does once `ProductDTO.isStillSold` has had its say.
-final class StubCatalog: LookUpProductsUseCase, @unchecked Sendable {
+final class StubFallibleCatalog: LookUpProductsUseCase, @unchecked Sendable {
     private let lock = NSLock()
     private var _stock: [OnTheShelf] = []
     private var _cannotBeReached = false

@@ -1,4 +1,5 @@
 import Foundation
+import SnackbarUITestSupport
 import Testing
 import Product
 import StockAlert

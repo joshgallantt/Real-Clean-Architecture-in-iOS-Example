@@ -1,4 +1,5 @@
 import Foundation
+import SnackbarUITestSupport
 import Testing
 import Bag
 import Money

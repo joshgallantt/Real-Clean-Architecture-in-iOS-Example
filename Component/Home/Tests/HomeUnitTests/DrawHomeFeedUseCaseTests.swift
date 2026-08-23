@@ -8,7 +8,7 @@ import Product
 /// Home is broken; these say which rule did.
 struct DrawHomeFeedUseCaseTests {
     private func makeUseCase(
-        browseCatalog: StubBrowseCatalog = StubBrowseCatalog(),
+        browseCatalog: StubBrowseCatalogByCategory = StubBrowseCatalogByCategory(),
         browseCategories: StubBrowseCategories = StubBrowseCategories()
     ) -> DrawHomeFeedUseCase {
         DefaultDrawHomeFeedUseCase(browseCatalog: browseCatalog, browseCategories: browseCategories)
@@ -18,7 +18,7 @@ struct DrawHomeFeedUseCaseTests {
     func drawsACarouselPerQualifyingCategory() async {
         let browseCategories = StubBrowseCategories()
         browseCategories.result = .success([.beauty])
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = StubBrowseCatalogByCategory()
         browseCatalog.resultsByCategory[.init(rawValue: "beauty")] = .success(products(1...6, category: "beauty"))
         let useCase = makeUseCase(browseCatalog: browseCatalog, browseCategories: browseCategories)
 
@@ -42,7 +42,7 @@ struct DrawHomeFeedUseCaseTests {
     func floorAndCap(_ example: (available: Int, expectedShown: Int?)) async {
         let browseCategories = StubBrowseCategories()
         browseCategories.result = .success([.beauty])
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = StubBrowseCatalogByCategory()
         let stock = example.available > 0 ? products(1...example.available, category: "beauty") : []
         browseCatalog.resultsByCategory[.init(rawValue: "beauty")] = .success(stock)
         let useCase = makeUseCase(browseCatalog: browseCatalog, browseCategories: browseCategories)
@@ -61,7 +61,7 @@ struct DrawHomeFeedUseCaseTests {
         let categories: [ProductCategory] = [.beauty, .fragrances, .furniture, .kitchen, .sports, .toys, .books]
         let browseCategories = StubBrowseCategories()
         browseCategories.result = .success(categories)
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = StubBrowseCatalogByCategory()
         for category in categories {
             browseCatalog.resultsByCategory[category.id] = .success(products(1...10, category: category.id.rawValue))
         }
@@ -77,7 +77,7 @@ struct DrawHomeFeedUseCaseTests {
         let categories: [ProductCategory] = [.beauty, .fragrances, .furniture, .kitchen, .sports, .toys, .books]
         let browseCategories = StubBrowseCategories()
         browseCategories.result = .success(categories)
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = StubBrowseCatalogByCategory()
         for category in categories {
             browseCatalog.resultsByCategory[category.id] = .success(products(1...10, category: category.id.rawValue))
         }
@@ -98,7 +98,7 @@ struct DrawHomeFeedUseCaseTests {
         let short = ProductCategory.toys
         let browseCategories = StubBrowseCategories()
         browseCategories.result = .success(qualifying + [short])
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = StubBrowseCatalogByCategory()
         for category in qualifying {
             browseCatalog.resultsByCategory[category.id] = .success(products(1...10, category: category.id.rawValue))
         }
@@ -114,7 +114,7 @@ struct DrawHomeFeedUseCaseTests {
     func aFailingCategoryIsDroppedSilently() async {
         let browseCategories = StubBrowseCategories()
         browseCategories.result = .success([.beauty, .fragrances])
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = StubBrowseCatalogByCategory()
         browseCatalog.resultsByCategory[.init(rawValue: "beauty")] = .success(products(1...5, category: "beauty"))
         browseCatalog.resultsByCategory[.init(rawValue: "fragrances")] = .failure(.unavailable)
         let useCase = makeUseCase(browseCatalog: browseCatalog, browseCategories: browseCategories)
@@ -128,7 +128,7 @@ struct DrawHomeFeedUseCaseTests {
     func everyCategoryFailingLeavesNothingToDraw() async {
         let browseCategories = StubBrowseCategories()
         browseCategories.result = .success([.beauty, .fragrances])
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = StubBrowseCatalogByCategory()
         browseCatalog.resultsByCategory[.init(rawValue: "beauty")] = .failure(.unavailable)
         browseCatalog.resultsByCategory[.init(rawValue: "fragrances")] = .failure(.unavailable)
         let useCase = makeUseCase(browseCatalog: browseCatalog, browseCategories: browseCategories)

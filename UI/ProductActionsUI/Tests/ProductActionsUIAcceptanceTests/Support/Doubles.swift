@@ -10,22 +10,6 @@ import SnackbarUI
 @testable import ProductActionsUI
 
 @MainActor
-final class InMemoryBagRepository: BagRepository {
-    private let bagSubject = CurrentValueSubject<Bag, Never>(Bag())
-    private let noticesSubject = CurrentValueSubject<Notices, Never>(Notices())
-
-    var bag: Bag { bagSubject.value }
-    var bagPublisher: AnyPublisher<Bag, Never> { bagSubject.eraseToAnyPublisher() }
-    var notices: Notices { noticesSubject.value }
-    var noticesPublisher: AnyPublisher<Notices, Never> { noticesSubject.eraseToAnyPublisher() }
-
-    func save(bag: Bag, notices: Notices) {
-        bagSubject.value = bag
-        noticesSubject.value = notices
-    }
-}
-
-@MainActor
 /// A working repository rather than a stub with canned answers, so the real use cases genuinely
 /// read, apply and save. `whenItCannotKeep` is the one thing a disk does that memory does not.
 final class InMemoryStockAlertRepository: StockAlertRepository {
@@ -69,7 +53,7 @@ final class InMemoryStockAlertRepository: StockAlertRepository {
 }
 
 @MainActor
-final class StubAuthPresenter: AuthPresenting {
+final class SpyAuthPresenter: AuthPresenting {
     private(set) var wasAsked = false
     var answer = false
     var onShown: (() -> Void)?
@@ -89,7 +73,7 @@ final class RecordingSnackbarPresenter: SnackbarPresenting {
 }
 
 @MainActor
-final class StubNavigation: ProductActionsNavigation {
+final class StubProductActionsNavigation: ProductActionsNavigation {
     private(set) var switchedToBagTab = false
 
     nonisolated func switchToBagTab() {

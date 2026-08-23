@@ -56,6 +56,7 @@ let package = Package(
         .testTarget(
             name: "SearchUIUnitTests",
             dependencies: [
+                .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
                 "SearchUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),

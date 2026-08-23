@@ -1,3 +1,4 @@
+import SnackbarUITestSupport
 import Combine
 import Foundation
 import Money
@@ -99,13 +100,6 @@ final class StubShop: LookUpProductsUseCase, @unchecked Sendable {
         }
         return answer
     }
-}
-
-@MainActor
-final class SpySnackbarPresenter: SnackbarPresenting {
-    private(set) var shown: [Snackbar] = []
-
-    func show(_ snackbar: Snackbar) { shown.append(snackbar) }
 }
 
 // MARK: - Fixtures

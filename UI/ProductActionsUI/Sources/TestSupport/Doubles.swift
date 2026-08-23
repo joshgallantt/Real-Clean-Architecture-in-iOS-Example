@@ -3,6 +3,7 @@
 // be an ordinary module — marked visible to tests alone, which is what keeps
 // it out of the app.
 
+import SnackbarUITestSupport
 import Combine
 import Foundation
 import Bag
@@ -40,15 +41,6 @@ final class SpyProductActionsNavigation: ProductActionsNavigation {
 
     nonisolated func switchToBagTab() {
         MainActor.assumeIsolated { switchedToBagTab = true }
-    }
-}
-
-@MainActor
-final class SpySnackbarPresenter: SnackbarPresenting {
-    private(set) var shown: [Snackbar] = []
-
-    func show(_ snackbar: Snackbar) {
-        shown.append(snackbar)
     }
 }
 

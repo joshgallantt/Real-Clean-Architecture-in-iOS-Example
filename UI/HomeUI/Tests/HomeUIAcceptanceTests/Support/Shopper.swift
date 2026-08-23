@@ -12,7 +12,7 @@ import Home
 /// Everything between it and the screen is real: `HomeScreenViewModel` itself.
 final class Shopper {
     private let drawHomeFeed = StubDrawHomeFeed()
-    let navigation = StubNavigation()
+    let navigation = StubHomeNavigation()
 
     private var home: HomeScreenViewModel?
     private var carousels: [HomeCarousel] = []
@@ -87,7 +87,7 @@ final class StubDrawHomeFeed: DrawHomeFeedUseCase, @unchecked Sendable {
 @MainActor
 /// The app layer conforms `Navigator` to this. Home only ever opens a product or a category's
 /// results, so that is all the test needs to know about.
-final class StubNavigation: HomeNavigation {
+final class StubHomeNavigation: HomeNavigation {
     private(set) var openedProducts: [ProductID] = []
     private(set) var openedCatalogs: [CatalogFilter] = []
 

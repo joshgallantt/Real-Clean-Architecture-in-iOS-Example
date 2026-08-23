@@ -99,3 +99,5 @@ fastlane/test_output
 # is left under .claude/ is one person's settings and the hook wiring that
 # `keystone --add-to-claude` writes, which every clone does for itself.
 .claude/
+
+.test-logs/

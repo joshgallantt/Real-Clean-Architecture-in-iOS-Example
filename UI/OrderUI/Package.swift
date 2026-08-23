@@ -62,6 +62,8 @@ let package = Package(
         .testTarget(
             name: "OrderUIAcceptanceTests",
             dependencies: [
+                .product(name: "BagTestSupport", package: "Bag"),
+                .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
                 "OrderUI",
                 .product(name: "Order", package: "Order"),
                 .product(name: "Bag", package: "Bag"),
@@ -76,6 +78,7 @@ let package = Package(
         .target(
             name: "OrderUITestSupport",
             dependencies: [
+                .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
                 "OrderUI",
                 .product(name: "Order", package: "Order"),
                 .product(name: "Bag", package: "Bag"),
@@ -89,6 +92,7 @@ let package = Package(
         .testTarget(
             name: "OrderUIUnitTests",
             dependencies: [
+                .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
                 "OrderUI",
                 "OrderUITestSupport",
                 .product(name: "Order", package: "Order"),
