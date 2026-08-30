@@ -38,6 +38,36 @@ struct WishlistButtonViewModelTests {
         #expect(viewModel.isInWishlist)
     }
 
+    @Test("Appearing with something already saved is not a change the shopper watched happen")
+    func appearingOnSomethingSavedDoesNotCount() {
+        let viewModel = makeViewModel(observeProductIsWishlisted: StubObserveProductIsWishlisted(true))
+
+        /// The heart bounces on this count. A card scrolling into view showing
+        /// what was already true must not animate — only a change that happens
+        /// while the shopper is looking at it should.
+        #expect(viewModel.changes == 0)
+    }
+
+    @Test("A change while the button is on screen is one the shopper watched happen")
+    func aChangeWhileShowingCounts() {
+        let saved = StubObserveProductIsWishlisted(false)
+        let viewModel = makeViewModel(observeProductIsWishlisted: saved)
+
+        saved.send(true)
+
+        #expect(viewModel.changes == 1)
+    }
+
+    @Test("The same value arriving twice is not a change")
+    func theSameValueTwiceIsNotAChange() {
+        let saved = StubObserveProductIsWishlisted(false)
+        let viewModel = makeViewModel(observeProductIsWishlisted: saved)
+
+        saved.send(false)
+
+        #expect(viewModel.changes == 0)
+    }
+
     @Test("Tapping while not saved saves it")
     func tappingWhenNotSavedSavesIt() async {
         let setProductIsWishlisted = StubSetProductIsWishlisted()

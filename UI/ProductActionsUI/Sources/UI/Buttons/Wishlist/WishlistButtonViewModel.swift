@@ -20,6 +20,18 @@ import SnackbarUI
 public final class WishlistButtonViewModel {
     private(set) var isInWishlist = false
 
+    /// Counts changes the shopper could watch happen, so the heart bounces for
+    /// those and stays still for the state the button appeared with.
+    ///
+    /// Keying the bounce on `isInWishlist` was right while the subscription ran
+    /// in `init`: the first value landed before the first draw, so there was no
+    /// transition to animate. Waiting for `onAppear` puts that first value on
+    /// screen instead, and every already-saved card bounced as it scrolled into
+    /// view.
+    private(set) var changes = 0
+
+    @ObservationIgnored private var hasAValue = false
+
     private let productId: ProductID
     private let observeProductIsWishlisted: ObserveProductIsWishlistedUseCase
     private let setProductIsWishlisted: SetProductIsWishlistedUseCase
@@ -56,7 +68,12 @@ public final class WishlistButtonViewModel {
 
         observeProductIsWishlisted(productId: productId)
             .sink { [weak self] value in
-                self?.isInWishlist = value
+                guard let self else { return }
+                let was = self.isInWishlist
+                self.isInWishlist = value
+
+                if self.hasAValue, value != was { self.changes += 1 }
+                self.hasAValue = true
             }
             .store(in: &cancellables)
     }

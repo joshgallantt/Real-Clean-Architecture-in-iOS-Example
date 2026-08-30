@@ -16,7 +16,7 @@ public struct WishlistButtonView: View {
             Image(systemName: viewModel.isInWishlist ? "heart.fill" : "heart")
                 .font(.subheadline.weight(.bold))
                 .foregroundStyle(viewModel.isInWishlist ? .red : .primary)
-                .symbolEffect(.bounce, value: viewModel.isInWishlist)
+                .symbolEffect(.bounce, value: viewModel.changes)
                 .frame(width: 32, height: 32)
                 .background(.ultraThinMaterial, in: Circle())
         }
