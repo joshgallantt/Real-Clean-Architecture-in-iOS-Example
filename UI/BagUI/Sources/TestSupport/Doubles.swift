@@ -8,6 +8,7 @@ import Foundation
 import Bag
 import Money
 import Product
+import ProductTestSupport
 @testable import BagUI
 
 @MainActor
@@ -31,35 +32,10 @@ func settle() async {
 
 // MARK: - Fixtures
 
-func pid(_ value: Int) -> ProductID {
-    ProductID(rawValue: value)
-}
-
 func usd(_ amount: Decimal) -> Money {
     Money(amount: amount, currency: .usd)
 }
 
 func bagItem(_ id: Int, quantity: Int = 1, price: Decimal, addedAt: Date = Date()) -> BagItem {
     BagItem(productId: pid(id), quantity: quantity, lastKnownPrice: usd(price), dateAdded: addedAt)
-}
-
-extension Product {
-    static func fixture(
-        id: Int,
-        price: Decimal = 9.99,
-        availability: Availability = .inStock(remaining: 10)
-    ) -> Product {
-        Product(
-            id: pid(id),
-            title: "Product \(id)",
-            description: "",
-            category: CategoryID(rawValue: "beauty"),
-            price: usd(price),
-            rating: 4.5,
-            availability: availability,
-            brand: "Acme",
-            thumbnail: "https://cdn.example.com/\(id).png",
-            images: []
-        )
-    }
 }

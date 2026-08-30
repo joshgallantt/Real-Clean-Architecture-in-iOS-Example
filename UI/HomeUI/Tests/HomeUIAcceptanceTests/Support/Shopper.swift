@@ -2,6 +2,7 @@ import Foundation
 import Money
 import Product
 import Home
+import ProductTestSupport
 @testable import HomeUI
 
 @MainActor
@@ -107,37 +108,12 @@ func settle() async {
 
 // MARK: - Fixtures
 
-func pid(_ value: Int) -> ProductID {
-    ProductID(rawValue: value)
-}
-
 func products(
     _ ids: ClosedRange<Int>,
     category: String,
     availability: Availability = .inStock(remaining: 10)
 ) -> [Product] {
     ids.map { Product.fixture(id: $0, category: category, availability: availability) }
-}
-
-extension Product {
-    static func fixture(
-        id: Int,
-        category: String = "beauty",
-        availability: Availability = .inStock(remaining: 10)
-    ) -> Product {
-        Product(
-            id: pid(id),
-            title: "Product \(id)",
-            description: "",
-            category: CategoryID(rawValue: category),
-            price: Money(amount: 9.99, currency: .usd),
-            rating: 4.5,
-            availability: availability,
-            brand: "Acme",
-            thumbnail: "https://cdn.example.com/\(id).png",
-            images: []
-        )
-    }
 }
 
 /// Test-fixture categories only — production code never extends a domain type (see

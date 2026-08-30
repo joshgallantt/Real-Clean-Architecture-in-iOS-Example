@@ -5,6 +5,7 @@ import Order
 import OrderData
 import OrderDI
 import Product
+import ProductTestSupport
 import Session
 import SessionTestSupport
 
@@ -103,10 +104,6 @@ extension URL {
 
 func usd(_ amount: Decimal) -> Money {
     Money(amount: amount, currency: .usd)
-}
-
-func pid(_ value: Int) -> ProductID {
-    ProductID(rawValue: value)
 }
 
 /// One line of an order, as a shopper would describe it: this many of that thing, at that price.

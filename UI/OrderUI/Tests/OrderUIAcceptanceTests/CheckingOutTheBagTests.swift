@@ -1,4 +1,5 @@
 import Foundation
+import ProductTestSupport
 import Testing
 import Money
 import Order

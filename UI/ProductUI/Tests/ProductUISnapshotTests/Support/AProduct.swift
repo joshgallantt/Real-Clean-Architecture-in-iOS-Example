@@ -1,5 +1,6 @@
 import Money
 import Product
+import ProductTestSupport
 
 /// A builder rather than a fixture: each test sets only the field it cares
 /// about and inherits the rest, so no test is reading data another test owns.

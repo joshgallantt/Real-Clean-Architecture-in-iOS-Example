@@ -1,5 +1,6 @@
 import BagTestSupport
 import Foundation
+import ProductTestSupport
 import Testing
 import Bag
 import Money

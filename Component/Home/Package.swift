@@ -41,6 +41,7 @@ let package = Package(
         .testTarget(
             name: "HomeUnitTests",
             dependencies: [
+                .product(name: "ProductTestSupport", package: "Product"),
                 "Home",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money")
@@ -50,6 +51,7 @@ let package = Package(
         .testTarget(
             name: "HomeAcceptanceTests",
             dependencies: [
+                .product(name: "ProductTestSupport", package: "Product"),
                 "Home",
                 "HomeDI",
                 .product(name: "Product", package: "Product"),

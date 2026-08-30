@@ -3,6 +3,7 @@
 // be an ordinary module — marked visible to tests alone, which is what keeps
 // it out of the app.
 
+import ProductTestSupport
 import SnackbarUITestSupport
 import Combine
 import Foundation
@@ -57,43 +58,11 @@ final class StubObserveSavedProductIds {
 }
 
 @MainActor
-final class StubLookUpProducts: LookUpProductsUseCase, @unchecked Sendable {
-    var result: Result<[Product], ProductError> = .success([])
-    private(set) var asked: [[ProductID]] = []
-
-    func callAsFunction(ids: [ProductID]) async -> Result<[Product], ProductError> {
-        asked.append(ids)
-        return result
-    }
-}
-
-@MainActor
 func settle() async {
     for _ in 0..<200 { await Task.yield() }
 }
 
 // MARK: - Fixtures
-
-func pid(_ value: Int) -> ProductID {
-    ProductID(rawValue: value)
-}
-
-extension Product {
-    static func fixture(id: Int, availability: Availability = .inStock(remaining: 10)) -> Product {
-        Product(
-            id: pid(id),
-            title: "Product \(id)",
-            description: "",
-            category: CategoryID(rawValue: "beauty"),
-            price: Money(amount: 9.99, currency: .usd),
-            rating: 4.5,
-            availability: availability,
-            brand: "Acme",
-            thumbnail: "https://cdn.example.com/\(id).png",
-            images: []
-        )
-    }
-}
 
 extension User {
     static func fixture() -> User {

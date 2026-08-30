@@ -48,6 +48,7 @@ let package = Package(
         .testTarget(
             name: "ProductUIUnitTests",
             dependencies: [
+                .product(name: "ProductTestSupport", package: "Product"),
                 "ProductUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money")
@@ -57,6 +58,7 @@ let package = Package(
         .testTarget(
             name: "ProductUISnapshotTests",
             dependencies: [
+                .product(name: "ProductTestSupport", package: "Product"),
                 "ProductUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),

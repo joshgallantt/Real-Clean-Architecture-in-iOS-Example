@@ -53,6 +53,7 @@ let package = Package(
         .testTarget(
             name: "BagUIAcceptanceTests",
             dependencies: [
+                .product(name: "ProductTestSupport", package: "Product"),
                 "BagUI",
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "Product", package: "Product"),
@@ -63,6 +64,7 @@ let package = Package(
         .target(
             name: "BagUITestSupport",
             dependencies: [
+                .product(name: "ProductTestSupport", package: "Product"),
                 "BagUI",
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "Product", package: "Product"),
@@ -74,6 +76,7 @@ let package = Package(
         .testTarget(
             name: "BagUIUnitTests",
             dependencies: [
+                .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "BagTestSupport", package: "Bag"),
                 "BagUI",
                 "BagUITestSupport",

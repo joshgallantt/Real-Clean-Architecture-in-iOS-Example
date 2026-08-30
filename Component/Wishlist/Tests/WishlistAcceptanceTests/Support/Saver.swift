@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import Product
+import ProductTestSupport
 import Session
 import SessionTestSupport
 import Wishlist
@@ -110,10 +111,6 @@ extension URL {
         try Data("not a directory".utf8).write(to: file)
         return file.appending(path: "wishlist", directoryHint: .isDirectory)
     }
-}
-
-func pid(_ value: Int) -> ProductID {
-    ProductID(rawValue: value)
 }
 
 extension Result where Success == Void, Failure: Equatable {

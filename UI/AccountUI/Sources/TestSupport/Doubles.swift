@@ -5,6 +5,7 @@
 
 import Combine
 import Foundation
+import ProductTestSupport
 import Session
 import SessionTestSupport
 @testable import AccountUI

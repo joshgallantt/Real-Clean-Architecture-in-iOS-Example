@@ -1,10 +1,10 @@
 import Foundation
+import ProductTestSupport
 import Testing
 import Money
 import Product
 @testable import Order
 
-private func pid(_ v: Int) -> ProductID { ProductID(rawValue: v) }
 private func usd(_ a: Decimal) -> Money { Money(amount: a, currency: .usd) }
 private func line(_ id: Int, quantity: Int = 1, at price: Decimal) -> OrderLine {
     OrderLine(productId: pid(id), quantity: quantity, pricePaid: usd(price))

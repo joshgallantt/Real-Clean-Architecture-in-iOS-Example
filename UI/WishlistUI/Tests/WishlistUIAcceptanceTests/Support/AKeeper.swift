@@ -1,3 +1,4 @@
+import ProductTestSupport
 import SnackbarUITestSupport
 import Combine
 import Foundation
@@ -57,70 +58,4 @@ final class AKeeper {
 
 // MARK: - What the app cannot own
 
-/// The shop answers about everything it still sells and says nothing about the rest, which is the
-/// only signal it gives that something has been stopped.
-final class StubShop: LookUpProductsUseCase, @unchecked Sendable {
-    private let lock = NSLock()
-    private var _stillSells: Set<ProductID> = []
-    private var _cannotBeReached = false
-    private var _asked: [[ProductID]] = []
-    private var _soldOut: Set<ProductID> = []
-
-    var stillSells: Set<ProductID> {
-        get { lock.withLock { _stillSells } }
-        set { lock.withLock { _stillSells = newValue } }
-    }
-
-    var cannotBeReached: Bool {
-        get { lock.withLock { _cannotBeReached } }
-        set { lock.withLock { _cannotBeReached = newValue } }
-    }
-
-    var asked: [[ProductID]] { lock.withLock { _asked } }
-
-    func sells(_ ids: Int...) {
-        stillSells = Set(ids.map(pid))
-    }
-
-    /// What it has, and how much of it. A shopper's two alert lists are told apart by exactly this.
-    var soldOut: Set<ProductID> {
-        get { lock.withLock { _soldOut } }
-        set { lock.withLock { _soldOut = newValue } }
-    }
-
-    func callAsFunction(ids: [ProductID]) async -> Result<[Product], ProductError> {
-        let answer: Result<[Product], ProductError> = lock.withLock {
-            _asked.append(ids)
-            guard !_cannotBeReached else { return .failure(.unavailable) }
-            return .success(
-                ids.filter { _stillSells.contains($0) }.map {
-                    Product.fixture(id: $0.rawValue, isSoldOut: _soldOut.contains($0))
-                }
-            )
-        }
-        return answer
-    }
-}
-
 // MARK: - Fixtures
-
-func pid(_ value: Int) -> ProductID {
-    ProductID(rawValue: value)
-}
-
-extension Product {
-    static func fixture(id: Int, isSoldOut: Bool = false) -> Product {
-        Product(
-            id: pid(id),
-            title: "Product \(id)",
-            description: "",
-            category: CategoryID(rawValue: "beauty"),
-            price: Money(amount: 9.99, currency: .usd),
-            rating: 4.5,
-            availability: isSoldOut ? .outOfStock : .inStock(remaining: 10),
-            brand: "Acme",
-            thumbnail: "https://cdn.example.com/\(id).png",
-            images: []
-        )
-    }
-}

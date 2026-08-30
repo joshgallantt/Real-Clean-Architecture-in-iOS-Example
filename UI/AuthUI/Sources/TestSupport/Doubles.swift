@@ -4,6 +4,7 @@
 // it out of the app.
 
 import Foundation
+import ProductTestSupport
 import SessionTestSupport
 import SwiftUI
 import Session

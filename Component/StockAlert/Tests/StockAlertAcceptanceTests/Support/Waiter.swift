@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import Money
 import Product
+import ProductTestSupport
 import Session
 import SessionTestSupport
 import StockAlert
@@ -126,39 +127,11 @@ extension URL {
     }
 }
 
-func pid(_ value: Int) -> ProductID {
-    ProductID(rawValue: value)
-}
-
 extension Result where Success == Void, Failure: Equatable {
     var failure: Failure? { if case .failure(let error) = self { error } else { nil } }
 }
 
 // MARK: - What the app cannot own
-
-/// The catalog, which answers about what it still sells and says nothing about the rest.
-final class StubCatalog: LookUpProductsUseCase, @unchecked Sendable {
-    private let lock = NSLock()
-    private var _stock: [OnTheShelf] = []
-
-    var stock: [OnTheShelf] {
-        get { lock.withLock { _stock } }
-        set { lock.withLock { _stock = newValue } }
-    }
-
-    func callAsFunction(ids: [ProductID]) async -> Result<[Product], ProductError> {
-        lock.withLock {
-            let wanted = Set(ids)
-            return .success(_stock.filter { wanted.contains($0.id) }.map(\.product))
-        }
-    }
-}
-
-struct OnTheShelf {
-    let product: Product
-
-    var id: ProductID { product.id }
-}
 
 func inStock(_ id: Int) -> OnTheShelf {
     OnTheShelf(product: aProduct(id, availability: .inStock(remaining: 5)))

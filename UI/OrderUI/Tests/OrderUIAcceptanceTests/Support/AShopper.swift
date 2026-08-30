@@ -1,4 +1,5 @@
 import BagTestSupport
+import ProductTestSupport
 import SnackbarUITestSupport
 import Combine
 import Foundation
@@ -149,27 +150,6 @@ private struct StubGetSession: GetSessionUseCase, @unchecked Sendable {
 
 // MARK: - Fixtures
 
-func pid(_ value: Int) -> ProductID {
-    ProductID(rawValue: value)
-}
-
 func usd(_ amount: Decimal) -> Money {
     Money(amount: amount, currency: .usd)
-}
-
-extension Product {
-    static func fixture(id: Int, price: Decimal = 9.99) -> Product {
-        Product(
-            id: pid(id),
-            title: "Product \(id)",
-            description: "",
-            category: CategoryID(rawValue: "beauty"),
-            price: usd(price),
-            rating: 4.5,
-            availability: .inStock(remaining: 10),
-            brand: "Acme",
-            thumbnail: "https://cdn.example.com/\(id).png",
-            images: []
-        )
-    }
 }

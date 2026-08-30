@@ -57,7 +57,8 @@ devices() {
 }
 
 run() {
-    local action="$1" scheme="$2" log="$LOGS/$scheme.log"
+    local action="$1" scheme="$2"
+    local log="$LOGS/$scheme.log"
     xcodebuild "$action" \
         -project "$PROJECT" \
         -scheme "$scheme" \

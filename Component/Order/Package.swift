@@ -61,6 +61,7 @@ let package = Package(
         .testTarget(
             name: "OrderUnitTests",
             dependencies: [
+                .product(name: "ProductTestSupport", package: "Product"),
                 "Order",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money")
@@ -70,6 +71,7 @@ let package = Package(
         .testTarget(
             name: "OrderAcceptanceTests",
             dependencies: [
+                .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "SessionTestSupport", package: "Session"),
                 "Order",
                 "OrderDI",

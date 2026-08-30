@@ -7,28 +7,6 @@ import SnackbarUI
 @testable import SearchUI
 
 @MainActor
-final class StubBrowseCatalog: BrowseCatalogUseCase, @unchecked Sendable {
-    var result: Result<[Product], ProductError> = .success([])
-    private(set) var queries: [CatalogQuery] = []
-
-    func callAsFunction(matching query: CatalogQuery) async -> Result<[Product], ProductError> {
-        queries.append(query)
-        return result
-    }
-}
-
-@MainActor
-final class SpyBrowseCategories: BrowseCategoriesUseCase, @unchecked Sendable {
-    var result: Result<[ProductCategory], ProductError> = .success([])
-    private(set) var callCount = 0
-
-    func callAsFunction() async -> Result<[ProductCategory], ProductError> {
-        callCount += 1
-        return result
-    }
-}
-
-@MainActor
 final class StubGetSearchHistory: GetSearchHistoryUseCase, @unchecked Sendable {
     var history = SearchHistory()
 
@@ -66,24 +44,3 @@ func settle() async {
 }
 
 // MARK: - Fixtures
-
-func pid(_ value: Int) -> ProductID {
-    ProductID(rawValue: value)
-}
-
-extension Product {
-    static func fixture(id: Int) -> Product {
-        Product(
-            id: pid(id),
-            title: "Product \(id)",
-            description: "",
-            category: CategoryID(rawValue: "beauty"),
-            price: Money(amount: 9.99, currency: .usd),
-            rating: 4.5,
-            availability: .inStock(remaining: 10),
-            brand: "Acme",
-            thumbnail: "https://cdn.example.com/\(id).png",
-            images: []
-        )
-    }
-}

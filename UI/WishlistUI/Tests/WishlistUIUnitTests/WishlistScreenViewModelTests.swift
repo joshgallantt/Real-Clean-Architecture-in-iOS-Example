@@ -1,4 +1,5 @@
 import Foundation
+import ProductTestSupport
 import SessionTestSupport
 import Testing
 import Session
