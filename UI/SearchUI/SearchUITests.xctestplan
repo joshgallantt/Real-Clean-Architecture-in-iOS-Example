@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "3A81C4D6-ED69-E741-0EB3-BA12B346EA3B",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SearchUI",
+        "identifier": "SearchUISnapshotTests",
+        "name": "SearchUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SearchUI",
+        "identifier": "SearchUIUnitTests",
+        "name": "SearchUIUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

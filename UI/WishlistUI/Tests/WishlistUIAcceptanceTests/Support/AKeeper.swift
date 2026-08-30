@@ -1,3 +1,4 @@
+import AsyncTesting
 import ProductTestSupport
 import SnackbarUITestSupport
 import Combine

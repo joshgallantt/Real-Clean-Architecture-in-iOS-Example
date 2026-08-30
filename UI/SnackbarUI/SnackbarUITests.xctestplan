@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "id": "26C5FBD9-754C-3D64-462C-4833DE3928EC",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SnackbarUI",
+        "identifier": "SnackbarUISnapshotTests",
+        "name": "SnackbarUISnapshotTests"
+      }
+    }
+  ],
+  "version": 1
+}

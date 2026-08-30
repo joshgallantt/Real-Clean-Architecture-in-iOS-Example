@@ -1,3 +1,4 @@
+import MoneyTestSupport
 import AuthUITestSupport
 import BagTestSupport
 import OrderTestSupport
@@ -99,6 +100,3 @@ final class AShopper {
 
 // MARK: - Fixtures
 
-func usd(_ amount: Decimal) -> Money {
-    Money(amount: amount, currency: .usd)
-}

@@ -1,3 +1,4 @@
+import AsyncTesting
 import Foundation
 import HomeTestSupport
 import Money
@@ -90,11 +91,6 @@ final class StubHomeNavigation: HomeNavigation {
     nonisolated func openCatalog(filter: CatalogFilter) {
         MainActor.assumeIsolated { openedCatalogs.append(filter) }
     }
-}
-
-@MainActor
-func settle() async {
-    for _ in 0..<200 { await Task.yield() }
 }
 
 // MARK: - Fixtures

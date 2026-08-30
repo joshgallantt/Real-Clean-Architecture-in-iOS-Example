@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "D1A34E4A-F313-1BAE-222B-8D27B9E63DB5",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AuthUI",
+        "identifier": "AuthUISnapshotTests",
+        "name": "AuthUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AuthUI",
+        "identifier": "AuthUIUnitTests",
+        "name": "AuthUIUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

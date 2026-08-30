@@ -15,23 +15,20 @@ public struct AccountUIDI {
     private let observeSession: ObserveSessionUseCase
     private let logoutUseCase: LogoutUseCase
     private let authUIDI: AuthUIDI
-    private let ordersRow: AnyView
-    private let settingsRow: AnyView
+    private let navigation: any AccountNavigation
 
     public init(
         getSession: GetSessionUseCase,
         observeSession: ObserveSessionUseCase,
         logoutUseCase: LogoutUseCase,
         authUIDI: AuthUIDI,
-        ordersRow: AnyView,
-        settingsRow: AnyView
+        navigation: any AccountNavigation
     ) {
         self.getSession = getSession
         self.observeSession = observeSession
         self.logoutUseCase = logoutUseCase
         self.authUIDI = authUIDI
-        self.ordersRow = ordersRow
-        self.settingsRow = settingsRow
+        self.navigation = navigation
     }
 
     @MainActor
@@ -47,8 +44,7 @@ public struct AccountUIDI {
                     .buttonStyle(.borderedProminent)
                     .controlSize(.large)
             ),
-            ordersRow: ordersRow,
-            settingsRow: settingsRow
+            navigation: navigation
         )
     }
 }

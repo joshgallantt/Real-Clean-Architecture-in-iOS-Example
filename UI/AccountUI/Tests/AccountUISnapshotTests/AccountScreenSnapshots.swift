@@ -16,8 +16,7 @@ func aSignedOutShopperIsOfferedAWayIn() {
             logoutUseCase: SpyLogout()
         ),
         loginButton: AnyView(Button("Sign In") {}),
-        ordersRow: AnyView(Text("Orders")),
-        settingsRow: AnyView(Text("Settings"))
+        navigation: SpyAccountNavigation()
     )
 
     assertSnapshot(of: screen, as: .image(layout: .device(config: .iPhone13)))

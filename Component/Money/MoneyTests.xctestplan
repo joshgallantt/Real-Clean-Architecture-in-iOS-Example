@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "F4638ACD-4862-23D5-5C8E-D05FAE4E4644",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Money",
+        "identifier": "MoneyAcceptanceTests",
+        "name": "MoneyAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Money",
+        "identifier": "MoneyUnitTests",
+        "name": "MoneyUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

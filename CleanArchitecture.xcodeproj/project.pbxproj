@@ -44,6 +44,10 @@
 
 /* Begin PBXFileReference section */
 		1418DD6E2E3E53DC00191417 /* iPhone.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iPhone.app; sourceTree = BUILT_PRODUCTS_DIR; };
+		DEE0ED487702398FA9D4EA67 /* AcceptanceTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "AcceptanceTests.xctestplan"; sourceTree = "<group>"; };
+		99136CEF5462F7A8AE2249C0 /* AllTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "AllTests.xctestplan"; sourceTree = "<group>"; };
+		85E5FA72B5DCE36CD10136F9 /* SnapshotTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "SnapshotTests.xctestplan"; sourceTree = "<group>"; };
+		74943C787BF2493D6CC48C06 /* UnitTests.xctestplan */ = {isa = PBXFileReference; lastKnownFileType = text; path = "UnitTests.xctestplan"; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFileSystemSynchronizedRootGroup section */
@@ -120,6 +124,7 @@
 				457FDC33EFC0F3BE9DAEC6B6 /* UI */,
 				31A26CEA486B92EE7335392A /* Library */,
 				1418DD6F2E3E53DC00191417 /* iPhone */,
+				3540EFE36F266C1CB89F3346 /* TestPlans */,
 				1485C9A92E29746D0006933B /* Products */,
 			);
 			sourceTree = "<group>";
@@ -130,6 +135,17 @@
 				1418DD6E2E3E53DC00191417 /* iPhone.app */,
 			);
 			name = Products;
+			sourceTree = "<group>";
+		};
+		3540EFE36F266C1CB89F3346 /* TestPlans */ = {
+			isa = PBXGroup;
+			children = (
+				DEE0ED487702398FA9D4EA67 /* AcceptanceTests.xctestplan */,
+				99136CEF5462F7A8AE2249C0 /* AllTests.xctestplan */,
+				85E5FA72B5DCE36CD10136F9 /* SnapshotTests.xctestplan */,
+				74943C787BF2493D6CC48C06 /* UnitTests.xctestplan */,
+			);
+			path = TestPlans;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */

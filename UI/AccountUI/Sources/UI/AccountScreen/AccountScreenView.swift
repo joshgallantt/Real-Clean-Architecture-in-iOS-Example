@@ -4,22 +4,20 @@ public struct AccountScreenView: View {
     @ObservedObject var viewModel: AccountScreenViewModel
     private let loginButton: AnyView
 
-    /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: a row that
-    /// goes somewhere this package cannot name, arriving already built the way `loginButton` does.
-    /// `AccountUI` never learns there is an order domain or what the route to it is called.
-    private let ordersRow: AnyView
-    private let settingsRow: AnyView
+    /// Where the rows go. `loginButton` stays an `AnyView` because it is a
+    /// cross-cutting port — another package's whole button, presented here.
+    /// A row that this screen draws and this screen owns is a different thing,
+    /// and it asks for a destination rather than being handed one.
+    private let navigation: any AccountNavigation
 
     public init(
         viewModel: AccountScreenViewModel,
         loginButton: AnyView,
-        ordersRow: AnyView,
-        settingsRow: AnyView
+        navigation: any AccountNavigation
     ) {
         self.viewModel = viewModel
         self.loginButton = loginButton
-        self.ordersRow = ordersRow
-        self.settingsRow = settingsRow
+        self.navigation = navigation
     }
 
     public var body: some View {
@@ -39,11 +37,17 @@ public struct AccountScreenView: View {
             }
 
             Section("Orders") {
-                ordersRow
+                Button { navigation.openOrderHistory() } label: {
+                    Label("Your Orders", systemImage: "shippingbox")
+                }
+                .foregroundStyle(.primary)
             }
 
             Section("Settings") {
-                settingsRow
+                Button { navigation.openSettings() } label: {
+                    Label("Settings", systemImage: "gearshape")
+                }
+                .foregroundStyle(.primary)
             }
         }
         .onAppear {

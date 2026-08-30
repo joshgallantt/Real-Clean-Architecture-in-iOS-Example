@@ -1,3 +1,4 @@
+import AsyncTesting
 import SnackbarUITestSupport
 import Foundation
 import Money
@@ -11,11 +12,6 @@ func waitUntil(_ isSatisfied: () -> Bool) async {
     for _ in 0..<200 where !isSatisfied() {
         try? await Task.sleep(for: .milliseconds(10))
     }
-}
-
-@MainActor
-func settle() async {
-    for _ in 0..<200 { await Task.yield() }
 }
 
 // MARK: - Fixtures

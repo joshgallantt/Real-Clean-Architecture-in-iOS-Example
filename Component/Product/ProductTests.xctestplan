@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "C56BBC26-CA04-1EF0-D42C-B9D9860552C9",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Product",
+        "identifier": "ProductAcceptanceTests",
+        "name": "ProductAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Product",
+        "identifier": "ProductUnitTests",
+        "name": "ProductUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "A835EA35-836C-83E3-0512-FE5E9796B89B",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/SearchHistory",
+        "identifier": "SearchHistoryAcceptanceTests",
+        "name": "SearchHistoryAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/SearchHistory",
+        "identifier": "SearchHistoryUnitTests",
+        "name": "SearchHistoryUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

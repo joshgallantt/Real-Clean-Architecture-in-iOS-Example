@@ -33,6 +33,8 @@ let package = Package(
         .target(
             name: "OrderTestSupport",
             dependencies: [
+                .product(name: "MoneyTestSupport", package: "Money"),
+                .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 "Order"
@@ -74,6 +76,7 @@ let package = Package(
         .testTarget(
             name: "OrderUnitTests",
             dependencies: [
+                .product(name: "MoneyTestSupport", package: "Money"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 "Order",
                 .product(name: "Product", package: "Product"),
@@ -84,6 +87,7 @@ let package = Package(
         .testTarget(
             name: "OrderAcceptanceTests",
             dependencies: [
+                .product(name: "MoneyTestSupport", package: "Money"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "SessionTestSupport", package: "Session"),
                 "Order",

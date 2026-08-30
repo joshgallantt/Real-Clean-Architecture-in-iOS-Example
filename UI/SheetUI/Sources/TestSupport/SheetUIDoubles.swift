@@ -1,6 +1,3 @@
-// Stand-ins for the protocols this package declares, so that every suite
-// needing one shares a single definition rather than writing its own.
-
 import SheetUI
 import SwiftUI
 

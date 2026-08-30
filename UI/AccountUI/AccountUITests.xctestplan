@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "35F2D603-2040-0957-EC9F-F77BC669AFDA",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AccountUI",
+        "identifier": "AccountUISnapshotTests",
+        "name": "AccountUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AccountUI",
+        "identifier": "AccountUIUnitTests",
+        "name": "AccountUIUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

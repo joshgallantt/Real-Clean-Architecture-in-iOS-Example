@@ -4,7 +4,6 @@ import SnapshotTesting
 import SwiftUI
 import Testing
 @testable import SettingsUI
-@testable import SettingsUITestSupport
 
 /// The doubles come from a TestSupport module rather than a second copy here.
 /// Xcode refuses a test target that depends on another test target, so code two

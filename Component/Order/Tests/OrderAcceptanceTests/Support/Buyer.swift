@@ -1,3 +1,4 @@
+import MoneyTestSupport
 import Combine
 import Foundation
 import Money
@@ -100,10 +101,6 @@ extension URL {
     static var newTemporaryDirectory: URL {
         FileManager.default.temporaryDirectory.appending(path: UUID().uuidString, directoryHint: .isDirectory)
     }
-}
-
-func usd(_ amount: Decimal) -> Money {
-    Money(amount: amount, currency: .usd)
 }
 
 /// One line of an order, as a shopper would describe it: this many of that thing, at that price.

@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "B140648C-52DA-459F-9DBE-5F2EB55AAB16",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Home",
+        "identifier": "HomeAcceptanceTests",
+        "name": "HomeAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Home",
+        "identifier": "HomeUnitTests",
+        "name": "HomeUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

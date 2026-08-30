@@ -22,6 +22,7 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../../Library/AsyncTesting"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Home"),
@@ -58,6 +59,7 @@ let package = Package(
         .testTarget(
             name: "HomeUIAcceptanceTests",
             dependencies: [
+                .product(name: "AsyncTesting", package: "AsyncTesting"),
                 .product(name: "HomeTestSupport", package: "Home"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 "HomeUI",
@@ -82,6 +84,7 @@ let package = Package(
         .testTarget(
             name: "HomeUIUnitTests",
             dependencies: [
+                .product(name: "AsyncTesting", package: "AsyncTesting"),
                 .product(name: "HomeTestSupport", package: "Home"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 "HomeUI",

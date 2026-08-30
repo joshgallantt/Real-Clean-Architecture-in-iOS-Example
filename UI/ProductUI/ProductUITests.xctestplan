@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "5BB88D40-9FC6-7696-6648-6E46C899AF28",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductUI",
+        "identifier": "ProductUISnapshotTests",
+        "name": "ProductUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductUI",
+        "identifier": "ProductUIUnitTests",
+        "name": "ProductUIUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

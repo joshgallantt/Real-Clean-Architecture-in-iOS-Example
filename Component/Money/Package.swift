@@ -8,11 +8,20 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "MoneyTestSupport",
+            targets: ["MoneyTestSupport"]
+        ),
+        .library(
             name: "Money",
             targets: ["Money"]
         )
     ],
     targets: [
+        .target(
+            name: "MoneyTestSupport",
+            dependencies: ["Money"],
+            path: "Sources/TestSupport"
+        ),
         .target(
             name: "Money",
             dependencies: [],

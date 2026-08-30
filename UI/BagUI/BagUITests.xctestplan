@@ -1,0 +1,41 @@
+{
+  "configurations" : [
+    {
+      "id" : "DB5F18F6-C62F-582A-8FCB-3B71DF5F19AA",
+      "name" : "Configuration 1",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:UI\/BagUI",
+        "identifier" : "BagUIAcceptanceTests",
+        "name" : "BagUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:UI\/BagUI",
+        "identifier" : "BagUISnapshotTests",
+        "name" : "BagUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable" : true,
+      "target" : {
+        "containerPath" : "container:UI\/BagUI",
+        "identifier" : "BagUIUnitTests",
+        "name" : "BagUIUnitTests"
+      }
+    }
+  ],
+  "version" : 1
+}

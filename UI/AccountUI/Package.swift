@@ -34,7 +34,7 @@ let package = Package(
             ],
             path: "Sources",
             exclude: ["DI"],
-            sources: ["UI"]
+            sources: ["UI", "Navigation"]
         ),
         .target(
             name: "AccountUIDI",

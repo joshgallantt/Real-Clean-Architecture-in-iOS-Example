@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "id": "59F7A277-5089-8A44-94D9-3B3CC7E51129",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OnboardingUI",
+        "identifier": "OnboardingUISnapshotTests",
+        "name": "OnboardingUISnapshotTests"
+      }
+    }
+  ],
+  "version": 1
+}

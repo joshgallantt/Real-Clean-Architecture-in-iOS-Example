@@ -1,0 +1,397 @@
+{
+  "configurations": [
+    {
+      "id": "298CEA3A-1D01-63DF-FE66-18A002F551E4",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AccountUI",
+        "identifier": "AccountUISnapshotTests",
+        "name": "AccountUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AccountUI",
+        "identifier": "AccountUIUnitTests",
+        "name": "AccountUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AuthUI",
+        "identifier": "AuthUISnapshotTests",
+        "name": "AuthUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AuthUI",
+        "identifier": "AuthUIUnitTests",
+        "name": "AuthUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Bag",
+        "identifier": "BagAcceptanceTests",
+        "name": "BagAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/BagUI",
+        "identifier": "BagUIAcceptanceTests",
+        "name": "BagUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/BagUI",
+        "identifier": "BagUISnapshotTests",
+        "name": "BagUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/BagUI",
+        "identifier": "BagUIUnitTests",
+        "name": "BagUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Bag",
+        "identifier": "BagUnitTests",
+        "name": "BagUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Home",
+        "identifier": "HomeAcceptanceTests",
+        "name": "HomeAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/HomeUI",
+        "identifier": "HomeUIAcceptanceTests",
+        "name": "HomeUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/HomeUI",
+        "identifier": "HomeUISnapshotTests",
+        "name": "HomeUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/HomeUI",
+        "identifier": "HomeUIUnitTests",
+        "name": "HomeUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Home",
+        "identifier": "HomeUnitTests",
+        "name": "HomeUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Money",
+        "identifier": "MoneyAcceptanceTests",
+        "name": "MoneyAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Money",
+        "identifier": "MoneyUnitTests",
+        "name": "MoneyUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OnboardingUI",
+        "identifier": "OnboardingUISnapshotTests",
+        "name": "OnboardingUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Order",
+        "identifier": "OrderAcceptanceTests",
+        "name": "OrderAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OrderUI",
+        "identifier": "OrderUIAcceptanceTests",
+        "name": "OrderUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OrderUI",
+        "identifier": "OrderUISnapshotTests",
+        "name": "OrderUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OrderUI",
+        "identifier": "OrderUIUnitTests",
+        "name": "OrderUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Order",
+        "identifier": "OrderUnitTests",
+        "name": "OrderUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Product",
+        "identifier": "ProductAcceptanceTests",
+        "name": "ProductAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductActionsUI",
+        "identifier": "ProductActionsUIAcceptanceTests",
+        "name": "ProductActionsUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductActionsUI",
+        "identifier": "ProductActionsUISnapshotTests",
+        "name": "ProductActionsUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductActionsUI",
+        "identifier": "ProductActionsUIUnitTests",
+        "name": "ProductActionsUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductUI",
+        "identifier": "ProductUISnapshotTests",
+        "name": "ProductUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductUI",
+        "identifier": "ProductUIUnitTests",
+        "name": "ProductUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Product",
+        "identifier": "ProductUnitTests",
+        "name": "ProductUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/SearchHistory",
+        "identifier": "SearchHistoryAcceptanceTests",
+        "name": "SearchHistoryAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/SearchHistory",
+        "identifier": "SearchHistoryUnitTests",
+        "name": "SearchHistoryUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SearchUI",
+        "identifier": "SearchUISnapshotTests",
+        "name": "SearchUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SearchUI",
+        "identifier": "SearchUIUnitTests",
+        "name": "SearchUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Session",
+        "identifier": "SessionAcceptanceTests",
+        "name": "SessionAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Session",
+        "identifier": "SessionUnitTests",
+        "name": "SessionUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Settings",
+        "identifier": "SettingsAcceptanceTests",
+        "name": "SettingsAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SettingsUI",
+        "identifier": "SettingsUIAcceptanceTests",
+        "name": "SettingsUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SettingsUI",
+        "identifier": "SettingsUISnapshotTests",
+        "name": "SettingsUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SettingsUI",
+        "identifier": "SettingsUIUnitTests",
+        "name": "SettingsUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Settings",
+        "identifier": "SettingsUnitTests",
+        "name": "SettingsUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SnackbarUI",
+        "identifier": "SnackbarUISnapshotTests",
+        "name": "SnackbarUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/StockAlert",
+        "identifier": "StockAlertAcceptanceTests",
+        "name": "StockAlertAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/StockAlert",
+        "identifier": "StockAlertUnitTests",
+        "name": "StockAlertUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Wishlist",
+        "identifier": "WishlistAcceptanceTests",
+        "name": "WishlistAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/WishlistUI",
+        "identifier": "WishlistUIAcceptanceTests",
+        "name": "WishlistUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/WishlistUI",
+        "identifier": "WishlistUISnapshotTests",
+        "name": "WishlistUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/WishlistUI",
+        "identifier": "WishlistUIUnitTests",
+        "name": "WishlistUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Wishlist",
+        "identifier": "WishlistUnitTests",
+        "name": "WishlistUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

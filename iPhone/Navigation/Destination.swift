@@ -1,5 +1,6 @@
 import Foundation
 import SwiftUI
+import AccountUI
 import Product
 import HomeUI
 import SearchUI
@@ -66,7 +67,16 @@ public enum Destination: Hashable {
     }
 }
 
-extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNavigation, ProductActionsNavigation {
+extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNavigation,
+                     ProductActionsNavigation, AccountNavigation {
+    func openOrderHistory() {
+        open(.orderHistory)
+    }
+
+    func openSettings() {
+        open(.settings)
+    }
+
     func openCatalog(filter: CatalogFilter) {
         open(.catalog(filter))
     }

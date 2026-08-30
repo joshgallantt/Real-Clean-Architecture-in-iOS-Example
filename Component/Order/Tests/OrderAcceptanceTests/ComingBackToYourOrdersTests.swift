@@ -1,3 +1,4 @@
+import MoneyTestSupport
 import Foundation
 import Testing
 import Money

@@ -1,0 +1,141 @@
+{
+  "configurations": [
+    {
+      "id": "D470A455-24DB-6D2D-807D-D8C5F1263364",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Bag",
+        "identifier": "BagAcceptanceTests",
+        "name": "BagAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/BagUI",
+        "identifier": "BagUIAcceptanceTests",
+        "name": "BagUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Home",
+        "identifier": "HomeAcceptanceTests",
+        "name": "HomeAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/HomeUI",
+        "identifier": "HomeUIAcceptanceTests",
+        "name": "HomeUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Money",
+        "identifier": "MoneyAcceptanceTests",
+        "name": "MoneyAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Order",
+        "identifier": "OrderAcceptanceTests",
+        "name": "OrderAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OrderUI",
+        "identifier": "OrderUIAcceptanceTests",
+        "name": "OrderUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Product",
+        "identifier": "ProductAcceptanceTests",
+        "name": "ProductAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductActionsUI",
+        "identifier": "ProductActionsUIAcceptanceTests",
+        "name": "ProductActionsUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/SearchHistory",
+        "identifier": "SearchHistoryAcceptanceTests",
+        "name": "SearchHistoryAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Session",
+        "identifier": "SessionAcceptanceTests",
+        "name": "SessionAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Settings",
+        "identifier": "SettingsAcceptanceTests",
+        "name": "SettingsAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SettingsUI",
+        "identifier": "SettingsUIAcceptanceTests",
+        "name": "SettingsUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/StockAlert",
+        "identifier": "StockAlertAcceptanceTests",
+        "name": "StockAlertAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Wishlist",
+        "identifier": "WishlistAcceptanceTests",
+        "name": "WishlistAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/WishlistUI",
+        "identifier": "WishlistUIAcceptanceTests",
+        "name": "WishlistUIAcceptanceTests"
+      }
+    }
+  ],
+  "version": 1
+}

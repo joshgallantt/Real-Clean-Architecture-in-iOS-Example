@@ -1,136 +1,152 @@
 #!/usr/bin/env bash
 #
-# Runs the test suites and says which ones failed and why.
+# Runs the tests and says what failed and why.
 #
-#   ./test.sh                 every test scheme
-#   ./test.sh Wishlist Bag    only schemes whose name contains one of these
-#   ./test.sh --build         build the app, no tests
-#   ./test.sh --list          show the schemes without running anything
+#   ./test.sh                    every test
+#   ./test.sh unit               one tier — unit, acceptance or snapshot
+#   ./test.sh Bag                one module, every tier of it
+#   ./test.sh unit Wishlist      that tier, narrowed to matching targets
+#   ./test.sh --build            build the app, no tests
+#   ./test.sh --plans            list the test plans
 #
-# Each scheme's full output goes to .test-logs/<scheme>.log. The terminal gets a
-# line per scheme and, for anything that failed, the first few errors — which is
-# almost always enough to know what to fix without opening a log at all.
+# Full output goes to .test-logs/. The terminal gets a summary and, for
+# failures, the errors that matter — usually enough to fix without opening a log.
 #
-# Two things make this quicker than running xcodebuild by hand per scheme: the
-# simulator is booted once up front rather than per run, and every scheme shares
-# one derived-data directory, so only the first build is a cold one.
+# One xcodebuild invocation rather than one per target: the tiers are Xcode test
+# plans in TestPlans/, so the whole suite shares a build and a simulator boot.
+# Running the 48 targets separately spent eleven minutes rebuilding the same
+# thing forty-eight times.
 
 set -uo pipefail
 
 PROJECT="CleanArchitecture.xcodeproj"
+SCHEME="${SCHEME:-iPhone}"
 SIMULATOR="${SIMULATOR:-iPhone 17}"
 DERIVED="${DERIVED:-.build/dd}"
 LOGS=".test-logs"
+# One worker per performance core. Each worker is a simulator clone, so more of
+# them than the machine can actually run at once buys queueing, not speed.
+WORKERS="${WORKERS:-$(sysctl -n hw.perflevel0.logicalcpu 2>/dev/null || echo 4)}"
 
 bold=$'\033[1m'; red=$'\033[31m'; green=$'\033[32m'; dim=$'\033[2m'; off=$'\033[0m'
 [ -t 1 ] || { bold=""; red=""; green=""; dim=""; off=""; }
 
-schemes() {
-    xcodebuild -list -project "$PROJECT" 2>/dev/null \
-        | sed -n '/Schemes:/,$p' | tail -n +2 | tr -d ' ' | grep -E 'Tests$'
+# Four plans describe the project; one per module sits beside its package.
+plans() {
+    { ls TestPlans/*.xctestplan; ls */*/*.xctestplan; } 2>/dev/null \
+        | xargs -n1 basename | sed 's/\.xctestplan$//' | sort -u
 }
 
-# The first error lines are the useful ones; the rest are usually the same
-# mistake seen from further away.
+path_of() {
+    for candidate in "TestPlans/$1.xctestplan" */*/"$1.xctestplan"; do
+        [ -f "$candidate" ] && { echo "$candidate"; return; }
+    done
+}
+
+# A tier word or a module name picks a plan; anything else narrows within it.
+plan_for() {
+    case "$(echo "$1" | tr 'A-Z' 'a-z')" in
+        all)        echo AllTests; return ;;
+        unit)       echo UnitTests; return ;;
+        acceptance) echo AcceptanceTests; return ;;
+        snapshot)   echo SnapshotTests; return ;;
+    esac
+    plans | grep -ix "$1Tests" || plans | grep -ix "$1"
+}
+
+targets_in() {
+    python3 -c "
+import json
+plan = json.load(open('$(path_of "$1")'))
+print('\n'.join(t['target']['name'] for t in plan['testTargets']))"
+}
+
 explain() {
     local log="$1"
-    grep -oE '[^/]+\.swift:[0-9]+:[0-9]+: error: .*' "$log" | sort -u | head -4
+    grep -oE '[^/ ]+\.swift:[0-9]+:[0-9]+: error: .*' "$log" | sort -u | head -6
     grep -q 'Undefined symbols' "$log" && \
-        grep -A2 'Undefined symbols' "$log" | grep -oE '"[^"]+"' | head -2
-    grep -oE '✘ Test "[^"]+" recorded an issue.*' "$log" | head -3
+        grep -A2 'Undefined symbols' "$log" | grep -oE '"[^"]+"' | head -3
+    grep -oE 'Test "[^"]+" recorded an issue.*' "$log" | head -5
+    grep -A6 '^Failing tests:' "$log" | tail -n +2 | sed 's/^[[:space:]]*/failing: /' | head -6
     grep -oE 'encountered an error \([^)]*' "$log" | head -1
-    # `-quiet` keeps the per-test output out of the log, but the runner still
-    # names what failed at the end, and a snapshot mismatch says so.
-    grep -A4 '^Failing tests:' "$log" | tail -n +2 | sed 's/^[[:space:]]*/failing: /' | head -4
-    grep -oE 'Snapshot does not match reference.*' "$log" | head -1
-}
-
-# The destination is given by name, not by resolving it to an identifier here.
-#
-# There are five simulators called "iPhone 17" on this machine, one per runtime,
-# and picking the first is not picking the one xcodebuild would. Snapshot
-# references recorded against one device do not match another, so every snapshot
-# suite failed — which looked like twelve broken tests and was one wrong device.
-# xcodebuild keeps the device booted between runs anyway, so nothing is lost.
-devices() {
-    xcrun simctl list devices available | grep -cE "$SIMULATOR \\("
-}
-
-run() {
-    local action="$1" scheme="$2"
-    local log="$LOGS/$scheme.log"
-    xcodebuild "$action" \
-        -project "$PROJECT" \
-        -scheme "$scheme" \
-        -destination "platform=iOS Simulator,name=$SIMULATOR" \
-        -derivedDataPath "$DERIVED" \
-        -quiet \
-        > "$log" 2>&1
 }
 
 case "${1:-}" in
-    --list) schemes; exit 0 ;;
+    --plans) plans; exit 0 ;;
 esac
 
+if [ "$(xcrun simctl list devices available | grep -cE "$SIMULATOR \(")" -eq 0 ]; then
+    echo "${red}No simulator called '$SIMULATOR'.${off}"
+    exit 2
+fi
+
 mkdir -p "$LOGS"
-[ "$(devices)" -eq 0 ] && { echo "${red}No simulator called '$SIMULATOR'.${off}"; exit 2; }
 
 if [ "${1:-}" = "--build" ]; then
     echo "${bold}Building${off}"
-    if run build iPhone; then
-        echo "  ${green}✓${off} iPhone"
+    if xcodebuild build -project "$PROJECT" -scheme "$SCHEME" \
+        -destination "platform=iOS Simulator,name=$SIMULATOR" \
+        -derivedDataPath "$DERIVED" -quiet > "$LOGS/build.log" 2>&1; then
+        echo "  ${green}✓${off} $SCHEME"
         exit 0
     fi
-    echo "  ${red}✗${off} iPhone"
-    explain "$LOGS/iPhone.log" | sed 's/^/      /'
+    echo "  ${red}✗${off} $SCHEME"
+    explain "$LOGS/build.log" | sed 's/^/      /'
     exit 1
 fi
 
-selected=$(schemes)
-if [ "$#" -gt 0 ]; then
-    pattern=$(printf '%s|' "$@"); pattern="${pattern%|}"
-    selected=$(echo "$selected" | grep -E "$pattern")
-fi
-[ -z "$selected" ] && { echo "No schemes matched."; exit 2; }
-
-total=$(echo "$selected" | wc -l | tr -d ' ')
-# Two xcodebuild runs driving one simulator race over install and launch, and
-# the failures that produces look exactly like real ones. Twelve snapshot suites
-# "failed" that way once; every one passed alone.
+# Two runs against one simulator race over install and launch, and the failures
+# that produces look exactly like real ones.
 if pgrep -q xcodebuild; then
     echo "${red}xcodebuild is already running.${off} Two runs on one simulator produce"
     echo "failures that look real and are not. Wait for it, or set SIMULATOR to another device."
     exit 2
 fi
 
-echo "${bold}$total scheme(s) on $SIMULATOR${off}  ${dim}logs in $LOGS/${off}"
-echo
+plan="AllTests"
+filters=()
+for arg in "$@"; do
+    resolved=$(plan_for "$arg")
+    if [ -n "$resolved" ]; then plan="$resolved"; else filters+=("$arg"); fi
+done
 
-failed=()
-index=0
-started=$SECONDS
-while read -r scheme; do
-    index=$((index + 1))
-    printf '  %2d/%s  %-36s' "$index" "$total" "$scheme"
-    if run test "$scheme"; then
-        printf '%s✓%s\n' "$green" "$off"
-    else
-        printf '%s✗%s\n' "$red" "$off"
-        failed+=("$scheme")
+only=()
+if [ ${#filters[@]} -gt 0 ]; then
+    pattern=$(printf '%s|' "${filters[@]}"); pattern="${pattern%|}"
+    while read -r target; do only+=("-only-testing:$target"); done \
+        < <(targets_in "$plan" | grep -E "$pattern")
+    if [ ${#only[@]} -eq 0 ]; then
+        echo "Nothing in $plan matched."
+        exit 2
     fi
-done <<< "$selected"
-
-echo
-elapsed=$((SECONDS - started))
-if [ ${#failed[@]} -eq 0 ]; then
-    echo "${green}${bold}All $total passed${off}  ${dim}(${elapsed}s)${off}"
-    exit 0
 fi
 
-echo "${red}${bold}${#failed[@]} of $total failed${off}  ${dim}(${elapsed}s)${off}"
-for scheme in "${failed[@]}"; do
-    echo
-    echo "  ${bold}$scheme${off}  ${dim}$LOGS/$scheme.log${off}"
-    explain "$LOGS/$scheme.log" | sed 's/^/      /'
-done
+if [ ${#only[@]} -gt 0 ]; then count=${#only[@]}; else count=$(targets_in "$plan" | wc -l | tr -d ' '); fi
+log="$LOGS/$plan.log"
+
+echo "${bold}$plan${off}  $count target(s) on $SIMULATOR  ${dim}$log${off}"
+started=$SECONDS
+
+xcodebuild test \
+    -project "$PROJECT" \
+    -scheme "$SCHEME" \
+    -testPlan "$plan" \
+    -parallel-testing-enabled YES \
+    -maximum-parallel-testing-workers "$WORKERS" \
+    -parallelizeTargets \
+    ${only[@]+"${only[@]}"} \
+    -destination "platform=iOS Simulator,name=$SIMULATOR" \
+    -derivedDataPath "$DERIVED" \
+    -quiet \
+    > "$log" 2>&1
+status=$?
+elapsed=$((SECONDS - started))
+
+echo
+if [ $status -eq 0 ]; then
+    echo "${green}${bold}Passed${off}  ${dim}(${elapsed}s)${off}"
+    exit 0
+fi
+echo "${red}${bold}Failed${off}  ${dim}(${elapsed}s)${off}"
+explain "$log" | sed 's/^/  /'
 exit 1

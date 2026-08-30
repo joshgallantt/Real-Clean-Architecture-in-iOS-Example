@@ -1,0 +1,173 @@
+{
+  "configurations": [
+    {
+      "id": "A0FAB507-6AA7-9656-0395-68BBCFEBABBA",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AccountUI",
+        "identifier": "AccountUIUnitTests",
+        "name": "AccountUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AuthUI",
+        "identifier": "AuthUIUnitTests",
+        "name": "AuthUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/BagUI",
+        "identifier": "BagUIUnitTests",
+        "name": "BagUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Bag",
+        "identifier": "BagUnitTests",
+        "name": "BagUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/HomeUI",
+        "identifier": "HomeUIUnitTests",
+        "name": "HomeUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Home",
+        "identifier": "HomeUnitTests",
+        "name": "HomeUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Money",
+        "identifier": "MoneyUnitTests",
+        "name": "MoneyUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OrderUI",
+        "identifier": "OrderUIUnitTests",
+        "name": "OrderUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Order",
+        "identifier": "OrderUnitTests",
+        "name": "OrderUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductActionsUI",
+        "identifier": "ProductActionsUIUnitTests",
+        "name": "ProductActionsUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductUI",
+        "identifier": "ProductUIUnitTests",
+        "name": "ProductUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Product",
+        "identifier": "ProductUnitTests",
+        "name": "ProductUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/SearchHistory",
+        "identifier": "SearchHistoryUnitTests",
+        "name": "SearchHistoryUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SearchUI",
+        "identifier": "SearchUIUnitTests",
+        "name": "SearchUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Session",
+        "identifier": "SessionUnitTests",
+        "name": "SessionUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SettingsUI",
+        "identifier": "SettingsUIUnitTests",
+        "name": "SettingsUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Settings",
+        "identifier": "SettingsUnitTests",
+        "name": "SettingsUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/StockAlert",
+        "identifier": "StockAlertUnitTests",
+        "name": "StockAlertUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/WishlistUI",
+        "identifier": "WishlistUIUnitTests",
+        "name": "WishlistUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Wishlist",
+        "identifier": "WishlistUnitTests",
+        "name": "WishlistUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

@@ -21,6 +21,7 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../../Library/AsyncTesting"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Wishlist"),
         .package(path: "../../Component/StockAlert"),
@@ -67,6 +68,7 @@ let package = Package(
         .testTarget(
             name: "WishlistUIAcceptanceTests",
             dependencies: [
+                .product(name: "AsyncTesting", package: "AsyncTesting"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
                 "WishlistUI",
@@ -97,6 +99,7 @@ let package = Package(
         .testTarget(
             name: "WishlistUIUnitTests",
             dependencies: [
+                .product(name: "AsyncTesting", package: "AsyncTesting"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
                 "WishlistUITestSupport",

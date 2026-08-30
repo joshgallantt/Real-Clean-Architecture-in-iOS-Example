@@ -1,3 +1,4 @@
+import AsyncTesting
 import AuthUITestSupport
 import Foundation
 import ProductTestSupport

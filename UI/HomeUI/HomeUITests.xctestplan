@@ -1,0 +1,37 @@
+{
+  "configurations": [
+    {
+      "id": "A1BFF586-66FC-3339-F241-098B4A1A6734",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/HomeUI",
+        "identifier": "HomeUIAcceptanceTests",
+        "name": "HomeUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/HomeUI",
+        "identifier": "HomeUISnapshotTests",
+        "name": "HomeUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/HomeUI",
+        "identifier": "HomeUIUnitTests",
+        "name": "HomeUIUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

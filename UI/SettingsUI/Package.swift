@@ -12,15 +12,12 @@ let package = Package(
             targets: ["SettingsUI"]
         ),
         .library(
-            name: "SettingsUITestSupport",
-            targets: ["SettingsUITestSupport"]
-        ),
-        .library(
             name: "SettingsUIDI",
             targets: ["SettingsUIDI"]
         )
     ],
     dependencies: [
+        .package(path: "../../Library/AsyncTesting"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Settings")
     ],
@@ -42,17 +39,12 @@ let package = Package(
             ],
             path: "Sources/DI"
         ),
-        .target(
-            name: "SettingsUITestSupport",
-            dependencies: [.product(name: "Settings", package: "Settings")],
-            path: "Sources/TestSupport"
-        ),
         .testTarget(
             name: "SettingsUIUnitTests",
             dependencies: [
+                .product(name: "AsyncTesting", package: "AsyncTesting"),
                 .product(name: "SettingsTestSupport", package: "Settings"),
                 "SettingsUI",
-                "SettingsUITestSupport",
                 .product(name: "Settings", package: "Settings")
             ],
             path: "Tests/SettingsUIUnitTests"
@@ -60,6 +52,7 @@ let package = Package(
         .testTarget(
             name: "SettingsUIAcceptanceTests",
             dependencies: [
+                .product(name: "AsyncTesting", package: "AsyncTesting"),
                 .product(name: "SettingsTestSupport", package: "Settings"),
                 "SettingsUI",
                 .product(name: "Settings", package: "Settings")
@@ -71,7 +64,6 @@ let package = Package(
             dependencies: [
                 .product(name: "SettingsTestSupport", package: "Settings"),
                 "SettingsUI",
-                "SettingsUITestSupport",
                 .product(name: "Settings", package: "Settings"),
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
             ],

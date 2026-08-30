@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "DF0EEB1F-E314-0E94-A8B1-82CE2F651B3B",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Settings",
+        "identifier": "SettingsAcceptanceTests",
+        "name": "SettingsAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Settings",
+        "identifier": "SettingsUnitTests",
+        "name": "SettingsUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

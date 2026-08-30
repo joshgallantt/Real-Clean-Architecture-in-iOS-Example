@@ -1,3 +1,4 @@
+import MoneyTestSupport
 import AuthUITestSupport
 import BagTestSupport
 import Foundation

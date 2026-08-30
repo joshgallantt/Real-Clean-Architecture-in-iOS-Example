@@ -1,0 +1,109 @@
+{
+  "configurations": [
+    {
+      "id": "DAC11448-A63D-00A3-D91A-209E3707D53C",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AccountUI",
+        "identifier": "AccountUISnapshotTests",
+        "name": "AccountUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/AuthUI",
+        "identifier": "AuthUISnapshotTests",
+        "name": "AuthUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/BagUI",
+        "identifier": "BagUISnapshotTests",
+        "name": "BagUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/HomeUI",
+        "identifier": "HomeUISnapshotTests",
+        "name": "HomeUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OnboardingUI",
+        "identifier": "OnboardingUISnapshotTests",
+        "name": "OnboardingUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OrderUI",
+        "identifier": "OrderUISnapshotTests",
+        "name": "OrderUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductActionsUI",
+        "identifier": "ProductActionsUISnapshotTests",
+        "name": "ProductActionsUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/ProductUI",
+        "identifier": "ProductUISnapshotTests",
+        "name": "ProductUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SearchUI",
+        "identifier": "SearchUISnapshotTests",
+        "name": "SearchUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SettingsUI",
+        "identifier": "SettingsUISnapshotTests",
+        "name": "SettingsUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/SnackbarUI",
+        "identifier": "SnackbarUISnapshotTests",
+        "name": "SnackbarUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/WishlistUI",
+        "identifier": "WishlistUISnapshotTests",
+        "name": "WishlistUISnapshotTests"
+      }
+    }
+  ],
+  "version": 1
+}

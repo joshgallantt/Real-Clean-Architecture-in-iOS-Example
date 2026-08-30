@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "61A2BBA8-2BF6-72C5-9C61-6B9A316B165A",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Wishlist",
+        "identifier": "WishlistAcceptanceTests",
+        "name": "WishlistAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Wishlist",
+        "identifier": "WishlistUnitTests",
+        "name": "WishlistUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

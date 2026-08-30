@@ -168,18 +168,7 @@ struct PresentationAssembler {
             observeSession: session.observeSessionUseCase,
             logoutUseCase: session.logoutUseCase,
             authUIDI: auth,
-            /// The route, not the screen. `AccountUI` renders whatever row it is handed and never
-            /// learns what an order is or which destination this is.
-            ordersRow: AnyView(
-                NavigationLink(value: Destination.orderHistory) {
-                    Label("Your Orders", systemImage: "shippingbox")
-                }
-            ),
-            settingsRow: AnyView(
-                NavigationLink(value: Destination.settings) {
-                    Label("Settings", systemImage: "gearshape")
-                }
-            )
+            navigation: navigator
         )
         self.account = account
 

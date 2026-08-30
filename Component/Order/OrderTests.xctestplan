@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "68CBE73D-587D-30F0-AE1C-39F841626B1E",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Order",
+        "identifier": "OrderAcceptanceTests",
+        "name": "OrderAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Order",
+        "identifier": "OrderUnitTests",
+        "name": "OrderUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

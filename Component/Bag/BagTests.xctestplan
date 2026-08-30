@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "A2100179-4774-B33F-E612-F880F6C0B792",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Bag",
+        "identifier": "BagAcceptanceTests",
+        "name": "BagAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Bag",
+        "identifier": "BagUnitTests",
+        "name": "BagUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

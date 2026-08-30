@@ -27,8 +27,88 @@
       buildConfiguration = "Debug"
       selectedDebuggerIdentifier = "Xcode.DebuggerFoundation.Debugger.LLDB"
       selectedLauncherIdentifier = "Xcode.DebuggerFoundation.Launcher.LLDB"
-      shouldUseLaunchSchemeArgsEnv = "YES"
-      shouldAutocreateTestPlan = "YES">
+      shouldUseLaunchSchemeArgsEnv = "YES">
+      <TestPlans>
+         <TestPlanReference
+            reference = "container:TestPlans/AllTests.xctestplan"
+            default = "YES">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:TestPlans/UnitTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:TestPlans/AcceptanceTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:TestPlans/SnapshotTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Component/Bag/BagTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Component/Home/HomeTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Component/Money/MoneyTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Component/Order/OrderTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Component/Product/ProductTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Component/SearchHistory/SearchHistoryTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Component/Session/SessionTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Component/Settings/SettingsTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Component/StockAlert/StockAlertTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:Component/Wishlist/WishlistTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/AccountUI/AccountUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/AuthUI/AuthUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/BagUI/BagUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/HomeUI/HomeUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/OnboardingUI/OnboardingUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/OrderUI/OrderUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/ProductActionsUI/ProductActionsUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/ProductUI/ProductUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/SearchUI/SearchUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/SettingsUI/SettingsUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/SnackbarUI/SnackbarUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/WishlistUI/WishlistUITests.xctestplan">
+         </TestPlanReference>
+      </TestPlans>
    </TestAction>
    <LaunchAction
       buildConfiguration = "Debug"

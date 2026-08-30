@@ -1,3 +1,4 @@
+import MoneyTestSupport
 import Combine
 import Foundation
 import Bag
@@ -18,10 +19,6 @@ final class StubBagNavigation: BagNavigation {
 }
 
 // MARK: - Fixtures
-
-func usd(_ amount: Decimal) -> Money {
-    Money(amount: amount, currency: .usd)
-}
 
 func bagItem(_ id: Int, quantity: Int = 1, price: Decimal, addedAt: Date = Date()) -> BagItem {
     BagItem(productId: pid(id), quantity: quantity, lastKnownPrice: usd(price), dateAdded: addedAt)

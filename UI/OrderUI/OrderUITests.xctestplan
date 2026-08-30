@@ -1,0 +1,37 @@
+{
+  "configurations": [
+    {
+      "id": "508566DD-24C0-4A9C-00CF-119B59677DCF",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OrderUI",
+        "identifier": "OrderUIAcceptanceTests",
+        "name": "OrderUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OrderUI",
+        "identifier": "OrderUISnapshotTests",
+        "name": "OrderUISnapshotTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/OrderUI",
+        "identifier": "OrderUIUnitTests",
+        "name": "OrderUIUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

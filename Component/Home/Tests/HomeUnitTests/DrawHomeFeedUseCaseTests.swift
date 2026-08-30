@@ -7,12 +7,16 @@ import Product
 @Suite("Drawing Home's feed")
 /// Martin, *The Clean Coder* (2011), Ch. 8 — Unit Tests: the acceptance suite says a shopper's
 /// Home is broken; these say which rule did.
+@MainActor
 struct DrawHomeFeedUseCaseTests {
     private func makeUseCase(
-        browseCatalog: StubBrowseCatalogByCategory = StubBrowseCatalogByCategory(),
-        browseCategories: SpyBrowseCategories = SpyBrowseCategories()
+        browseCatalog: StubBrowseCatalogByCategory? = nil,
+        browseCategories: SpyBrowseCategories? = nil
     ) -> DrawHomeFeedUseCase {
-        DefaultDrawHomeFeedUseCase(browseCatalog: browseCatalog, browseCategories: browseCategories)
+        DefaultDrawHomeFeedUseCase(
+            browseCatalog: browseCatalog ?? StubBrowseCatalogByCategory(),
+            browseCategories: browseCategories ?? SpyBrowseCategories()
+        )
     }
 
     @Test("Draws a carousel for each category that qualifies")

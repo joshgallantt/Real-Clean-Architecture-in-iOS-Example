@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "C5811835-DD70-C5F1-3CA0-EC24F2C0211A",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Session",
+        "identifier": "SessionAcceptanceTests",
+        "name": "SessionAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Session",
+        "identifier": "SessionUnitTests",
+        "name": "SessionUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

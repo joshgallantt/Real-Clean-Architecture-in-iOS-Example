@@ -5,7 +5,7 @@ import SessionTestSupport
 @testable import Settings
 
 @MainActor
-final class StubSettingsRepository: SettingsRepository, @unchecked Sendable {
+final class StubSettingsRepository: SettingsRepository {
     private let subject: CurrentValueSubject<Settings, Never>
 
     /// Set to have `save` throw, so a test can say what a store that will not keep something means
