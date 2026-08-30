@@ -8,6 +8,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "WishlistTestSupport",
+            targets: ["WishlistTestSupport"]
+        ),
+        .library(
             name: "Wishlist",
             targets: ["Wishlist"]
         ),
@@ -26,13 +30,21 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "WishlistTestSupport",
+            dependencies: [
+                .product(name: "Product", package: "Product"),
+                "Wishlist"
+            ],
+            path: "Sources/TestSupport"
+        ),
+        .target(
             name: "Wishlist",
             dependencies: [
                 .product(name: "Session", package: "Session"),
                 .product(name: "Product", package: "Product")
             ],
             path: "Sources",
-            exclude: ["DI", "Data"],
+            exclude: ["DI", "Data", "TestSupport"],
             sources: ["Domain"]
         ),
         .target(
@@ -43,7 +55,7 @@ let package = Package(
                 .product(name: "Product", package: "Product")
             ],
             path: "Sources",
-            exclude: ["Domain", "DI"],
+            exclude: ["Domain", "DI", "TestSupport"],
             sources: ["Data"]
         ),
         .target(

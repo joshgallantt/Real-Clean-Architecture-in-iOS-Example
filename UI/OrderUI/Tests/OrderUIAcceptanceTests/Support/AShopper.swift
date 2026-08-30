@@ -1,5 +1,8 @@
+import AuthUITestSupport
 import BagTestSupport
+import OrderTestSupport
 import ProductTestSupport
+import SessionTestSupport
 import SnackbarUITestSupport
 import Combine
 import Foundation
@@ -31,7 +34,21 @@ final class AShopper {
 
     private(set) var confirmed: [Order] = []
 
-    var isSignedIn = true
+    /// Held in the shared session stub rather than in a stub of this driver's
+    /// own, so that "who is signed in" is one fact with one representation
+    /// across every suite that asks about it.
+    var isSignedIn: Bool {
+        get { sessions.session != .guest }
+        set { sessions.session = newValue ? .authenticated(AShopper.shopper) : .guest }
+    }
+
+    private let sessions = StubGetSession(.authenticated(AShopper.shopper))
+
+    private static let shopper = User(
+        id: UserID(rawValue: 1),
+        email: Email("shopper@example.com"),
+        name: PersonName(first: "Ada", last: nil)
+    )
 
     // MARK: - The real use cases, over the doubles
 
@@ -39,7 +56,7 @@ final class AShopper {
         DefaultPlaceOrderUseCase(
             repository: orders,
             payment: till,
-            getSession: StubGetSession(shopper: self)
+            getSession: sessions
         )
     }
 
@@ -79,74 +96,6 @@ final class AShopper {
 }
 
 // MARK: - What the app cannot own
-
-@MainActor
-final class InMemoryOrderRepository: OrderRepository {
-    private let subject = CurrentValueSubject<Orders, Never>(Orders())
-
-    var orders: Orders { subject.value }
-    var ordersPublisher: AnyPublisher<Orders, Never> { subject.eraseToAnyPublisher() }
-
-    func save(_ order: Order) {
-        subject.value = subject.value.adding(order)
-    }
-}
-
-final class StubPaymentService: PaymentService, @unchecked Sendable {
-    private let lock = NSLock()
-    private var _outcome: Result<PaymentReference, PaymentFailure> = .success(PaymentReference(rawValue: "ref"))
-    private var _amountsAskedFor: [Money] = []
-
-    var outcome: Result<PaymentReference, PaymentFailure> {
-        get { lock.withLock { _outcome } }
-        set { lock.withLock { _outcome = newValue } }
-    }
-
-    var amountsAskedFor: [Money] { lock.withLock { _amountsAskedFor } }
-
-    var timesAsked: Int { amountsAskedFor.count }
-
-    func pay(_ amount: Money) async -> Result<PaymentReference, PaymentFailure> {
-        lock.withLock {
-            _amountsAskedFor.append(amount)
-            return _outcome
-        }
-    }
-}
-
-@MainActor
-/// Answers the prompt the way the shopper would. `signsIn` is what they do when asked.
-final class StubAuthPresenter: AuthPresenting {
-    var signsIn = false
-    private(set) var timesAsked = 0
-    private let onSignIn: () -> Void
-
-    init(onSignIn: @escaping () -> Void = {}) {
-        self.onSignIn = onSignIn
-    }
-
-    func show(_ prompt: AuthenticationPrompt) async -> Bool {
-        timesAsked += 1
-        if signsIn { onSignIn() }
-        return signsIn
-    }
-}
-
-private struct StubGetSession: GetSessionUseCase, @unchecked Sendable {
-    let shopper: AShopper
-
-    @MainActor
-    func callAsFunction() -> Session {
-        guard shopper.isSignedIn else { return .guest }
-        return .authenticated(
-            User(
-                id: UserID(rawValue: 1),
-                email: Email("shopper@example.com"),
-                name: PersonName(first: "Ada", last: nil)
-            )
-        )
-    }
-}
 
 // MARK: - Fixtures
 

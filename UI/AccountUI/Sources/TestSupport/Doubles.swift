@@ -10,15 +10,6 @@ import Session
 import SessionTestSupport
 @testable import AccountUI
 
-@MainActor
-final class SpyLogout: LogoutUseCase, @unchecked Sendable {
-    private(set) var callCount = 0
-
-    func callAsFunction() async {
-        callCount += 1
-    }
-}
-
 // MARK: - Fixtures
 
 extension User {

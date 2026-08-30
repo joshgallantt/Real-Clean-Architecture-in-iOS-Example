@@ -11,17 +11,6 @@ import ProductTestSupport
 @testable import HomeUI
 
 @MainActor
-final class StubDrawHomeFeed: DrawHomeFeedUseCase, @unchecked Sendable {
-    var result: Result<HomeFeed, HomeError> = .failure(.unavailable)
-    private(set) var callCount = 0
-
-    func callAsFunction() async -> Result<HomeFeed, HomeError> {
-        callCount += 1
-        return result
-    }
-}
-
-@MainActor
 final class StubNavigation: HomeNavigation {
     private(set) var openedProducts: [ProductID] = []
     private(set) var openedCatalogs: [CatalogFilter] = []

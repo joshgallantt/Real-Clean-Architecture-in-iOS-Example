@@ -1,5 +1,6 @@
 import Foundation
 import ProductTestSupport
+import SearchHistoryTestSupport
 import Testing
 import Product
 import SearchHistory

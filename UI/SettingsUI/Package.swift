@@ -50,6 +50,7 @@ let package = Package(
         .testTarget(
             name: "SettingsUIUnitTests",
             dependencies: [
+                .product(name: "SettingsTestSupport", package: "Settings"),
                 "SettingsUI",
                 "SettingsUITestSupport",
                 .product(name: "Settings", package: "Settings")
@@ -59,6 +60,7 @@ let package = Package(
         .testTarget(
             name: "SettingsUIAcceptanceTests",
             dependencies: [
+                .product(name: "SettingsTestSupport", package: "Settings"),
                 "SettingsUI",
                 .product(name: "Settings", package: "Settings")
             ],
@@ -67,6 +69,7 @@ let package = Package(
         .testTarget(
             name: "SettingsUISnapshotTests",
             dependencies: [
+                .product(name: "SettingsTestSupport", package: "Settings"),
                 "SettingsUI",
                 "SettingsUITestSupport",
                 .product(name: "Settings", package: "Settings"),

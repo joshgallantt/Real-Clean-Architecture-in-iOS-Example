@@ -1,4 +1,5 @@
 import Settings
+import SettingsTestSupport
 import SnapshotTesting
 import SwiftUI
 import Testing

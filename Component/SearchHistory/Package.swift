@@ -8,6 +8,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "SearchHistoryTestSupport",
+            targets: ["SearchHistoryTestSupport"]
+        ),
+        .library(
             name: "SearchHistory",
             targets: ["SearchHistory"]
         ),
@@ -26,12 +30,20 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "SearchHistoryTestSupport",
+            dependencies: [
+                .product(name: "Product", package: "Product"),
+                "SearchHistory"
+            ],
+            path: "Sources/TestSupport"
+        ),
+        .target(
             name: "SearchHistory",
             dependencies: [
                 .product(name: "Product", package: "Product")
             ],
             path: "Sources",
-            exclude: ["DI", "Data"],
+            exclude: ["DI", "Data", "TestSupport"],
             sources: ["Domain"]
         ),
         .target(
@@ -42,7 +54,7 @@ let package = Package(
                 .product(name: "Product", package: "Product")
             ],
             path: "Sources",
-            exclude: ["Domain", "DI"],
+            exclude: ["Domain", "DI", "TestSupport"],
             sources: ["Data"]
         ),
         .target(

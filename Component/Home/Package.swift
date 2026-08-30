@@ -8,6 +8,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "HomeTestSupport",
+            targets: ["HomeTestSupport"]
+        ),
+        .library(
             name: "Home",
             targets: ["Home"]
         ),
@@ -22,12 +26,19 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "HomeTestSupport",
+            dependencies: [
+                "Home"
+            ],
+            path: "Sources/TestSupport"
+        ),
+        .target(
             name: "Home",
             dependencies: [
                 .product(name: "Product", package: "Product")
             ],
             path: "Sources",
-            exclude: ["DI"],
+            exclude: ["DI", "TestSupport"],
             sources: ["Domain"]
         ),
         .target(

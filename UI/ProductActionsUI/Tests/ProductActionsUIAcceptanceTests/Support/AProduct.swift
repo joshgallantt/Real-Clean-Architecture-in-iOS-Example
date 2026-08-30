@@ -1,3 +1,4 @@
+import AuthUITestSupport
 import BagTestSupport
 import Combine
 import Foundation
@@ -8,6 +9,7 @@ import ProductTestSupport
 import StockAlert
 import AuthUI
 import SnackbarUI
+import StockAlertTestSupport
 @testable import ProductActionsUI
 
 @MainActor

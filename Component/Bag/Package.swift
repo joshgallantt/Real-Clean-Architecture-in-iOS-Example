@@ -55,6 +55,7 @@ let package = Package(
         .target(
             name: "BagTestSupport",
             dependencies: [
+                .product(name: "ProductTestSupport", package: "Product"),
                 "Bag",
                 .product(name: "Product", package: "Product")
             ],

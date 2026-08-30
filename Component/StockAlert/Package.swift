@@ -8,6 +8,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "StockAlertTestSupport",
+            targets: ["StockAlertTestSupport"]
+        ),
+        .library(
             name: "StockAlert",
             targets: ["StockAlert"]
         ),
@@ -27,13 +31,22 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "StockAlertTestSupport",
+            dependencies: [
+                .product(name: "Product", package: "Product"),
+                .product(name: "Session", package: "Session"),
+                "StockAlert"
+            ],
+            path: "Sources/TestSupport"
+        ),
+        .target(
             name: "StockAlert",
             dependencies: [
                 .product(name: "Session", package: "Session"),
                 .product(name: "Product", package: "Product")
             ],
             path: "Sources",
-            exclude: ["DI", "Data"],
+            exclude: ["DI", "Data", "TestSupport"],
             sources: ["Domain"]
         ),
         .target(
@@ -44,7 +57,7 @@ let package = Package(
                 .product(name: "Product", package: "Product")
             ],
             path: "Sources",
-            exclude: ["Domain", "DI"],
+            exclude: ["Domain", "DI", "TestSupport"],
             sources: ["Data"]
         ),
         .target(

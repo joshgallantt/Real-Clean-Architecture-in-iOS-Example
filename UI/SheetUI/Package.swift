@@ -8,6 +8,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "SheetUITestSupport",
+            targets: ["SheetUITestSupport"]
+        ),
+        .library(
             name: "SheetUI",
             targets: ["SheetUI"]
         ),
@@ -18,6 +22,13 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "SheetUITestSupport",
+            dependencies: [
+                "SheetUI"
+            ],
+            path: "Sources/TestSupport"
+        ),
+        .target(
             name: "SheetUI",
             dependencies: [],
             path: "Sources/SheetUI"
@@ -26,7 +37,7 @@ let package = Package(
             name: "SheetUIDI",
             dependencies: ["SheetUI"],
             path: "Sources",
-            exclude: ["SheetUI"],
+            exclude: ["SheetUI", "TestSupport"],
             sources: ["SheetUIHost", "SheetUIDI"]
         )
     ]

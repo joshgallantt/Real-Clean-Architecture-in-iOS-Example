@@ -1,5 +1,6 @@
 import Session
 import SessionTestSupport
+import SheetUITestSupport
 import SnapshotTesting
 import SwiftUI
 import Testing

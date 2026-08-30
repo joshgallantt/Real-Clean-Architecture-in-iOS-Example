@@ -1,4 +1,5 @@
 import Foundation
+import SettingsTestSupport
 import Testing
 import Settings
 @testable import SettingsUI

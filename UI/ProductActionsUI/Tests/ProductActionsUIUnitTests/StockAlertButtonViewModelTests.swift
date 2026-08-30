@@ -1,6 +1,8 @@
+import AuthUITestSupport
 import Foundation
 import ProductTestSupport
 import SnackbarUITestSupport
+import StockAlertTestSupport
 import Testing
 import Product
 @testable import ProductActionsUI

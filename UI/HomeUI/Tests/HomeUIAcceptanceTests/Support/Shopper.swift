@@ -1,4 +1,5 @@
 import Foundation
+import HomeTestSupport
 import Money
 import Product
 import Home
@@ -74,16 +75,6 @@ final class Shopper {
 }
 
 // MARK: - The one thing faked
-
-final class StubDrawHomeFeed: DrawHomeFeedUseCase, @unchecked Sendable {
-    var result: Result<HomeFeed, HomeError> = .failure(.unavailable)
-    private(set) var callCount = 0
-
-    func callAsFunction() async -> Result<HomeFeed, HomeError> {
-        callCount += 1
-        return result
-    }
-}
 
 @MainActor
 /// The app layer conforms `Navigator` to this. Home only ever opens a product or a category's

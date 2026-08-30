@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import Settings
+import SettingsTestSupport
 @testable import SettingsUI
 
 @MainActor
@@ -14,10 +15,10 @@ import Settings
 final class Shopper {
     private let settingsSubject: CurrentValueSubject<Settings, Never>
     private let signedInSubject: CurrentValueSubject<Bool, Never>
-    private let setSetting: StubSetSetting
+    private let setSetting: StubSetSettingThatKeeps
 
     private lazy var screen = SettingsScreenViewModel(
-        observeOfferedSettings: StubObserveOfferedSettings(
+        observeOfferedSettings: StubOfferedSettingsForShopper(
             settings: settingsSubject,
             signedIn: signedInSubject
         ),
@@ -27,7 +28,7 @@ final class Shopper {
     init(signedIn: Bool = false, settings: Settings = Settings()) {
         settingsSubject = CurrentValueSubject(settings)
         signedInSubject = CurrentValueSubject(signedIn)
-        setSetting = StubSetSetting(settings: settingsSubject)
+        setSetting = StubSetSettingThatKeeps(settings: settingsSubject)
     }
 
     // MARK: - What a shopper does
@@ -78,31 +79,3 @@ final class Shopper {
 }
 
 // MARK: - The shop the screen is reading
-
-private struct StubObserveOfferedSettings: ObserveOfferedSettingsUseCase, @unchecked Sendable {
-    let settings: CurrentValueSubject<Settings, Never>
-    let signedIn: CurrentValueSubject<Bool, Never>
-
-    @MainActor
-    func callAsFunction() -> AnyPublisher<[Setting], Never> {
-        settings
-            .combineLatest(signedIn) { Setting.offered(from: $0, signedIn: $1) }
-            .eraseToAnyPublisher()
-    }
-}
-
-/// A working double, not a store of canned answers: a successful write updates the same settings
-/// stream the screen observes, exactly as the real repository publishes after it keeps a change.
-private final class StubSetSetting: SetSettingUseCase, @unchecked Sendable {
-    let settings: CurrentValueSubject<Settings, Never>
-
-    init(settings: CurrentValueSubject<Settings, Never>) {
-        self.settings = settings
-    }
-
-    @MainActor
-    func callAsFunction(_ key: SettingKey, isOn: Bool) async -> Result<Void, SettingsError> {
-        settings.send(settings.value.setting(key, to: isOn))
-        return .success(())
-    }
-}

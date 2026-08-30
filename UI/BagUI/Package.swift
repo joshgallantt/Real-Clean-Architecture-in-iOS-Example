@@ -53,6 +53,7 @@ let package = Package(
         .testTarget(
             name: "BagUIAcceptanceTests",
             dependencies: [
+                .product(name: "BagTestSupport", package: "Bag"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 "BagUI",
                 .product(name: "Bag", package: "Bag"),

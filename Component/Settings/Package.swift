@@ -8,6 +8,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "SettingsTestSupport",
+            targets: ["SettingsTestSupport"]
+        ),
+        .library(
             name: "Settings",
             targets: ["Settings"]
         ),
@@ -25,12 +29,19 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "SettingsTestSupport",
+            dependencies: [
+                "Settings"
+            ],
+            path: "Sources/TestSupport"
+        ),
+        .target(
             name: "Settings",
             dependencies: [
                 .product(name: "Session", package: "Session")
             ],
             path: "Sources",
-            exclude: ["DI", "Data"],
+            exclude: ["DI", "Data", "TestSupport"],
             sources: ["Domain"]
         ),
         .target(
@@ -40,7 +51,7 @@ let package = Package(
                 .product(name: "Session", package: "Session")
             ],
             path: "Sources",
-            exclude: ["Domain", "DI"],
+            exclude: ["Domain", "DI", "TestSupport"],
             sources: ["Data"]
         ),
         .target(

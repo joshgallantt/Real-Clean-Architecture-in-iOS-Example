@@ -58,6 +58,7 @@ let package = Package(
         .testTarget(
             name: "AuthUIUnitTests",
             dependencies: [
+                .product(name: "SheetUITestSupport", package: "SheetUI"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 "AuthUITestSupport",
                 .product(name: "SessionTestSupport", package: "Session"),
@@ -70,6 +71,7 @@ let package = Package(
         .testTarget(
             name: "AuthUISnapshotTests",
             dependencies: [
+                .product(name: "SheetUITestSupport", package: "SheetUI"),
                 .product(name: "Session", package: "Session"),
                 "AuthUIDI",
                 .product(name: "SessionTestSupport", package: "Session"),

@@ -8,6 +8,10 @@ let package = Package(
     ],
     products: [
         .library(
+            name: "OrderTestSupport",
+            targets: ["OrderTestSupport"]
+        ),
+        .library(
             name: "Order",
             targets: ["Order"]
         ),
@@ -27,6 +31,15 @@ let package = Package(
     ],
     targets: [
         .target(
+            name: "OrderTestSupport",
+            dependencies: [
+                .product(name: "Product", package: "Product"),
+                .product(name: "Money", package: "Money"),
+                "Order"
+            ],
+            path: "Sources/TestSupport"
+        ),
+        .target(
             name: "Order",
             dependencies: [
                 .product(name: "Product", package: "Product"),
@@ -34,7 +47,7 @@ let package = Package(
                 .product(name: "Money", package: "Money")
             ],
             path: "Sources",
-            exclude: ["DI", "Data"],
+            exclude: ["DI", "Data", "TestSupport"],
             sources: ["Domain"]
         ),
         .target(
@@ -46,7 +59,7 @@ let package = Package(
                 .product(name: "Money", package: "Money")
             ],
             path: "Sources",
-            exclude: ["Domain", "DI"],
+            exclude: ["Domain", "DI", "TestSupport"],
             sources: ["Data"]
         ),
         .target(

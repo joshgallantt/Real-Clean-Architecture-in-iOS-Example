@@ -1,8 +1,10 @@
+import AuthUITestSupport
 import Foundation
 import ProductTestSupport
 import SnackbarUITestSupport
 import Testing
 import Product
+import WishlistTestSupport
 @testable import ProductActionsUI
 @testable import ProductActionsUITestSupport
 
