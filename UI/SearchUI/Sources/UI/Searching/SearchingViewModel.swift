@@ -3,24 +3,26 @@ import Product
 import SearchHistory
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
 ///
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
-public final class SearchingViewModel: ObservableObject {
+public final class SearchingViewModel {
     /// The work the last interaction started.
     ///
-    /// SwiftUI calls a button's action and `onAppear` synchronously, so anything
-    /// that has to be awaited starts a `Task` and returns. Keeping the handle is
-    /// what lets a test wait for that work rather than guess at how long it
-    /// takes — and what would let the screen cancel it on disappear.
-    public private(set) var inFlight: Task<Void, Never>?
-
-    @Published private(set) var history = SearchHistory()
-    @Published private(set) var suggestions: [Product] = []
-    @Published private(set) var isSuggesting: Bool = false
+    /// SwiftUI calls a button's action synchronously, so anything that has to be
+    /// awaited starts a `Task` and returns. Keeping the handle is what lets a
+    /// test wait for that work rather than guess at how long it takes.
+    ///
+    /// `@ObservationIgnored` because no view body reads it: it exists for the
+    /// caller that started the work, not for anything drawn from it.
+    @ObservationIgnored public private(set) var inFlight: Task<Void, Never>?
+    private(set) var history = SearchHistory()
+    private(set) var suggestions: [Product] = []
+    private(set) var isSuggesting: Bool = false
 
     private let getSearchHistory: GetSearchHistoryUseCase
     private let clearSearchHistory: ClearSearchHistoryUseCase

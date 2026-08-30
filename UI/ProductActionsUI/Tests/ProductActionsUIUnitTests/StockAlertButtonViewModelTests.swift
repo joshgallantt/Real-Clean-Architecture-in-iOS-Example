@@ -18,13 +18,17 @@ struct StockAlertButtonViewModelTests {
         authPresenter: StubAuthPresenter = StubAuthPresenter(),
         snackbarPresenter: SpySnackbarPresenter = SpySnackbarPresenter()
     ) -> StockAlertButtonViewModel {
-        StockAlertButtonViewModel(
+        let viewModel = StockAlertButtonViewModel(
             productId: productId,
             observeWaitlistStatus: observeWaitlistStatus,
             setStockAlert: setStockAlert,
             authPresenter: authPresenter,
             snackbarPresenter: snackbarPresenter
         )
+        /// The screen subscribes on appear rather than in `init`, so the test has
+        /// to do what the screen does before it can expect anything published.
+        viewModel.onAppear()
+        return viewModel
     }
 
     @Test("Whether the bell shows waiting follows what the use case already says")

@@ -12,6 +12,7 @@ struct OrderHistoryViewModelTests {
     @Test("A shopper with no orders has an empty history")
     func noOrdersIsEmpty() {
         let viewModel = OrderHistoryViewModel(observeOrders: StubObserveOrders())
+        viewModel.onAppear()
 
         #expect(viewModel.isEmpty)
         #expect(viewModel.orders.isEmpty)
@@ -21,6 +22,7 @@ struct OrderHistoryViewModelTests {
     func showsWhatIsAlreadyThere() {
         let order = Order.fixture()
         let viewModel = OrderHistoryViewModel(observeOrders: StubObserveOrders(Orders([order])))
+        viewModel.onAppear()
 
         #expect(viewModel.orders == [OrderSummary(order)])
         #expect(viewModel.isEmpty == false)
@@ -30,6 +32,7 @@ struct OrderHistoryViewModelTests {
     func showsAnOrderPlacedLater() {
         let observeOrders = StubObserveOrders()
         let viewModel = OrderHistoryViewModel(observeOrders: observeOrders)
+        viewModel.onAppear()
 
         observeOrders.send(Orders([.fixture()]))
 

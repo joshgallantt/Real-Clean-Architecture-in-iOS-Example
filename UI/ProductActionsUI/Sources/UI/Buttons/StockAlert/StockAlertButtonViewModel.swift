@@ -6,6 +6,7 @@ import AuthUI
 import SnackbarUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
@@ -20,10 +21,11 @@ import SnackbarUI
 /// One use case with a state, rather than one for asking and another for stopping. Two use cases
 /// meant this had to read its own `isWaiting` to decide which to call — a toggle re-derived from
 /// the thing it was toggling.
-public final class StockAlertButtonViewModel: ObservableObject {
-    @Published private(set) var isWaiting = false
+public final class StockAlertButtonViewModel {
+    private(set) var isWaiting = false
 
     private let productId: ProductID
+    private let observeWaitlistStatus: ObserveWaitlistStatusUseCase
     private let setStockAlert: SetStockAlertForProductUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
@@ -40,9 +42,17 @@ public final class StockAlertButtonViewModel: ObservableObject {
         snackbarPresenter: SnackbarPresenting
     ) {
         self.productId = productId
+        self.observeWaitlistStatus = observeWaitlistStatus
         self.setStockAlert = setStockAlert
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
+    }
+
+    /// Subscribing happens here rather than in `init`. See `WishlistButtonViewModel`:
+    /// `@State` builds its initial value on every view initialisation, and this
+    /// button is built once per product card.
+    func onAppear() {
+        guard cancellables.isEmpty else { return }
 
         observeWaitlistStatus(productId: productId)
             .sink { [weak self] value in

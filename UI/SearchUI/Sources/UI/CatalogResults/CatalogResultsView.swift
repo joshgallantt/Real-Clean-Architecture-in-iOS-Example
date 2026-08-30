@@ -3,7 +3,7 @@ import Product
 import ProductUI
 
 public struct CatalogResultsView: View {
-    @StateObject private var viewModel: CatalogResultsViewModel
+    @State private var viewModel: CatalogResultsViewModel
     let navigation: SearchNavigation
     let wishlistButton: (ProductID) -> AnyView
     let bagButton: (Product) -> AnyView
@@ -14,7 +14,7 @@ public struct CatalogResultsView: View {
         wishlistButton: @escaping (ProductID) -> AnyView,
         bagButton: @escaping (Product) -> AnyView
     ) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
         self.navigation = navigation
         self.wishlistButton = wishlistButton
         self.bagButton = bagButton

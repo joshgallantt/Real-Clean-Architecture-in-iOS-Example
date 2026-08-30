@@ -9,10 +9,10 @@ import AuthUI
 ///
 /// Each shows a handful, offers the rest, and can be emptied in one go.
 public struct WishlistScreenView: View {
-    @ObservedObject var session: WishlistScreenViewModel
-    @ObservedObject var faves: SavedProductsViewModel
-    @ObservedObject var waitlist: AlertedProductsViewModel
-    @ObservedObject var backInStock: AlertedProductsViewModel
+    let session: WishlistScreenViewModel
+    let faves: SavedProductsViewModel
+    let waitlist: AlertedProductsViewModel
+    let backInStock: AlertedProductsViewModel
 
     let navigation: WishlistNavigation
 

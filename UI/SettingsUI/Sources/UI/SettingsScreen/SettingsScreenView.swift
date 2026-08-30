@@ -1,10 +1,10 @@
 import SwiftUI
 
 public struct SettingsScreenView: View {
-    @StateObject private var viewModel: SettingsScreenViewModel
+    @State private var viewModel: SettingsScreenViewModel
 
     public init(viewModel: @autoclosure @escaping () -> SettingsScreenViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     public var body: some View {

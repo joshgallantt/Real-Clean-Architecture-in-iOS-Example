@@ -46,18 +46,22 @@ final class AProduct {
 
     // MARK: - The buttons, built the way the app builds them
 
+    /// Built and appeared, the way the app does both: the button subscribes when
+    /// it comes on screen rather than when it is constructed.
     func bagButton() -> BagButtonViewModel {
-        BagButtonViewModel(
+        let button = BagButtonViewModel(
             product: product,
             observeBagItemQuantity: DefaultObserveBagItemQuantityUseCase(repository: bagRepository),
             addItemToBag: DefaultAddItemToBagUseCase(repository: bagRepository),
             navigation: navigation,
             snackbarPresenter: snackbars
         )
+        button.onAppear()
+        return button
     }
 
     func stockAlertButton() -> StockAlertButtonViewModel {
-        StockAlertButtonViewModel(
+        let button = StockAlertButtonViewModel(
             productId: product.id,
             observeWaitlistStatus: DefaultObserveWaitlistStatusUseCase(repository: alertRepository),
             setStockAlert: DefaultSetStockAlertForProductUseCase(
@@ -67,6 +71,8 @@ final class AProduct {
             authPresenter: auth,
             snackbarPresenter: snackbars
         )
+        button.onAppear()
+        return button
     }
 
 }

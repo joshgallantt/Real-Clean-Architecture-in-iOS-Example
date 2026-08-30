@@ -2,7 +2,7 @@ import SwiftUI
 import Product
 
 public struct SearchingView: View {
-    @ObservedObject var viewModel: SearchingViewModel
+    let viewModel: SearchingViewModel
     let onSelectHistory: (SearchTerm) -> Void
     let onSelectSuggestion: (Product) -> Void
 

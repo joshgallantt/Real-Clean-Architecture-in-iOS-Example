@@ -18,13 +18,17 @@ struct WishlistButtonViewModelTests {
         authPresenter: StubAuthPresenter = StubAuthPresenter(),
         snackbarPresenter: SpySnackbarPresenter = SpySnackbarPresenter()
     ) -> WishlistButtonViewModel {
-        WishlistButtonViewModel(
+        let viewModel = WishlistButtonViewModel(
             productId: productId,
             observeProductIsWishlisted: observeProductIsWishlisted,
             setProductIsWishlisted: setProductIsWishlisted,
             authPresenter: authPresenter,
             snackbarPresenter: snackbarPresenter
         )
+        /// The screen subscribes on appear rather than in `init`, so the test has
+        /// to do what the screen does before it can expect anything published.
+        viewModel.onAppear()
+        return viewModel
     }
 
     @Test("Whether the heart is filled follows what the use case already says")

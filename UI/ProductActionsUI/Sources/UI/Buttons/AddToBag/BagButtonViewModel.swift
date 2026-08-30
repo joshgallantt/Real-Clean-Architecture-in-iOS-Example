@@ -5,6 +5,7 @@ import Product
 import SnackbarUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
@@ -12,10 +13,11 @@ import SnackbarUI
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
 ///
-public final class BagButtonViewModel: ObservableObject {
-    @Published private(set) var quantity = 0
+public final class BagButtonViewModel {
+    private(set) var quantity = 0
 
     private let product: Product
+    private let observeBagItemQuantity: ObserveBagItemQuantityUseCase
     private let addItemToBag: AddItemToBagUseCase
     private let navigation: ProductActionsNavigation
     private let snackbarPresenter: SnackbarPresenting
@@ -29,9 +31,17 @@ public final class BagButtonViewModel: ObservableObject {
         snackbarPresenter: SnackbarPresenting
     ) {
         self.product = product
+        self.observeBagItemQuantity = observeBagItemQuantity
         self.addItemToBag = addItemToBag
         self.navigation = navigation
         self.snackbarPresenter = snackbarPresenter
+    }
+
+    /// Subscribing happens here rather than in `init`. See `WishlistButtonViewModel`:
+    /// `@State` builds its initial value on every view initialisation, and this
+    /// button is built once per product card.
+    func onAppear() {
+        guard cancellables.isEmpty else { return }
 
         observeBagItemQuantity(productId: product.id)
             .sink { [weak self] value in

@@ -2,8 +2,8 @@ import SwiftUI
 import Product
 
 public struct SearchTabScreenView: View {
-    @ObservedObject var viewModel: SearchTabScreenViewModel
-    @ObservedObject var searchingViewModel: SearchingViewModel
+    @Bindable var viewModel: SearchTabScreenViewModel
+    let searchingViewModel: SearchingViewModel
     let navigation: SearchNavigation
     @FocusState private var isFocused: Bool
 

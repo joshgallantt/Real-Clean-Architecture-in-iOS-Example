@@ -5,26 +5,28 @@ import Money
 import Product
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
 ///
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
-public final class BagScreenViewModel: ObservableObject {
+public final class BagScreenViewModel {
     /// The work the last interaction started.
     ///
-    /// SwiftUI calls a button's action and `onAppear` synchronously, so anything
-    /// that has to be awaited starts a `Task` and returns. Keeping the handle is
-    /// what lets a test wait for that work rather than guess at how long it
-    /// takes — and what would let the screen cancel it on disappear.
-    public private(set) var inFlight: Task<Void, Never>?
-
-    @Published private(set) var rows: [BagRow] = []
+    /// SwiftUI calls a button's action synchronously, so anything that has to be
+    /// awaited starts a `Task` and returns. Keeping the handle is what lets a
+    /// test wait for that work rather than guess at how long it takes.
+    ///
+    /// `@ObservationIgnored` because no view body reads it: it exists for the
+    /// caller that started the work, not for anything drawn from it.
+    @ObservationIgnored public private(set) var inFlight: Task<Void, Never>?
+    private(set) var rows: [BagRow] = []
 
     /// Only the sections with something in them, in the order they are read. Five published arrays
     /// and an if-statement each is what this replaced; the view now draws whatever it is given.
-    @Published private(set) var noticeSections: [NoticeSection] = []
+    private(set) var noticeSections: [NoticeSection] = []
 
     private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase

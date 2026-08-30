@@ -4,6 +4,7 @@ import Product
 import SnackbarUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing.
 ///
@@ -15,22 +16,22 @@ import SnackbarUI
 /// Martin, Ch. 10 — Interface Segregation Principle: it is given a stream of ids, not a wishlist
 /// and not a set of stock alerts. Neither aggregate reaches this file, which is why one type can
 /// serve both without knowing that either exists.
-public final class SavedProductsViewModel: ObservableObject {
+public final class SavedProductsViewModel {
     /// Carries the cancellation: a fresh load replaces the one before it.
-    private var hydrationTask: Task<Void, Never>?
+    @ObservationIgnored private var hydrationTask: Task<Void, Never>?
 
-    /// Whatever work is most recently outstanding, whichever path started it.
+    /// The work the last interaction started.
     ///
-    /// Separate from the handle above because the two have different lives. A
-    /// reload replaces a reload; clearing the list is its own work and must not
-    /// be cancelled by the reload it causes — which is exactly what happened
-    /// when these were one property, and the test waiting on the clear waited
-    /// for something that had been cancelled out from under it.
-    public private(set) var inFlight: Task<Void, Never>?
-
-    @Published private(set) var products: [Product] = []
-    @Published private(set) var isLoading = false
-    @Published private(set) var isLoadingMore = false
+    /// SwiftUI calls a button's action synchronously, so anything that has to be
+    /// awaited starts a `Task` and returns. Keeping the handle is what lets a
+    /// test wait for that work rather than guess at how long it takes.
+    ///
+    /// `@ObservationIgnored` because no view body reads it: it exists for the
+    /// caller that started the work, not for anything drawn from it.
+    @ObservationIgnored public private(set) var inFlight: Task<Void, Never>?
+    private(set) var products: [Product] = []
+    private(set) var isLoading = false
+    private(set) var isLoadingMore = false
 
 
     private let pageSize: Int

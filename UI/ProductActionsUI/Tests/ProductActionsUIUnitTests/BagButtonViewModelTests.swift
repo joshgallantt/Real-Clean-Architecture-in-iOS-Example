@@ -18,13 +18,17 @@ struct BagButtonViewModelTests {
         navigation: SpyProductActionsNavigation = SpyProductActionsNavigation(),
         snackbarPresenter: SpySnackbarPresenter = SpySnackbarPresenter()
     ) -> BagButtonViewModel {
-        BagButtonViewModel(
+        let viewModel = BagButtonViewModel(
             product: product,
             observeBagItemQuantity: observeBagItemQuantity,
             addItemToBag: addItemToBag,
             navigation: navigation,
             snackbarPresenter: snackbarPresenter
         )
+        /// The screen subscribes on appear rather than in `init`, so the test has
+        /// to do what the screen does before it can expect anything published.
+        viewModel.onAppear()
+        return viewModel
     }
 
     @Test("The count shown follows what the bag already holds")

@@ -6,6 +6,7 @@ import AuthUI
 import SnackbarUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing. It depends on use case protocols alone —
 /// never a repository, a store or a data source.
@@ -16,10 +17,11 @@ import SnackbarUI
 /// One use case with a state, rather than one for saving and another for unsaving. Two use cases
 /// meant this had to read its own `isInWishlist` to decide which to call — a toggle re-derived from
 /// the thing it was toggling.
-public final class WishlistButtonViewModel: ObservableObject {
-    @Published private(set) var isInWishlist = false
+public final class WishlistButtonViewModel {
+    private(set) var isInWishlist = false
 
     private let productId: ProductID
+    private let observeProductIsWishlisted: ObserveProductIsWishlistedUseCase
     private let setProductIsWishlisted: SetProductIsWishlistedUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
@@ -36,9 +38,21 @@ public final class WishlistButtonViewModel: ObservableObject {
         snackbarPresenter: SnackbarPresenting
     ) {
         self.productId = productId
+        self.observeProductIsWishlisted = observeProductIsWishlisted
         self.setProductIsWishlisted = setProductIsWishlisted
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
+    }
+
+    /// Subscribing happens here rather than in `init`.
+    ///
+    /// `@State` evaluates its initial value every time SwiftUI initialises the
+    /// view — Apple's guidance is to "avoid side effects and performance-intensive
+    /// work when initializing the default value" — and this button is built once
+    /// per product card. A subscription in `init` would therefore run on every
+    /// card of every render, on instances SwiftUI then throws away.
+    func onAppear() {
+        guard cancellables.isEmpty else { return }
 
         observeProductIsWishlisted(productId: productId)
             .sink { [weak self] value in

@@ -3,7 +3,7 @@ import Product
 import Kingfisher
 
 public struct ProductDetailsScreen: View {
-    @StateObject private var viewModel: ProductDetailsViewModel
+    @State private var viewModel: ProductDetailsViewModel
     private let actionButton: (Product) -> AnyView
     private let wishlistButton: AnyView
 
@@ -19,7 +19,7 @@ public struct ProductDetailsScreen: View {
         wishlistButton: AnyView = AnyView(EmptyView()),
         buyNowButton: @escaping (Product) -> AnyView = { _ in AnyView(EmptyView()) }
     ) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
         self.actionButton = actionButton
         self.wishlistButton = wishlistButton
         self.buyNowButton = buyNowButton

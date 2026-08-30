@@ -5,6 +5,7 @@ import SnackbarUI
 import StockAlert
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: it calls one use
 /// case and publishes what came back. Which products belong on this list is not decided here — it
 /// is decided by which use case this was handed, and that is the whole point.
@@ -12,21 +13,21 @@ import StockAlert
 /// Martin, Ch. 10 — Interface Segregation Principle: `SavedProductsViewModel` fills in a list of
 /// ids the shopper is holding, which is what a wishlist is. This does not: the domain already
 /// answers with products, so there is nothing to fill in and no ids to page through.
-public final class AlertedProductsViewModel: ObservableObject {
+public final class AlertedProductsViewModel {
     /// Carries the cancellation: a fresh load replaces the one before it.
-    private var reloadTask: Task<Void, Never>?
+    @ObservationIgnored private var reloadTask: Task<Void, Never>?
 
-    /// Whatever work is most recently outstanding, whichever path started it.
+    /// The work the last interaction started.
     ///
-    /// Separate from the handle above because the two have different lives. A
-    /// reload replaces a reload; clearing the list is its own work and must not
-    /// be cancelled by the reload it causes — which is exactly what happened
-    /// when these were one property, and the test waiting on the clear waited
-    /// for something that had been cancelled out from under it.
-    public private(set) var inFlight: Task<Void, Never>?
-
-    @Published private(set) var products: [Product] = []
-    @Published private(set) var isLoading = false
+    /// SwiftUI calls a button's action synchronously, so anything that has to be
+    /// awaited starts a `Task` and returns. Keeping the handle is what lets a
+    /// test wait for that work rather than guess at how long it takes.
+    ///
+    /// `@ObservationIgnored` because no view body reads it: it exists for the
+    /// caller that started the work, not for anything drawn from it.
+    @ObservationIgnored public private(set) var inFlight: Task<Void, Never>?
+    private(set) var products: [Product] = []
+    private(set) var isLoading = false
 
     private let load: @MainActor () async -> Result<[Product], StockAlertError>
     private let changes: () -> AnyPublisher<StockAlerts, Never>

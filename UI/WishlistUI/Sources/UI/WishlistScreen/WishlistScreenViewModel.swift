@@ -3,6 +3,7 @@ import Foundation
 import Session
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing.
 ///
@@ -10,8 +11,8 @@ import Session
 /// used to hold the list as well, which meant a second list on the tab would have made it hold two
 /// — so the lists moved to `SavedProductsViewModel`, one instance each, and this kept the one thing
 /// that is about the tab rather than about either list.
-public final class WishlistScreenViewModel: ObservableObject {
-    @Published private(set) var isAuthenticated = false
+public final class WishlistScreenViewModel {
+    private(set) var isAuthenticated = false
 
     private let observeSession: ObserveSessionUseCase
     private var cancellables = Set<AnyCancellable>()

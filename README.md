@@ -57,8 +57,9 @@ Note where the line at ③ falls. The contract is in the **domain**; the thing t
 
 **[`UI/ProductActionsUI/Sources/UI/Buttons/Wishlist/WishlistButtonViewModel.swift`](UI/ProductActionsUI/Sources/UI/Buttons/Wishlist/WishlistButtonViewModel.swift)**
 ```swift
-public final class WishlistButtonViewModel: ObservableObject {
-    @Published private(set) var isInWishlist = false
+@Observable
+public final class WishlistButtonViewModel {
+    private(set) var isInWishlist = false
 
     private let setProductIsWishlisted: SetProductIsWishlistedUseCase
     private let authPresenter: AuthPresenting

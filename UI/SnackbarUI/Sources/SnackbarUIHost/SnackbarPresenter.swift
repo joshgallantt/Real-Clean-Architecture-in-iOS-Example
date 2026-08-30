@@ -2,10 +2,11 @@ import SwiftUI
 import SnackbarUI
 
 @MainActor
-public final class SnackbarPresenter: ObservableObject, SnackbarPresenting {
+@Observable
+public final class SnackbarPresenter: SnackbarPresenting {
     private static let transition: Animation = .easeInOut(duration: 0.25)
 
-    @Published public private(set) var current: Snackbar?
+    public private(set) var current: Snackbar?
 
     private var hideTask: Task<Void, Never>?
 

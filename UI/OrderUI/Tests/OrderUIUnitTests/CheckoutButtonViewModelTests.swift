@@ -24,7 +24,7 @@ struct CheckoutButtonViewModelTests {
         snackbarPresenter: SpySnackbarPresenter = SpySnackbarPresenter(),
         confirm: @escaping (Order) -> Void = { _ in }
     ) -> CheckoutButtonViewModel {
-        CheckoutButtonViewModel(
+        let viewModel = CheckoutButtonViewModel(
             observeBag: observeBag,
             placeOrder: placeOrder,
             setBagItemQuantity: setBagItemQuantity,
@@ -32,6 +32,10 @@ struct CheckoutButtonViewModelTests {
             snackbarPresenter: snackbarPresenter,
             confirm: confirm
         )
+        /// The screen subscribes on appear rather than in `init`, so the test has
+        /// to do what the screen does before it can expect anything published.
+        viewModel.onAppear()
+        return viewModel
     }
 
     private func bag(_ items: BagItem...) -> Bag { Bag(items: items) }

@@ -2,10 +2,10 @@ import SwiftUI
 import UIKit
 
 public struct BagButtonView: View {
-    @StateObject private var viewModel: BagButtonViewModel
+    @State private var viewModel: BagButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> BagButtonViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     public var body: some View {
@@ -32,5 +32,6 @@ public struct BagButtonView: View {
         }
         .buttonStyle(.plain)
         .contentShape(Circle())
+        .onAppear { viewModel.onAppear() }
     }
 }

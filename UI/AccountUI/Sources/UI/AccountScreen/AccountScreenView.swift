@@ -1,7 +1,7 @@
 import SwiftUI
 
 public struct AccountScreenView: View {
-    @ObservedObject var viewModel: AccountScreenViewModel
+    let viewModel: AccountScreenViewModel
     private let loginButton: AnyView
 
     /// Where the rows go. `loginButton` stays an `AnyView` because it is a

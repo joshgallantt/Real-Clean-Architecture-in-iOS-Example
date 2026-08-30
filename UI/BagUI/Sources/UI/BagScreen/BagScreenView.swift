@@ -4,7 +4,7 @@ import Kingfisher
 import Product
 
 public struct BagScreenView: View {
-    @ObservedObject var viewModel: BagScreenViewModel
+    let viewModel: BagScreenViewModel
     @State private var isConfirmingRemoveAll = false
 
     /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: a bell this
