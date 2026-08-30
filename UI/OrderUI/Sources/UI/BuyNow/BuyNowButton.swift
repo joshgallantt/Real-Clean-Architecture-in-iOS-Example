@@ -6,10 +6,10 @@ import UIKit
 /// "I am done" — and a screen that offered only the second would make a shopper who wanted to keep
 /// browsing check out to keep anything.
 public struct BuyNowButton: View {
-    @StateObject private var viewModel: BuyNowButtonViewModel
+    @State private var viewModel: BuyNowButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> BuyNowButtonViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     public var body: some View {

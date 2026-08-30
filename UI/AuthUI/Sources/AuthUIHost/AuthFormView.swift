@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct AuthFormView: View {
-    @ObservedObject var viewModel: AuthViewModel
+    @Bindable var viewModel: AuthViewModel
 
     @FocusState private var focused: Field?
 

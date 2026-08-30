@@ -73,8 +73,10 @@ final class AShopper {
         )
     }
 
+    /// Built and appeared, the way the app does both: the button subscribes when
+    /// it comes on screen rather than when it is constructed.
     func checkoutButton() -> CheckoutButtonViewModel {
-        CheckoutButtonViewModel(
+        let button = CheckoutButtonViewModel(
             observeBag: DefaultObserveBagUseCase(repository: bag),
             placeOrder: placeOrder,
             setBagItemQuantity: DefaultSetBagItemQuantityUseCase(repository: bag),
@@ -82,6 +84,8 @@ final class AShopper {
             snackbarPresenter: snackbars,
             confirm: { [weak self] in self?.confirmed.append($0) }
         )
+        button.onAppear()
+        return button
     }
 
     // MARK: - What is already true when they arrive

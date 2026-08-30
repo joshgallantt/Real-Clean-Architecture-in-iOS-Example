@@ -1,10 +1,10 @@
 import SwiftUI
 
 public struct WelcomeScreenView: View {
-    @StateObject private var viewModel: WelcomeScreenViewModel
+    @State private var viewModel: WelcomeScreenViewModel
 
     public init(viewModel: @autoclosure @escaping () -> WelcomeScreenViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     public var body: some View {

@@ -2,10 +2,10 @@ import SwiftUI
 import UIKit
 
 public struct AddToBagButton: View {
-    @StateObject private var viewModel: BagButtonViewModel
+    @State private var viewModel: BagButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> BagButtonViewModel) {
-        self._viewModel = StateObject(wrappedValue: viewModel())
+        self._viewModel = State(wrappedValue: viewModel())
     }
 
     public var body: some View {
@@ -22,5 +22,6 @@ public struct AddToBagButton: View {
         }
         .buttonStyle(.borderedProminent)
         .controlSize(.large)
+        .onAppear { viewModel.onAppear() }
     }
 }

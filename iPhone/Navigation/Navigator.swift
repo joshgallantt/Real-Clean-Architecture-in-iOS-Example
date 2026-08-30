@@ -1,23 +1,23 @@
 import SwiftUI
-import Combine
 import Foundation
 import AuthUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: conforms to every
 /// feature's navigation protocol, so the features depend on their own declarations and never on
 /// this.
-final class Navigator: ObservableObject {
+final class Navigator {
     enum Tabs: Hashable {
         case home, search, bag, wishlist, account
     }
 
-    @Published var selectedTab: Tabs = .home
-    @Published var homePath = NavigationPath()
-    @Published var searchPath = NavigationPath()
-    @Published var bagPath = NavigationPath()
-    @Published var wishlistPath = NavigationPath()
-    @Published var accountPath = NavigationPath()
+    var selectedTab: Tabs = .home
+    var homePath = NavigationPath()
+    var searchPath = NavigationPath()
+    var bagPath = NavigationPath()
+    var wishlistPath = NavigationPath()
+    var accountPath = NavigationPath()
 
     private let authPresenter: AuthPresenting
 

@@ -8,24 +8,27 @@ import AuthUI
 import SnackbarUI
 
 @MainActor
+@Observable
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing.
 ///
 /// Martin, Ch. 13 — Component Cohesion: this lives in `OrderUI` rather than `BagUI` because it
 /// changes when ordering changes, not when the bag does. `BagUI` is handed a finished button and
 /// never learns there is an order domain, the same way it is handed a stock alert bell.
-public final class CheckoutButtonViewModel: ObservableObject {
+public final class CheckoutButtonViewModel {
     /// The work the last interaction started.
     ///
-    /// SwiftUI calls a button's action and `onAppear` synchronously, so anything
-    /// that has to be awaited starts a `Task` and returns. Keeping the handle is
-    /// what lets a test wait for that work rather than guess at how long it
-    /// takes — and what would let the screen cancel it on disappear.
-    public private(set) var inFlight: Task<Void, Never>?
+    /// SwiftUI calls a button's action synchronously, so anything that has to be
+    /// awaited starts a `Task` and returns. Keeping the handle is what lets a
+    /// test wait for that work rather than guess at how long it takes.
+    ///
+    /// `@ObservationIgnored` because no view body reads it: it exists for the
+    /// caller that started the work, not for anything drawn from it.
+    @ObservationIgnored public private(set) var inFlight: Task<Void, Never>?
+    private(set) var isPlacing = false
+    private(set) var bag = Bag()
 
-    @Published private(set) var isPlacing = false
-    @Published private(set) var bag = Bag()
-
+    private let observeBag: ObserveBagUseCase
     private let placeOrder: PlaceOrderUseCase
     private let setBagItemQuantity: SetBagItemQuantityUseCase
     private let authPresenter: AuthPresenting
@@ -41,11 +44,19 @@ public final class CheckoutButtonViewModel: ObservableObject {
         snackbarPresenter: SnackbarPresenting,
         confirm: @escaping (Order) -> Void
     ) {
+        self.observeBag = observeBag
         self.placeOrder = placeOrder
         self.setBagItemQuantity = setBagItemQuantity
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
         self.confirm = confirm
+    }
+
+    /// Subscribing happens here rather than in `init`, because `@State` builds its
+    /// initial value on every view initialisation and a subscription is a side
+    /// effect Apple's guidance says to keep out of that.
+    func onAppear() {
+        guard cancellables.isEmpty else { return }
 
         observeBag()
             .sink { [weak self] bag in

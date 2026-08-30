@@ -2,8 +2,9 @@ import SwiftUI
 import SheetUI
 
 @MainActor
-public final class SheetPresenter: ObservableObject, SheetPresenting {
-    @Published var presentation: SheetPresentation?
+@Observable
+public final class SheetPresenter: SheetPresenting {
+    var presentation: SheetPresentation?
 
     private var dismissalHandler: (() -> Void)?
     private var queued: SheetPresentation?

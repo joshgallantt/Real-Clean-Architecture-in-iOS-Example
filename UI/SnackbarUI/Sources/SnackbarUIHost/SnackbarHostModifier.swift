@@ -1,7 +1,7 @@
 import SwiftUI
 
 private struct SnackbarHostModifier: ViewModifier {
-    @ObservedObject var presenter: SnackbarPresenter
+    let presenter: SnackbarPresenter
     let bottomInset: CGFloat
 
     func body(content: Content) -> some View {
