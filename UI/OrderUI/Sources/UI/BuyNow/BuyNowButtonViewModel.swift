@@ -13,6 +13,14 @@ import SnackbarUI
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
 public final class BuyNowButtonViewModel: ObservableObject {
+    /// The work the last interaction started.
+    ///
+    /// SwiftUI calls a button's action and `onAppear` synchronously, so anything
+    /// that has to be awaited starts a `Task` and returns. Keeping the handle is
+    /// what lets a test wait for that work rather than guess at how long it
+    /// takes — and what would let the screen cancel it on disappear.
+    public private(set) var inFlight: Task<Void, Never>?
+
     @Published private(set) var isPlacing = false
 
     private let product: Product
@@ -42,7 +50,7 @@ public final class BuyNowButtonViewModel: ObservableObject {
     /// it exists to stop, and the shopper would sign in to nothing happening.
     func didTap() {
         guard !isPlacing else { return }
-        Task {
+        inFlight = Task {
             isPlacing = true
             defer { isPlacing = false }
             await buy()

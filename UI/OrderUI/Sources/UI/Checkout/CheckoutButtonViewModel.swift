@@ -15,6 +15,14 @@ import SnackbarUI
 /// changes when ordering changes, not when the bag does. `BagUI` is handed a finished button and
 /// never learns there is an order domain, the same way it is handed a stock alert bell.
 public final class CheckoutButtonViewModel: ObservableObject {
+    /// The work the last interaction started.
+    ///
+    /// SwiftUI calls a button's action and `onAppear` synchronously, so anything
+    /// that has to be awaited starts a `Task` and returns. Keeping the handle is
+    /// what lets a test wait for that work rather than guess at how long it
+    /// takes — and what would let the screen cancel it on disappear.
+    public private(set) var inFlight: Task<Void, Never>?
+
     @Published private(set) var isPlacing = false
     @Published private(set) var bag = Bag()
 
@@ -55,7 +63,7 @@ public final class CheckoutButtonViewModel: ObservableObject {
     /// double tap it exists to stop, and the shopper would sign in to nothing happening.
     func didTap() {
         guard !isPlacing else { return }
-        Task {
+        inFlight = Task {
             isPlacing = true
             defer { isPlacing = false }
             await checkOut()

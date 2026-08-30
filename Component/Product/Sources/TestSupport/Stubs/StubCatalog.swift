@@ -4,8 +4,8 @@ import Synchronization
 
 /// A shop with stock, which can also be made unreachable.
 ///
-/// The merge of two: Bag's copy could refuse to answer and StockAlert's could
-/// not, and they were otherwise the same character for character.
+/// One stub for Bag and StockAlert both: they ask a shop the same thing, and
+/// only one of them needs it to be unreachable.
 ///
 /// State lives in a `Mutex` rather than behind an `NSLock`, so the type is
 /// `Sendable` because the compiler can see that it is. `@unchecked Sendable` is

@@ -61,6 +61,6 @@ public struct AlertedProductsListView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
-        .task { viewModel.onAppear() }
+        .task { await viewModel.onAppear() }
     }
 }

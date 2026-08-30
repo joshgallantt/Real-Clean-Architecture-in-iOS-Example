@@ -1,4 +1,3 @@
-import AsyncTesting
 import Foundation
 import HomeTestSupport
 import Money
@@ -52,7 +51,7 @@ final class Shopper {
 
     func triesAgain() async {
         home?.didTapRetry()
-        await settle()
+        await home?.inFlight?.value
     }
 
     // MARK: - What a shopper sees
@@ -73,40 +72,4 @@ final class Shopper {
     }
 
     var drawAttempts: Int { drawHomeFeed.callCount }
-}
-
-// MARK: - The one thing faked
-
-@MainActor
-/// The app layer conforms `Navigator` to this. Home only ever opens a product or a category's
-/// results, so that is all the test needs to know about.
-final class StubHomeNavigation: HomeNavigation {
-    private(set) var openedProducts: [ProductID] = []
-    private(set) var openedCatalogs: [CatalogFilter] = []
-
-    nonisolated func openProductDetails(product: Product) {
-        MainActor.assumeIsolated { openedProducts.append(product.id) }
-    }
-
-    nonisolated func openCatalog(filter: CatalogFilter) {
-        MainActor.assumeIsolated { openedCatalogs.append(filter) }
-    }
-}
-
-// MARK: - Fixtures
-
-func products(
-    _ ids: ClosedRange<Int>,
-    category: String,
-    availability: Availability = .inStock(remaining: 10)
-) -> [Product] {
-    ids.map { Product.fixture(id: $0, category: category, availability: availability) }
-}
-
-/// Test-fixture categories only — production code never extends a domain type (see
-/// `presentation-models-not-domain-extensions`), but a domain type inside a test fixture is fine.
-extension ProductCategory {
-    static let beauty = ProductCategory(id: CategoryID(rawValue: "beauty"), name: "Beauty")
-    static let fragrances = ProductCategory(id: CategoryID(rawValue: "fragrances"), name: "Fragrances")
-    static let furniture = ProductCategory(id: CategoryID(rawValue: "furniture"), name: "Furniture")
 }

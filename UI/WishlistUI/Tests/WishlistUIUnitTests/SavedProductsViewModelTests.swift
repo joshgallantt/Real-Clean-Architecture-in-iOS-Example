@@ -1,4 +1,3 @@
-import AsyncTesting
 import Foundation
 import ProductTestSupport
 import SnackbarUITestSupport
@@ -38,7 +37,7 @@ struct SavedProductsViewModelTests {
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
 
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(viewModel.products.map(\.id) == [pid(1), pid(2)])
         #expect(viewModel.savedCount == 2)
@@ -50,7 +49,7 @@ struct SavedProductsViewModelTests {
         let viewModel = makeViewModel(lookUpProducts: lookUpProducts)
 
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(viewModel.isEmpty)
         #expect(lookUpProducts.asked.isEmpty)
@@ -64,7 +63,7 @@ struct SavedProductsViewModelTests {
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
 
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(viewModel.products.map(\.id) == [pid(1)])
     }
@@ -77,7 +76,7 @@ struct SavedProductsViewModelTests {
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts, pageSize: 2)
 
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(viewModel.products.count == 2)
         #expect(viewModel.savedCount == 5)
@@ -90,10 +89,10 @@ struct SavedProductsViewModelTests {
         lookUpProducts.result = .success((1...5).map { .fixture(id: $0) })
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts, pageSize: 2)
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         viewModel.onReachEnd()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(viewModel.products.count == 4)
     }
@@ -105,11 +104,11 @@ struct SavedProductsViewModelTests {
         lookUpProducts.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         savedProductIds.send([pid(1), pid(2)])
         lookUpProducts.result = .failure(.unavailable)
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(viewModel.products.map(\.id) == [pid(1)])
         #expect(viewModel.isEmpty == false)
@@ -129,7 +128,7 @@ struct SavedProductsViewModelTests {
         )
 
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(snackbar.shown.first?.title == "Couldn't Load My Faves")
     }
@@ -149,7 +148,7 @@ struct SavedProductsViewModelTests {
         )
 
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(viewModel.products.map(\.id) == [pid(1)])
     }
@@ -169,7 +168,7 @@ struct SavedProductsViewModelTests {
         )
 
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(viewModel.savedCount == 1)
     }
@@ -182,10 +181,10 @@ struct SavedProductsViewModelTests {
         let clear = SpyClearTheList()
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts, clear: clear)
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         viewModel.didConfirmClear()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(clear.calls == [[pid(1), pid(2)]])
     }
@@ -195,10 +194,10 @@ struct SavedProductsViewModelTests {
         let clear = SpyClearTheList()
         let viewModel = makeViewModel(clear: clear)
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         viewModel.didConfirmClear()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(clear.calls.isEmpty)
     }
@@ -210,11 +209,11 @@ struct SavedProductsViewModelTests {
         lookUpProducts.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         savedProductIds.send([pid(1), pid(2)])
         lookUpProducts.result = .success([.fixture(id: 2)])
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(lookUpProducts.asked == [[pid(1)], [pid(2)]])
     }
@@ -226,12 +225,12 @@ struct SavedProductsViewModelTests {
         lookUpProducts.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
         viewModel.onAppear()
-        await settle()
+        await viewModel.inFlight?.value
 
         viewModel.onAppear()
         lookUpProducts.result = .success([.fixture(id: 2)])
         savedProductIds.send([pid(1), pid(2)])
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(lookUpProducts.asked == [[pid(1)], [pid(2)]])
     }

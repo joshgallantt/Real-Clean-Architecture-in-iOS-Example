@@ -1,4 +1,3 @@
-import AsyncTesting
 import Foundation
 import ProductTestSupport
 import Testing
@@ -16,7 +15,6 @@ struct PuttingSomethingInTheBagTests {
         let shown = AProduct()
 
         shown.bagButton().didTap()
-        await shown.settle()
 
         #expect(shown.bagContains == [pid(1)])
         #expect(shown.snackbarTitles == ["In the Bag"])
@@ -29,7 +27,6 @@ struct PuttingSomethingInTheBagTests {
 
         button.didTap()
         button.didTap()
-        await shown.settle()
 
         #expect(button.quantity == 2)
     }
@@ -39,7 +36,6 @@ struct PuttingSomethingInTheBagTests {
         let shown = AProduct(.fixture(id: 1, availability: .outOfStock))
 
         shown.bagButton().didTap()
-        await shown.settle()
 
         #expect(shown.bagContains.isEmpty)
         #expect(shown.snackbarTitles.isEmpty)
@@ -57,7 +53,7 @@ struct AskingToBeToldTests {
         let bell = shown.stockAlertButton()
 
         bell.didTap()
-        await shown.settle()
+        await bell.inFlight?.value
 
         #expect(shown.waitingFor == [pid(1)])
         #expect(shown.snackbarTitles == ["You're on the List"])
@@ -71,7 +67,7 @@ struct AskingToBeToldTests {
         #expect(bell.isWaiting == false)
 
         bell.didTap()
-        await shown.settle()
+        await bell.inFlight?.value
 
         #expect(bell.isWaiting == true)
     }
@@ -82,9 +78,9 @@ struct AskingToBeToldTests {
         let bell = shown.stockAlertButton()
 
         bell.didTap()
-        await shown.settle()
+        await bell.inFlight?.value
         bell.didTap()
-        await shown.settle()
+        await bell.inFlight?.value
 
         #expect(shown.waitingFor.isEmpty)
         #expect(bell.isWaiting == false)
@@ -98,7 +94,7 @@ struct AskingToBeToldTests {
 
         bell.didTap()
         bell.didTap()
-        await shown.settle()
+        await bell.inFlight?.value
 
         #expect(shown.waitingFor.isEmpty)
         #expect(bell.isWaiting == false)
@@ -111,7 +107,7 @@ struct AskingToBeToldTests {
         let bell = shown.stockAlertButton()
 
         bell.didTap()
-        await shown.settle()
+        await bell.inFlight?.value
 
         #expect(shown.wasAskedToSignIn)
         #expect(shown.waitingFor.isEmpty)
@@ -124,7 +120,7 @@ struct AskingToBeToldTests {
         let bell = shown.stockAlertButton()
 
         bell.didTap()
-        await shown.settle()
+        await bell.inFlight?.value
 
         #expect(bell.isWaiting == false)
         #expect(shown.snackbarTitles.isEmpty)

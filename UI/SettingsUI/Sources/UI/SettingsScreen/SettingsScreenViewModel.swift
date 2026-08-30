@@ -11,6 +11,14 @@ import Settings
 /// a container that could resolve anything. Which settings a shopper is offered is not one of them —
 /// it is handed the ones they are offered, and decides only their wording and their order.
 public final class SettingsScreenViewModel: ObservableObject {
+    /// The work the last interaction started.
+    ///
+    /// SwiftUI calls a button's action and `onAppear` synchronously, so anything
+    /// that has to be awaited starts a `Task` and returns. Keeping the handle is
+    /// what lets a test wait for that work rather than guess at how long it
+    /// takes — and what would let the screen cancel it on disappear.
+    public private(set) var inFlight: Task<Void, Never>?
+
     @Published private(set) var sections: [SettingsSectionModel] = []
 
     private let observeOfferedSettings: ObserveOfferedSettingsUseCase
@@ -36,7 +44,7 @@ public final class SettingsScreenViewModel: ObservableObject {
     }
 
     func didToggle(_ key: SettingKey, to isOn: Bool) {
-        Task { [setSetting] in
+        inFlight = Task { [setSetting] in
             await setSetting(key, isOn: isOn)
         }
     }

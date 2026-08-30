@@ -59,6 +59,6 @@ public struct SavedProductsListView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
-        .task { viewModel.onAppear() }
+        .onAppear { viewModel.onAppear() }
     }
 }

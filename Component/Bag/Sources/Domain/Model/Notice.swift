@@ -2,8 +2,8 @@ import Money
 import Product
 
 /// Evans, *Domain-Driven Design* (2003), Ch. 2 — Ubiquitous Language: one word for the thing a
-/// shopper is told. The screen shows notices, so the domain says `Notice` — this was `BagChange`
-/// here and `Notice` there, in a bag where "change" already meant changing how many you want.
+/// shopper is told. The screen shows notices, so the domain says `Notice` and not `BagChange`, in a
+/// bag where "change" already means changing how many you want.
 ///
 /// Evans, Ch. 9 — Making Implicit Concepts Explicit: each way the shop can change its mind is a
 /// case, so a notice cannot be built that says two things at once or nothing at all.
@@ -14,9 +14,9 @@ public enum Notice: Equatable, Sendable {
     case priceWentDown(productId: ProductID, from: Money, to: Money)
 
     /// Evans, Ch. 9 — Making Implicit Concepts Explicit: which of the four a notice is, named apart
-    /// from what it carries. Which kind something was used to be recorded twice over — as `if case`
-    /// filters on the collection, and again as a second enum in the bag screen — so a new notice
-    /// meant three lists to find and agree.
+    /// from what it carries, and named here alone. Recorded again as `if case` filters on the
+    /// collection and as a second enum in the bag screen, a new notice would mean three lists to
+    /// find and agree.
     public enum Kind: Equatable, Sendable {
         case outOfStock
         case onlySomeLeft

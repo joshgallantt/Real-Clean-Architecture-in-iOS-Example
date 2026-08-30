@@ -12,6 +12,14 @@ import Product
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
 public final class BagScreenViewModel: ObservableObject {
+    /// The work the last interaction started.
+    ///
+    /// SwiftUI calls a button's action and `onAppear` synchronously, so anything
+    /// that has to be awaited starts a `Task` and returns. Keeping the handle is
+    /// what lets a test wait for that work rather than guess at how long it
+    /// takes — and what would let the screen cancel it on disappear.
+    public private(set) var inFlight: Task<Void, Never>?
+
     @Published private(set) var rows: [BagRow] = []
 
     /// Only the sections with something in them, in the order they are read. Five published arrays
@@ -29,7 +37,6 @@ public final class BagScreenViewModel: ObservableObject {
     private var bag = Bag()
     private var news = Notices()
     private var catalog: [ProductID: Product] = [:]
-    private var lookupTask: Task<Void, Never>?
 
     /// Fowler, *PoEAA* (2002), Ch. 18 — Money: always from the bag, never the catalog, so the total
     /// is right whether or not anything loaded.
@@ -65,21 +72,24 @@ public final class BagScreenViewModel: ObservableObject {
         self.acknowledgeNotices = acknowledgeNotices
     }
 
-    func onAppear() {
+    /// `async` so the screen can await it from `.task`, which ties the ask to how
+    /// long the bag is on screen and cancels it on the way out. A tap has no async
+    /// context and goes through `startAskingTheShop()` instead.
+    func onAppear() async {
         if cancellables.isEmpty {
             subscribe()
         }
-        askTheShop()
+        await askTheShop()
     }
 
     func didChangeQuantity(productId: ProductID, quantity: Int) {
         setBagItemQuantity(productId: productId, to: quantity)
-        askTheShop()
+        startAskingTheShop()
     }
 
     func didSwipeToDelete(productId: ProductID) {
         setBagItemQuantity(productId: productId, to: 0)
-        askTheShop()
+        startAskingTheShop()
     }
 
     /// Any line on this screen goes to its product, in the bag or in a notice. Opening it is
@@ -113,12 +123,12 @@ public final class BagScreenViewModel: ObservableObject {
         for item in bag.items {
             setBagItemQuantity(productId: item.id, to: 0)
         }
-        askTheShop()
+        startAskingTheShop()
     }
 
     func didRemoveChangedItem(productId: ProductID) {
         setBagItemQuantity(productId: productId, to: 0)
-        askTheShop()
+        startAskingTheShop()
     }
 
     // MARK: -
@@ -180,24 +190,30 @@ public final class BagScreenViewModel: ObservableObject {
     /// The use case does the asking now, and hands back what it was told — so this screen gets its
     /// names and pictures out of the same reply that settled the prices, rather than making a
     /// second round trip over the same ids to draw them.
-    private func askTheShop() {
-        lookupTask?.cancel()
+    /// SwiftUI calls a button action synchronously, so a tap starts the ask and
+    /// returns. The handle is what makes a fresh ask replace the one before it,
+    /// and what lets a test wait for work a tap started rather than guess at it.
+    private func startAskingTheShop() {
+        inFlight?.cancel()
+        inFlight = Task { [weak self] in
+            guard let self else { return }
+            await self.askTheShop()
+        }
+    }
 
+    private func askTheShop() async {
         let onScreen = productsOnScreen
         catalog = catalog.filter { onScreen.contains($0.key) }
 
         guard !onScreen.isEmpty else { return }
 
-        lookupTask = Task { [weak self] in
-            guard let self else { return }
-            let products = await self.bringBagUpToDate()
-            guard !Task.isCancelled else { return }
+        let products = await bringBagUpToDate()
+        guard !Task.isCancelled else { return }
 
-            for product in products {
-                self.catalog[product.id] = product
-            }
-
-            self.render()
+        for product in products {
+            catalog[product.id] = product
         }
+
+        render()
     }
 }

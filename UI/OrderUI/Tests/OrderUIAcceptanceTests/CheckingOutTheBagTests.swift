@@ -1,5 +1,4 @@
 import MoneyTestSupport
-import AsyncTesting
 import Foundation
 import ProductTestSupport
 import Testing
@@ -7,6 +6,7 @@ import Money
 import Order
 import Product
 @testable import OrderUI
+@testable import OrderUITestSupport
 
 @MainActor
 @Suite("Checking out the bag", .serialized)
@@ -97,37 +97,5 @@ struct CheckingOutTheBagTests {
         #expect(shopper.signIn.timesAsked == 1)
         #expect(shopper.bag.bag.isEmpty == false)
         #expect(shopper.orders.orders.isEmpty)
-    }
-}
-
-/// The tap a shopper makes, and the wait a test has to do because the button does not.
-///
-/// It waits on `isPlacing` rather than counting yields. A fixed count is a guess about how busy the
-/// machine is: this suite failed three tests exactly once, on the run straight after a full rebuild,
-/// and passed every run before and since. A test that passes because the CPU was free is not
-/// passing. The sign-in path is the longest — refused, prompted, then placed again — and it is the
-/// one a fixed count loses first.
-@MainActor
-private func settle(whilePlacing isPlacing: @autoclosure () -> Bool, tap: () -> Void) async {
-    tap()
-
-    /// The work happens in a `Task`, so it may not have started when the tap returns — and it may
-    /// equally have finished already. Neither is an error; both leave `isPlacing` false.
-    for _ in 0..<200 where !isPlacing() { await Task.yield() }
-    for _ in 0..<5_000 where isPlacing() { await Task.yield() }
-    for _ in 0..<20 { await Task.yield() }
-}
-
-@MainActor
-extension CheckoutButtonViewModel {
-    func tapAndSettle() async {
-        await settle(whilePlacing: self.isPlacing, tap: didTap)
-    }
-}
-
-@MainActor
-extension BuyNowButtonViewModel {
-    func tapAndSettle() async {
-        await settle(whilePlacing: self.isPlacing, tap: didTap)
     }
 }

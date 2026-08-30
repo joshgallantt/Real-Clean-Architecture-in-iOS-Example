@@ -1,4 +1,3 @@
-import AsyncTesting
 import Foundation
 import ProductTestSupport
 import SnackbarUITestSupport
@@ -33,8 +32,7 @@ struct AlertedProductsViewModelTests {
         load.result = .success([.fixture(id: 1), .fixture(id: 2)])
         let viewModel = makeViewModel(load: load)
 
-        viewModel.onAppear()
-        await settle()
+        await viewModel.onAppear()
 
         #expect(viewModel.products.map(\.id) == [pid(1), pid(2)])
         #expect(viewModel.count == 2)
@@ -47,12 +45,11 @@ struct AlertedProductsViewModelTests {
         load.result = .success([])
         let changes = StubObserveStockAlerts()
         let viewModel = makeViewModel(load: load, changes: changes)
-        viewModel.onAppear()
-        await settle()
+        await viewModel.onAppear()
         let loadsSoFar = load.callCount
 
         changes.send(StockAlerts(alerts: [StockAlert(productId: pid(1))]))
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(load.callCount > loadsSoFar)
     }
@@ -62,15 +59,14 @@ struct AlertedProductsViewModelTests {
         let load = StubGetAlertedProducts()
         let changes = StubObserveStockAlerts()
         let viewModel = makeViewModel(load: load, changes: changes)
-        viewModel.onAppear()
-        await settle()
+        await viewModel.onAppear()
         let same = StockAlerts(alerts: [StockAlert(productId: pid(1))])
         changes.send(same)
-        await settle()
+        await viewModel.inFlight?.value
         let loadsSoFar = load.callCount
 
         changes.send(same)
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(load.callCount == loadsSoFar)
     }
@@ -80,12 +76,10 @@ struct AlertedProductsViewModelTests {
         let load = StubGetAlertedProducts()
         load.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(load: load)
-        viewModel.onAppear()
-        await settle()
+        await viewModel.onAppear()
 
         load.result = .failure(.unavailable)
-        viewModel.onAppear()
-        await settle()
+        await viewModel.onAppear()
 
         #expect(viewModel.products.map(\.id) == [pid(1)])
     }
@@ -97,8 +91,7 @@ struct AlertedProductsViewModelTests {
         let snackbar = SpySnackbarPresenter()
         let viewModel = makeViewModel(load: load, snackbar: snackbar, couldNotLoad: "Couldn't Load the Waitlist")
 
-        viewModel.onAppear()
-        await settle()
+        await viewModel.onAppear()
 
         #expect(snackbar.shown.first?.title == "Couldn't Load the Waitlist")
     }
@@ -109,11 +102,10 @@ struct AlertedProductsViewModelTests {
         load.result = .success([.fixture(id: 1), .fixture(id: 2)])
         let clear = SpyClearTheList()
         let viewModel = makeViewModel(load: load, clear: clear)
-        viewModel.onAppear()
-        await settle()
+        await viewModel.onAppear()
 
         viewModel.didConfirmClear()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(clear.calls == [[pid(1), pid(2)]])
     }
@@ -122,11 +114,10 @@ struct AlertedProductsViewModelTests {
     func clearingAnEmptyListAsksNothing() async {
         let clear = SpyClearTheList()
         let viewModel = makeViewModel(clear: clear)
-        viewModel.onAppear()
-        await settle()
+        await viewModel.onAppear()
 
         viewModel.didConfirmClear()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(clear.calls.isEmpty)
     }

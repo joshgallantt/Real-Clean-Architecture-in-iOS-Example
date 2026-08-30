@@ -1,4 +1,3 @@
-import AsyncTesting
 import Foundation
 import SettingsTestSupport
 import Testing
@@ -130,7 +129,7 @@ struct SettingsScreenViewModelTests {
         let viewModel = makeViewModel(setSetting: setSetting)
 
         viewModel.didToggle(.bagPriceDecreases, to: false)
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(setSetting.calls.map(\.key) == [.bagPriceDecreases])
         #expect(setSetting.calls.map(\.isOn) == [false])

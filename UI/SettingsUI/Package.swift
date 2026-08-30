@@ -17,7 +17,6 @@ let package = Package(
         )
     ],
     dependencies: [
-        .package(path: "../../Library/AsyncTesting"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Settings")
     ],
@@ -42,7 +41,6 @@ let package = Package(
         .testTarget(
             name: "SettingsUIUnitTests",
             dependencies: [
-                .product(name: "AsyncTesting", package: "AsyncTesting"),
                 .product(name: "SettingsTestSupport", package: "Settings"),
                 "SettingsUI",
                 .product(name: "Settings", package: "Settings")
@@ -52,7 +50,6 @@ let package = Package(
         .testTarget(
             name: "SettingsUIAcceptanceTests",
             dependencies: [
-                .product(name: "AsyncTesting", package: "AsyncTesting"),
                 .product(name: "SettingsTestSupport", package: "Settings"),
                 "SettingsUI",
                 .product(name: "Settings", package: "Settings")

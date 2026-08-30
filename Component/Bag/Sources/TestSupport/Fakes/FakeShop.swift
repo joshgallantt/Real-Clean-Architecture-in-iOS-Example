@@ -39,6 +39,43 @@ public final class FakeShop: BagRepository {
         set { catalogLock.withLock { _cannotBeReached = newValue } }
     }
 
+    // MARK: - Holding an answer back
+
+    private var holdsTheNextLookup = false
+    private var releaseTheLookup: CheckedContinuation<Void, Never>?
+    private var announceTheAsk: CheckedContinuation<Void, Never>?
+
+    /// Makes the next catalogue lookup wait to be let go, so a test can look at
+    /// the screen in the state between asking and being answered.
+    public func holdTheNextLookup() {
+        holdsTheNextLookup = true
+    }
+
+    /// Returns once the shop has been asked and is holding. Awaiting the screen's
+    /// own work would run past the moment under test; yielding until a counter
+    /// moves is a guess about scheduling rather than a wait.
+    public func untilAsked() async {
+        guard releaseTheLookup == nil else { return }
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            announceTheAsk = continuation
+        }
+    }
+
+    public func answerNow() {
+        releaseTheLookup?.resume()
+        releaseTheLookup = nil
+    }
+
+    fileprivate func waitIfHolding() async {
+        guard holdsTheNextLookup else { return }
+        holdsTheNextLookup = false
+        await withCheckedContinuation { (continuation: CheckedContinuation<Void, Never>) in
+            releaseTheLookup = continuation
+            announceTheAsk?.resume()
+            announceTheAsk = nil
+        }
+    }
+
     public init(bag: Bag = Bag(), notices: Notices = Notices(), catalog: [Product] = []) {
         self.repository = InMemoryBagRepository(bag: bag, notices: notices)
         self._catalog = catalog
@@ -87,6 +124,7 @@ public final class FakeShop: BagRepository {
     private struct Lookup: LookUpProductsUseCase {
         let shop: FakeShop
         func callAsFunction(ids: [ProductID]) async -> Result<[Product], ProductError> {
+            await shop.waitIfHolding()
             guard !shop.cannotBeReached else { return .failure(.unavailable) }
             return .success(shop.lookUp(ids))
         }

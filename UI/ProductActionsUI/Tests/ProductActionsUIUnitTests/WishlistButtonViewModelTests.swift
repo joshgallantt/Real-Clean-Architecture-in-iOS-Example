@@ -1,4 +1,3 @@
-import AsyncTesting
 import AuthUITestSupport
 import Foundation
 import ProductTestSupport
@@ -44,7 +43,7 @@ struct WishlistButtonViewModelTests {
         )
 
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(setProductIsWishlisted.calls.map(\.productId) == [pid(1)])
         #expect(setProductIsWishlisted.calls.map(\.isWishlisted) == [true])
@@ -60,7 +59,7 @@ struct WishlistButtonViewModelTests {
         )
 
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(setProductIsWishlisted.calls.map(\.isWishlisted) == [false])
     }
@@ -78,7 +77,7 @@ struct WishlistButtonViewModelTests {
 
         viewModel.didTap()
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(setProductIsWishlisted.calls.map(\.isWishlisted) == [true, false])
         #expect(viewModel.isInWishlist == false)
@@ -90,7 +89,7 @@ struct WishlistButtonViewModelTests {
         let viewModel = makeViewModel(snackbarPresenter: snackbarPresenter)
 
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(snackbarPresenter.shown.map(\.title) == ["Saved"])
     }
@@ -104,7 +103,7 @@ struct WishlistButtonViewModelTests {
         )
 
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(snackbarPresenter.shown.map(\.title) == ["Unsaved"])
     }
@@ -118,7 +117,7 @@ struct WishlistButtonViewModelTests {
         let viewModel = makeViewModel(setProductIsWishlisted: setProductIsWishlisted, authPresenter: authPresenter)
 
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(authPresenter.timesAsked == 1)
         #expect(setProductIsWishlisted.calls.count == 2)
@@ -138,7 +137,7 @@ struct WishlistButtonViewModelTests {
         )
 
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(snackbarPresenter.shown.isEmpty)
     }

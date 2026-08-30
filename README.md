@@ -107,7 +107,7 @@ public struct DefaultSetProductIsWishlistedUseCase: SetProductIsWishlistedUseCas
 
 Four things are happening, and each one is a decision you could have made differently.
 
-**One use case with a state, not one for saving and another for unsaving.** Saving and unsaving differ in a single side-effect-free call on the aggregate; everything around it — who may do it, what a refused write means — is the same rule written twice. Split in two, the button had to hold both and work out which of them its own current state implied, which is a toggle re-derived from the thing it was toggling. `ObserveProductIsWishlistedUseCase` reports it and this sets it, and the pair reads as one fact about a product.
+**One use case with a state, not one for saving and another for unsaving.** Saving and unsaving differ in a single side-effect-free call on the aggregate; everything around it — who may do it, what a refused write means — is the same rule written twice. Split in two, the button would have to hold both and work out which of them its own current state implied, which is a toggle re-derived from the thing it is toggling. `ObserveProductIsWishlistedUseCase` reports it and this sets it, and the pair reads as one fact about a product.
 
 **"You must be signed in to save something" is a business rule, so it is in the domain.** It is not in the button. A second screen that saves a product cannot forget it, because forgetting it is not available to them — they call this, and this checks. Put that guard in the button instead and the rule is now in as many places as there are buttons, which is how a rule quietly becomes untrue.
 
@@ -239,7 +239,7 @@ func priceWentUp() async {
 }
 ```
 
-Every verb belongs to the shopper: `choose`, `theShopNowSells`, `comesBack`. No test names a repository, a store or a DTO — so the feature can be rearranged underneath and the tests go on asserting the same thing. That is Martin's own remedy for the Fragile Tests Problem (Ch. 28), and it is why the layer tests these replaced were worth deleting.
+Every verb belongs to the shopper: `choose`, `theShopNowSells`, `comesBack`. No test names a repository, a store or a DTO — so the feature can be rearranged underneath and the tests go on asserting the same thing. That is Martin's own remedy for the Fragile Tests Problem (Ch. 28).
 
 The unit tier asserts the same rules in the language of the system, and names the unit that broke.
 

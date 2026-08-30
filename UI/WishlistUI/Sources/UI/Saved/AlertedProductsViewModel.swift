@@ -13,6 +13,18 @@ import StockAlert
 /// ids the shopper is holding, which is what a wishlist is. This does not: the domain already
 /// answers with products, so there is nothing to fill in and no ids to page through.
 public final class AlertedProductsViewModel: ObservableObject {
+    /// Carries the cancellation: a fresh load replaces the one before it.
+    private var reloadTask: Task<Void, Never>?
+
+    /// Whatever work is most recently outstanding, whichever path started it.
+    ///
+    /// Separate from the handle above because the two have different lives. A
+    /// reload replaces a reload; clearing the list is its own work and must not
+    /// be cancelled by the reload it causes — which is exactly what happened
+    /// when these were one property, and the test waiting on the clear waited
+    /// for something that had been cancelled out from under it.
+    public private(set) var inFlight: Task<Void, Never>?
+
     @Published private(set) var products: [Product] = []
     @Published private(set) var isLoading = false
 
@@ -23,7 +35,6 @@ public final class AlertedProductsViewModel: ObservableObject {
     private let couldNotLoad: String
 
     private var cancellables = Set<AnyCancellable>()
-    private var loadTask: Task<Void, Never>?
 
     public init(
         load: @escaping @MainActor () async -> Result<[Product], StockAlertError>,
@@ -45,48 +56,61 @@ public final class AlertedProductsViewModel: ObservableObject {
 
     /// The asks are watched, but only as a reason to ask again. What is *on* this list depends on
     /// what the shop stocks as well as what was asked, and only the use case knows both.
-    func onAppear() {
+    /// `async` so the list can await it from `.task`: SwiftUI then owns the load
+    /// for as long as the row is on screen and cancels it on the way out. The two
+    /// synchronous callers below — a change in what was asked, and the retry
+    /// button — go through `startReloading()`, which is where the handle earns its
+    /// keep.
+    func onAppear() async {
         if cancellables.isEmpty {
             changes()
                 .removeDuplicates()
-                .sink { [weak self] _ in self?.reload() }
+                .sink { [weak self] _ in self?.startReloading() }
                 .store(in: &cancellables)
         }
 
-        reload()
+        await reload()
     }
 
     func didConfirmClear() {
         let losing = products.map(\.id)
         guard !losing.isEmpty else { return }
-        Task { await clear(losing) }
+        inFlight = Task { await clear(losing) }
     }
 
-    private func reload() {
-        loadTask?.cancel()
+    private func startReloading() {
+        reloadTask?.cancel()
         isLoading = true
 
-        loadTask = Task { [weak self] in
+        let task = Task { [weak self] in
             guard let self else { return }
-            let result = await self.load()
-            guard !Task.isCancelled else { return }
-
-            switch result {
-            case .success(let products):
-                self.products = products
-
-            /// The list is left as it was. A dropped connection is not evidence that a shopper has
-            /// stopped waiting on anything, and emptying the row would say that it is.
-            case .failure:
-                self.snackbar.show(Snackbar(
-                    title: self.couldNotLoad,
-                    message: "Check your signal and give it another go.",
-                    icon: "wifi.exclamationmark",
-                    action: .retry { [weak self] in self?.reload() }
-                ))
-            }
-
-            self.isLoading = false
+            await self.reload()
         }
+        reloadTask = task
+        inFlight = task
+    }
+
+    private func reload() async {
+        isLoading = true
+
+        let result = await load()
+        guard !Task.isCancelled else { return }
+
+        switch result {
+        case .success(let loaded):
+            products = loaded
+
+        /// The list is left as it was. A dropped connection is not evidence that a shopper has
+        /// stopped waiting on anything, and emptying the row would say that it is.
+        case .failure:
+            snackbar.show(Snackbar(
+                title: couldNotLoad,
+                message: "Check your signal and give it another go.",
+                icon: "wifi.exclamationmark",
+                action: .retry { [weak self] in self?.startReloading() }
+            ))
+        }
+
+        isLoading = false
     }
 }

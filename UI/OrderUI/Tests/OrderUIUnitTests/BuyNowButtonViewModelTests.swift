@@ -1,5 +1,4 @@
 import MoneyTestSupport
-import AsyncTesting
 import AuthUITestSupport
 import Foundation
 import OrderTestSupport
@@ -61,7 +60,7 @@ struct BuyNowButtonViewModelTests {
         let viewModel = makeViewModel(placeOrder: placeOrder)
 
         viewModel.didTap()
-        await yieldUntil { placeOrder.isHoldingAnOrderOpen }
+        await placeOrder.untilHolding()
         #expect(viewModel.isPlacing)
 
         viewModel.didTap()

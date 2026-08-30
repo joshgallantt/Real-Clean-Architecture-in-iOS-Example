@@ -1,4 +1,3 @@
-import AsyncTesting
 import Foundation
 import HomeTestSupport
 import ProductTestSupport
@@ -83,7 +82,7 @@ struct HomeScreenViewModelTests {
         drawHomeFeed.result = .success(HomeFeed(carousels: [carousel])!)
 
         viewModel.didTapRetry()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(drawHomeFeed.callCount == 2)
         #expect(viewModel.state.carousels == [carousel])

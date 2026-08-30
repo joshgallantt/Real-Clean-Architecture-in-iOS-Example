@@ -1,4 +1,3 @@
-import AsyncTesting
 import ProductTestSupport
 import SnackbarUITestSupport
 import Bag
@@ -16,8 +15,10 @@ extension BuyNowButtonViewModel {
         await settle()
     }
 
+    /// Waits for the work the tap started, and nothing else. Watching `isPlacing`
+    /// go true and then false again yielded until the flag happened to agree,
+    /// which is a guess about how busy the machine is rather than a wait.
     func settle() async {
-        await yieldUntil { self.isPlacing }
-        await yieldUntil { !self.isPlacing }
+        await inFlight?.value
     }
 }

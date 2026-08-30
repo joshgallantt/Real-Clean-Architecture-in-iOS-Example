@@ -12,6 +12,14 @@ import Product
 /// What a category needs to earn a carousel, and how many carousels Home draws, are
 /// `DrawHomeFeedUseCase`'s business, not this screen's.
 public final class HomeScreenViewModel: ObservableObject {
+    /// The work the last interaction started.
+    ///
+    /// SwiftUI calls a button's action and `onAppear` synchronously, so anything
+    /// that has to be awaited starts a `Task` and returns. Keeping the handle is
+    /// what lets a test wait for that work rather than guess at how long it
+    /// takes — and what would let the screen cancel it on disappear.
+    public private(set) var inFlight: Task<Void, Never>?
+
     @Published private(set) var state: HomeScreenState = .loading
 
     private let drawHomeFeed: DrawHomeFeedUseCase
@@ -28,7 +36,7 @@ public final class HomeScreenViewModel: ObservableObject {
     }
 
     func didTapRetry() {
-        Task { await load() }
+        inFlight = Task { await load() }
     }
 
     private func load() async {

@@ -1,4 +1,3 @@
-import AsyncTesting
 import ProductTestSupport
 import SnackbarUITestSupport
 import Combine
@@ -52,8 +51,13 @@ final class AKeeper {
         kept.send(kept.value.filter { !dropped.contains($0) })
     }
 
+    /// Waits for the work the last interaction started, and nothing else.
+    ///
+    /// It used to yield two hundred times and hope. That is a guess about how
+    /// busy the machine is rather than a wait, and it is why a suite fails once
+    /// on the run after a rebuild and then passes for a month.
     func settle() async {
-        for _ in 0..<200 { await Task.yield() }
+        await list.inFlight?.value
     }
 }
 

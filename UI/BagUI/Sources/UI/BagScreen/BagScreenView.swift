@@ -51,7 +51,7 @@ public struct BagScreenView: View {
                 }
             }
         }
-        .onAppear { viewModel.onAppear() }
+        .task { await viewModel.onAppear() }
         .confirmationDialog(
             "Are you sure?",
             isPresented: $isConfirmingRemoveAll,

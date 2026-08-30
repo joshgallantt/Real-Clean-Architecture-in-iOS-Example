@@ -16,6 +16,18 @@ import SnackbarUI
 /// and not a set of stock alerts. Neither aggregate reaches this file, which is why one type can
 /// serve both without knowing that either exists.
 public final class SavedProductsViewModel: ObservableObject {
+    /// Carries the cancellation: a fresh load replaces the one before it.
+    private var hydrationTask: Task<Void, Never>?
+
+    /// Whatever work is most recently outstanding, whichever path started it.
+    ///
+    /// Separate from the handle above because the two have different lives. A
+    /// reload replaces a reload; clearing the list is its own work and must not
+    /// be cancelled by the reload it causes — which is exactly what happened
+    /// when these were one property, and the test waiting on the clear waited
+    /// for something that had been cancelled out from under it.
+    public private(set) var inFlight: Task<Void, Never>?
+
     @Published private(set) var products: [Product] = []
     @Published private(set) var isLoading = false
     @Published private(set) var isLoadingMore = false
@@ -44,7 +56,6 @@ public final class SavedProductsViewModel: ObservableObject {
     private var saved: [ProductID] = []
     private var cache: [ProductID: Product] = [:]
     private var loadedCount: Int
-    private var hydrationTask: Task<Void, Never>?
 
     public init(
         savedProductIds: @escaping () -> AnyPublisher<[ProductID], Never>,
@@ -82,7 +93,7 @@ public final class SavedProductsViewModel: ObservableObject {
     func didConfirmClear() {
         let losing = products.map(\.id)
         guard !losing.isEmpty else { return }
-        Task { await clear(losing) }
+        inFlight = Task { await clear(losing) }
     }
 
     func onAppear() {
@@ -129,7 +140,7 @@ public final class SavedProductsViewModel: ObservableObject {
             isLoading = true
         }
 
-        hydrationTask = Task { [weak self] in
+        let task = Task { [weak self] in
             guard let self else { return }
             let result = await self.lookUpProducts(ids: missing)
             guard !Task.isCancelled else { return }
@@ -154,6 +165,8 @@ public final class SavedProductsViewModel: ObservableObject {
             self.isLoading = false
             self.isLoadingMore = false
         }
+        hydrationTask = task
+        inFlight = task
     }
 
     private func showing(_ window: [ProductID]) -> [Product] {

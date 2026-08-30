@@ -33,8 +33,7 @@ This codebase has **no mocks**, deliberately. See *Where we stand*, below.
 
 ### Not doubles
 
-Two other things live in test support and are not doubles. They were mixed in
-with them once, which is why they are named here.
+Two other things live in test support and are not doubles.
 
 **Builders** make test data — `pid(_:)`, `Product.fixture`, `AProduct()`. From
 Freeman & Pryce, *Growing Object-Oriented Software* (2009), Ch. 22. Each test
@@ -67,10 +66,6 @@ protocols it doubles, and
 [swift-dependencies](https://github.com/pointfreeco/swift-dependencies) puts
 `testValue` in the same declaration as the interface.
 
-It was worth doing here. Before it, `LookUpProductsUseCase` had four stand-ins
-in four packages, `pid(_:)` had been written twenty times, and one copy of the
-bag observer could push a new value while another could not.
-
 Enforced by `doubles-live-with-their-protocol`. It stands down in one case:
 where moving the double would turn a dependency around. `FakeCatalog` fakes
 `Networking`'s `HTTPClient` but is built out of `Product`'s payload types, and a
@@ -86,9 +81,9 @@ Component/Bag/Sources/TestSupport/
   Builders/bagItem.swift
 ```
 
-One file per double, in a directory named for its kind. A file that held four
-stubs, three spies and two fakes told a reader nothing about where to look, and
-every change to any of them touched it.
+One file per double, in a directory named for its kind. A file holding four
+stubs, three spies and two fakes tells a reader nothing about where to look, and
+every change to any of them touches it.
 
 Everything is `public`. A shared module is consumed with a plain `import`;
 `@testable` is not a substitute, because it compiles against internal members
@@ -149,9 +144,9 @@ in-memory fakes, which by Ham Vocke's taxonomy in
 makes them mid-pyramid service tests phrased in the business's language.
 Acceptance testing is a *purpose*, not a level.
 
-The evidence was plain once the rule ran: the classic order flagged six
-packages, the reverse flagged ten. A rule that finds fault whichever way round
-you put it is not measuring the thing it names.
+Run it and the evidence is plain: the classic order flags six packages, the
+reverse flags ten. A rule that finds fault whichever way round you put it is
+not measuring the thing it names.
 
 ---
 
@@ -206,12 +201,11 @@ them a mock is a *design* tool, and a mock that is painful to set up is telling
 you the collaboration is wrong. We have taken Google's side; a mock here would
 not be a violation so much as a question worth asking out loud.
 
-**No `@unchecked Sendable` where the compiler could check it instead.** It was
-on 41 doubles. Twenty-six were main-actor isolated, where it says nothing a
-`@MainActor` class does not already say. Ten more became genuinely `Sendable`
-once they were isolated. The rest keep state behind a `Mutex`, which is
-`Sendable` by construction, so the compiler checks what the annotation used to
-ask you to believe. Two remain, both in test folders behind an `NSLock`.
+**No `@unchecked Sendable` where the compiler could check it instead.** On a
+main-actor isolated double it says nothing a `@MainActor` class does not
+already say, and a double that keeps its state behind a `Mutex` is `Sendable`
+by construction, so the compiler checks what the annotation only asks you to
+believe. Two remain, both in test folders behind an `NSLock`.
 
 **Evans** is absent from this page and present in the code: DDD does not discuss
 doubles, but it supplies the language the drivers speak, and the Repository

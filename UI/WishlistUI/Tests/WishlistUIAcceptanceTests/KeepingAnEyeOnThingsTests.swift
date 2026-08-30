@@ -1,4 +1,3 @@
-import AsyncTesting
 import Foundation
 import ProductTestSupport
 import Testing

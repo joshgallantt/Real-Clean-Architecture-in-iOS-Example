@@ -11,6 +11,14 @@ import SnackbarUI
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
 public final class SearchTabScreenViewModel: ObservableObject {
+    /// The work the last interaction started.
+    ///
+    /// SwiftUI calls a button's action and `onAppear` synchronously, so anything
+    /// that has to be awaited starts a `Task` and returns. Keeping the handle is
+    /// what lets a test wait for that work rather than guess at how long it
+    /// takes — and what would let the screen cancel it on disappear.
+    public private(set) var inFlight: Task<Void, Never>?
+
     @Published var query: String = ""
     @Published var isSearchActive: Bool = false
     @Published private(set) var categories: [ProductCategory] = []
@@ -44,7 +52,7 @@ public final class SearchTabScreenViewModel: ObservableObject {
                 message: "Check your signal and give it another go.",
                 icon: "wifi.exclamationmark",
                 action: .retry { [weak self] in
-                    Task { await self?.loadCategories() }
+                    self?.inFlight = Task { await self?.loadCategories() }
                 }
             ))
         }

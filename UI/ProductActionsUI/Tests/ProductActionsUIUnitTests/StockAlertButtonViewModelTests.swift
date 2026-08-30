@@ -1,4 +1,3 @@
-import AsyncTesting
 import AuthUITestSupport
 import Foundation
 import ProductTestSupport
@@ -45,7 +44,7 @@ struct StockAlertButtonViewModelTests {
         )
 
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(setStockAlert.calls.map(\.productId) == [pid(1)])
         #expect(setStockAlert.calls.map(\.isOn) == [true])
@@ -57,7 +56,7 @@ struct StockAlertButtonViewModelTests {
         let viewModel = makeViewModel(observeWaitlistStatus: StubObserveWaitlistStatus(true), setStockAlert: setStockAlert)
 
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(setStockAlert.calls.map(\.isOn) == [false])
     }
@@ -74,7 +73,7 @@ struct StockAlertButtonViewModelTests {
 
         viewModel.didTap()
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(setStockAlert.calls.map(\.isOn) == [true, false])
         #expect(viewModel.isWaiting == false)
@@ -92,7 +91,7 @@ struct StockAlertButtonViewModelTests {
 
         viewModel.didTap()
         viewModel.didTapRemove()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(setStockAlert.calls.map(\.isOn) == [true, false])
         #expect(viewModel.isWaiting == false)
@@ -104,7 +103,7 @@ struct StockAlertButtonViewModelTests {
         let viewModel = makeViewModel(observeWaitlistStatus: StubObserveWaitlistStatus(false), setStockAlert: setStockAlert)
 
         viewModel.didTapRemove()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(setStockAlert.calls.map(\.isOn) == [false])
     }
@@ -115,7 +114,7 @@ struct StockAlertButtonViewModelTests {
         let viewModel = makeViewModel(snackbarPresenter: snackbarPresenter)
 
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(snackbarPresenter.shown.first?.title == "You're on the List")
     }
@@ -129,7 +128,7 @@ struct StockAlertButtonViewModelTests {
         let viewModel = makeViewModel(setStockAlert: setStockAlert, authPresenter: authPresenter)
 
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(authPresenter.timesAsked == 1)
         #expect(setStockAlert.calls.count == 2)
@@ -146,7 +145,7 @@ struct StockAlertButtonViewModelTests {
         let viewModel = makeViewModel(setStockAlert: setStockAlert, authPresenter: authPresenter, snackbarPresenter: snackbarPresenter)
 
         viewModel.didTap()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(setStockAlert.calls.count == 1)
         #expect(snackbarPresenter.shown.isEmpty)

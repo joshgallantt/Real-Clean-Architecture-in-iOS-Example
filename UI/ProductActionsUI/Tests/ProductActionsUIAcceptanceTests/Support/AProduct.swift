@@ -1,4 +1,3 @@
-import AsyncTesting
 import AuthUITestSupport
 import BagTestSupport
 import Combine
@@ -10,6 +9,7 @@ import ProductTestSupport
 import StockAlert
 import AuthUI
 import SnackbarUI
+import SnackbarUITestSupport
 import StockAlertTestSupport
 @testable import ProductActionsUI
 
@@ -23,7 +23,7 @@ final class AProduct {
     private let bagRepository = InMemoryBagRepository()
     private let alertRepository = InMemoryStockAlertRepository()
     private let auth = SpyAuthPresenter()
-    private let snackbars = RecordingSnackbarPresenter()
+    private let snackbars = SpySnackbarPresenter()
     private let navigation = StubProductActionsNavigation()
 
     init(_ product: Product = .fixture(id: 1), signedIn: Bool = true) {
@@ -69,9 +69,4 @@ final class AProduct {
         )
     }
 
-    /// A tap starts a `Task` and returns, exactly as it does on a device. This waits for what the
-    /// tap set off to finish before the test asks what the shopper would see.
-    func settle() async {
-        try? await Task.sleep(for: .milliseconds(50))
-    }
 }

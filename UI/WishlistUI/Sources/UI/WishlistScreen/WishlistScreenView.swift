@@ -57,8 +57,9 @@ public struct WishlistScreenView: View {
         .task {
             session.onAppear()
             faves.onAppear()
-            waitlist.onAppear()
-            backInStock.onAppear()
+            async let waiting: Void = waitlist.onAppear()
+            async let restocked: Void = backInStock.onAppear()
+            _ = await (waiting, restocked)
         }
     }
 

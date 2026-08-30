@@ -1,4 +1,3 @@
-import AsyncTesting
 import Foundation
 import ProductTestSupport
 import SearchHistoryTestSupport
@@ -66,7 +65,7 @@ struct SearchingViewModelTests {
         viewModel.queryChanged("lip")
         viewModel.queryChanged("lipstick")
         await waitUntil { !browseCatalog.queries.isEmpty }
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(browseCatalog.queries.map(\.filter) == [.search(SearchTerm("lipstick")!)])
     }

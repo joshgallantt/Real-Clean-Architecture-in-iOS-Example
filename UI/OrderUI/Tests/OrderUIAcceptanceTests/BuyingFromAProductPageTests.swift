@@ -6,6 +6,7 @@ import Money
 import Order
 import Product
 @testable import OrderUI
+@testable import OrderUITestSupport
 
 @MainActor
 @Suite("Buying straight from a product page", .serialized)

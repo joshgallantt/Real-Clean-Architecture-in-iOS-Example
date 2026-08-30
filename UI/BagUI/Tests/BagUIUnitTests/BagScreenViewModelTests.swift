@@ -1,5 +1,4 @@
 import MoneyTestSupport
-import AsyncTesting
 import BagTestSupport
 import Foundation
 import ProductTestSupport
@@ -32,11 +31,11 @@ struct BagScreenViewModelTests {
     }
 
     @Test("Rows render from the bag as soon as it appears, before the shop answers about any of it")
-    func rendersFromTheBagFirst() {
+    func rendersFromTheBagFirst() async {
         let observeBag = StubObserveBag(Bag(items: [bagItem(1, price: 9.99)]))
         let viewModel = makeViewModel(observeBag: observeBag)
 
-        viewModel.onAppear()
+        await viewModel.onAppear()
 
         #expect(viewModel.rows.map(\.id) == [pid(1)])
         #expect(viewModel.total == usd(9.99))
@@ -76,11 +75,11 @@ struct BagScreenViewModelTests {
     }
 
     @Test("Emptying the bag sets every line's quantity to zero, and no other product's")
-    func removingEverythingClearsEveryLine() {
+    func removingEverythingClearsEveryLine() async {
         let observeBag = StubObserveBag(Bag(items: [bagItem(1, price: 9.99), bagItem(2, price: 5)]))
         let setBagItemQuantity = SpySetBagItemQuantity()
         let viewModel = makeViewModel(observeBag: observeBag, setBagItemQuantity: setBagItemQuantity)
-        viewModel.onAppear()
+        await viewModel.onAppear()
 
         viewModel.didRemoveEverything()
 
@@ -89,10 +88,10 @@ struct BagScreenViewModelTests {
     }
 
     @Test("Emptying an already-empty bag asks the use case for nothing")
-    func removingEverythingFromAnEmptyBagDoesNothing() {
+    func removingEverythingFromAnEmptyBagDoesNothing() async {
         let setBagItemQuantity = SpySetBagItemQuantity()
         let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
-        viewModel.onAppear()
+        await viewModel.onAppear()
 
         viewModel.didRemoveEverything()
 
@@ -110,14 +109,14 @@ struct BagScreenViewModelTests {
     }
 
     @Test("Accepting a section acknowledges every product it is showing, and none of another section's")
-    func acceptingASectionAcknowledgesItsOwnProducts() {
+    func acceptingASectionAcknowledgesItsOwnProducts() async {
         let observeNotices = StubObserveNotices(Notices([
             .outOfStock(productId: pid(1)),
             .priceWentUp(productId: pid(2), from: usd(5), to: usd(7))
         ]))
         let acknowledgeNotices = SpyAcknowledgeNotices()
         let viewModel = makeViewModel(observeNotices: observeNotices, acknowledgeNotices: acknowledgeNotices)
-        viewModel.onAppear()
+        await viewModel.onAppear()
 
         viewModel.didAcceptAll(.outOfStock)
 
@@ -125,10 +124,10 @@ struct BagScreenViewModelTests {
     }
 
     @Test("Accepting a section nothing is showing acknowledges nothing")
-    func acceptingAnEmptySectionAcknowledgesNothing() {
+    func acceptingAnEmptySectionAcknowledgesNothing() async {
         let acknowledgeNotices = SpyAcknowledgeNotices()
         let viewModel = makeViewModel(acknowledgeNotices: acknowledgeNotices)
-        viewModel.onAppear()
+        await viewModel.onAppear()
 
         viewModel.didAcceptAll(.outOfStock)
 
@@ -141,9 +140,7 @@ struct BagScreenViewModelTests {
         let bringBagUpToDate = StubBringBagUpToDate()
         let viewModel = makeViewModel(observeBag: observeBag, bringBagUpToDate: bringBagUpToDate)
 
-        viewModel.onAppear()
-        await yieldUntil { bringBagUpToDate.callCount > 0 }
-        await settle()
+        await viewModel.onAppear()
 
         #expect(bringBagUpToDate.callCount == 1)
     }

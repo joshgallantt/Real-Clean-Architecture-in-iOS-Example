@@ -1,4 +1,3 @@
-import AsyncTesting
 import SnackbarUITestSupport
 import Foundation
 import Money

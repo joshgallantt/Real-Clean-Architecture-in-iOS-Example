@@ -24,7 +24,9 @@ public final class WishlistButtonViewModel: ObservableObject {
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
-    private var inFlight: Task<Void, Never>?
+    /// The work the last tap started. Public so a test can wait for exactly
+    /// that, and so the screen could cancel it on disappear.
+    public private(set) var inFlight: Task<Void, Never>?
 
     public init(
         productId: ProductID,

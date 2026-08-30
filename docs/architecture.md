@@ -392,8 +392,6 @@ At start-up, `DefaultSessionStore` restores a session that it kept, if the token
 
 `Bag`, `Settings` and `SearchHistory` each keep data for one shopper, and they key it on the `Session` itself. A guest has a real bag and a real search history, because a person can shop before they sign in. Thus the guest case of `Session` is a real owner of data and not the absence of one.
 
-There was a smaller `Owner` type between the session and the storage, which held a guest case or an id and nothing else. It is removed. Two types with the same shape, one of them holding only an id, cost more to learn than they saved while nothing else drew on them.
-
 **[`Component/Bag/Sources/Data/DefaultBagRepository.swift`](../Component/Bag/Sources/Data/DefaultBagRepository.swift)**
 ```swift
 private func switchSession(to session: Session) {
@@ -405,7 +403,7 @@ private func switchSession(to session: Session) {
 }
 ```
 
-Note the comparison. It is on the id and not on the whole session, because a session also changes when a profile does, and a changed name is not a changed owner. That is what the smaller type used to make impossible to get wrong; with a `Session` the caller must get it right, and `data-reads-who-is-signed-in-and-nothing-else` keeps the rest of the module out of the data layer.
+Note the comparison. It is on the id and not on the whole session, because a session also changes when a profile does, and a changed name is not a changed owner. The data layer reads who is signed in and nothing else, and that keeps the rest of the module out of it.
 
 `Wishlist`, `StockAlert` and `Order` key on a `UserID?` instead. A guest cannot save an item, cannot wait for one and cannot place an order, thus there is no guest case to handle. The shape differs because the rule differs.
 
@@ -959,11 +957,11 @@ func priceWentUp() async {
 
 Every verb belongs to the shopper: `choose`, `theShopNowSells`, `comesBack`. The name of the test is the rule that it holds. [`Support/Shopper.swift`](../Component/Bag/Tests/BagAcceptanceTests/Support/Shopper.swift) supplies those verbs, and it is the only file in the suite that knows a repository exists.
 
-No acceptance test names a repository, a store, a DTO or a `Default*UseCase`. You can rearrange the feature below these tests, and they continue to assert the same behaviour. That is the purpose of a testing API, and the reason that the layer tests it replaced were worth removal.
+No acceptance test names a repository, a store, a DTO or a `Default*UseCase`. You can rearrange the feature below these tests, and they continue to assert the same behaviour. That is the purpose of a testing API.
 
 **The suites replace only what the application cannot own.** `Shopper` wires the real `BagDI` over a real `FileBagStore` in a temporary directory: a real repository, real DTOs and real JSON on a real disk. `Shop` fakes the catalog at the `HTTPClient` boundary. Thus the real client, the real decoding, the real repository and the real use cases all operate. `Account` uses the same `FakeAuthClient` that the application contains. Only the session is a stub, and each other component reads the session but never owns it.
 
-That is not a preference of style. The first fault that this rewrite found was that one unreadable notice in a saved bag discarded the full bag of the shopper. No layer test found it, because no layer test went through real JSON.
+That is not a preference of style. One unreadable notice in a saved bag discards the full bag of the shopper, and only a suite that goes through real JSON catches it.
 
 | Suite | What it asserts |
 | --- | --- |

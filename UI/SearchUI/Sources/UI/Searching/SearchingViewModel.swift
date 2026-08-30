@@ -10,6 +10,14 @@ import SearchHistory
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
 public final class SearchingViewModel: ObservableObject {
+    /// The work the last interaction started.
+    ///
+    /// SwiftUI calls a button's action and `onAppear` synchronously, so anything
+    /// that has to be awaited starts a `Task` and returns. Keeping the handle is
+    /// what lets a test wait for that work rather than guess at how long it
+    /// takes — and what would let the screen cancel it on disappear.
+    public private(set) var inFlight: Task<Void, Never>?
+
     @Published private(set) var history = SearchHistory()
     @Published private(set) var suggestions: [Product] = []
     @Published private(set) var isSuggesting: Bool = false
@@ -17,7 +25,6 @@ public final class SearchingViewModel: ObservableObject {
     private let getSearchHistory: GetSearchHistoryUseCase
     private let clearSearchHistory: ClearSearchHistoryUseCase
     private let browseCatalog: BrowseCatalogUseCase
-    private var searchTask: Task<Void, Never>?
 
     public init(
         getSearchHistory: GetSearchHistoryUseCase,
@@ -34,14 +41,14 @@ public final class SearchingViewModel: ObservableObject {
     }
 
     func queryChanged(_ typed: String) {
-        searchTask?.cancel()
+        inFlight?.cancel()
 
         guard let term = SearchTerm(typed) else {
             suggestions = []
             return
         }
 
-        searchTask = Task {
+        inFlight = Task {
             try? await Task.sleep(nanoseconds: 300_000_000)
             guard !Task.isCancelled else { return }
 

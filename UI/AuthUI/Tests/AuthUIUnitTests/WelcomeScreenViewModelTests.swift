@@ -1,4 +1,3 @@
-import AsyncTesting
 import ProductTestSupport
 import SheetUITestSupport
 @testable import AuthUITestSupport
@@ -55,7 +54,7 @@ struct WelcomeScreenViewModelTests {
         )
 
         viewModel.didTapLogIn()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(authenticated)
         #expect(sheetPresenting.presentCount == 0)
@@ -72,9 +71,9 @@ struct WelcomeScreenViewModelTests {
         )
 
         viewModel.didTapLogIn()
-        await settle()
+        await sheetPresenting.untilPresented()
         sheetPresenting.userDismissedTheSheet()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(sheetPresenting.presentCount == 1)
         #expect(authenticated == false)
@@ -93,7 +92,7 @@ struct WelcomeScreenViewModelTests {
         )
 
         viewModel.didTapCreateAccount()
-        await settle()
+        await viewModel.inFlight?.value
 
         #expect(authenticated)
         #expect(sheetPresenting.presentCount == 0)
