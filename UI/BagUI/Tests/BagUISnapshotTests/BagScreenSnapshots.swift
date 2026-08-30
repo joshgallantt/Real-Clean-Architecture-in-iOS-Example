@@ -1,4 +1,5 @@
 import Bag
+import BagTestSupport
 import Product
 import SnapshotTesting
 import SwiftUI

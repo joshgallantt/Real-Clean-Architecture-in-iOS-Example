@@ -65,26 +65,6 @@ final class StubAuthPresenter: AuthPresenting {
 }
 
 @MainActor
-final class StubObserveBag: ObserveBagUseCase, @unchecked Sendable {
-    private let subject: CurrentValueSubject<Bag, Never>
-
-    init(_ bag: Bag = Bag()) {
-        subject = CurrentValueSubject(bag)
-    }
-
-    func callAsFunction() -> AnyPublisher<Bag, Never> { subject.eraseToAnyPublisher() }
-}
-
-@MainActor
-final class SpySetBagItemQuantity: SetBagItemQuantityUseCase, @unchecked Sendable {
-    private(set) var calls: [(productId: ProductID, quantity: Int)] = []
-
-    func callAsFunction(productId: ProductID, to quantity: Int) {
-        calls.append((productId, quantity))
-    }
-}
-
-@MainActor
 final class StubObserveOrders: ObserveOrdersUseCase, @unchecked Sendable {
     private let subject: CurrentValueSubject<Orders, Never>
 

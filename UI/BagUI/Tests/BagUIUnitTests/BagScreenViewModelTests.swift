@@ -1,3 +1,4 @@
+import BagTestSupport
 import Foundation
 import Testing
 import Bag

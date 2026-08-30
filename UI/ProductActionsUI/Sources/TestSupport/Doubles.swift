@@ -16,26 +16,6 @@ import SnackbarUI
 @testable import ProductActionsUI
 
 @MainActor
-final class StubObserveBagItemQuantity: ObserveBagItemQuantityUseCase, @unchecked Sendable {
-    private let subject: CurrentValueSubject<Int, Never>
-
-    init(_ quantity: Int = 0) {
-        subject = CurrentValueSubject(quantity)
-    }
-
-    func callAsFunction(productId: ProductID) -> AnyPublisher<Int, Never> { subject.eraseToAnyPublisher() }
-}
-
-@MainActor
-final class SpyAddItemToBag: AddItemToBagUseCase, @unchecked Sendable {
-    private(set) var added: [BagItem] = []
-
-    func callAsFunction(_ item: BagItem) {
-        added.append(item)
-    }
-}
-
-@MainActor
 final class SpyProductActionsNavigation: ProductActionsNavigation {
     private(set) var switchedToBagTab = false
 

@@ -1,3 +1,4 @@
+import BagTestSupport
 import Money
 import Product
 import SnackbarUITestSupport

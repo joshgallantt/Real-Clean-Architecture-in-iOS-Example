@@ -1,3 +1,4 @@
+import BagTestSupport
 import Foundation
 import SnackbarUITestSupport
 import Testing

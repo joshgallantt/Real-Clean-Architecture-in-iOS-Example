@@ -54,7 +54,10 @@ let package = Package(
         ),
         .target(
             name: "BagTestSupport",
-            dependencies: ["Bag"],
+            dependencies: [
+                "Bag",
+                .product(name: "Product", package: "Product")
+            ],
             path: "Sources/TestSupport"
         ),
         .target(

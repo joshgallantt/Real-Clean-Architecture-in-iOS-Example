@@ -11,61 +11,6 @@ import Product
 @testable import BagUI
 
 @MainActor
-final class StubObserveBag: ObserveBagUseCase, @unchecked Sendable {
-    private let subject: CurrentValueSubject<Bag, Never>
-
-    init(_ bag: Bag = Bag()) {
-        subject = CurrentValueSubject(bag)
-    }
-
-    func callAsFunction() -> AnyPublisher<Bag, Never> { subject.eraseToAnyPublisher() }
-
-    func send(_ bag: Bag) { subject.send(bag) }
-}
-
-@MainActor
-final class StubObserveNotices: ObserveNoticesUseCase, @unchecked Sendable {
-    private let subject: CurrentValueSubject<Notices, Never>
-
-    init(_ notices: Notices = Notices()) {
-        subject = CurrentValueSubject(notices)
-    }
-
-    func callAsFunction() -> AnyPublisher<Notices, Never> { subject.eraseToAnyPublisher() }
-
-    func send(_ notices: Notices) { subject.send(notices) }
-}
-
-@MainActor
-final class SpySetBagItemQuantity: SetBagItemQuantityUseCase, @unchecked Sendable {
-    private(set) var calls: [(productId: ProductID, quantity: Int)] = []
-
-    func callAsFunction(productId: ProductID, to quantity: Int) {
-        calls.append((productId, quantity))
-    }
-}
-
-@MainActor
-final class StubBringBagUpToDate: BringBagUpToDateUseCase, @unchecked Sendable {
-    var products: [Product] = []
-    private(set) var callCount = 0
-
-    func callAsFunction() async -> [Product] {
-        callCount += 1
-        return products
-    }
-}
-
-@MainActor
-final class SpyAcknowledgeNotices: AcknowledgeNoticesUseCase, @unchecked Sendable {
-    private(set) var acknowledged: [ProductID] = []
-
-    func callAsFunction(aboutProductId productId: ProductID) {
-        acknowledged.append(productId)
-    }
-}
-
-@MainActor
 final class SpyNavigation: BagNavigation {
     private(set) var openedProducts: [ProductID] = []
 

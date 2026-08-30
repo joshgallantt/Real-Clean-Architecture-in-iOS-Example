@@ -92,6 +92,7 @@ let package = Package(
         .testTarget(
             name: "OrderUIUnitTests",
             dependencies: [
+                .product(name: "BagTestSupport", package: "Bag"),
                 .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
                 "OrderUI",
                 "OrderUITestSupport",
