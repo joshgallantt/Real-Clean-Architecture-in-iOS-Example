@@ -1,5 +1,7 @@
 # Clean Architecture for iOS
 
+[![coverage](https://img.shields.io/badge/coverage-51%25-orange)](#test-coverage)
+
 A shopping app built the way Robert C. Martin's *Clean Architecture* describes, in SwiftUI, with every architectural boundary enforced by the Swift compiler rather than by good intentions.
 
 This page teaches the architecture by following **one tap through every layer**. It is about twenty minutes. When you finish it you will have seen every idea the project uses, working, in one feature — and you can read the rest of the code without a map.
@@ -243,6 +245,40 @@ func priceWentUp() async {
 Every verb belongs to the shopper: `choose`, `theShopNowSells`, `comesBack`. No test names a repository, a store or a DTO — so the feature can be rearranged underneath and the tests go on asserting the same thing. That is Martin's own remedy for the Fragile Tests Problem (Ch. 28).
 
 The unit tier asserts the same rules in the language of the system, and names the unit that broke.
+
+## Test coverage
+
+`./coverage.sh` measures it and `./coverage.sh --badge` writes the figure above.
+
+| Layer | Covered | |
+| --- | --- | --- |
+| Domain | 911 / 926 | **98.4%** |
+| Data | 967 / 1031 | **93.8%** |
+| Presentation | 2319 / 5406 | 42.9% |
+| DI and wiring | 185 / 454 | 40.7% |
+| Composition root | 0 / 771 | 0% |
+| **Production total** | **4382 / 8588** | **51.0%** |
+
+The headline number is the one worth distrusting, and the split is the reason. The
+business rules are covered at 98% and the code that satisfies them at 94% — those
+are the layers where a gap is a missing test. The rest of the number is mostly
+SwiftUI view bodies and the composition root, and neither is a hole to fill.
+
+The composition root sits at 0% by design. It is the Humble Object of Chapter 23:
+it chooses concrete types and connects them, holds no branch worth asserting, and
+covering it would mean testing that a wire is a wire. The DI modules are the same
+shape one layer down. Together they are 1225 of the 8588 lines, and excluding them
+puts the rest at 57%.
+
+Presentation is lower than it looks because coverage counts the lines of a
+`body` — result builders are largely unreachable by a unit test and a snapshot
+test executes them without SwiftUI reporting most of them as covered. The view
+models beneath, which is where the presentation logic actually lives, are covered
+by the unit tier.
+
+None of this is an argument for chasing the number. A line can be covered and
+assert nothing, and 100% would mean tests written to reach code rather than to
+say what it should do.
 
 ---
 
