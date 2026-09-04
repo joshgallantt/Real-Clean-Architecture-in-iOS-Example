@@ -41,7 +41,7 @@ Robert C. Martin collected the five principles that Michael Feathers subsequentl
 
 - **Single responsibility** — *"A module should be responsible to one, and only one, actor"* (Ch. 7). An actor is the group of people who ask for a change. The older words — one reason to change — are the historical form that the book replaces, and they hide the point: the reason is always a person, and the defect is two groups of people that share one module. `Component/Bag` answers to the people who decide what a bag holds and which notices the shop leaves on it. `BagUI` answers to the people who decide how a bag row looks. Merchandising and design change on different days, thus they do not share a file. This principle also causes the package layout: it becomes the Common Closure Principle at the level of components, and the axis of change that draws the architectural boundaries above that.
 
-- **Open-closed** — *"A software artifact should be open for extension but closed for modification"* (Ch. 8). New behaviour must come as new code, not as changes to code that already operates. `BagUI` is the example: the application gives checkout to it as a completed `AnyView`, in the same way that it gives a stock alert bell to it. Thus `Order` and `StockAlert` added to the bag screen with no change to `BagUI`. Note what this principle is not: to put one `AuthClient` implementation in the place of another is dependency inversion, not the open-closed principle. To replace a detail keeps the behaviour the same; the open-closed principle adds behaviour.
+- **Open-closed** — *"A software artifact should be open for extension but closed for modification"* (Ch. 8). New behaviour must come as new code, not as changes to code that already operates. `BagUI` is the example: `BagUIDI` takes `OrderUIDI` and `ProductActionsUIDI` and asks each for a finished button, so checkout and the stock alert bell reached the bag screen without `BagScreenView` changing. Note what this principle is not: to put one `AuthClient` implementation in the place of another is dependency inversion, not the open-closed principle. To replace a detail keeps the behaviour the same; the open-closed principle adds behaviour.
 
 - **Liskov substitution** — this project has no class inheritance: there is no `override` in the tree. In this condition the principle applies to protocols, and Martin makes that reading explicit — *"the LSP can, and should, be extended to the level of architecture"* (Ch. 9), where the example in the chapter is a REST interface and not a subclass. The principle requires that a conforming type obeys the contract and does not make it smaller. The demo shop tests this in production code and not in a test. `DemoProductRepository` wraps the real `ProductRepository`, changes what the shop says between visits, and `Component/Bag` reacts to it as it reacts to the real one. Thus the decorator must hide a discontinued product from `getProduct(id:)` and not from the lists only. A shop that removed an item from its shelves but still supplied its page would break the bag, and the code says so at that method. The sign of a violation is a caller that must ask which implementation it holds.
 
@@ -541,7 +541,9 @@ public struct HomeUIDI {
 
 **Why single use cases and not the full `ProductDI` container.** This is the interface segregation principle applied to dependency injection. `HomeUIDI` needs one capability — draw the feed — thus it gets one. `HomeDI`, one layer further in, needs two capabilities from `Product`: list the categories of the shop, and list the products in one category. The full `ProductDI` at either point would also supply `viewProductUseCase` and `lookUpProductsUseCase`, which neither of them calls. Fowler warns against this shape with the name Service Locator: a container that *can* resolve anything, in the place of the collaborator that the caller actually needs, makes the boundary less clear. Only the composition root holds a full component container.
 
-There is one exception: a UI container can take another UI container. `HomeUIDI` takes `WishlistUIDI` and `ProductActionsUIDI`, thus a card in a carousel can carry a heart and a bag button. `SearchUIDI` takes the same pair for the same reason. That is a view-construction dependency between equals and not a reach into the domain wiring of a component. Note where it stops: the two containers reach `HomeUIDI` and not `HomeUI`. The screen itself gets two closures, `(ProductID) -> AnyView` and `(Product) -> AnyView`, and never learns that a wishlist exists.
+There is one exception: a UI container can take another UI container. `HomeUIDI` takes `WishlistUIDI` and `ProductActionsUIDI`, thus a card in a carousel can carry a heart and a bag button. `SearchUIDI` takes the same pair for the same reason, `ProductUIDI` takes `OrderUIDI` so a product page can be bought from, and `BagUIDI` takes both so a bag can ring a bell and check out. That is a view-construction dependency between equals and not a reach into the domain wiring of a component. Note where it stops: the containers reach `HomeUIDI` and not `HomeUI`. The screen itself gets two closures, `(ProductID) -> AnyView` and `(Product) -> AnyView`, and never learns that a wishlist exists.
+
+This is the *only* shape in which one feature's view reaches another. The composition root does not hand a feature container a closure that builds somebody else's button; it hands over the peer container and lets the feature ask. `BagUIDI` and `ProductUIDI` were the two that took closures — `stockAlertButton`, `checkoutButton`, `buyNowButton` — and the arrangement looked like it protected a boundary while it actually split one screen's assembly across two files. The composition root chose the button and the use cases behind it; the feature chose where on the screen it went; and the type said `AnyView`, so neither the feature nor a test could tell one button from another. Declaring the dependency says the true thing: a bag has a way out of itself, and `Package.swift` fails if that stops being true.
 
 ---
 
@@ -836,7 +838,7 @@ public protocol SearchNavigation: AnyObject {
 }
 ```
 
-`HomeNavigation` and `WishlistNavigation` declare `openProductDetails(product:)` only. `BagNavigation` declares `openProductDetails(id:)` and `switchToBagTab()`, because a bag row holds an id and not a product, and because "View" on the added-to-bag snackbar must go somewhere. Each protocol lists only the moves that its own feature makes. Thus a feature cannot reach a route that it did not ask for.
+`HomeNavigation` and `WishlistNavigation` declare `openProductDetails(product:)` only. `BagNavigation` declares the same move plus `switchToBagTab()`, because "View" on the added-to-bag snackbar must go somewhere. It used to declare `openProductDetails(id:)` instead, on the grounds that a bag row holds an id and not a product — but the bag screen is told what each of its lines is, which is where its names and pictures come from, so it had the product all along and passed the id out of habit. Each protocol lists only the moves that its own feature makes. Thus a feature cannot reach a route that it did not ask for.
 
 ### Destination and the authentication gate
 
@@ -846,17 +848,12 @@ public protocol SearchNavigation: AnyObject {
 ```swift
 public enum Destination: Hashable {
     case catalog(CatalogFilter)
-    case productDetails(ProductReference)
+    case productDetails(Product)
     case orderHistory
     case allFaves
     case allWaitlist
     case allBackInStock
     case settings
-
-    public enum ProductReference: Hashable {
-        case id(ProductID)
-        case product(Product)
-    }
 
     var requiresAuthentication: Bool {
         switch self {
@@ -877,9 +874,7 @@ public enum Destination: Hashable {
         switch self {
         case .catalog(let filter):
             CompositionRoot.shared.presentation.search.catalogResultsView(filter: filter)
-        case .productDetails(.id(let id)):
-            CompositionRoot.shared.presentation.product.detailView(id: id)
-        case .productDetails(.product(let product)):
+        case .productDetails(let product):
             CompositionRoot.shared.presentation.product.detailView(product: product)
         // ...one arm per remaining case, each to the container that owns the view
         }
@@ -887,7 +882,7 @@ public enum Destination: Hashable {
 }
 ```
 
-There is one `catalog` case, and not one case for each way to divide the shop, because `CatalogFilter` already states what the division is. A route for each filter would state that enumeration a second time. `ProductReference` exists because a caller that already holds the product can draw the screen with no second request, and a caller that holds only an id cannot. Both are the same destination.
+There is one `catalog` case, and not one case for each way to divide the shop, because `CatalogFilter` already states what the division is. A route for each filter would state that enumeration a second time. `productDetails` carries a `Product` and not a `ProductID`: a route is a thing to open, so every caller arrives holding the thing. It used to carry either, through a `ProductReference` of `id` or `product`, so that a caller with only an id could still route and the page would fetch on appear. One caller ever used it — the bag screen, which already held the product it was drawing — and the branch bought a product page that could open empty, fail to load and need a not-found state, for a case that did not exist.
 
 The policy is in the enumeration and not in the screens. A guest can open the catalog, a product and their own settings. Everything that a shopper keeps — the order history, the faves, the waitlist and the back-in-stock list — belongs to a person, thus it needs an account. The switch is exhaustive. If you add a destination, the compiler makes you decide which group it is in, and does not leave a hole. Note that the two comments in the code carry the reason for each group, at the location where the policy is.
 
@@ -1030,7 +1025,7 @@ The graph obeys these rules:
 - A dependency across features or across components is permitted where the domain has a real relation. `Wishlist ──▶ Session`, because a shopper must have an account. `Bag ──▶ Product`, because a bag holds product ids and reads what the shop says about them. `SearchUI ──▶ ProductUI`, because a search result is a product card.
 - The *domain* of `Bag` does not reach `Session` at all. Only `BagData` reaches it, and only to read who is signed in. The rules of the bag do not depend on a signed-in shopper, and the compiler now states that.
 - The domain of `Order` *does* reach `Session`, and the difference is the point. A guest can hold a bag and cannot hold an order, thus to refuse an order is a business rule and not a storage detail.
-- `OrderUI ──▶ Bag`, and never the opposite. The application gives `BagUI` a completed checkout button as an `AnyView`, in the same way that it gives a stock alert bell. Thus the payment stack stays out of the dependency list of each screen that draws a bag row or a heart. `ProductActionsUI` is free of checkout for the same reason.
+- `OrderUI ──▶ Bag`, and never the opposite. `BagUIDI` takes `OrderUIDI` and asks it for a finished checkout button; `BagUI`, the screen package beneath it, is where the dependency stops. Thus the payment stack stays out of the dependency list of each screen that draws a bag row or a heart. `ProductActionsUI` is free of checkout for the same reason.
 - One `*UIDI` container can take another. `SearchUIDI` takes `BagUIDI`, thus a search result can carry an add-to-bag button. That is a view-construction dependency between equals and not a reach into the domain wiring of a component.
 - `Networking` has no domain knowledge and is in `Library/`. `Money` was beside it and is not now: exact arithmetic and same-currency addition are the business's rules about prices, thus `Money` is a domain component that each other component can depend on.
 

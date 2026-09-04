@@ -112,8 +112,8 @@ struct PresentationAssembler {
             setBagItemQuantity: domain.bag.setBagItemQuantityUseCase,
             bringBagUpToDate: domain.bag.bringBagUpToDateUseCase,
             acknowledgeNotices: domain.bag.acknowledgeNoticesUseCase,
-            stockAlertButton: { id in AnyView(productActions.stockAlertButton(productId: id)) },
-            checkoutButton: { AnyView(order.checkoutButton()) }
+            productActionsUIDI: productActions,
+            orderUIDI: order
         )
         self.bag = bag
 
@@ -134,9 +134,8 @@ struct PresentationAssembler {
         self.wishlist = wishlist
 
         product = ProductUIDI(
-            viewProduct: catalog.viewProduct,
             productActionsUIDI: productActions,
-            buyNowButton: { product in AnyView(order.buyNowButton(product: product)) }
+            orderUIDI: order
         )
         home = HomeUIDI(
             navigation: navigator,

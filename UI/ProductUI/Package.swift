@@ -20,6 +20,7 @@ let package = Package(
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Money"),
+        .package(path: "../OrderUI"),
         .package(path: "../ProductActionsUI"),
         .package(url: "https://github.com/onevcat/Kingfisher.git", from: "8.0.0")
     ],
@@ -41,6 +42,7 @@ let package = Package(
                 "ProductUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
+                .product(name: "OrderUIDI", package: "OrderUI"),
                 .product(name: "ProductActionsUIDI", package: "ProductActionsUI")
             ],
             path: "Sources/DI"

@@ -99,13 +99,36 @@ struct BagScreenViewModelTests {
     }
 
     @Test("Tapping a line opens that product, and no other")
-    func tappingARowOpensThatProduct() {
+    func tappingARowOpensThatProduct() async {
         let navigation = SpyNavigation()
-        let viewModel = makeViewModel(navigation: navigation)
+        let bringBagUpToDate = StubBringBagUpToDate()
+        bringBagUpToDate.products = [.fixture(id: 3), .fixture(id: 4)]
+        let viewModel = makeViewModel(
+            navigation: navigation,
+            observeBag: StubObserveBag(Bag(items: [bagItem(3, price: 9.99), bagItem(4, price: 4.99)])),
+            bringBagUpToDate: bringBagUpToDate
+        )
+        await viewModel.onAppear()
 
         viewModel.didTapRow(productId: pid(3))
 
-        #expect(navigation.openedProducts == [pid(3)])
+        #expect(navigation.openedProducts == [.fixture(id: 3)])
+    }
+
+    @Test("Tapping a line the shop has not answered about yet opens nothing")
+    /// The product is what gets opened, so a line the screen cannot name is a line with no page
+    /// behind it. It draws as a picture-less row until the answer lands, and then it opens.
+    func tappingARowTheShopHasNotAnsweredAboutOpensNothing() async {
+        let navigation = SpyNavigation()
+        let viewModel = makeViewModel(
+            navigation: navigation,
+            observeBag: StubObserveBag(Bag(items: [bagItem(3, price: 9.99)]))
+        )
+        await viewModel.onAppear()
+
+        viewModel.didTapRow(productId: pid(3))
+
+        #expect(navigation.openedProducts.isEmpty)
     }
 
     @Test("Accepting a section acknowledges every product it is showing, and none of another section's")

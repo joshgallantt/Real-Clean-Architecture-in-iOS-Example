@@ -27,26 +27,10 @@ public struct ProductDetailsScreen: View {
 
     public var body: some View {
         ScrollView {
-            if let product = viewModel.product {
-                content(for: product)
-            }
+            content(for: viewModel.product)
         }
-        .overlay {
-            if viewModel.isLoading {
-                ProgressView()
-            } else if viewModel.loadFailed {
-                ContentUnavailableView(
-                    "Can't Find That One",
-                    systemImage: "exclamationmark.triangle",
-                    description: Text("It might be gone, or we might be having a moment.")
-                )
-            }
-        }
-        .navigationTitle(viewModel.product?.title ?? "")
+        .navigationTitle(viewModel.product.title)
         .navigationBarTitleDisplayMode(.inline)
-        .task {
-            await viewModel.onAppear()
-        }
     }
 
     @ViewBuilder

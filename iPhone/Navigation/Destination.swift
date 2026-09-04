@@ -18,17 +18,12 @@ import SettingsUIDI
 /// destinations require an account — so the rule sits beside the routes rather than in each screen.
 public enum Destination: Hashable {
     case catalog(CatalogFilter)
-    case productDetails(ProductReference)
+    case productDetails(Product)
     case orderHistory
     case allFaves
     case allWaitlist
     case allBackInStock
     case settings
-
-    public enum ProductReference: Hashable {
-        case id(ProductID)
-        case product(Product)
-    }
 
     var requiresAuthentication: Bool {
         switch self {
@@ -49,9 +44,7 @@ public enum Destination: Hashable {
         switch self {
         case .catalog(let filter):
             CompositionRoot.shared.presentation.search.catalogResultsView(filter: filter)
-        case .productDetails(.id(let id)):
-            CompositionRoot.shared.presentation.product.detailView(id: id)
-        case .productDetails(.product(let product)):
+        case .productDetails(let product):
             CompositionRoot.shared.presentation.product.detailView(product: product)
         case .orderHistory:
             CompositionRoot.shared.presentation.order.historyView()
@@ -82,11 +75,7 @@ extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNa
     }
 
     func openProductDetails(product: Product) {
-        open(.productDetails(.product(product)))
-    }
-
-    func openProductDetails(id: ProductID) {
-        open(.productDetails(.id(id)))
+        open(.productDetails(product))
     }
 
     func openAllFaves() {

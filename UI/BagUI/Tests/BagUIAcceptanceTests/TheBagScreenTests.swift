@@ -505,7 +505,7 @@ struct GoingFromTheBagToAProductTests {
 
         viewModel.didTapRow(productId: pid(1))
 
-        #expect(navigation.openedProducts == [pid(1)])
+        #expect(navigation.openedProducts.map(\.id) == [pid(1)])
     }
 
     @Test("Tapping something that sold out opens it — it is coming back, and the page is where you wait")
@@ -519,7 +519,7 @@ struct GoingFromTheBagToAProductTests {
 
         viewModel.didTapRow(productId: pid(1))
 
-        #expect(navigation.openedProducts == [pid(1)])
+        #expect(navigation.openedProducts.map(\.id) == [pid(1)])
     }
 
     @Test("Tapping something repriced opens it, because that is where the decision gets made")
@@ -533,7 +533,7 @@ struct GoingFromTheBagToAProductTests {
 
         viewModel.didTapRow(productId: pid(1))
 
-        #expect(navigation.openedProducts == [pid(1)])
+        #expect(navigation.openedProducts.map(\.id) == [pid(1)])
     }
 
 }

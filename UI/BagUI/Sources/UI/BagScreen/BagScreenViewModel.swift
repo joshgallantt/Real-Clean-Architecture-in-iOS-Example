@@ -101,8 +101,15 @@ public final class BagScreenViewModel {
     /// One method, because every section is now about something the shop still sells. It used to
     /// ask the section whether there was a page worth opening, for the one kind where there was
     /// not.
+    ///
+    /// The product goes to navigation, not its id — see `BagNavigation`. This screen has already
+    /// been told what every line is, which is where its names and pictures come from, so it opens
+    /// what it is drawing rather than asking the app layer to go and find it again. A line the shop
+    /// has not answered about yet has no page to open, and drawing it as a name-less row is the
+    /// same fact said in the other direction.
     func didTapRow(productId: ProductID) {
-        navigation.openProductDetails(id: productId)
+        guard let product = catalog[productId] else { return }
+        navigation.openProductDetails(product: product)
     }
 
     /// Acknowledging is by product, not by notice — "Okay" has always meant "I have seen what

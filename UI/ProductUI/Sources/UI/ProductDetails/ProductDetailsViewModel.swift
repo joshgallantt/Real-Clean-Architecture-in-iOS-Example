@@ -9,36 +9,15 @@ import Product
 ///
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
+///
+/// Evans, *Domain-Driven Design* (2003), Ch. 5 — Entities: a product, not an id and a way of
+/// turning it into one. Every route here carries the thing itself, so there is nothing to look up,
+/// nothing to be waiting on and nothing to fail to find — three states that were representable and
+/// only one of which ever happened.
 public final class ProductDetailsViewModel {
-    private(set) var product: Product?
-    private(set) var isLoading = false
-    private(set) var loadFailed = false
-
-    private let id: ProductID
-    private let viewProduct: ViewProductUseCase?
-
-    public init(id: ProductID, viewProduct: ViewProductUseCase) {
-        self.id = id
-        self.viewProduct = viewProduct
-    }
+    let product: Product
 
     public init(product: Product) {
-        self.id = product.id
         self.product = product
-        self.viewProduct = nil
-    }
-
-    func onAppear() async {
-        guard product == nil, let viewProduct else { return }
-        isLoading = true
-        defer { isLoading = false }
-
-        switch await viewProduct(id: id) {
-        case .success(let value):
-            product = value
-            loadFailed = false
-        case .failure:
-            loadFailed = true
-        }
     }
 }

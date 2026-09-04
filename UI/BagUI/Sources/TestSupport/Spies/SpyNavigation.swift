@@ -6,9 +6,9 @@ import ProductTestSupport
 
 @MainActor
 final class SpyNavigation: BagNavigation {
-    private(set) var openedProducts: [ProductID] = []
+    private(set) var openedProducts: [Product] = []
 
-    nonisolated func openProductDetails(id: ProductID) {
-        MainActor.assumeIsolated { openedProducts.append(id) }
+    nonisolated func openProductDetails(product: Product) {
+        MainActor.assumeIsolated { openedProducts.append(product) }
     }
 }

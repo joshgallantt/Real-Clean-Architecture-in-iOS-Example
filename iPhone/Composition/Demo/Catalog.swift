@@ -13,18 +13,15 @@ import ProductDI
 struct Catalog {
     let browseCatalog: BrowseCatalogUseCase
     let lookUpProducts: LookUpProductsUseCase
-    let viewProduct: ViewProductUseCase
     let browseCategories: BrowseCategoriesUseCase
 
     init(
         browseCatalog: BrowseCatalogUseCase,
         lookUpProducts: LookUpProductsUseCase,
-        viewProduct: ViewProductUseCase,
         browseCategories: BrowseCategoriesUseCase
     ) {
         self.browseCatalog = browseCatalog
         self.lookUpProducts = lookUpProducts
-        self.viewProduct = viewProduct
         self.browseCategories = browseCategories
     }
 
@@ -32,7 +29,6 @@ struct Catalog {
         self.init(
             browseCatalog: productDI.browseCatalogUseCase,
             lookUpProducts: productDI.lookUpProductsUseCase,
-            viewProduct: productDI.viewProductUseCase,
             browseCategories: productDI.browseCategoriesUseCase
         )
     }
