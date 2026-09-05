@@ -13,12 +13,12 @@ import Product
 @Suite("What the bag screen delegates, and to what")
 struct BagScreenViewModelTests {
     private func makeViewModel(
-        navigation: SpyNavigation = SpyNavigation(),
-        observeBag: StubObserveBag = StubObserveBag(),
-        observeNotices: StubObserveNotices = StubObserveNotices(),
-        setBagItemQuantity: SpySetBagItemQuantity = SpySetBagItemQuantity(),
-        bringBagUpToDate: StubBringBagUpToDate = StubBringBagUpToDate(),
-        acknowledgeNotices: SpyAcknowledgeNotices = SpyAcknowledgeNotices()
+        navigation: SpyBagNavigation = SpyBagNavigation(),
+        observeBag: StubObserveBagUseCase = StubObserveBagUseCase(),
+        observeNotices: StubObserveNoticesUseCase = StubObserveNoticesUseCase(),
+        setBagItemQuantity: SpySetBagItemQuantityUseCase = SpySetBagItemQuantityUseCase(),
+        bringBagUpToDate: SpyBringBagUpToDateUseCase = SpyBringBagUpToDateUseCase(),
+        acknowledgeNotices: SpyAcknowledgeNoticesUseCase = SpyAcknowledgeNoticesUseCase()
     ) -> BagScreenViewModel {
         BagScreenViewModel(
             navigation: navigation,
@@ -32,7 +32,7 @@ struct BagScreenViewModelTests {
 
     @Test("Rows render from the bag as soon as it appears, before the shop answers about any of it")
     func rendersFromTheBagFirst() async {
-        let observeBag = StubObserveBag(Bag(items: [bagItem(1, price: 9.99)]))
+        let observeBag = StubObserveBagUseCase(Bag(items: [bagItem(1, price: 9.99)]))
         let viewModel = makeViewModel(observeBag: observeBag)
 
         await viewModel.onAppear()
@@ -43,7 +43,7 @@ struct BagScreenViewModelTests {
 
     @Test("Changing how many delegates to the use case with that product and the new quantity")
     func changingQuantityDelegates() async {
-        let setBagItemQuantity = SpySetBagItemQuantity()
+        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
         let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
 
         viewModel.didChangeQuantity(productId: pid(1), quantity: 3)
@@ -54,7 +54,7 @@ struct BagScreenViewModelTests {
 
     @Test("Swiping to delete sets that product's quantity to zero, not just any product's")
     func swipeToDeleteTargetsTheRightProduct() {
-        let setBagItemQuantity = SpySetBagItemQuantity()
+        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
         let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
 
         viewModel.didSwipeToDelete(productId: pid(2))
@@ -65,7 +65,7 @@ struct BagScreenViewModelTests {
 
     @Test("Removing a repriced line sets that one product's quantity to zero")
     func removingAChangedItemTargetsTheRightProduct() {
-        let setBagItemQuantity = SpySetBagItemQuantity()
+        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
         let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
 
         viewModel.didRemoveChangedItem(productId: pid(4))
@@ -76,8 +76,8 @@ struct BagScreenViewModelTests {
 
     @Test("Emptying the bag sets every line's quantity to zero, and no other product's")
     func removingEverythingClearsEveryLine() async {
-        let observeBag = StubObserveBag(Bag(items: [bagItem(1, price: 9.99), bagItem(2, price: 5)]))
-        let setBagItemQuantity = SpySetBagItemQuantity()
+        let observeBag = StubObserveBagUseCase(Bag(items: [bagItem(1, price: 9.99), bagItem(2, price: 5)]))
+        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
         let viewModel = makeViewModel(observeBag: observeBag, setBagItemQuantity: setBagItemQuantity)
         await viewModel.onAppear()
 
@@ -89,7 +89,7 @@ struct BagScreenViewModelTests {
 
     @Test("Emptying an already-empty bag asks the use case for nothing")
     func removingEverythingFromAnEmptyBagDoesNothing() async {
-        let setBagItemQuantity = SpySetBagItemQuantity()
+        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
         let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
         await viewModel.onAppear()
 
@@ -100,12 +100,12 @@ struct BagScreenViewModelTests {
 
     @Test("Tapping a line opens that product, and no other")
     func tappingARowOpensThatProduct() async {
-        let navigation = SpyNavigation()
-        let bringBagUpToDate = StubBringBagUpToDate()
+        let navigation = SpyBagNavigation()
+        let bringBagUpToDate = SpyBringBagUpToDateUseCase()
         bringBagUpToDate.products = [.fixture(id: 3), .fixture(id: 4)]
         let viewModel = makeViewModel(
             navigation: navigation,
-            observeBag: StubObserveBag(Bag(items: [bagItem(3, price: 9.99), bagItem(4, price: 4.99)])),
+            observeBag: StubObserveBagUseCase(Bag(items: [bagItem(3, price: 9.99), bagItem(4, price: 4.99)])),
             bringBagUpToDate: bringBagUpToDate
         )
         await viewModel.onAppear()
@@ -119,10 +119,10 @@ struct BagScreenViewModelTests {
     /// The product is what gets opened, so a line the screen cannot name is a line with no page
     /// behind it. It draws as a picture-less row until the answer lands, and then it opens.
     func tappingARowTheShopHasNotAnsweredAboutOpensNothing() async {
-        let navigation = SpyNavigation()
+        let navigation = SpyBagNavigation()
         let viewModel = makeViewModel(
             navigation: navigation,
-            observeBag: StubObserveBag(Bag(items: [bagItem(3, price: 9.99)]))
+            observeBag: StubObserveBagUseCase(Bag(items: [bagItem(3, price: 9.99)]))
         )
         await viewModel.onAppear()
 
@@ -133,11 +133,11 @@ struct BagScreenViewModelTests {
 
     @Test("Accepting a section acknowledges every product it is showing, and none of another section's")
     func acceptingASectionAcknowledgesItsOwnProducts() async {
-        let observeNotices = StubObserveNotices(Notices([
+        let observeNotices = StubObserveNoticesUseCase(Notices([
             .outOfStock(productId: pid(1)),
             .priceWentUp(productId: pid(2), from: usd(5), to: usd(7))
         ]))
-        let acknowledgeNotices = SpyAcknowledgeNotices()
+        let acknowledgeNotices = SpyAcknowledgeNoticesUseCase()
         let viewModel = makeViewModel(observeNotices: observeNotices, acknowledgeNotices: acknowledgeNotices)
         await viewModel.onAppear()
 
@@ -148,7 +148,7 @@ struct BagScreenViewModelTests {
 
     @Test("Accepting a section nothing is showing acknowledges nothing")
     func acceptingAnEmptySectionAcknowledgesNothing() async {
-        let acknowledgeNotices = SpyAcknowledgeNotices()
+        let acknowledgeNotices = SpyAcknowledgeNoticesUseCase()
         let viewModel = makeViewModel(acknowledgeNotices: acknowledgeNotices)
         await viewModel.onAppear()
 
@@ -159,8 +159,8 @@ struct BagScreenViewModelTests {
 
     @Test("What the shop is told to catch up on is what the screen appeared showing")
     func asksTheShopWhatIsOnScreen() async {
-        let observeBag = StubObserveBag(Bag(items: [bagItem(1, price: 9.99), bagItem(2, price: 5)]))
-        let bringBagUpToDate = StubBringBagUpToDate()
+        let observeBag = StubObserveBagUseCase(Bag(items: [bagItem(1, price: 9.99), bagItem(2, price: 5)]))
+        let bringBagUpToDate = SpyBringBagUpToDateUseCase()
         let viewModel = makeViewModel(observeBag: observeBag, bringBagUpToDate: bringBagUpToDate)
 
         await viewModel.onAppear()

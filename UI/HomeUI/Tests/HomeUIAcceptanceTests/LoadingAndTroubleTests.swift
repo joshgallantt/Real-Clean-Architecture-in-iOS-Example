@@ -1,6 +1,7 @@
 import Foundation
 import Testing
 import Product
+@testable import HomeUITestSupport
 @testable import HomeUI
 
 @MainActor

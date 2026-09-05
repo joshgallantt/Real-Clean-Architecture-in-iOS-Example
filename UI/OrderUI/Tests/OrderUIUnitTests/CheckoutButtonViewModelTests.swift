@@ -17,11 +17,11 @@ import Product
 @Suite("Checking out")
 struct CheckoutButtonViewModelTests {
     private func makeViewModel(
-        observeBag: StubObserveBag = StubObserveBag(),
-        placeOrder: StubPlaceOrder = StubPlaceOrder(),
-        setBagItemQuantity: SpySetBagItemQuantity = SpySetBagItemQuantity(),
-        authPresenter: StubAuthPresenter = StubAuthPresenter(),
-        snackbarPresenter: SpySnackbarPresenter = SpySnackbarPresenter(),
+        observeBag: StubObserveBagUseCase = StubObserveBagUseCase(),
+        placeOrder: SpyPlaceOrderUseCase = SpyPlaceOrderUseCase(),
+        setBagItemQuantity: SpySetBagItemQuantityUseCase = SpySetBagItemQuantityUseCase(),
+        authPresenter: SpyAuthPresenting = SpyAuthPresenting(),
+        snackbarPresenter: SpySnackbarPresenting = SpySnackbarPresenting(),
         confirm: @escaping (Order) -> Void = { _ in }
     ) -> CheckoutButtonViewModel {
         let viewModel = CheckoutButtonViewModel(
@@ -42,11 +42,11 @@ struct CheckoutButtonViewModelTests {
 
     @Test("Checking out orders every line in the bag, at the prices it was showing")
     func ordersEveryLine() async {
-        let observeBag = StubObserveBag(bag(
+        let observeBag = StubObserveBagUseCase(bag(
             BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(9.99), dateAdded: .now),
             BagItem(productId: pid(2), quantity: 1, lastKnownPrice: usd(5), dateAdded: .distantPast)
         ))
-        let placeOrder = StubPlaceOrder()
+        let placeOrder = SpyPlaceOrderUseCase()
         let viewModel = makeViewModel(observeBag: observeBag, placeOrder: placeOrder)
 
         await viewModel.tapAndSettle()
@@ -59,11 +59,11 @@ struct CheckoutButtonViewModelTests {
 
     @Test("A successful checkout empties every line that was ordered")
     func emptiesEveryLineOnSuccess() async {
-        let observeBag = StubObserveBag(bag(
+        let observeBag = StubObserveBagUseCase(bag(
             BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(9.99)),
             BagItem(productId: pid(2), quantity: 1, lastKnownPrice: usd(5))
         ))
-        let setBagItemQuantity = SpySetBagItemQuantity()
+        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
         let viewModel = makeViewModel(observeBag: observeBag, setBagItemQuantity: setBagItemQuantity)
 
         await viewModel.tapAndSettle()
@@ -74,11 +74,11 @@ struct CheckoutButtonViewModelTests {
 
     @Test("A declined payment leaves the bag exactly as it was")
     func declinedLeavesTheBag() async {
-        let observeBag = StubObserveBag(bag(BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(9.99))))
-        let placeOrder = StubPlaceOrder()
+        let observeBag = StubObserveBagUseCase(bag(BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(9.99))))
+        let placeOrder = SpyPlaceOrderUseCase()
         placeOrder.result = .failure(.paymentDeclined)
-        let setBagItemQuantity = SpySetBagItemQuantity()
-        let snackbarPresenter = SpySnackbarPresenter()
+        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
+        let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(
             observeBag: observeBag,
             placeOrder: placeOrder,
@@ -101,7 +101,7 @@ struct CheckoutButtonViewModelTests {
 
     @Test("The total shown is what the bag is worth, formatted")
     func totalLabelMatchesTheBag() {
-        let observeBag = StubObserveBag(bag(BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(10))))
+        let observeBag = StubObserveBagUseCase(bag(BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(10))))
         let viewModel = makeViewModel(observeBag: observeBag)
 
         #expect(viewModel.totalLabel == usd(20).formatted())
@@ -110,12 +110,12 @@ struct CheckoutButtonViewModelTests {
 
     @Test("A guest who backs out of signing in keeps their bag, and checks out nothing")
     func guestWhoBacksOutKeepsTheBag() async {
-        let observeBag = StubObserveBag(bag(BagItem(productId: pid(1), quantity: 1, lastKnownPrice: usd(9.99))))
-        let placeOrder = StubPlaceOrder()
+        let observeBag = StubObserveBagUseCase(bag(BagItem(productId: pid(1), quantity: 1, lastKnownPrice: usd(9.99))))
+        let placeOrder = SpyPlaceOrderUseCase()
         placeOrder.result = .failure(.unauthenticated)
-        let authPresenter = StubAuthPresenter()
+        let authPresenter = SpyAuthPresenting()
         authPresenter.signsIn = false
-        let setBagItemQuantity = SpySetBagItemQuantity()
+        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
         let viewModel = makeViewModel(
             observeBag: observeBag,
             placeOrder: placeOrder,
@@ -131,9 +131,9 @@ struct CheckoutButtonViewModelTests {
 
     @Test("A bag with nothing in it says so, rather than being sent to the till")
     func nothingToOrderSaysSo() async {
-        let placeOrder = StubPlaceOrder()
+        let placeOrder = SpyPlaceOrderUseCase()
         placeOrder.result = .failure(.nothingToOrder)
-        let snackbarPresenter = SpySnackbarPresenter()
+        let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(placeOrder: placeOrder, snackbarPresenter: snackbarPresenter)
 
         await viewModel.tapAndSettle()

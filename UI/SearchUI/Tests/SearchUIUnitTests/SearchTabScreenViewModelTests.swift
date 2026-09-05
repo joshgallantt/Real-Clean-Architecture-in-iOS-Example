@@ -10,9 +10,9 @@ import Product
 @Suite("The search tab")
 struct SearchTabScreenViewModelTests {
     private func makeViewModel(
-        browseCategories: SpyBrowseCategories = SpyBrowseCategories(),
-        recordSearch: SpyRecordSearch = SpyRecordSearch(),
-        snackbar: SpySnackbarPresenter = SpySnackbarPresenter()
+        browseCategories: SpyBrowseCategoriesUseCase = SpyBrowseCategoriesUseCase(),
+        recordSearch: SpyRecordSearchUseCase = SpyRecordSearchUseCase(),
+        snackbar: SpySnackbarPresenting = SpySnackbarPresenting()
     ) -> SearchTabScreenViewModel {
         SearchTabScreenViewModel(browseCategories: browseCategories, recordSearch: recordSearch, snackbar: snackbar)
     }
@@ -20,7 +20,7 @@ struct SearchTabScreenViewModelTests {
     @Test("Appearing loads the categories the shop divides itself into")
     func appearingLoadsCategories() async {
         let category = ProductCategory(id: CategoryID(rawValue: "beauty"), name: "Beauty")
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .success([category])
         let viewModel = makeViewModel(browseCategories: browseCategories)
 
@@ -31,7 +31,7 @@ struct SearchTabScreenViewModelTests {
 
     @Test("Appearing again once categories have already loaded asks for them nothing more")
     func appearingAgainLoadsNothingMore() async {
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .success([ProductCategory(id: CategoryID(rawValue: "beauty"), name: "Beauty")])
         let viewModel = makeViewModel(browseCategories: browseCategories)
         await viewModel.onAppear()
@@ -43,9 +43,9 @@ struct SearchTabScreenViewModelTests {
 
     @Test("A shop that cannot be reached offers to try again")
     func failureOffersRetry() async {
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .failure(.unavailable)
-        let snackbar = SpySnackbarPresenter()
+        let snackbar = SpySnackbarPresenting()
         let viewModel = makeViewModel(browseCategories: browseCategories, snackbar: snackbar)
 
         await viewModel.onAppear()
@@ -56,7 +56,7 @@ struct SearchTabScreenViewModelTests {
 
     @Test("Submitting a search records it, exactly as it was typed")
     func submittingRecordsTheSearch() {
-        let recordSearch = SpyRecordSearch()
+        let recordSearch = SpyRecordSearchUseCase()
         let viewModel = makeViewModel(recordSearch: recordSearch)
 
         viewModel.didSubmitSearch(SearchTerm("lipstick")!)

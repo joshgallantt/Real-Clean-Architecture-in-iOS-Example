@@ -11,10 +11,10 @@ import StockAlert
 @Suite("A list built from what the shop says about a set of asks")
 struct AlertedProductsViewModelTests {
     private func makeViewModel(
-        load: StubGetAlertedProducts = StubGetAlertedProducts(),
+        load: SpyGetAlertedProducts = SpyGetAlertedProducts(),
         changes: StubObserveStockAlerts = StubObserveStockAlerts(),
         clear: SpyClearTheList = SpyClearTheList(),
-        snackbar: SpySnackbarPresenter = SpySnackbarPresenter(),
+        snackbar: SpySnackbarPresenting = SpySnackbarPresenting(),
         couldNotLoad: String = "Couldn't Load"
     ) -> AlertedProductsViewModel {
         AlertedProductsViewModel(
@@ -28,7 +28,7 @@ struct AlertedProductsViewModelTests {
 
     @Test("Appearing shows whatever the load returns")
     func appearingShowsWhatLoadReturns() async {
-        let load = StubGetAlertedProducts()
+        let load = SpyGetAlertedProducts()
         load.result = .success([.fixture(id: 1), .fixture(id: 2)])
         let viewModel = makeViewModel(load: load)
 
@@ -41,7 +41,7 @@ struct AlertedProductsViewModelTests {
 
     @Test("A change on what is asked reloads the list")
     func aChangeReloadsTheList() async {
-        let load = StubGetAlertedProducts()
+        let load = SpyGetAlertedProducts()
         load.result = .success([])
         let changes = StubObserveStockAlerts()
         let viewModel = makeViewModel(load: load, changes: changes)
@@ -56,7 +56,7 @@ struct AlertedProductsViewModelTests {
 
     @Test("The same ask reported twice reloads only once")
     func theSameAskTwiceReloadsOnce() async {
-        let load = StubGetAlertedProducts()
+        let load = SpyGetAlertedProducts()
         let changes = StubObserveStockAlerts()
         let viewModel = makeViewModel(load: load, changes: changes)
         await viewModel.onAppear()
@@ -73,7 +73,7 @@ struct AlertedProductsViewModelTests {
 
     @Test("A dropped connection leaves the list exactly as it was, rather than emptying it")
     func aDroppedConnectionLeavesTheListAsItWas() async {
-        let load = StubGetAlertedProducts()
+        let load = SpyGetAlertedProducts()
         load.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(load: load)
         await viewModel.onAppear()
@@ -86,9 +86,9 @@ struct AlertedProductsViewModelTests {
 
     @Test("A dropped connection is reported with the title this list was given")
     func aDroppedConnectionIsReportedWithItsOwnTitle() async {
-        let load = StubGetAlertedProducts()
+        let load = SpyGetAlertedProducts()
         load.result = .failure(.unavailable)
-        let snackbar = SpySnackbarPresenter()
+        let snackbar = SpySnackbarPresenting()
         let viewModel = makeViewModel(load: load, snackbar: snackbar, couldNotLoad: "Couldn't Load the Waitlist")
 
         await viewModel.onAppear()
@@ -98,7 +98,7 @@ struct AlertedProductsViewModelTests {
 
     @Test("Clearing takes away everything currently on the list")
     func clearingTakesEverythingOnTheList() async {
-        let load = StubGetAlertedProducts()
+        let load = SpyGetAlertedProducts()
         load.result = .success([.fixture(id: 1), .fixture(id: 2)])
         let clear = SpyClearTheList()
         let viewModel = makeViewModel(load: load, clear: clear)

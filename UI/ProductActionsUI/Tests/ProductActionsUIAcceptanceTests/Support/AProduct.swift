@@ -11,6 +11,7 @@ import AuthUI
 import SnackbarUI
 import SnackbarUITestSupport
 import StockAlertTestSupport
+@testable import ProductActionsUITestSupport
 @testable import ProductActionsUI
 
 @MainActor
@@ -20,11 +21,11 @@ import StockAlertTestSupport
 final class AProduct {
     let product: Product
 
-    private let bagRepository = InMemoryBagRepository()
-    private let alertRepository = InMemoryStockAlertRepository()
-    private let auth = SpyAuthPresenter()
-    private let snackbars = SpySnackbarPresenter()
-    private let navigation = StubProductActionsNavigation()
+    private let bagRepository = FakeBagRepository()
+    private let alertRepository = FakeStockAlertRepository()
+    private let auth = SpyAuthPresenting()
+    private let snackbars = SpySnackbarPresenting()
+    private let navigation = SpyProductActionsNavigation()
 
     init(_ product: Product = .fixture(id: 1), signedIn: Bool = true) {
         self.product = product
@@ -40,7 +41,7 @@ final class AProduct {
 
     /// The shopper signs in when the sheet asks them to, rather than dismissing it.
     func willSignInWhenAsked() {
-        auth.answer = true
+        auth.signsIn = true
         alertRepository.signsInOnPrompt = true
     }
 

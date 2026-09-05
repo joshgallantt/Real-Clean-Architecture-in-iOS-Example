@@ -13,10 +13,10 @@ import Product
 struct StockAlertButtonViewModelTests {
     private func makeViewModel(
         productId: ProductID = pid(1),
-        observeWaitlistStatus: StubObserveWaitlistStatus = StubObserveWaitlistStatus(),
-        setStockAlert: StubSetStockAlert = StubSetStockAlert(),
-        authPresenter: StubAuthPresenter = StubAuthPresenter(),
-        snackbarPresenter: SpySnackbarPresenter = SpySnackbarPresenter()
+        observeWaitlistStatus: StubObserveWaitlistStatusUseCase = StubObserveWaitlistStatusUseCase(),
+        setStockAlert: SpySetStockAlertForProductUseCase = SpySetStockAlertForProductUseCase(),
+        authPresenter: SpyAuthPresenting = SpyAuthPresenting(),
+        snackbarPresenter: SpySnackbarPresenting = SpySnackbarPresenting()
     ) -> StockAlertButtonViewModel {
         let viewModel = StockAlertButtonViewModel(
             productId: productId,
@@ -33,17 +33,17 @@ struct StockAlertButtonViewModelTests {
 
     @Test("Whether the bell shows waiting follows what the use case already says")
     func isWaitingFollowsTheUseCase() {
-        let viewModel = makeViewModel(observeWaitlistStatus: StubObserveWaitlistStatus(true))
+        let viewModel = makeViewModel(observeWaitlistStatus: StubObserveWaitlistStatusUseCase(true))
 
         #expect(viewModel.isWaiting)
     }
 
     @Test("Tapping while not on the list asks to be put on it")
     func tapWhenNotWaitingAsksToBeAdded() async {
-        let setStockAlert = StubSetStockAlert()
+        let setStockAlert = SpySetStockAlertForProductUseCase()
         let viewModel = makeViewModel(
             productId: pid(1),
-            observeWaitlistStatus: StubObserveWaitlistStatus(false),
+            observeWaitlistStatus: StubObserveWaitlistStatusUseCase(false),
             setStockAlert: setStockAlert
         )
 
@@ -56,8 +56,8 @@ struct StockAlertButtonViewModelTests {
 
     @Test("Tapping while already on the list asks to come off it")
     func tapWhenWaitingAsksToBeRemoved() async {
-        let setStockAlert = StubSetStockAlert()
-        let viewModel = makeViewModel(observeWaitlistStatus: StubObserveWaitlistStatus(true), setStockAlert: setStockAlert)
+        let setStockAlert = SpySetStockAlertForProductUseCase()
+        let viewModel = makeViewModel(observeWaitlistStatus: StubObserveWaitlistStatusUseCase(true), setStockAlert: setStockAlert)
 
         viewModel.didTap()
         await viewModel.inFlight?.value
@@ -67,8 +67,8 @@ struct StockAlertButtonViewModelTests {
 
     @Test("Two taps in a row are two decisions, so it ends where it started")
     func tappingTwiceEndsWhereItStarted() async {
-        let observeWaitlistStatus = StubObserveWaitlistStatus(false)
-        let setStockAlert = StubSetStockAlert()
+        let observeWaitlistStatus = StubObserveWaitlistStatusUseCase(false)
+        let setStockAlert = SpySetStockAlertForProductUseCase()
         setStockAlert.onSuccess = { observeWaitlistStatus.send($0) }
         let viewModel = makeViewModel(
             observeWaitlistStatus: observeWaitlistStatus,
@@ -85,8 +85,8 @@ struct StockAlertButtonViewModelTests {
 
     @Test("Removing waits its turn, and still takes it off whatever the bell says")
     func removeAfterATapStillTurnsItOff() async {
-        let observeWaitlistStatus = StubObserveWaitlistStatus(false)
-        let setStockAlert = StubSetStockAlert()
+        let observeWaitlistStatus = StubObserveWaitlistStatusUseCase(false)
+        let setStockAlert = SpySetStockAlertForProductUseCase()
         setStockAlert.onSuccess = { observeWaitlistStatus.send($0) }
         let viewModel = makeViewModel(
             observeWaitlistStatus: observeWaitlistStatus,
@@ -103,8 +103,8 @@ struct StockAlertButtonViewModelTests {
 
     @Test("Removing always takes it off the list, whatever the bell currently says")
     func didTapRemoveAlwaysTurnsItOff() async {
-        let setStockAlert = StubSetStockAlert()
-        let viewModel = makeViewModel(observeWaitlistStatus: StubObserveWaitlistStatus(false), setStockAlert: setStockAlert)
+        let setStockAlert = SpySetStockAlertForProductUseCase()
+        let viewModel = makeViewModel(observeWaitlistStatus: StubObserveWaitlistStatusUseCase(false), setStockAlert: setStockAlert)
 
         viewModel.didTapRemove()
         await viewModel.inFlight?.value
@@ -114,7 +114,7 @@ struct StockAlertButtonViewModelTests {
 
     @Test("Success is confirmed with a snackbar")
     func successShowsASnackbar() async {
-        let snackbarPresenter = SpySnackbarPresenter()
+        let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(snackbarPresenter: snackbarPresenter)
 
         viewModel.didTap()
@@ -125,9 +125,9 @@ struct StockAlertButtonViewModelTests {
 
     @Test("A guest is asked to sign in, and the ask resumes once they have")
     func guestIsAskedThenResumes() async {
-        let setStockAlert = StubSetStockAlert()
+        let setStockAlert = SpySetStockAlertForProductUseCase()
         setStockAlert.result = .failure(.unauthenticated)
-        let authPresenter = StubAuthPresenter(onSignIn: { setStockAlert.result = .success(()) })
+        let authPresenter = SpyAuthPresenting(onSignIn: { setStockAlert.result = .success(()) })
         authPresenter.signsIn = true
         let viewModel = makeViewModel(setStockAlert: setStockAlert, authPresenter: authPresenter)
 
@@ -141,11 +141,11 @@ struct StockAlertButtonViewModelTests {
 
     @Test("A guest who backs out is not left thinking they are on the list")
     func guestWhoBacksOutIsNotOnTheList() async {
-        let setStockAlert = StubSetStockAlert()
+        let setStockAlert = SpySetStockAlertForProductUseCase()
         setStockAlert.result = .failure(.unauthenticated)
-        let authPresenter = StubAuthPresenter()
+        let authPresenter = SpyAuthPresenting()
         authPresenter.signsIn = false
-        let snackbarPresenter = SpySnackbarPresenter()
+        let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(setStockAlert: setStockAlert, authPresenter: authPresenter, snackbarPresenter: snackbarPresenter)
 
         viewModel.didTap()

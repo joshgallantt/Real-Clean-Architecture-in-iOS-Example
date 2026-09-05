@@ -29,8 +29,8 @@ final class Saver {
         self.directory = directory
         self.sessions = CurrentValueSubject(Self.session(forUserId: userId))
         self.di = WishlistDI(
-            getSession: StubGetSession(sessions: sessions),
-            observeSession: StubObserveSession(sessions: sessions),
+            getSession: StubGetSessionUseCase(sessions: sessions),
+            observeSession: SpyObserveSessionUseCase(sessions: sessions),
             store: FileWishlistStore(
                 directory: directory,
                 legacyDefaults: UserDefaults(suiteName: UUID().uuidString)!

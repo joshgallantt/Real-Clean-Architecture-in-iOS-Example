@@ -76,7 +76,8 @@ let package = Package(
                 .product(name: "StockAlert", package: "StockAlert"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "AuthUI", package: "AuthUI"),
-                .product(name: "SnackbarUI", package: "SnackbarUI")
+                .product(name: "SnackbarUI", package: "SnackbarUI"),
+                "ProductActionsUITestSupport"
             ],
             path: "Tests/ProductActionsUIAcceptanceTests"
         ),

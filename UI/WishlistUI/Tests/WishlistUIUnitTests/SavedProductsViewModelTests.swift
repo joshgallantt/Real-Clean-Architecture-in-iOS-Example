@@ -11,8 +11,8 @@ import Product
 struct SavedProductsViewModelTests {
     private func makeViewModel(
         savedProductIds: StubObserveSavedProductIds = StubObserveSavedProductIds(),
-        lookUpProducts: StubLookUpProducts = StubLookUpProducts(),
-        snackbar: SpySnackbarPresenter = SpySnackbarPresenter(),
+        lookUpProducts: SpyLookUpProductsUseCase = SpyLookUpProductsUseCase(),
+        snackbar: SpySnackbarPresenting = SpySnackbarPresenting(),
         couldNotLoad: String = "Couldn't Load",
         keeping: (@MainActor (Product) -> Bool)? = nil,
         clear: SpyClearTheList = SpyClearTheList(),
@@ -32,7 +32,7 @@ struct SavedProductsViewModelTests {
     @Test("What a shopper is holding is filled in from the catalog")
     func showsWhatIsHeldFilledIn() async {
         let savedProductIds = StubObserveSavedProductIds([pid(1), pid(2)])
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success([.fixture(id: 1), .fixture(id: 2)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
 
@@ -45,7 +45,7 @@ struct SavedProductsViewModelTests {
 
     @Test("Holding nothing asks the shop nothing")
     func holdingNothingAsksNothing() async {
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         let viewModel = makeViewModel(lookUpProducts: lookUpProducts)
 
         viewModel.onAppear()
@@ -58,7 +58,7 @@ struct SavedProductsViewModelTests {
     @Test("Something the shop no longer answers about is not shown")
     func discontinuedIsNotShown() async {
         let savedProductIds = StubObserveSavedProductIds([pid(1), pid(2)])
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
 
@@ -71,7 +71,7 @@ struct SavedProductsViewModelTests {
     @Test("The count is what the shopper holds, not what fits on screen")
     func countIsOfEverythingHeldNotJustShown() async {
         let savedProductIds = StubObserveSavedProductIds((1...5).map(pid))
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success((1...2).map { .fixture(id: $0) })
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts, pageSize: 2)
 
@@ -85,7 +85,7 @@ struct SavedProductsViewModelTests {
     @Test("Reaching the end of the list asks for the next page")
     func reachingTheEndAsksForTheNextPage() async {
         let savedProductIds = StubObserveSavedProductIds((1...5).map(pid))
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success((1...5).map { .fixture(id: $0) })
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts, pageSize: 2)
         viewModel.onAppear()
@@ -100,7 +100,7 @@ struct SavedProductsViewModelTests {
     @Test("A dropped connection leaves the list exactly as it was")
     func aDroppedConnectionLeavesTheListAsItWas() async {
         let savedProductIds = StubObserveSavedProductIds([pid(1)])
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
         viewModel.onAppear()
@@ -117,9 +117,9 @@ struct SavedProductsViewModelTests {
     @Test("A dropped connection is reported with the title this list was given")
     func aDroppedConnectionIsReportedWithItsOwnTitle() async {
         let savedProductIds = StubObserveSavedProductIds([pid(1)])
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .failure(.unavailable)
-        let snackbar = SpySnackbarPresenter()
+        let snackbar = SpySnackbarPresenting()
         let viewModel = makeViewModel(
             savedProductIds: savedProductIds,
             lookUpProducts: lookUpProducts,
@@ -136,7 +136,7 @@ struct SavedProductsViewModelTests {
     @Test("A filtered list shows only what it is told to keep")
     func aFilteredListShowsOnlyWhatItKeeps() async {
         let savedProductIds = StubObserveSavedProductIds([pid(1), pid(2)])
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success([
             .fixture(id: 1, availability: .outOfStock),
             .fixture(id: 2)
@@ -156,7 +156,7 @@ struct SavedProductsViewModelTests {
     @Test("A filtered list is counted by what it shows, not by what was asked")
     func aFilteredListIsCountedByWhatItShows() async {
         let savedProductIds = StubObserveSavedProductIds([pid(1), pid(2)])
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success([
             .fixture(id: 1, availability: .outOfStock),
             .fixture(id: 2)
@@ -176,7 +176,7 @@ struct SavedProductsViewModelTests {
     @Test("Clearing takes away everything currently on the list")
     func clearingTakesEverythingOnTheList() async {
         let savedProductIds = StubObserveSavedProductIds([pid(1), pid(2)])
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success([.fixture(id: 1), .fixture(id: 2)])
         let clear = SpyClearTheList()
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts, clear: clear)
@@ -205,7 +205,7 @@ struct SavedProductsViewModelTests {
     @Test("Something already filled in is not asked about again")
     func doesNotReaskForWhatItHas() async {
         let savedProductIds = StubObserveSavedProductIds([pid(1)])
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
         viewModel.onAppear()
@@ -221,7 +221,7 @@ struct SavedProductsViewModelTests {
     @Test("Appearing again does not subscribe a second time")
     func appearingAgainDoesNotResubscribe() async {
         let savedProductIds = StubObserveSavedProductIds([pid(1)])
-        let lookUpProducts = StubLookUpProducts()
+        let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
         viewModel.onAppear()

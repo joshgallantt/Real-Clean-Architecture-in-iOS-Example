@@ -12,20 +12,20 @@ import SheetUI
 @Suite("The welcome screen")
 struct WelcomeScreenViewModelTests {
     private func makePresenter(
-        getSession: StubGetSession = StubGetSession(),
-        sheetPresenting: SpySheetPresenter = SpySheetPresenter()
+        getSession: StubGetSessionUseCase = StubGetSessionUseCase(),
+        sheetPresenting: SpySheetPresenting = SpySheetPresenting()
     ) -> AuthPresenter {
         AuthPresenter(
             sheetPresenting: sheetPresenting,
-            loginUseCase: StubLogin(),
-            createAccountUseCase: StubCreateAccount(),
+            loginUseCase: SpyLoginUseCase(),
+            createAccountUseCase: SpyCreateAccountUseCase(),
             getSession: getSession
         )
     }
 
     @Test("Continuing as a guest tells the app so, without presenting anything to sign in with")
     func continuingAsGuest() {
-        let sheetPresenting = SpySheetPresenter()
+        let sheetPresenting = SpySheetPresenting()
         var continuedAsGuest = false
         var authenticated = false
         let viewModel = WelcomeScreenViewModel(
@@ -43,9 +43,9 @@ struct WelcomeScreenViewModelTests {
 
     @Test("Tapping Log In while already signed in needs no sheet at all")
     func logInWhenAlreadySignedIn() async {
-        let getSession = StubGetSession()
+        let getSession = StubGetSessionUseCase()
         getSession.session = .authenticated(.fixture())
-        let sheetPresenting = SpySheetPresenter()
+        let sheetPresenting = SpySheetPresenting()
         var authenticated = false
         let viewModel = WelcomeScreenViewModel(
             presenter: makePresenter(getSession: getSession, sheetPresenting: sheetPresenting),
@@ -62,7 +62,7 @@ struct WelcomeScreenViewModelTests {
 
     @Test("A guest who backs out of the sheet is not told they are authenticated")
     func logInBackingOut() async {
-        let sheetPresenting = SpySheetPresenter()
+        let sheetPresenting = SpySheetPresenting()
         var authenticated = false
         let viewModel = WelcomeScreenViewModel(
             presenter: makePresenter(sheetPresenting: sheetPresenting),
@@ -81,9 +81,9 @@ struct WelcomeScreenViewModelTests {
 
     @Test("Tapping Create Account while already signed in needs no sheet at all")
     func createAccountWhenAlreadySignedIn() async {
-        let getSession = StubGetSession()
+        let getSession = StubGetSessionUseCase()
         getSession.session = .authenticated(.fixture())
-        let sheetPresenting = SpySheetPresenter()
+        let sheetPresenting = SpySheetPresenting()
         var authenticated = false
         let viewModel = WelcomeScreenViewModel(
             presenter: makePresenter(getSession: getSession, sheetPresenting: sheetPresenting),

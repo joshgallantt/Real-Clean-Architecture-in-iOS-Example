@@ -24,14 +24,14 @@ import SnackbarUI
 /// orders are kept, who takes the money, and what a sign-in prompt answers. The use cases the
 /// buttons are handed are the real ones, built over these.
 final class AShopper {
-    let orders = InMemoryOrderRepository()
-    let bag = InMemoryBagRepository()
-    let till = StubPaymentService()
-    let snackbars = SpySnackbarPresenter()
+    let orders = FakeOrderRepository()
+    let bag = FakeBagRepository()
+    let till = SpyPaymentService()
+    let snackbars = SpySnackbarPresenting()
 
     /// Signing in at the prompt actually signs them in, so the retry that follows behaves the way
     /// it would in the app rather than looping.
-    private(set) lazy var signIn = StubAuthPresenter { [weak self] in self?.isSignedIn = true }
+    private(set) lazy var signIn = SpyAuthPresenting { [weak self] in self?.isSignedIn = true }
 
     private(set) var confirmed: [Order] = []
 
@@ -43,7 +43,7 @@ final class AShopper {
         set { sessions.session = newValue ? .authenticated(AShopper.shopper) : .guest }
     }
 
-    private let sessions = StubGetSession(.authenticated(AShopper.shopper))
+    private let sessions = StubGetSessionUseCase(.authenticated(AShopper.shopper))
 
     private static let shopper = User(
         id: UserID(rawValue: 1),

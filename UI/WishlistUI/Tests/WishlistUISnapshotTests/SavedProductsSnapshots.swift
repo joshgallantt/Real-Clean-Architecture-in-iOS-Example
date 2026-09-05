@@ -14,8 +14,8 @@ func anEmptyWishlistExplainsItself() {
     let list = SavedProductsListView(
         viewModel: SavedProductsViewModel(
             savedProductIds: { Just([]).eraseToAnyPublisher() },
-            lookUpProducts: StubLookUpProducts(),
-            snackbar: SpySnackbarPresenter(),
+            lookUpProducts: SpyLookUpProductsUseCase(),
+            snackbar: SpySnackbarPresenting(),
             couldNotLoad: "We could not load your list."
         ),
         title: "Saved",

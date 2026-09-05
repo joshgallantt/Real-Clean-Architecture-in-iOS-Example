@@ -4,17 +4,18 @@ import Money
 import Product
 import Home
 import ProductTestSupport
+@testable import HomeUITestSupport
 @testable import HomeUI
 
 @MainActor
 /// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the testing API. A test says
 /// what a shopper saw and tapped, never which type drew it or how.
 ///
-/// Only one thing is genuinely faked — `StubDrawHomeFeed`, standing in for `DrawHomeFeedUseCase`.
+/// Only one thing is genuinely faked — `SpyDrawHomeFeedUseCase`, standing in for `DrawHomeFeedUseCase`.
 /// Everything between it and the screen is real: `HomeScreenViewModel` itself.
 final class Shopper {
-    private let drawHomeFeed = StubDrawHomeFeed()
-    let navigation = StubHomeNavigation()
+    private let drawHomeFeed = SpyDrawHomeFeedUseCase()
+    let navigation = SpyHomeNavigation()
 
     private var home: HomeScreenViewModel?
     private var carousels: [HomeCarousel] = []

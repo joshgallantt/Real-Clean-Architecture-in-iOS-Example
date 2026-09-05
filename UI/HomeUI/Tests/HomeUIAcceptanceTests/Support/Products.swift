@@ -1,5 +1,6 @@
 import Product
 import ProductTestSupport
+@testable import HomeUITestSupport
 
 func products(
     _ ids: ClosedRange<Int>,

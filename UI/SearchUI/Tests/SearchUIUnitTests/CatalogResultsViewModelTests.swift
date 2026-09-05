@@ -10,8 +10,8 @@ import Product
 struct CatalogResultsViewModelTests {
     private func makeViewModel(
         filter: CatalogFilter = .all,
-        browseCatalog: StubBrowseCatalog = StubBrowseCatalog(),
-        snackbar: SpySnackbarPresenter = SpySnackbarPresenter()
+        browseCatalog: SpyBrowseCatalogUseCase = SpyBrowseCatalogUseCase(),
+        snackbar: SpySnackbarPresenting = SpySnackbarPresenting()
     ) -> CatalogResultsViewModel {
         CatalogResultsViewModel(filter: filter, browseCatalog: browseCatalog, snackbar: snackbar)
     }
@@ -38,7 +38,7 @@ struct CatalogResultsViewModelTests {
 
     @Test("Appearing loads the first page for the filter it was given")
     func appearingLoadsTheFirstPage() async {
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = SpyBrowseCatalogUseCase()
         browseCatalog.result = .success([.fixture(id: 1)])
         let category = ProductCategory(id: CategoryID(rawValue: "beauty"), name: "Beauty")
         let viewModel = makeViewModel(filter: .category(category), browseCatalog: browseCatalog)
@@ -52,7 +52,7 @@ struct CatalogResultsViewModelTests {
 
     @Test("Appearing again once something has already loaded loads nothing more")
     func appearingAgainLoadsNothingMore() async {
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = SpyBrowseCatalogUseCase()
         browseCatalog.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(browseCatalog: browseCatalog)
         await viewModel.onAppear()
@@ -64,7 +64,7 @@ struct CatalogResultsViewModelTests {
 
     @Test("Loading more asks for the next page and adds to what is already shown")
     func loadingMoreAsksForTheNextPage() async {
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = SpyBrowseCatalogUseCase()
         let fullFirstPage = (1...30).map { Product.fixture(id: $0) }
         browseCatalog.result = .success(fullFirstPage)
         let viewModel = makeViewModel(browseCatalog: browseCatalog)
@@ -80,7 +80,7 @@ struct CatalogResultsViewModelTests {
 
     @Test("A page that comes back short of a full page is the last one, so there is no more to load")
     func aShortPageMeansNoMore() async {
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = SpyBrowseCatalogUseCase()
         browseCatalog.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(browseCatalog: browseCatalog)
         await viewModel.onAppear()
@@ -92,9 +92,9 @@ struct CatalogResultsViewModelTests {
 
     @Test("A shop that cannot be reached offers to try again")
     func failureOffersRetry() async {
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = SpyBrowseCatalogUseCase()
         browseCatalog.result = .failure(.unavailable)
-        let snackbar = SpySnackbarPresenter()
+        let snackbar = SpySnackbarPresenting()
         let viewModel = makeViewModel(browseCatalog: browseCatalog, snackbar: snackbar)
 
         await viewModel.onAppear()

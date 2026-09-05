@@ -16,9 +16,9 @@ import Product
 struct BuyNowButtonViewModelTests {
     private func makeViewModel(
         product: Product = .fixture(id: 1, price: 9.99),
-        placeOrder: StubPlaceOrder = StubPlaceOrder(),
-        authPresenter: StubAuthPresenter = StubAuthPresenter(),
-        snackbarPresenter: SpySnackbarPresenter = SpySnackbarPresenter(),
+        placeOrder: SpyPlaceOrderUseCase = SpyPlaceOrderUseCase(),
+        authPresenter: SpyAuthPresenting = SpyAuthPresenting(),
+        snackbarPresenter: SpySnackbarPresenting = SpySnackbarPresenting(),
         confirm: @escaping (Order) -> Void = { _ in }
     ) -> BuyNowButtonViewModel {
         BuyNowButtonViewModel(
@@ -32,7 +32,7 @@ struct BuyNowButtonViewModelTests {
 
     @Test("Buying orders exactly one of the product on the page, at the price shown")
     func ordersOneOfWhatIsShown() async {
-        let placeOrder = StubPlaceOrder()
+        let placeOrder = SpyPlaceOrderUseCase()
         let viewModel = makeViewModel(product: .fixture(id: 1, price: 24.50), placeOrder: placeOrder)
 
         await viewModel.tapAndSettle()
@@ -42,7 +42,7 @@ struct BuyNowButtonViewModelTests {
 
     @Test("A successful order is handed to the confirmation callback")
     func confirmsOnSuccess() async {
-        let placeOrder = StubPlaceOrder()
+        let placeOrder = SpyPlaceOrderUseCase()
         let order = Order.fixture()
         placeOrder.result = .success(order)
         var confirmed: [Order] = []
@@ -55,7 +55,7 @@ struct BuyNowButtonViewModelTests {
 
     @Test("A second tap while the first is still in flight is ignored")
     func ignoresASecondTapWhilePlacing() async {
-        let placeOrder = StubPlaceOrder()
+        let placeOrder = SpyPlaceOrderUseCase()
         placeOrder.holdTheNextOrderOpen()
         let viewModel = makeViewModel(placeOrder: placeOrder)
 
@@ -72,9 +72,9 @@ struct BuyNowButtonViewModelTests {
 
     @Test("A guest is asked to sign in, and buying resumes once they have")
     func guestIsAskedThenResumes() async {
-        let placeOrder = StubPlaceOrder()
+        let placeOrder = SpyPlaceOrderUseCase()
         placeOrder.result = .failure(.unauthenticated)
-        let authPresenter = StubAuthPresenter(onSignIn: { placeOrder.result = .success(.fixture()) })
+        let authPresenter = SpyAuthPresenting(onSignIn: { placeOrder.result = .success(.fixture()) })
         authPresenter.signsIn = true
         var confirmed: [Order] = []
         let viewModel = makeViewModel(placeOrder: placeOrder, authPresenter: authPresenter, confirm: { confirmed.append($0) })
@@ -87,12 +87,12 @@ struct BuyNowButtonViewModelTests {
 
     @Test("A guest who backs out of signing in buys nothing, and is not nagged with a snackbar")
     func guestWhoBacksOutBuysNothing() async {
-        let authPresenter = StubAuthPresenter()
+        let authPresenter = SpyAuthPresenting()
         authPresenter.signsIn = false
-        let placeOrder = StubPlaceOrder()
+        let placeOrder = SpyPlaceOrderUseCase()
         placeOrder.result = .failure(.unauthenticated)
         var confirmed: [Order] = []
-        let snackbarPresenter = SpySnackbarPresenter()
+        let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(
             placeOrder: placeOrder,
             authPresenter: authPresenter,
@@ -108,9 +108,9 @@ struct BuyNowButtonViewModelTests {
 
     @Test("A declined payment says so, and nothing is confirmed")
     func declinedPaymentSaysSo() async {
-        let placeOrder = StubPlaceOrder()
+        let placeOrder = SpyPlaceOrderUseCase()
         placeOrder.result = .failure(.paymentDeclined)
-        let snackbarPresenter = SpySnackbarPresenter()
+        let snackbarPresenter = SpySnackbarPresenting()
         var confirmed: [Order] = []
         let viewModel = makeViewModel(placeOrder: placeOrder, snackbarPresenter: snackbarPresenter, confirm: { confirmed.append($0) })
 

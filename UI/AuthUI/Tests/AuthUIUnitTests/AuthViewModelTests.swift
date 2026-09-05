@@ -11,9 +11,9 @@ import Session
 struct CanSubmitTests {
     private func makeViewModel(
         mode: AuthMode = .logIn,
-        loginUseCase: StubLogin = StubLogin(),
-        createAccountUseCase: StubCreateAccount = StubCreateAccount(),
-        getSession: StubGetSession = StubGetSession()
+        loginUseCase: SpyLoginUseCase = SpyLoginUseCase(),
+        createAccountUseCase: SpyCreateAccountUseCase = SpyCreateAccountUseCase(),
+        getSession: StubGetSessionUseCase = StubGetSessionUseCase()
     ) -> AuthViewModel {
         AuthViewModel(
             mode: mode,
@@ -50,7 +50,7 @@ struct CanSubmitTests {
 
     @Test("Nothing can be submitted while the last submission is still in flight")
     func nothingIsSubmittedWhileTheLastOneIsInFlight() async {
-        let loginUseCase = StubLogin()
+        let loginUseCase = SpyLoginUseCase()
         loginUseCase.result = .failure(.unavailable)
         let viewModel = makeViewModel(mode: .logIn, loginUseCase: loginUseCase)
         viewModel.email = "ada@example.com"
@@ -66,15 +66,15 @@ struct CanSubmitTests {
 @Suite("Logging in")
 struct LoggingInTests {
     private func makeViewModel(
-        loginUseCase: StubLogin,
-        getSession: StubGetSession = StubGetSession(),
+        loginUseCase: SpyLoginUseCase,
+        getSession: StubGetSessionUseCase = StubGetSessionUseCase(),
         onAuthenticated: @escaping () -> Void = {}
     ) -> AuthViewModel {
         let viewModel = AuthViewModel(
             mode: .logIn,
             prompt: nil,
             loginUseCase: loginUseCase,
-            createAccountUseCase: StubCreateAccount(),
+            createAccountUseCase: SpyCreateAccountUseCase(),
             getSession: getSession,
             onAuthenticated: onAuthenticated
         )
@@ -85,7 +85,7 @@ struct LoggingInTests {
 
     @Test("A correct email and password are handed straight to the use case")
     func passesEmailAndPassword() async {
-        let loginUseCase = StubLogin()
+        let loginUseCase = SpyLoginUseCase()
         let viewModel = makeViewModel(loginUseCase: loginUseCase)
 
         await viewModel.submit()
@@ -97,7 +97,7 @@ struct LoggingInTests {
     @Test("Success shows a welcome and tells the app someone is signed in")
     func successGreetsAndSignsIn() async {
         var authenticated = false
-        let viewModel = makeViewModel(loginUseCase: StubLogin(), onAuthenticated: { authenticated = true })
+        let viewModel = makeViewModel(loginUseCase: SpyLoginUseCase(), onAuthenticated: { authenticated = true })
 
         await viewModel.submit()
 
@@ -108,9 +108,9 @@ struct LoggingInTests {
 
     @Test("The welcome uses the name that came back on the session")
     func successGreetsByName() async {
-        let getSession = StubGetSession()
+        let getSession = StubGetSessionUseCase()
         getSession.session = .authenticated(.fixture(first: "Ada"))
-        let viewModel = makeViewModel(loginUseCase: StubLogin(), getSession: getSession)
+        let viewModel = makeViewModel(loginUseCase: SpyLoginUseCase(), getSession: getSession)
 
         await viewModel.submit()
 
@@ -119,7 +119,7 @@ struct LoggingInTests {
 
     @Test("A refused login says why, and nobody is told the shopper signed in")
     func aRefusedLoginSaysWhy() async {
-        let loginUseCase = StubLogin()
+        let loginUseCase = SpyLoginUseCase()
         loginUseCase.result = .failure(.invalidCredentials)
         var authenticated = false
         let viewModel = makeViewModel(loginUseCase: loginUseCase, onAuthenticated: { authenticated = true })
@@ -136,15 +136,15 @@ struct LoggingInTests {
 @Suite("Creating an account")
 struct CreatingAnAccountTests {
     private func makeViewModel(
-        createAccountUseCase: StubCreateAccount,
+        createAccountUseCase: SpyCreateAccountUseCase,
         onAuthenticated: @escaping () -> Void = {}
     ) -> AuthViewModel {
         let viewModel = AuthViewModel(
             mode: .createAccount,
             prompt: nil,
-            loginUseCase: StubLogin(),
+            loginUseCase: SpyLoginUseCase(),
             createAccountUseCase: createAccountUseCase,
-            getSession: StubGetSession(),
+            getSession: StubGetSessionUseCase(),
             onAuthenticated: onAuthenticated
         )
         viewModel.firstName = "Ada"
@@ -156,7 +156,7 @@ struct CreatingAnAccountTests {
 
     @Test("What was typed is handed to the use case as a name, an email and a password")
     func passesWhatWasTyped() async {
-        let createAccountUseCase = StubCreateAccount()
+        let createAccountUseCase = SpyCreateAccountUseCase()
         let viewModel = makeViewModel(createAccountUseCase: createAccountUseCase)
 
         await viewModel.submit()
@@ -167,7 +167,7 @@ struct CreatingAnAccountTests {
 
     @Test("An email already in use says so, and nobody is told the shopper signed in")
     func anEmailAlreadyInUseSaysSo() async {
-        let createAccountUseCase = StubCreateAccount()
+        let createAccountUseCase = SpyCreateAccountUseCase()
         createAccountUseCase.result = .failure(.emailAlreadyInUse)
         var authenticated = false
         let viewModel = makeViewModel(createAccountUseCase: createAccountUseCase, onAuthenticated: { authenticated = true })
@@ -187,9 +187,9 @@ struct SwitchingModeTests {
         let viewModel = AuthViewModel(
             mode: .logIn,
             prompt: nil,
-            loginUseCase: StubLogin(),
-            createAccountUseCase: StubCreateAccount(),
-            getSession: StubGetSession(),
+            loginUseCase: SpyLoginUseCase(),
+            createAccountUseCase: SpyCreateAccountUseCase(),
+            getSession: StubGetSessionUseCase(),
             onAuthenticated: {}
         )
 
@@ -200,14 +200,14 @@ struct SwitchingModeTests {
 
     @Test("Switching clears whatever the last attempt complained about")
     func clearsError() async {
-        let loginUseCase = StubLogin()
+        let loginUseCase = SpyLoginUseCase()
         loginUseCase.result = .failure(.invalidCredentials)
         let viewModel = AuthViewModel(
             mode: .logIn,
             prompt: nil,
             loginUseCase: loginUseCase,
-            createAccountUseCase: StubCreateAccount(),
-            getSession: StubGetSession(),
+            createAccountUseCase: SpyCreateAccountUseCase(),
+            getSession: StubGetSessionUseCase(),
             onAuthenticated: {}
         )
         viewModel.email = "ada@example.com"
@@ -228,9 +228,9 @@ struct HasUnsavedInputTests {
         AuthViewModel(
             mode: .logIn,
             prompt: nil,
-            loginUseCase: StubLogin(),
-            createAccountUseCase: StubCreateAccount(),
-            getSession: StubGetSession(),
+            loginUseCase: SpyLoginUseCase(),
+            createAccountUseCase: SpyCreateAccountUseCase(),
+            getSession: StubGetSessionUseCase(),
             onAuthenticated: {}
         )
     }

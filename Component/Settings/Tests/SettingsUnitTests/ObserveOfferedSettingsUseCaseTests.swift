@@ -13,7 +13,7 @@ import Session
 struct ObserveOfferedSettingsUseCaseTests {
     private func makeUseCase(
         settings: StubSettingsRepository,
-        session: StubObserveSession
+        session: SpyObserveSessionUseCase
     ) -> DefaultObserveOfferedSettingsUseCase {
         DefaultObserveOfferedSettingsUseCase(repository: settings, observeSession: session)
     }
@@ -21,7 +21,7 @@ struct ObserveOfferedSettingsUseCaseTests {
     @Test("A guest is published the settings they are offered, with the values they hold")
     func aGuestIsPublishedWhatTheyAreOffered() {
         let settings = StubSettingsRepository(Settings([.pushNotifications: true]))
-        let recorder = Recorder(makeUseCase(settings: settings, session: StubObserveSession())())
+        let recorder = Recorder(makeUseCase(settings: settings, session: SpyObserveSessionUseCase())())
 
         #expect(recorder.latest.map(\.key) == [
             .pushNotifications,
@@ -35,7 +35,7 @@ struct ObserveOfferedSettingsUseCaseTests {
     @Test("A signed-in shopper is published all of them")
     func aSignedInShopperIsPublishedAllOfThem() {
         let recorder = Recorder(
-            makeUseCase(settings: StubSettingsRepository(), session: StubObserveSession(.shopper))()
+            makeUseCase(settings: StubSettingsRepository(), session: SpyObserveSessionUseCase(.shopper))()
         )
 
         #expect(recorder.latest.map(\.key) == SettingKey.allCases)
@@ -44,7 +44,7 @@ struct ObserveOfferedSettingsUseCaseTests {
     @Test("It publishes again the moment a setting changes")
     func republishesWhenASettingChanges() {
         let settings = StubSettingsRepository()
-        let recorder = Recorder(makeUseCase(settings: settings, session: StubObserveSession())())
+        let recorder = Recorder(makeUseCase(settings: settings, session: SpyObserveSessionUseCase())())
 
         settings.send(Settings([.pushNotifications: true]))
 
@@ -54,7 +54,7 @@ struct ObserveOfferedSettingsUseCaseTests {
 
     @Test("It publishes again the moment the shopper signs in, and again when they sign out")
     func republishesWhenTheSessionChanges() {
-        let session = StubObserveSession()
+        let session = SpyObserveSessionUseCase()
         let recorder = Recorder(makeUseCase(settings: StubSettingsRepository(), session: session)())
 
         session.send(.shopper)

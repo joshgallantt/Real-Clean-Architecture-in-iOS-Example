@@ -10,9 +10,9 @@ import Session
 @Suite("Account screen")
 struct AccountScreenViewModelTests {
     private func makeViewModel(
-        getSession: StubGetSession = StubGetSession(),
-        observeSession: SpyObserveSession = SpyObserveSession(),
-        logoutUseCase: SpyLogout = SpyLogout()
+        getSession: StubGetSessionUseCase = StubGetSessionUseCase(),
+        observeSession: SpyObserveSessionUseCase = SpyObserveSessionUseCase(),
+        logoutUseCase: SpyLogoutUseCase = SpyLogoutUseCase()
     ) -> AccountScreenViewModel {
         AccountScreenViewModel(
             getSession: getSession,
@@ -23,11 +23,11 @@ struct AccountScreenViewModelTests {
 
     @Test("Appearing reads who is currently signed in")
     func loadsTheCurrentSession() {
-        let getSession = StubGetSession()
+        let getSession = StubGetSessionUseCase()
         getSession.session = .authenticated(.fixture())
         let viewModel = makeViewModel(
             getSession: getSession,
-            observeSession: SpyObserveSession(initial: .authenticated(.fixture()))
+            observeSession: SpyObserveSessionUseCase(initial: .authenticated(.fixture()))
         )
 
         viewModel.onAppear()
@@ -46,7 +46,7 @@ struct AccountScreenViewModelTests {
 
     @Test("Appearing subscribes to session changes only once, however often it happens")
     func subscribesOnce() {
-        let observeSession = SpyObserveSession()
+        let observeSession = SpyObserveSessionUseCase()
         let viewModel = makeViewModel(observeSession: observeSession)
 
         viewModel.onAppear()
@@ -58,7 +58,7 @@ struct AccountScreenViewModelTests {
 
     @Test("Signing in after arriving updates who is shown")
     func followsSessionChanges() {
-        let observeSession = SpyObserveSession()
+        let observeSession = SpyObserveSessionUseCase()
         let viewModel = makeViewModel(observeSession: observeSession)
         viewModel.onAppear()
 
@@ -69,7 +69,7 @@ struct AccountScreenViewModelTests {
 
     @Test("Logging out calls the use case")
     func logsOut() async {
-        let logoutUseCase = SpyLogout()
+        let logoutUseCase = SpyLogoutUseCase()
         let viewModel = makeViewModel(logoutUseCase: logoutUseCase)
 
         await viewModel.didTapLogOut()

@@ -23,8 +23,8 @@ final class Searcher {
         self.sessions = CurrentValueSubject(Self.session(forUserId: userId))
         self.di = SearchHistoryDI(
             store: UserDefaultsSearchHistoryStore(defaults: defaults),
-            getSession: StubGetSession(sessions: sessions),
-            observeSession: StubObserveSession(sessions: sessions)
+            getSession: StubGetSessionUseCase(sessions: sessions),
+            observeSession: SpyObserveSessionUseCase(sessions: sessions)
         )
     }
 

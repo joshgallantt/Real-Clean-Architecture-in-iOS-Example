@@ -11,7 +11,7 @@ import Session
 struct WishlistScreenViewModelTests {
     @Test("A guest is not shown as signed in")
     func guestIsNotAuthenticated() {
-        let viewModel = WishlistScreenViewModel(observeSession: SpyObserveSession())
+        let viewModel = WishlistScreenViewModel(observeSession: SpyObserveSessionUseCase())
 
         viewModel.onAppear()
 
@@ -20,7 +20,7 @@ struct WishlistScreenViewModelTests {
 
     @Test("Someone already signed in when the tab appears is shown as signed in")
     func alreadySignedInIsAuthenticated() {
-        let viewModel = WishlistScreenViewModel(observeSession: SpyObserveSession(initial: .authenticated(.fixture())))
+        let viewModel = WishlistScreenViewModel(observeSession: SpyObserveSessionUseCase(initial: .authenticated(.fixture())))
 
         viewModel.onAppear()
 
@@ -29,7 +29,7 @@ struct WishlistScreenViewModelTests {
 
     @Test("Signing in after arriving is picked up too")
     func signingInLaterIsPickedUp() {
-        let observeSession = SpyObserveSession()
+        let observeSession = SpyObserveSessionUseCase()
         let viewModel = WishlistScreenViewModel(observeSession: observeSession)
         viewModel.onAppear()
 
@@ -40,7 +40,7 @@ struct WishlistScreenViewModelTests {
 
     @Test("Signing out after arriving is picked up too")
     func signingOutLaterIsPickedUp() {
-        let observeSession = SpyObserveSession(initial: .authenticated(.fixture()))
+        let observeSession = SpyObserveSessionUseCase(initial: .authenticated(.fixture()))
         let viewModel = WishlistScreenViewModel(observeSession: observeSession)
         viewModel.onAppear()
 
@@ -51,7 +51,7 @@ struct WishlistScreenViewModelTests {
 
     @Test("Appearing subscribes to session changes only once, however often it happens")
     func subscribesOnce() {
-        let observeSession = SpyObserveSession()
+        let observeSession = SpyObserveSessionUseCase()
         let viewModel = WishlistScreenViewModel(observeSession: observeSession)
 
         viewModel.onAppear()

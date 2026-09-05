@@ -10,7 +10,7 @@ import ProductTestSupport
 ///
 /// Fowler, *PoEAA* (2002), Ch. 13 — Repository; Ch. 18 — Gateway.
 ///
-/// The repository half is `InMemoryBagRepository`, held rather than rewritten.
+/// The repository half is `FakeBagRepository`, held rather than rewritten.
 /// It had been rewritten here — the same subjects, the same accessors, the same
 /// `save` — which is two fakes of one protocol that nothing would have made
 /// disagree out loud. What this adds is a catalogue and the real use cases
@@ -18,7 +18,7 @@ import ProductTestSupport
 @MainActor
 public final class FakeShop: BagRepository {
     private let catalogLock = NSLock()
-    private let repository: InMemoryBagRepository
+    private let repository: FakeBagRepository
     private nonisolated(unsafe) var _lookups: [[ProductID]] = []
     private nonisolated(unsafe) var _catalog: [Product]
     private nonisolated(unsafe) var _cannotBeReached = false
@@ -77,7 +77,7 @@ public final class FakeShop: BagRepository {
     }
 
     public init(bag: Bag = Bag(), notices: Notices = Notices(), catalog: [Product] = []) {
-        self.repository = InMemoryBagRepository(bag: bag, notices: notices)
+        self.repository = FakeBagRepository(bag: bag, notices: notices)
         self._catalog = catalog
     }
 

@@ -11,8 +11,8 @@ import Settings
 @Suite("Settings screen")
 struct SettingsScreenViewModelTests {
     private func makeViewModel(
-        observeOfferedSettings: StubObserveOfferedSettings = StubObserveOfferedSettings(),
-        setSetting: SpySetSetting = SpySetSetting()
+        observeOfferedSettings: SpyObserveOfferedSettingsUseCase = SpyObserveOfferedSettingsUseCase(),
+        setSetting: SpySetSettingUseCase = SpySetSettingUseCase()
     ) -> SettingsScreenViewModel {
         SettingsScreenViewModel(
             observeOfferedSettings: observeOfferedSettings,
@@ -21,7 +21,7 @@ struct SettingsScreenViewModelTests {
     }
 
     private func makeViewModel(showing settings: [Setting]) -> SettingsScreenViewModel {
-        makeViewModel(observeOfferedSettings: StubObserveOfferedSettings(settings))
+        makeViewModel(observeOfferedSettings: SpyObserveOfferedSettingsUseCase(settings))
     }
 
     @Test("Settings a guest has become Notifications and Bag, and no Favorites section")
@@ -100,7 +100,7 @@ struct SettingsScreenViewModelTests {
 
     @Test("It redraws from whatever the shop publishes next")
     func redrawsOnEveryPublish() {
-        let observeOfferedSettings = StubObserveOfferedSettings(
+        let observeOfferedSettings = SpyObserveOfferedSettingsUseCase(
             Setting.offered(from: Settings(), signedIn: false)
         )
         let viewModel = makeViewModel(observeOfferedSettings: observeOfferedSettings)
@@ -113,7 +113,7 @@ struct SettingsScreenViewModelTests {
 
     @Test("Appearing subscribes only once, however often it happens")
     func subscribesOnce() {
-        let observeOfferedSettings = StubObserveOfferedSettings()
+        let observeOfferedSettings = SpyObserveOfferedSettingsUseCase()
         let viewModel = makeViewModel(observeOfferedSettings: observeOfferedSettings)
 
         viewModel.onAppear()
@@ -125,7 +125,7 @@ struct SettingsScreenViewModelTests {
 
     @Test("Toggling delegates to the use case with that key and the value it was asked for")
     func togglingDelegates() async {
-        let setSetting = SpySetSetting()
+        let setSetting = SpySetSettingUseCase()
         let viewModel = makeViewModel(setSetting: setSetting)
 
         viewModel.didToggle(.bagPriceDecreases, to: false)

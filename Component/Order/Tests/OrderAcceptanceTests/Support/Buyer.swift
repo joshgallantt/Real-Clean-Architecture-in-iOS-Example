@@ -33,8 +33,8 @@ final class Buyer {
         self.directory = directory
         self.sessions = CurrentValueSubject(Self.session(forUserId: userId))
         self.di = OrderDI(
-            getSession: StubGetSession(sessions: sessions),
-            observeSession: StubObserveSession(sessions: sessions),
+            getSession: StubGetSessionUseCase(sessions: sessions),
+            observeSession: SpyObserveSessionUseCase(sessions: sessions),
             store: FileOrderStore(directory: directory),
             payment: FakePaymentService(outcome)
         )

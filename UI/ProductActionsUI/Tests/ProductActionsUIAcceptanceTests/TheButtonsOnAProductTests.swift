@@ -2,6 +2,7 @@ import Foundation
 import ProductTestSupport
 import Testing
 import Product
+@testable import ProductActionsUITestSupport
 @testable import ProductActionsUI
 
 @MainActor

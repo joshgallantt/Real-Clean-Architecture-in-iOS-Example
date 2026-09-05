@@ -96,7 +96,7 @@ public final class BagScreenViewModel {
 
     /// Any line on this screen goes to its product, in the bag or in a notice. Opening it is
     /// behaviour, so it lives here rather than being called straight out of the view — where
-    /// nothing could reach it, which is why the bag screen had a `StubNavigation` no test used.
+    /// nothing could reach it, which is why the bag screen had a navigation double no test used.
     ///
     /// One method, because every section is now about something the shop still sells. It used to
     /// ask the section whether there was a page worth opening, for the one kind where there was

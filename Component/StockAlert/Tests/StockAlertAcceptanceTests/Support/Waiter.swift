@@ -24,7 +24,7 @@ final class Waiter {
     private(set) var bellIsRinging: [ProductID: Bool] = [:]
 
     /// The one thing the app cannot own here: the catalog.
-    let shop = StubCatalog()
+    let shop = FakeLookUpProductsUseCase()
 
     private(set) var alerts = StockAlerts()
 
@@ -32,8 +32,8 @@ final class Waiter {
         self.directory = directory
         self.sessions = CurrentValueSubject(Self.session(forUserId: userId))
         self.di = StockAlertDI(
-            getSession: StubGetSession(sessions: sessions),
-            observeSession: StubObserveSession(sessions: sessions),
+            getSession: StubGetSessionUseCase(sessions: sessions),
+            observeSession: SpyObserveSessionUseCase(sessions: sessions),
             lookUpProducts: shop,
             store: FileStockAlertStore(directory: directory)
         )

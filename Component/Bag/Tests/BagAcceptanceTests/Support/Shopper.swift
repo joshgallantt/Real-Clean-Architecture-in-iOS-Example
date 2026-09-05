@@ -27,7 +27,7 @@ final class Shopper {
 
     /// The catalog, which is the one thing here the app cannot own — it is somebody else's shop,
     /// over HTTP. Everything else in this driver is the real thing.
-    let shop = StubCatalog()
+    let shop = FakeLookUpProductsUseCase()
 
     private(set) var bag = Bag()
     private(set) var news = Notices()
@@ -36,8 +36,8 @@ final class Shopper {
         self.directory = directory
         self.sessions = CurrentValueSubject(Self.session(forUserId: userId))
         self.di = BagDI(
-            getSession: StubGetSession(sessions: sessions),
-            observeSession: StubObserveSession(sessions: sessions),
+            getSession: StubGetSessionUseCase(sessions: sessions),
+            observeSession: SpyObserveSessionUseCase(sessions: sessions),
             lookUpProducts: shop,
             store: FileBagStore(directory: directory)
         )

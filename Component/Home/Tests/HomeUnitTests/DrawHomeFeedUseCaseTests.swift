@@ -10,20 +10,20 @@ import Product
 @MainActor
 struct DrawHomeFeedUseCaseTests {
     private func makeUseCase(
-        browseCatalog: StubBrowseCatalogByCategory? = nil,
-        browseCategories: SpyBrowseCategories? = nil
+        browseCatalog: SpyBrowseCatalogUseCaseByCategory? = nil,
+        browseCategories: SpyBrowseCategoriesUseCase? = nil
     ) -> DrawHomeFeedUseCase {
         DefaultDrawHomeFeedUseCase(
-            browseCatalog: browseCatalog ?? StubBrowseCatalogByCategory(),
-            browseCategories: browseCategories ?? SpyBrowseCategories()
+            browseCatalog: browseCatalog ?? SpyBrowseCatalogUseCaseByCategory(),
+            browseCategories: browseCategories ?? SpyBrowseCategoriesUseCase()
         )
     }
 
     @Test("Draws a carousel for each category that qualifies")
     func drawsACarouselPerQualifyingCategory() async {
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .success([.beauty])
-        let browseCatalog = StubBrowseCatalogByCategory()
+        let browseCatalog = SpyBrowseCatalogUseCaseByCategory()
         browseCatalog.resultsByCategory[.init(rawValue: "beauty")] = .success(products(1...6, category: "beauty"))
         let useCase = makeUseCase(browseCatalog: browseCatalog, browseCategories: browseCategories)
 
@@ -45,9 +45,9 @@ struct DrawHomeFeedUseCaseTests {
         ] as [(available: Int, expectedShown: Int?)]
     )
     func floorAndCap(_ example: (available: Int, expectedShown: Int?)) async {
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .success([.beauty])
-        let browseCatalog = StubBrowseCatalogByCategory()
+        let browseCatalog = SpyBrowseCatalogUseCaseByCategory()
         let stock = example.available > 0 ? products(1...example.available, category: "beauty") : []
         browseCatalog.resultsByCategory[.init(rawValue: "beauty")] = .success(stock)
         let useCase = makeUseCase(browseCatalog: browseCatalog, browseCategories: browseCategories)
@@ -64,9 +64,9 @@ struct DrawHomeFeedUseCaseTests {
     @Test("Never draws more than 5 carousels, even when every category qualifies")
     func neverDrawsMoreThanFive() async {
         let categories: [ProductCategory] = [.beauty, .fragrances, .furniture, .kitchen, .sports, .toys, .books]
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .success(categories)
-        let browseCatalog = StubBrowseCatalogByCategory()
+        let browseCatalog = SpyBrowseCatalogUseCaseByCategory()
         for category in categories {
             browseCatalog.resultsByCategory[category.id] = .success(products(1...10, category: category.id.rawValue))
         }
@@ -80,9 +80,9 @@ struct DrawHomeFeedUseCaseTests {
     @Test("Never asks the same category for products twice")
     func neverTriesACategoryTwice() async {
         let categories: [ProductCategory] = [.beauty, .fragrances, .furniture, .kitchen, .sports, .toys, .books]
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .success(categories)
-        let browseCatalog = StubBrowseCatalogByCategory()
+        let browseCatalog = SpyBrowseCatalogUseCaseByCategory()
         for category in categories {
             browseCatalog.resultsByCategory[category.id] = .success(products(1...10, category: category.id.rawValue))
         }
@@ -101,9 +101,9 @@ struct DrawHomeFeedUseCaseTests {
     func aShortfallIsBackfilledByAnotherCategory() async {
         let qualifying: [ProductCategory] = [.beauty, .fragrances, .furniture, .kitchen, .sports]
         let short = ProductCategory.toys
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .success(qualifying + [short])
-        let browseCatalog = StubBrowseCatalogByCategory()
+        let browseCatalog = SpyBrowseCatalogUseCaseByCategory()
         for category in qualifying {
             browseCatalog.resultsByCategory[category.id] = .success(products(1...10, category: category.id.rawValue))
         }
@@ -117,9 +117,9 @@ struct DrawHomeFeedUseCaseTests {
 
     @Test("A category that fails to load does not take down the categories that did")
     func aFailingCategoryIsDroppedSilently() async {
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .success([.beauty, .fragrances])
-        let browseCatalog = StubBrowseCatalogByCategory()
+        let browseCatalog = SpyBrowseCatalogUseCaseByCategory()
         browseCatalog.resultsByCategory[.init(rawValue: "beauty")] = .success(products(1...5, category: "beauty"))
         browseCatalog.resultsByCategory[.init(rawValue: "fragrances")] = .failure(.unavailable)
         let useCase = makeUseCase(browseCatalog: browseCatalog, browseCategories: browseCategories)
@@ -131,9 +131,9 @@ struct DrawHomeFeedUseCaseTests {
 
     @Test("If every category tried fails to load, Home has nothing to draw")
     func everyCategoryFailingLeavesNothingToDraw() async {
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .success([.beauty, .fragrances])
-        let browseCatalog = StubBrowseCatalogByCategory()
+        let browseCatalog = SpyBrowseCatalogUseCaseByCategory()
         browseCatalog.resultsByCategory[.init(rawValue: "beauty")] = .failure(.unavailable)
         browseCatalog.resultsByCategory[.init(rawValue: "fragrances")] = .failure(.unavailable)
         let useCase = makeUseCase(browseCatalog: browseCatalog, browseCategories: browseCategories)
@@ -145,7 +145,7 @@ struct DrawHomeFeedUseCaseTests {
 
     @Test("A shop that cannot even be asked for its categories leaves Home with nothing to draw")
     func cannotReachCategoriesLeavesNothingToDraw() async {
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .failure(.unavailable)
         let useCase = makeUseCase(browseCategories: browseCategories)
 
@@ -156,7 +156,7 @@ struct DrawHomeFeedUseCaseTests {
 
     @Test("A shop with no categories to organise into leaves Home with nothing to draw")
     func noCategoriesLeavesNothingToDraw() async {
-        let browseCategories = SpyBrowseCategories()
+        let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .success([])
         let useCase = makeUseCase(browseCategories: browseCategories)
 

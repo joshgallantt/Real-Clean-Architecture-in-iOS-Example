@@ -11,9 +11,9 @@ import Testing
 func aSignedOutShopperIsOfferedAWayIn() {
     let screen = AccountScreenView(
         viewModel: AccountScreenViewModel(
-            getSession: StubGetSession(.guest),
-            observeSession: StubObserveSession(.guest),
-            logoutUseCase: SpyLogout()
+            getSession: StubGetSessionUseCase(.guest),
+            observeSession: SpyObserveSessionUseCase(.guest),
+            logoutUseCase: SpyLogoutUseCase()
         ),
         loginButton: AnyView(Button("Sign In") {}),
         navigation: SpyAccountNavigation()

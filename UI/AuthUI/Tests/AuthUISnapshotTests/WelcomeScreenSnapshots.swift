@@ -13,10 +13,10 @@ func theWelcomeScreenOffersBothWaysIn() {
     let screen = WelcomeScreenView(
         viewModel: WelcomeScreenViewModel(
             presenter: AuthPresenter(
-                sheetPresenting: SpySheetPresenter(),
-                loginUseCase: StubLogin(),
-                createAccountUseCase: StubCreateAccount(),
-                getSession: StubGetSession(.guest)
+                sheetPresenting: SpySheetPresenting(),
+                loginUseCase: SpyLoginUseCase(),
+                createAccountUseCase: SpyCreateAccountUseCase(),
+                getSession: StubGetSessionUseCase(.guest)
             ),
             onContinueAsGuest: {},
             onAuthenticated: {}

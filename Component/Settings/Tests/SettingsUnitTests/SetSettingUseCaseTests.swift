@@ -15,7 +15,7 @@ struct SetSettingUseCaseTests {
         repository: StubSettingsRepository,
         session: Session = .guest
     ) -> DefaultSetSettingUseCase {
-        DefaultSetSettingUseCase(repository: repository, getSession: StubGetSession(session))
+        DefaultSetSettingUseCase(repository: repository, getSession: StubGetSessionUseCase(session))
     }
 
     @Test("A setting the shopper is offered is kept", arguments: SettingKey.offered(signedIn: false))

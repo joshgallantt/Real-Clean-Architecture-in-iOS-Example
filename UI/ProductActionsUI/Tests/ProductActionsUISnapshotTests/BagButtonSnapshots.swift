@@ -14,10 +14,10 @@ func theBagButtonInvitesAFirstTap() {
     let button = BagButtonView(
         viewModel: BagButtonViewModel(
             product: aProduct(),
-            observeBagItemQuantity: StubObserveBagItemQuantity(0),
-            addItemToBag: SpyAddItemToBag(),
+            observeBagItemQuantity: StubObserveBagItemQuantityUseCase(0),
+            addItemToBag: SpyAddItemToBagUseCase(),
             navigation: SpyProductActionsNavigation(),
-            snackbarPresenter: SpySnackbarPresenter()
+            snackbarPresenter: SpySnackbarPresenting()
         )
     )
 
@@ -30,10 +30,10 @@ func theBagButtonShowsTheCount() {
     let button = BagButtonView(
         viewModel: BagButtonViewModel(
             product: aProduct(),
-            observeBagItemQuantity: StubObserveBagItemQuantity(3),
-            addItemToBag: SpyAddItemToBag(),
+            observeBagItemQuantity: StubObserveBagItemQuantityUseCase(3),
+            addItemToBag: SpyAddItemToBagUseCase(),
             navigation: SpyProductActionsNavigation(),
-            snackbarPresenter: SpySnackbarPresenter()
+            snackbarPresenter: SpySnackbarPresenting()
         )
     )
 

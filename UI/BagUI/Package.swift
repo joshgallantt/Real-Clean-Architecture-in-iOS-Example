@@ -63,7 +63,8 @@ let package = Package(
                 "BagUI",
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money")
+                .product(name: "Money", package: "Money"),
+                "BagUITestSupport"
             ],
             path: "Tests/BagUIAcceptanceTests"
         ),

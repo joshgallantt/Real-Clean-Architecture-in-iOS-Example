@@ -13,10 +13,10 @@ import Product
 struct BagButtonViewModelTests {
     private func makeViewModel(
         product: Product = .fixture(id: 1),
-        observeBagItemQuantity: StubObserveBagItemQuantity = StubObserveBagItemQuantity(),
-        addItemToBag: SpyAddItemToBag = SpyAddItemToBag(),
+        observeBagItemQuantity: StubObserveBagItemQuantityUseCase = StubObserveBagItemQuantityUseCase(),
+        addItemToBag: SpyAddItemToBagUseCase = SpyAddItemToBagUseCase(),
         navigation: SpyProductActionsNavigation = SpyProductActionsNavigation(),
-        snackbarPresenter: SpySnackbarPresenter = SpySnackbarPresenter()
+        snackbarPresenter: SpySnackbarPresenting = SpySnackbarPresenting()
     ) -> BagButtonViewModel {
         let viewModel = BagButtonViewModel(
             product: product,
@@ -33,14 +33,14 @@ struct BagButtonViewModelTests {
 
     @Test("The count shown follows what the bag already holds")
     func quantityFollowsTheBag() {
-        let viewModel = makeViewModel(observeBagItemQuantity: StubObserveBagItemQuantity(3))
+        let viewModel = makeViewModel(observeBagItemQuantity: StubObserveBagItemQuantityUseCase(3))
 
         #expect(viewModel.quantity == 3)
     }
 
     @Test("Tapping adds exactly one of the product, at its price, to the bag")
     func tappingAddsOneAtItsPrice() {
-        let addItemToBag = SpyAddItemToBag()
+        let addItemToBag = SpyAddItemToBagUseCase()
         let viewModel = makeViewModel(product: .fixture(id: 1), addItemToBag: addItemToBag)
 
         viewModel.didTap()
@@ -52,7 +52,7 @@ struct BagButtonViewModelTests {
     @Test("Tapping tells the shopper it is in the bag, with somewhere to go and see it")
     func tappingShowsASnackbarThatOpensTheBag() {
         let navigation = SpyProductActionsNavigation()
-        let snackbarPresenter = SpySnackbarPresenter()
+        let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(navigation: navigation, snackbarPresenter: snackbarPresenter)
 
         viewModel.didTap()
@@ -64,8 +64,8 @@ struct BagButtonViewModelTests {
 
     @Test("A bag button can never put in something the shop cannot supply")
     func neverAddsWhatCannotBeSupplied() {
-        let addItemToBag = SpyAddItemToBag()
-        let snackbarPresenter = SpySnackbarPresenter()
+        let addItemToBag = SpyAddItemToBagUseCase()
+        let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(
             product: .fixture(id: 1, availability: .outOfStock),
             addItemToBag: addItemToBag,

@@ -16,8 +16,8 @@ import SnackbarUI
 /// which is the payoff for their being one view model rather than two.
 final class AKeeper {
     private let kept = CurrentValueSubject<[ProductID], Never>([])
-    let shop = StubShop()
-    let snackbars = SpySnackbarPresenter()
+    let shop = FakeLookUpProductsUseCase()
+    let snackbars = SpySnackbarPresenting()
 
     private(set) lazy var list = SavedProductsViewModel(
         savedProductIds: { [kept] in kept.eraseToAnyPublisher() },

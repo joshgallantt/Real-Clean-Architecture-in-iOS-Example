@@ -10,7 +10,7 @@ import Testing
 @Test("The home screen renders its frame before the feed has arrived")
 func theHomeScreenRendersBeforeTheFeedArrives() {
     let screen = HomeScreenView(
-        viewModel: HomeScreenViewModel(drawHomeFeed: StubDrawHomeFeed(), navigation: StubNavigation()),
+        viewModel: HomeScreenViewModel(drawHomeFeed: SpyDrawHomeFeedUseCase(), navigation: SpyHomeNavigation()),
         wishlistButton: { _ in AnyView(EmptyView()) },
         bagButton: { _ in AnyView(EmptyView()) }
     )

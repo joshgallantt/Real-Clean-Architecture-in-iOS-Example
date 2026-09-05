@@ -14,12 +14,12 @@ import Testing
 func theSettingsScreenListsEverySetting() {
     let screen = SettingsScreenView(
         viewModel: SettingsScreenViewModel(
-            observeOfferedSettings: StubObserveOfferedSettings([
+            observeOfferedSettings: SpyObserveOfferedSettingsUseCase([
                 Setting(key: .pushNotifications, isOn: true),
                 Setting(key: .bagOutOfStockNotice, isOn: false),
                 Setting(key: .bagPriceDecreases, isOn: true)
             ]),
-            setSetting: SpySetSetting()
+            setSetting: SpySetSettingUseCase()
         )
     )
 
@@ -31,8 +31,8 @@ func theSettingsScreenListsEverySetting() {
 func anEmptySettingsScreenStillRenders() {
     let screen = SettingsScreenView(
         viewModel: SettingsScreenViewModel(
-            observeOfferedSettings: StubObserveOfferedSettings(),
-            setSetting: SpySetSetting()
+            observeOfferedSettings: SpyObserveOfferedSettingsUseCase(),
+            setSetting: SpySetSettingUseCase()
         )
     )
 

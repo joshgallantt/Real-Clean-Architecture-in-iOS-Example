@@ -15,10 +15,10 @@ import SettingsTestSupport
 final class Shopper {
     private let settingsSubject: CurrentValueSubject<Settings, Never>
     private let signedInSubject: CurrentValueSubject<Bool, Never>
-    private let setSetting: StubSetSettingThatKeeps
+    private let setSetting: FakeSetSettingUseCaseThatKeeps
 
     private lazy var screen = SettingsScreenViewModel(
-        observeOfferedSettings: StubOfferedSettingsForShopper(
+        observeOfferedSettings: FakeObserveOfferedSettingsUseCaseForShopper(
             settings: settingsSubject,
             signedIn: signedInSubject
         ),
@@ -28,7 +28,7 @@ final class Shopper {
     init(signedIn: Bool = false, settings: Settings = Settings()) {
         settingsSubject = CurrentValueSubject(settings)
         signedInSubject = CurrentValueSubject(signedIn)
-        setSetting = StubSetSettingThatKeeps(settings: settingsSubject)
+        setSetting = FakeSetSettingUseCaseThatKeeps(settings: settingsSubject)
     }
 
     // MARK: - What a shopper does

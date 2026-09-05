@@ -13,10 +13,10 @@ import WishlistTestSupport
 struct WishlistButtonViewModelTests {
     private func makeViewModel(
         productId: ProductID = pid(1),
-        observeProductIsWishlisted: StubObserveProductIsWishlisted = StubObserveProductIsWishlisted(),
-        setProductIsWishlisted: StubSetProductIsWishlisted = StubSetProductIsWishlisted(),
-        authPresenter: StubAuthPresenter = StubAuthPresenter(),
-        snackbarPresenter: SpySnackbarPresenter = SpySnackbarPresenter()
+        observeProductIsWishlisted: StubObserveProductIsWishlistedUseCase = StubObserveProductIsWishlistedUseCase(),
+        setProductIsWishlisted: SpySetProductIsWishlistedUseCase = SpySetProductIsWishlistedUseCase(),
+        authPresenter: SpyAuthPresenting = SpyAuthPresenting(),
+        snackbarPresenter: SpySnackbarPresenting = SpySnackbarPresenting()
     ) -> WishlistButtonViewModel {
         let viewModel = WishlistButtonViewModel(
             productId: productId,
@@ -33,14 +33,14 @@ struct WishlistButtonViewModelTests {
 
     @Test("Whether the heart is filled follows what the use case already says")
     func isInWishlistFollowsTheUseCase() {
-        let viewModel = makeViewModel(observeProductIsWishlisted: StubObserveProductIsWishlisted(true))
+        let viewModel = makeViewModel(observeProductIsWishlisted: StubObserveProductIsWishlistedUseCase(true))
 
         #expect(viewModel.isInWishlist)
     }
 
     @Test("Tapping while not saved saves it")
     func tappingWhenNotSavedSavesIt() async {
-        let setProductIsWishlisted = StubSetProductIsWishlisted()
+        let setProductIsWishlisted = SpySetProductIsWishlistedUseCase()
         let viewModel = makeViewModel(
             productId: pid(1),
             setProductIsWishlisted: setProductIsWishlisted
@@ -55,10 +55,10 @@ struct WishlistButtonViewModelTests {
 
     @Test("Tapping while already saved unsaves it")
     func tappingWhenSavedUnsavesIt() async {
-        let setProductIsWishlisted = StubSetProductIsWishlisted()
+        let setProductIsWishlisted = SpySetProductIsWishlistedUseCase()
         let viewModel = makeViewModel(
             productId: pid(1),
-            observeProductIsWishlisted: StubObserveProductIsWishlisted(true),
+            observeProductIsWishlisted: StubObserveProductIsWishlistedUseCase(true),
             setProductIsWishlisted: setProductIsWishlisted
         )
 
@@ -70,8 +70,8 @@ struct WishlistButtonViewModelTests {
 
     @Test("Two taps in a row are two decisions, so it ends where it started")
     func tappingTwiceEndsWhereItStarted() async {
-        let observeProductIsWishlisted = StubObserveProductIsWishlisted()
-        let setProductIsWishlisted = StubSetProductIsWishlisted()
+        let observeProductIsWishlisted = StubObserveProductIsWishlistedUseCase()
+        let setProductIsWishlisted = SpySetProductIsWishlistedUseCase()
         setProductIsWishlisted.onSuccess = { observeProductIsWishlisted.send($0) }
         let viewModel = makeViewModel(
             productId: pid(1),
@@ -89,7 +89,7 @@ struct WishlistButtonViewModelTests {
 
     @Test("Saving tells the shopper it saved")
     func savingSaysSo() async {
-        let snackbarPresenter = SpySnackbarPresenter()
+        let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(snackbarPresenter: snackbarPresenter)
 
         viewModel.didTap()
@@ -100,9 +100,9 @@ struct WishlistButtonViewModelTests {
 
     @Test("Unsaving tells the shopper it is gone")
     func unsavingSaysSo() async {
-        let snackbarPresenter = SpySnackbarPresenter()
+        let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(
-            observeProductIsWishlisted: StubObserveProductIsWishlisted(true),
+            observeProductIsWishlisted: StubObserveProductIsWishlistedUseCase(true),
             snackbarPresenter: snackbarPresenter
         )
 
@@ -114,9 +114,9 @@ struct WishlistButtonViewModelTests {
 
     @Test("A guest is asked to sign in, and saving resumes once they have")
     func guestIsAskedThenResumes() async {
-        let setProductIsWishlisted = StubSetProductIsWishlisted()
+        let setProductIsWishlisted = SpySetProductIsWishlistedUseCase()
         setProductIsWishlisted.result = .failure(.unauthenticated)
-        let authPresenter = StubAuthPresenter(onSignIn: { setProductIsWishlisted.result = .success(()) })
+        let authPresenter = SpyAuthPresenting(onSignIn: { setProductIsWishlisted.result = .success(()) })
         authPresenter.signsIn = true
         let viewModel = makeViewModel(setProductIsWishlisted: setProductIsWishlisted, authPresenter: authPresenter)
 
@@ -129,11 +129,11 @@ struct WishlistButtonViewModelTests {
 
     @Test("A guest who backs out of signing in is not left thinking it saved")
     func guestWhoBacksOutIsNotLeftThinkingItSaved() async {
-        let setProductIsWishlisted = StubSetProductIsWishlisted()
+        let setProductIsWishlisted = SpySetProductIsWishlistedUseCase()
         setProductIsWishlisted.result = .failure(.unauthenticated)
-        let authPresenter = StubAuthPresenter()
+        let authPresenter = SpyAuthPresenting()
         authPresenter.signsIn = false
-        let snackbarPresenter = SpySnackbarPresenter()
+        let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(
             setProductIsWishlisted: setProductIsWishlisted,
             authPresenter: authPresenter,

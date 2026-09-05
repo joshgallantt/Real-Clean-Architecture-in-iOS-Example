@@ -12,12 +12,12 @@ import Testing
 func anEmptyBagSaysSo() {
     let screen = BagScreenView(
         viewModel: BagScreenViewModel(
-            navigation: SpyNavigation(),
-            observeBag: StubObserveBag(),
-            observeNotices: StubObserveNotices(),
-            setBagItemQuantity: SpySetBagItemQuantity(),
-            bringBagUpToDate: StubBringBagUpToDate(),
-            acknowledgeNotices: SpyAcknowledgeNotices()
+            navigation: SpyBagNavigation(),
+            observeBag: StubObserveBagUseCase(),
+            observeNotices: StubObserveNoticesUseCase(),
+            setBagItemQuantity: SpySetBagItemQuantityUseCase(),
+            bringBagUpToDate: SpyBringBagUpToDateUseCase(),
+            acknowledgeNotices: SpyAcknowledgeNoticesUseCase()
         ),
         stockAlertButton: { _ in AnyView(EmptyView()) },
         checkoutButton: AnyView(EmptyView())

@@ -10,9 +10,9 @@ import SearchHistory
 @Suite("Searching")
 struct SearchingViewModelTests {
     private func makeViewModel(
-        getSearchHistory: StubGetSearchHistory = StubGetSearchHistory(),
-        clearSearchHistory: SpyClearSearchHistory = SpyClearSearchHistory(),
-        browseCatalog: StubBrowseCatalog = StubBrowseCatalog()
+        getSearchHistory: StubGetSearchHistoryUseCase = StubGetSearchHistoryUseCase(),
+        clearSearchHistory: SpyClearSearchHistoryUseCase = SpyClearSearchHistoryUseCase(),
+        browseCatalog: SpyBrowseCatalogUseCase = SpyBrowseCatalogUseCase()
     ) -> SearchingViewModel {
         SearchingViewModel(
             getSearchHistory: getSearchHistory,
@@ -23,7 +23,7 @@ struct SearchingViewModelTests {
 
     @Test("Appearing shows whatever history is already there")
     func appearingShowsHistory() async {
-        let getSearchHistory = StubGetSearchHistory()
+        let getSearchHistory = StubGetSearchHistoryUseCase()
         getSearchHistory.history = SearchHistory(terms: [SearchTerm("lipstick")!])
         let viewModel = makeViewModel(getSearchHistory: getSearchHistory)
 
@@ -34,7 +34,7 @@ struct SearchingViewModelTests {
 
     @Test("A blank query has no suggestions and asks the shop nothing")
     func blankQueryHasNoSuggestions() {
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = SpyBrowseCatalogUseCase()
         let viewModel = makeViewModel(browseCatalog: browseCatalog)
 
         viewModel.queryChanged("   ")
@@ -45,7 +45,7 @@ struct SearchingViewModelTests {
 
     @Test("Typing something searches the catalog for it, after a short pause")
     func typingSearchesAfterAPause() async {
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = SpyBrowseCatalogUseCase()
         browseCatalog.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(browseCatalog: browseCatalog)
 
@@ -58,7 +58,7 @@ struct SearchingViewModelTests {
 
     @Test("Typing again before the pause is up cancels the search that was waiting")
     func retypingCancelsThePendingSearch() async {
-        let browseCatalog = StubBrowseCatalog()
+        let browseCatalog = SpyBrowseCatalogUseCase()
         browseCatalog.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(browseCatalog: browseCatalog)
 
@@ -72,9 +72,9 @@ struct SearchingViewModelTests {
 
     @Test("Clearing history empties it, both what is stored and what is shown")
     func clearingHistoryEmptiesIt() {
-        let getSearchHistory = StubGetSearchHistory()
+        let getSearchHistory = StubGetSearchHistoryUseCase()
         getSearchHistory.history = SearchHistory(terms: [SearchTerm("lipstick")!])
-        let clearSearchHistory = SpyClearSearchHistory()
+        let clearSearchHistory = SpyClearSearchHistoryUseCase()
         let viewModel = makeViewModel(getSearchHistory: getSearchHistory, clearSearchHistory: clearSearchHistory)
 
         getSearchHistory.history = SearchHistory()

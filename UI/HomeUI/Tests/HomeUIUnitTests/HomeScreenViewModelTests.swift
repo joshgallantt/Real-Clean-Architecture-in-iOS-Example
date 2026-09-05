@@ -11,8 +11,8 @@ import Home
 @Suite("The home screen")
 struct HomeScreenViewModelTests {
     private func makeViewModel(
-        drawHomeFeed: StubDrawHomeFeed = StubDrawHomeFeed(),
-        navigation: StubNavigation = StubNavigation()
+        drawHomeFeed: SpyDrawHomeFeedUseCase = SpyDrawHomeFeedUseCase(),
+        navigation: SpyHomeNavigation = SpyHomeNavigation()
     ) -> HomeScreenViewModel {
         HomeScreenViewModel(drawHomeFeed: drawHomeFeed, navigation: navigation)
     }
@@ -24,7 +24,7 @@ struct HomeScreenViewModelTests {
 
     @Test("Appearing shows what the draw succeeded with")
     func appearingShowsWhatWasDrawn() async {
-        let drawHomeFeed = StubDrawHomeFeed()
+        let drawHomeFeed = SpyDrawHomeFeedUseCase()
         let carousel = HomeCarousel(category: .beauty, products: products(1...6, category: "beauty"))
         drawHomeFeed.result = .success(HomeFeed(carousels: [carousel])!)
         let viewModel = makeViewModel(drawHomeFeed: drawHomeFeed)
@@ -36,7 +36,7 @@ struct HomeScreenViewModelTests {
 
     @Test("Appearing when the draw fails leaves Home with nothing to show")
     func appearingWhenTheDrawFailsShowsError() async {
-        let drawHomeFeed = StubDrawHomeFeed()
+        let drawHomeFeed = SpyDrawHomeFeedUseCase()
         drawHomeFeed.result = .failure(.unavailable)
         let viewModel = makeViewModel(drawHomeFeed: drawHomeFeed)
 
@@ -47,7 +47,7 @@ struct HomeScreenViewModelTests {
 
     @Test("Appearing again once something has already loaded asks nothing more")
     func appearingAgainOnceLoadedAsksNothingMore() async {
-        let drawHomeFeed = StubDrawHomeFeed()
+        let drawHomeFeed = SpyDrawHomeFeedUseCase()
         let carousel = HomeCarousel(category: .beauty, products: products(1...5, category: "beauty"))
         drawHomeFeed.result = .success(HomeFeed(carousels: [carousel])!)
         let viewModel = makeViewModel(drawHomeFeed: drawHomeFeed)
@@ -62,7 +62,7 @@ struct HomeScreenViewModelTests {
     /// is what having no `hasDrawnTheFeed` flag to consult amounts to.
     @Test("Appearing again after Home had nothing to draw asks the shop again")
     func appearingAgainAfterNothingToDrawAsksAgain() async {
-        let drawHomeFeed = StubDrawHomeFeed()
+        let drawHomeFeed = SpyDrawHomeFeedUseCase()
         drawHomeFeed.result = .failure(.unavailable)
         let viewModel = makeViewModel(drawHomeFeed: drawHomeFeed)
         await viewModel.onAppear()
@@ -74,7 +74,7 @@ struct HomeScreenViewModelTests {
 
     @Test("Trying again asks for another draw, and what succeeds this time is shown")
     func retryingAsksAgainAndShowsWhatSucceeds() async {
-        let drawHomeFeed = StubDrawHomeFeed()
+        let drawHomeFeed = SpyDrawHomeFeedUseCase()
         drawHomeFeed.result = .failure(.unavailable)
         let viewModel = makeViewModel(drawHomeFeed: drawHomeFeed)
         await viewModel.onAppear()
@@ -90,7 +90,7 @@ struct HomeScreenViewModelTests {
 
     @Test("Selecting a product opens its details")
     func selectingAProductOpensItsDetails() async {
-        let navigation = StubNavigation()
+        let navigation = SpyHomeNavigation()
         let viewModel = makeViewModel(navigation: navigation)
         let product = Product.fixture(id: 1)
 
@@ -101,7 +101,7 @@ struct HomeScreenViewModelTests {
 
     @Test("Tapping View All opens that category's own results")
     func tappingViewAllOpensThatCategorysOwnResults() async {
-        let navigation = StubNavigation()
+        let navigation = SpyHomeNavigation()
         let viewModel = makeViewModel(navigation: navigation)
         let carousel = HomeCarousel(category: .fragrances, products: products(101...105, category: "fragrances"))
 
