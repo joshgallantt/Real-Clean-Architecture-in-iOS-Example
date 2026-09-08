@@ -1,7 +1,5 @@
 # Clean Architecture for iOS
 
-[![coverage](https://img.shields.io/badge/coverage-51%25-orange)](#test-coverage)
-
 A shopping app built the way Robert C. Martin's *Clean Architecture* describes, in SwiftUI, with every architectural boundary enforced by the Swift compiler rather than by good intentions.
 
 This page teaches the architecture by following **one tap through every layer**. It is about twenty minutes. When you finish it you will have seen every idea the project uses, working, in one feature — and you can read the rest of the code without a map.
@@ -248,7 +246,7 @@ The unit tier asserts the same rules in the language of the system, and names th
 
 ## Test coverage
 
-`./coverage.sh` measures it and `./coverage.sh --badge` writes the figure above.
+`./coverage.sh` measures it.
 
 | Layer | Covered | |
 | --- | --- | --- |
@@ -292,7 +290,38 @@ say what it should do.
 └── iPhone/        The composition root: the one place that knows every concrete type.
 ```
 
-Every directory is a separate Swift package, so the folder tree *is* the dependency graph.
+Every folder under `Component/`, `UI/` and `Library/` is a separate Swift package, so the folder tree *is* the dependency graph. Here is the one you just read, with the arrows drawn on:
+
+```mermaid
+%%{init: {"flowchart": {"wrappingWidth": 300}}}%%
+graph TD
+    UI["target ProductActionsUI<br/>UI/ProductActionsUI/<br/>① WishlistButtonViewModel"]
+    APP["iPhone/ — the composition root"]
+
+    subgraph PKG["Component/Wishlist/"]
+        DI["target WishlistDI — Sources/DI/"]
+        DOM["target Wishlist — Sources/Domain/<br/>② SetProductIsWishlistedUseCase<br/>③ WishlistRepository<br/>(the rule, the contract)"]
+        DAT["target WishlistData — Sources/Data/<br/>④ DefaultWishlistRepository<br/>⑤ WishlistStore, FileWishlistStore<br/>(the implementation)"]
+    end
+
+    UI ==> DOM
+    APP ==> DI
+    APP ==> DAT
+    DI ==> DOM
+    DI ==> DAT
+    DAT ==>|"imports Wishlist"| DOM
+    DOM -.->|"calls save(_:) at run time"| DAT
+
+    linkStyle 6 stroke-width:2px;
+```
+
+**Every solid arrow is an `import` somebody wrote.** Inside the package, `Package.swift` decides which of them are allowed to resolve: the three folders drawn here are three separate compiler targets, and `Sources/` holds a fourth, `TestSupport/`, kept off the picture. The dotted arrow is the odd one out — it is not a dependency at all. It is ② calling `save(_:)` at run time, and it runs the other way. Arrows that leave the package are off the page: `Wishlist` itself depends on `Product` and on `Session`, the second of those because ②'s rule needs an account.
+
+That pair between the two boxes is ③ and ④, in one picture. **`WishlistData` imports `Wishlist` because the contract it satisfies is declared there, and `Wishlist` imports nothing back — so the call goes down and the import comes up.** Those two arrows are the inversion. No other pair of boxes here has arrows both ways — ⑤ inverts the same way one ring further out, but both halves of it live in `WishlistData`, so no import crosses a target to draw. `WishlistDI` is where the two halves are introduced: it builds a `DefaultWishlistRepository` over a store and hands it to three use cases. The composition root reaches past it into `WishlistData` too, because naming the concrete store is what `DataAssembler` is for. `WishlistDI` would default to a `FileWishlistStore` if nobody passed one; the app passes one anyway, so that every store it runs on is readable in a single file.
+
+Now look for an arrow that is not there. Nothing goes from `ProductActionsUI` to `WishlistData`. Build that package on its own and `import WishlistData` does not resolve — its manifest asks for the `Wishlist` product and not the `WishlistData` one, so the module is never put in front of the button. It is not a bad idea somebody talked you out of. It is a module the button was never handed. That is the `(never)` line from the top of this page, at the scale of one real feature.
+
+**Eight of the ten `Component/` packages are exactly this shape.** `Home` has no `Sources/Data/` — it draws a feed out of the catalog's use cases and stores nothing. `Money` has neither data nor DI, because exact arithmetic has nothing to wire. Each of the ten ships a test-support target as well — `WishlistTestSupport`, and one like it beside every other component. There are nineteen across the repository, and not one depends on a `*Data` target: a double stands in for the protocol, so the unit tier never needs a disk. Where a component has a store, the acceptance tier drives the real one: `WishlistAcceptanceTests` links `WishlistData` and runs a genuine `FileWishlistStore` in a temporary directory, through the same `WishlistDI` the composition root builds.
 
 Two things worth knowing before you read further:
 
