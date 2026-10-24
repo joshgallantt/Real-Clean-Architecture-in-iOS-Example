@@ -6,7 +6,7 @@ import Foundation
 /// Evans, *Domain-Driven Design* (2003) — Value Objects: identified by value, immutable, freely
 /// shared. Evans — Closure of Operations: `+` and `*` return `Money`, so amounts compose without
 /// leaving the type.
-public struct Money: Equatable, Hashable, Sendable {
+public struct Money: Equatable, Hashable, Comparable, Sendable {
     public let minorUnits: Int
     public let currency: Currency
 
@@ -58,9 +58,7 @@ public struct Money: Equatable, Hashable, Sendable {
     public static func * (lhs: Money, count: Int) -> Money {
         Money(minorUnits: lhs.minorUnits * count, currency: lhs.currency)
     }
-}
 
-extension Money: Comparable {
     public static func < (lhs: Money, rhs: Money) -> Bool {
         precondition(
             lhs.currency == rhs.currency,

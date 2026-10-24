@@ -16,9 +16,7 @@ struct CatalogItem: Encodable {
     var brand: String? = "Acme"
     var thumbnail: String = "https://cdn.example.com/thumb.png"
     var images: [String] = ["https://cdn.example.com/1.png"]
-}
 
-extension CatalogItem {
     static let sampleCatalog: [CatalogItem] = [
         CatalogItem(id: 1, title: "Mascara Lash Princess", category: "beauty", price: 9.99, brand: "Essence"),
         CatalogItem(id: 2, title: "Eyeshadow Palette", category: "beauty", price: 19.99, brand: "Glamour"),

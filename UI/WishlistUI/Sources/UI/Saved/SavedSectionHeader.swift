@@ -14,6 +14,18 @@ struct SavedSectionHeader<Trailing: View>: View {
     let description: String
     @ViewBuilder let trailing: () -> Trailing
 
+    init(title: String, icon: String, tint: Color, description: String, @ViewBuilder trailing: @escaping () -> Trailing) {
+        self.title = title
+        self.icon = icon
+        self.tint = tint
+        self.description = description
+        self.trailing = trailing
+    }
+
+    init(title: String, icon: String, tint: Color, description: String) where Trailing == EmptyView {
+        self.init(title: title, icon: icon, tint: tint, description: description) { EmptyView() }
+    }
+
     var body: some View {
         VStack(alignment: .leading, spacing: 6) {
             HStack(alignment: .firstTextBaseline) {
@@ -33,11 +45,5 @@ struct SavedSectionHeader<Trailing: View>: View {
                 .fixedSize(horizontal: false, vertical: true)
         }
         .padding(.horizontal)
-    }
-}
-
-extension SavedSectionHeader where Trailing == EmptyView {
-    init(title: String, icon: String, tint: Color, description: String) {
-        self.init(title: title, icon: icon, tint: tint, description: description) { EmptyView() }
     }
 }

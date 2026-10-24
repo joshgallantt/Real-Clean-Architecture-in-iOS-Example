@@ -7,7 +7,7 @@ import Foundation
 /// Evans — Value Objects; Assertions: the rule is stated once, on the thing it is about. Failable
 /// rather than lenient, because nothing needs to hold a half-typed search: `nil` means there was
 /// none.
-public struct SearchTerm: Sendable {
+public struct SearchTerm: Equatable, Hashable, Sendable {
     public let text: String
 
     public init?(_ raw: String) {
@@ -15,9 +15,7 @@ public struct SearchTerm: Sendable {
         guard !trimmed.isEmpty else { return nil }
         self.text = trimmed
     }
-}
 
-extension SearchTerm: Equatable, Hashable {
     public static func == (lhs: SearchTerm, rhs: SearchTerm) -> Bool {
         lhs.text.caseInsensitiveCompare(rhs.text) == .orderedSame
     }
