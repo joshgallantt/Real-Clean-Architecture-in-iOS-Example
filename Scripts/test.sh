@@ -2,12 +2,12 @@
 #
 # Runs the tests and says what failed and why.
 #
-#   ./test.sh                    every test
-#   ./test.sh unit               one tier — unit, acceptance or snapshot
-#   ./test.sh Bag                one module, every tier of it
-#   ./test.sh unit Wishlist      that tier, narrowed to matching targets
-#   ./test.sh --build            build the app, no tests
-#   ./test.sh --plans            list the test plans
+#   Scripts/test.sh                    every test
+#   Scripts/test.sh unit               one tier — unit, acceptance or snapshot
+#   Scripts/test.sh Bag                one module, every tier of it
+#   Scripts/test.sh unit Wishlist      that tier, narrowed to matching targets
+#   Scripts/test.sh --build            build the app, no tests
+#   Scripts/test.sh --plans            list the test plans
 #
 # Full output goes to .test-logs/. The terminal gets a summary and, for
 # failures, the errors that matter — usually enough to fix without opening a log.
@@ -18,6 +18,8 @@
 # thing forty-eight times.
 
 set -uo pipefail
+
+cd "$(dirname "$0")/.."
 
 PROJECT="CleanArchitecture.xcodeproj"
 SCHEME="${SCHEME:-iPhone}"

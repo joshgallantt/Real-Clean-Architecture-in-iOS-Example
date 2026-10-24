@@ -246,7 +246,7 @@ The unit tier asserts the same rules in the language of the system, and names th
 
 ## Test coverage
 
-`./coverage.sh` measures it.
+`Scripts/coverage.sh` measures it.
 
 | Layer | Covered | |
 | --- | --- | --- |

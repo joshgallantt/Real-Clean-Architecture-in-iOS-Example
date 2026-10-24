@@ -2,7 +2,7 @@
 #
 # Proves the shipped app contains no test code.
 #
-#   ./verify-release.sh
+#   Scripts/verify-release.sh
 #
 # Three things have to be true, and this checks all three rather than trusting
 # the first. The first two are structural and the third is evidence: a build
@@ -16,6 +16,8 @@
 # Run it before submitting, and in CI on the release configuration.
 
 set -uo pipefail
+
+cd "$(dirname "$0")/.."
 
 PROJECT="CleanArchitecture.xcodeproj"
 SCHEME="${SCHEME:-iPhone}"

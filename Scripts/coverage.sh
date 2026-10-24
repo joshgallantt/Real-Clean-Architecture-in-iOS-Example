@@ -2,9 +2,9 @@
 #
 # Measures how much of the production code the tests reach.
 #
-#   ./coverage.sh            measure and print the breakdown
-#   ./coverage.sh --run      run the suite first, then measure
-#   ./coverage.sh --badge    measure, then rewrite the badge in README.md
+#   Scripts/coverage.sh            measure and print the breakdown
+#   Scripts/coverage.sh --run      run the suite first, then measure
+#   Scripts/coverage.sh --badge    measure, then rewrite the badge in README.md
 #
 # Two things make the raw xccov report misleading, and both are handled here.
 #
@@ -21,16 +21,18 @@
 
 set -uo pipefail
 
+cd "$(dirname "$0")/.."
+
 DERIVED="${DERIVED:-.build/dd}"
 README="README.md"
 
 if [ "${1:-}" = "--run" ]; then
-    ./test.sh || exit 1
+    Scripts/test.sh || exit 1
 fi
 
 RESULT=$(/bin/ls -td "$DERIVED"/Logs/Test/*.xcresult 2>/dev/null | head -1)
 if [ -z "$RESULT" ]; then
-    echo "No test results in $DERIVED. Run ./coverage.sh --run first."
+    echo "No test results in $DERIVED. Run Scripts/coverage.sh --run first."
     exit 2
 fi
 
