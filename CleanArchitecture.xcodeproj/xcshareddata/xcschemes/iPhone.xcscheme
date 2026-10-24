@@ -67,7 +67,7 @@
             reference = "container:Component/Settings/SettingsTests.xctestplan">
          </TestPlanReference>
          <TestPlanReference
-            reference = "container:Component/StockAlert/StockAlertTests.xctestplan">
+            reference = "container:Component/Waitlist/WaitlistTests.xctestplan">
          </TestPlanReference>
          <TestPlanReference
             reference = "container:Component/Wishlist/WishlistTests.xctestplan">

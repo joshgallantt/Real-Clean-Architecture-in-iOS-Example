@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 import Product
-import StockAlert
+import Waitlist
 import AuthUI
 import SnackbarUI
 
@@ -25,8 +25,8 @@ public final class StockAlertButtonViewModel {
     private(set) var isWaiting = false
 
     private let productId: ProductID
-    private let observeWaitlistStatus: ObserveWaitlistStatusUseCase
-    private let setStockAlert: SetStockAlertForProductUseCase
+    private let observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase
+    private let setProductIsWaitlisted: SetProductIsWaitlistedUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private var cancellables = Set<AnyCancellable>()
@@ -36,14 +36,14 @@ public final class StockAlertButtonViewModel {
 
     public init(
         productId: ProductID,
-        observeWaitlistStatus: ObserveWaitlistStatusUseCase,
-        setStockAlert: SetStockAlertForProductUseCase,
+        observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase,
+        setProductIsWaitlisted: SetProductIsWaitlistedUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting
     ) {
         self.productId = productId
-        self.observeWaitlistStatus = observeWaitlistStatus
-        self.setStockAlert = setStockAlert
+        self.observeProductIsWaitlisted = observeProductIsWaitlisted
+        self.setProductIsWaitlisted = setProductIsWaitlisted
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
     }
@@ -54,7 +54,7 @@ public final class StockAlertButtonViewModel {
     func onAppear() {
         guard cancellables.isEmpty else { return }
 
-        observeWaitlistStatus(productId: productId)
+        observeProductIsWaitlisted(productId: productId)
             .sink { [weak self] value in
                 self?.isWaiting = value
             }
@@ -90,7 +90,7 @@ public final class StockAlertButtonViewModel {
     }
 
     private func apply(isOn: Bool) async {
-        switch await setStockAlert(productId: productId, isOn: isOn) {
+        switch await setProductIsWaitlisted(productId: productId, isWaitlisted: isOn) {
         case .success:
             snackbarPresenter.show(told(isOn))
 

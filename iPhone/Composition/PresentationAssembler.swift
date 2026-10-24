@@ -4,7 +4,7 @@ import HomeDI
 import OrderDI
 import SearchHistoryDI
 import SessionDI
-import StockAlertDI
+import WaitlistDI
 import WishlistDI
 import AccountUIDI
 import AuthUIDI
@@ -86,8 +86,8 @@ struct PresentationAssembler {
             setProductIsWishlisted: domain.wishlist.setProductIsWishlistedUseCase,
             observeBagItemQuantity: domain.bag.observeBagItemQuantityUseCase,
             addItemToBag: domain.bag.addItemToBagUseCase,
-            observeWaitlistStatus: domain.stockAlerts.observeWaitlistStatusUseCase,
-            setStockAlertForProduct: domain.stockAlerts.setStockAlertForProductUseCase,
+            observeProductIsWaitlisted: domain.stockAlerts.observeProductIsWaitlistedUseCase,
+            setProductIsWaitlisted: domain.stockAlerts.setProductIsWaitlistedUseCase,
             authPresenter: auth.presenter,
             snackbarPresenter: snackbar.presenter
         )
@@ -121,9 +121,9 @@ struct PresentationAssembler {
             navigation: navigator,
             observeWishlist: domain.wishlist.observeWishlistUseCase,
             observeWaitlist: domain.stockAlerts.observeWaitlistUseCase,
-            getWaitlistProducts: domain.stockAlerts.getWaitlistProductsUseCase,
+            getStillSoldOutProducts: domain.stockAlerts.getStillSoldOutProductsUseCase,
             getBackInStockProducts: domain.stockAlerts.getBackInStockProductsUseCase,
-            setStockAlertForProduct: domain.stockAlerts.setStockAlertForProductUseCase,
+            setProductIsWaitlisted: domain.stockAlerts.setProductIsWaitlistedUseCase,
             setProductIsWishlisted: domain.wishlist.setProductIsWishlistedUseCase,
             lookUpProducts: catalog.lookUpProducts,
             observeSession: session.observeSessionUseCase,

@@ -147,9 +147,9 @@
     {
       "parallelizable": true,
       "target": {
-        "containerPath": "container:Component/StockAlert",
-        "identifier": "StockAlertUnitTests",
-        "name": "StockAlertUnitTests"
+        "containerPath": "container:Component/Waitlist",
+        "identifier": "WaitlistUnitTests",
+        "name": "WaitlistUnitTests"
       }
     },
     {

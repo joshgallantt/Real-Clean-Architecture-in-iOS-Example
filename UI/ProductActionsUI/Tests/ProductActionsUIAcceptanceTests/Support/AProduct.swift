@@ -6,11 +6,13 @@ import Bag
 import Money
 import Product
 import ProductTestSupport
-import StockAlert
+import Session
+import SessionTestSupport
+import Waitlist
 import AuthUI
 import SnackbarUI
 import SnackbarUITestSupport
-import StockAlertTestSupport
+import WaitlistTestSupport
 @testable import ProductActionsUITestSupport
 @testable import ProductActionsUI
 
@@ -22,27 +24,28 @@ final class AProduct {
     let product: Product
 
     private let bagRepository = FakeBagRepository()
-    private let alertRepository = FakeStockAlertRepository()
+    private let waitlistRepository = FakeWaitlistRepository()
+    private let session: StubGetSessionUseCase
     private let auth = SpyAuthPresenting()
     private let snackbars = SpySnackbarPresenting()
     private let navigation = SpyProductActionsNavigation()
 
     init(_ product: Product = .fixture(id: 1), signedIn: Bool = true) {
         self.product = product
-        alertRepository.isSignedIn = signedIn
+        self.session = StubGetSessionUseCase(signedIn ? Self.shopper : .guest)
     }
 
     // MARK: - What the shopper sees
 
     var snackbarTitles: [String] { snackbars.shown.map(\.title) }
     var bagContains: [ProductID] { bagRepository.bag.items.map(\.id) }
-    var waitingFor: [ProductID] { alertRepository.alerts.alerts.map(\.productId) }
+    var waitingFor: [ProductID] { waitlistRepository.waitlist.items.map(\.productId) }
     var wasAskedToSignIn: Bool { auth.wasAsked }
 
     /// The shopper signs in when the sheet asks them to, rather than dismissing it.
     func willSignInWhenAsked() {
         auth.signsIn = true
-        alertRepository.signsInOnPrompt = true
+        auth.onShown = { [session] in session.send(Self.shopper) }
     }
 
     // MARK: - The buttons, built the way the app builds them
@@ -64,10 +67,10 @@ final class AProduct {
     func stockAlertButton() -> StockAlertButtonViewModel {
         let button = StockAlertButtonViewModel(
             productId: product.id,
-            observeWaitlistStatus: DefaultObserveWaitlistStatusUseCase(repository: alertRepository),
-            setStockAlert: DefaultSetStockAlertForProductUseCase(
-                repository: alertRepository,
-                getSession: alertRepository.session
+            observeProductIsWaitlisted: DefaultObserveProductIsWaitlistedUseCase(repository: waitlistRepository),
+            setProductIsWaitlisted: DefaultSetProductIsWaitlistedUseCase(
+                repository: waitlistRepository,
+                getSession: session
             ),
             authPresenter: auth,
             snackbarPresenter: snackbars
@@ -76,4 +79,7 @@ final class AProduct {
         return button
     }
 
+    private static let shopper = Session.authenticated(
+        User(id: UserID(rawValue: 42), email: Email("shopper@example.com"), name: PersonName(first: "Ada", last: nil))
+    )
 }

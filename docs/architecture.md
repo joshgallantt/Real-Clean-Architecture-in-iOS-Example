@@ -77,7 +77,7 @@ Each module in this project has one axis of change. A new screen design changes 
 │   ├── Wishlist/               # Per-user wishlist, gated on authentication
 │   ├── Bag/                    # Per-shopper bag, and the notices the shop leaves on it
 │   ├── Order/                  # What a shopper bought, for how much, and when
-│   ├── StockAlert/             # Who asked to be told when something is back
+│   ├── Waitlist/               # What a shopper wants telling about when it is back
 │   ├── Home/                   # What the Home feed draws — Domain only, it stores nothing
 │   └── Money/                  # Exact amounts with their currency — Domain only, it stores nothing
 ├── UI/                         # Presentation packages
@@ -405,7 +405,7 @@ private func switchSession(to session: Session) {
 
 Note the comparison. It is on the id and not on the whole session, because a session also changes when a profile does, and a changed name is not a changed owner. The data layer reads who is signed in and nothing else, and that keeps the rest of the module out of it.
 
-`Wishlist`, `StockAlert` and `Order` key on a `UserID?` instead. A guest cannot save an item, cannot wait for one and cannot place an order, thus there is no guest case to handle. The shape differs because the rule differs.
+`Wishlist`, `Waitlist` and `Order` key on a `UserID?` instead. A guest cannot save an item, cannot wait for one and cannot place an order, thus there is no guest case to handle. The shape differs because the rule differs.
 
 Note what the application gives to the repository: an owner, and a stream of owners. It does not give a `Session` or a session use case. The repository must know whose bag is active. It does not have to understand identity. `BagDI` does that translation one time at the wiring boundary. The name that a bag is filed under is the business of the storage layer, and the only code that changes an owner back into a string is the code that selects a filename.
 
@@ -999,7 +999,7 @@ iPhone (App)
 ├── SheetUIDI    ──▶  SheetUI
 ├── SnackbarUIDI ──▶  SnackbarUI
 ├── AuthUIDI     ──▶  AuthUI, Session, SheetUI
-├── ProductActionsUIDI ──▶ ProductActionsUI ──▶ Wishlist, Bag, StockAlert, Product,
+├── ProductActionsUIDI ──▶ ProductActionsUI ──▶ Wishlist, Bag, Waitlist, Product,
 │                                              SnackbarUI, AuthUI
 ├── ProductUIDI  ──▶  ProductUI   ──▶  Product
 │                ──▶  ProductActionsUIDI
@@ -1007,7 +1007,7 @@ iPhone (App)
 │                ──▶  WishlistUIDI, ProductActionsUIDI
 ├── SearchUIDI   ──▶  SearchUI    ──▶  Product, Money, SearchHistory, ProductUI, SnackbarUI
 │                ──▶  WishlistUIDI, BagUIDI
-├── WishlistUIDI ──▶  WishlistUI  ──▶  Wishlist, StockAlert, Product, Session, ProductUI,
+├── WishlistUIDI ──▶  WishlistUI  ──▶  Wishlist, Waitlist, Product, Session, ProductUI,
 │                                     SnackbarUI, AuthUI
 │                ──▶  ProductActionsUIDI
 ├── BagUIDI      ──▶  BagUI       ──▶  Bag, Product, Money, SnackbarUI

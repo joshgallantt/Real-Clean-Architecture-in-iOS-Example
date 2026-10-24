@@ -5,7 +5,7 @@ import SessionData
 import Order
 import OrderData
 import SettingsData
-import StockAlertData
+import WaitlistData
 import WishlistData
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the first of the composition
@@ -26,7 +26,7 @@ struct DataAssembler {
     let wishlistStore: WishlistStore
     let bagStore: BagStore
     let settingsStore: SettingsStore
-    let stockAlertStore: StockAlertStore
+    let stockAlertStore: WaitlistStore
     let orderStore: OrderStore
 
     /// There is no processor to call, so the app ships a fake one the same way it ships
@@ -46,7 +46,7 @@ struct DataAssembler {
         wishlistStore = FileWishlistStore()
         bagStore = FileBagStore()
         settingsStore = FileSettingsStore()
-        stockAlertStore = FileStockAlertStore()
+        stockAlertStore = FileWaitlistStore()
         orderStore = FileOrderStore()
         paymentClient = FakePaymentService()
     }

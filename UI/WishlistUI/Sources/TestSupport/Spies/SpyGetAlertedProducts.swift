@@ -5,15 +5,15 @@ import Product
 import Session
 import SessionTestSupport
 import SnackbarUI
-import StockAlert
+import Waitlist
 @testable import WishlistUI
 
 @MainActor
 final class SpyGetAlertedProducts {
-    var result: Result<[Product], StockAlertError> = .success([])
+    var result: Result<[Product], WaitlistError> = .success([])
     private(set) var callCount = 0
 
-    func callAsFunction() async -> Result<[Product], StockAlertError> {
+    func callAsFunction() async -> Result<[Product], WaitlistError> {
         callCount += 1
         return result
     }

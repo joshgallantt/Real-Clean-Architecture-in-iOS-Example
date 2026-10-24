@@ -1,7 +1,7 @@
 import SwiftUI
 import Bag
 import Product
-import StockAlert
+import Waitlist
 import Wishlist
 import AuthUI
 import SnackbarUI
@@ -25,8 +25,8 @@ public struct ProductActionsUIDI {
     private let observeBagItemQuantity: ObserveBagItemQuantityUseCase
     private let addItemToBag: AddItemToBagUseCase
 
-    private let observeWaitlistStatus: ObserveWaitlistStatusUseCase
-    private let setStockAlertForProduct: SetStockAlertForProductUseCase
+    private let observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase
+    private let setProductIsWaitlisted: SetProductIsWaitlistedUseCase
 
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
@@ -37,8 +37,8 @@ public struct ProductActionsUIDI {
         setProductIsWishlisted: SetProductIsWishlistedUseCase,
         observeBagItemQuantity: ObserveBagItemQuantityUseCase,
         addItemToBag: AddItemToBagUseCase,
-        observeWaitlistStatus: ObserveWaitlistStatusUseCase,
-        setStockAlertForProduct: SetStockAlertForProductUseCase,
+        observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase,
+        setProductIsWaitlisted: SetProductIsWaitlistedUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting
     ) {
@@ -47,8 +47,8 @@ public struct ProductActionsUIDI {
         self.setProductIsWishlisted = setProductIsWishlisted
         self.observeBagItemQuantity = observeBagItemQuantity
         self.addItemToBag = addItemToBag
-        self.observeWaitlistStatus = observeWaitlistStatus
-        self.setStockAlertForProduct = setStockAlertForProduct
+        self.observeProductIsWaitlisted = observeProductIsWaitlisted
+        self.setProductIsWaitlisted = setProductIsWaitlisted
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
     }
@@ -126,8 +126,8 @@ public struct ProductActionsUIDI {
     private func makeStockAlertViewModel(productId: ProductID) -> StockAlertButtonViewModel {
         StockAlertButtonViewModel(
             productId: productId,
-            observeWaitlistStatus: observeWaitlistStatus,
-            setStockAlert: setStockAlertForProduct,
+            observeProductIsWaitlisted: observeProductIsWaitlisted,
+            setProductIsWaitlisted: setProductIsWaitlisted,
             authPresenter: authPresenter,
             snackbarPresenter: snackbarPresenter
         )

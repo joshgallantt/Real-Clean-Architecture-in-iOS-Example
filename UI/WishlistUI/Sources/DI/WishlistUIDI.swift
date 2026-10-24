@@ -2,7 +2,7 @@ import Combine
 import SwiftUI
 import Product
 import Session
-import StockAlert
+import Waitlist
 import Wishlist
 import AuthUI
 import SnackbarUI
@@ -20,9 +20,9 @@ public struct WishlistUIDI {
     private let navigation: WishlistNavigation
     private let observeWishlist: ObserveWishlistUseCase
     private let observeWaitlist: ObserveWaitlistUseCase
-    private let getWaitlistProducts: GetWaitlistProductsUseCase
+    private let getStillSoldOutProducts: GetStillSoldOutProductsUseCase
     private let getBackInStockProducts: GetBackInStockProductsUseCase
-    private let setStockAlertForProduct: SetStockAlertForProductUseCase
+    private let setProductIsWaitlisted: SetProductIsWaitlistedUseCase
     private let setProductIsWishlisted: SetProductIsWishlistedUseCase
     private let lookUpProducts: LookUpProductsUseCase
     private let observeSession: ObserveSessionUseCase
@@ -34,9 +34,9 @@ public struct WishlistUIDI {
         navigation: WishlistNavigation,
         observeWishlist: ObserveWishlistUseCase,
         observeWaitlist: ObserveWaitlistUseCase,
-        getWaitlistProducts: GetWaitlistProductsUseCase,
+        getStillSoldOutProducts: GetStillSoldOutProductsUseCase,
         getBackInStockProducts: GetBackInStockProductsUseCase,
-        setStockAlertForProduct: SetStockAlertForProductUseCase,
+        setProductIsWaitlisted: SetProductIsWaitlistedUseCase,
         setProductIsWishlisted: SetProductIsWishlistedUseCase,
         lookUpProducts: LookUpProductsUseCase,
         observeSession: ObserveSessionUseCase,
@@ -47,9 +47,9 @@ public struct WishlistUIDI {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
         self.observeWaitlist = observeWaitlist
-        self.getWaitlistProducts = getWaitlistProducts
+        self.getStillSoldOutProducts = getStillSoldOutProducts
         self.getBackInStockProducts = getBackInStockProducts
-        self.setStockAlertForProduct = setStockAlertForProduct
+        self.setProductIsWaitlisted = setProductIsWaitlisted
         self.setProductIsWishlisted = setProductIsWishlisted
         self.lookUpProducts = lookUpProducts
         self.observeSession = observeSession
@@ -213,7 +213,7 @@ public struct WishlistUIDI {
     /// rule about stock inside a DI container.
     @MainActor
     private func waitlistViewModel() -> AlertedProductsViewModel {
-        alertedProducts(from: { [getWaitlistProducts] in await getWaitlistProducts() }, couldNotLoad: "Waitlist Won't Load")
+        alertedProducts(from: { [getStillSoldOutProducts] in await getStillSoldOutProducts() }, couldNotLoad: "Waitlist Won't Load")
     }
 
     @MainActor
@@ -223,14 +223,14 @@ public struct WishlistUIDI {
 
     @MainActor
     private func alertedProducts(
-        from load: @escaping @MainActor () async -> Result<[Product], StockAlertError>,
+        from load: @escaping @MainActor () async -> Result<[Product], WaitlistError>,
         couldNotLoad: String
     ) -> AlertedProductsViewModel {
         AlertedProductsViewModel(
             load: load,
             changes: { [observeWaitlist] in observeWaitlist() },
-            clear: { [setStockAlertForProduct] ids in
-                for id in ids { _ = await setStockAlertForProduct(productId: id, isOn: false) }
+            clear: { [setProductIsWaitlisted] ids in
+                for id in ids { _ = await setProductIsWaitlisted(productId: id, isWaitlisted: false) }
             },
             snackbar: snackbarPresenter,
             couldNotLoad: couldNotLoad

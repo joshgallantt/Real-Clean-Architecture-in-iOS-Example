@@ -8,7 +8,7 @@ public struct BagScreenView: View {
     @State private var isConfirmingRemoveAll = false
 
     /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: a bell this
-    /// screen cannot name. `Component/StockAlert` and its buttons live outside this feature, so the
+    /// screen cannot name. `Component/Waitlist` and its buttons live outside this feature, so the
     /// app layer passes one in already built and BagUI stays unaware there is a stock alert domain.
     /// The erasure is what a boundary costs, not a shortcut around one.
     ///

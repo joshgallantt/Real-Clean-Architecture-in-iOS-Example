@@ -34,8 +34,8 @@
 		FADE001000000000000000A1 /* BagDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE001000000000000000A2 /* BagDI */; };
 		FADE001100000000000000A1 /* ProductActionsUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE001100000000000000A2 /* ProductActionsUIDI */; };
 		FADE002200000000000000B1 /* Money in Frameworks */ = {isa = PBXBuildFile; productRef = FADE002100000000000000B1 /* Money */; };
-		FADE009800000000000000A1 /* StockAlertData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009800000000000000A2 /* StockAlertData */; };
-		FADE009900000000000000A1 /* StockAlertDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009900000000000000A2 /* StockAlertDI */; };
+		FADE009800000000000000A1 /* WaitlistData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009800000000000000A2 /* WaitlistData */; };
+		FADE009900000000000000A1 /* WaitlistDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009900000000000000A2 /* WaitlistDI */; };
 		FADE010100000000000000A1 /* OrderDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010100000000000000A2 /* OrderDI */; };
 		FADE010200000000000000A1 /* OrderData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010200000000000000A2 /* OrderData */; };
 		FADE010300000000000000A1 /* OrderUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010300000000000000A2 /* OrderUIDI */; };
@@ -95,8 +95,8 @@
 				FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */,
 				FADE000300000000000000A1 /* ProductUIDI in Frameworks */,
 				FADE000400000000000000A1 /* WishlistDI in Frameworks */,
-				FADE009900000000000000A1 /* StockAlertDI in Frameworks */,
-				FADE009800000000000000A1 /* StockAlertData in Frameworks */,
+				FADE009900000000000000A1 /* WaitlistDI in Frameworks */,
+				FADE009800000000000000A1 /* WaitlistData in Frameworks */,
 				FADE010100000000000000A1 /* OrderDI in Frameworks */,
 				FADE010200000000000000A1 /* OrderData in Frameworks */,
 				FADE010300000000000000A1 /* OrderUIDI in Frameworks */,
@@ -185,8 +185,8 @@
 				FADE000200000000000000A2 /* OnboardingUIDI */,
 				FADE000300000000000000A2 /* ProductUIDI */,
 				FADE000400000000000000A2 /* WishlistDI */,
-				FADE009900000000000000A2 /* StockAlertDI */,
-				FADE009800000000000000A2 /* StockAlertData */,
+				FADE009900000000000000A2 /* WaitlistDI */,
+				FADE009800000000000000A2 /* WaitlistData */,
 				FADE010100000000000000A2 /* OrderDI */,
 				FADE010200000000000000A2 /* OrderData */,
 				FADE010300000000000000A2 /* OrderUIDI */,
@@ -560,9 +560,9 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Component/Money;
 		};
-		FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/StockAlert" */ = {
+		FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/Waitlist" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = Component/StockAlert;
+			relativePath = Component/Waitlist;
 		};
 		FADE010100000000000000B1 /* XCLocalSwiftPackageReference "Component/Order" */ = {
 			isa = XCLocalSwiftPackageReference;
@@ -714,15 +714,15 @@
 			package = FADE002000000000000000B1 /* XCLocalSwiftPackageReference "Component/Money" */;
 			productName = Money;
 		};
-		FADE009800000000000000A2 /* StockAlertData */ = {
+		FADE009800000000000000A2 /* WaitlistData */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/StockAlert" */;
-			productName = StockAlertData;
+			package = FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/Waitlist" */;
+			productName = WaitlistData;
 		};
-		FADE009900000000000000A2 /* StockAlertDI */ = {
+		FADE009900000000000000A2 /* WaitlistDI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/StockAlert" */;
-			productName = StockAlertDI;
+			package = FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/Waitlist" */;
+			productName = WaitlistDI;
 		};
 		FADE010100000000000000A2 /* OrderDI */ = {
 			isa = XCSwiftPackageProductDependency;

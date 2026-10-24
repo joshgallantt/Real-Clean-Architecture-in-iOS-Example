@@ -5,7 +5,7 @@ import Product
 import Session
 import SessionTestSupport
 import SnackbarUI
-import StockAlert
+import Waitlist
 @testable import WishlistUI
 
 @MainActor

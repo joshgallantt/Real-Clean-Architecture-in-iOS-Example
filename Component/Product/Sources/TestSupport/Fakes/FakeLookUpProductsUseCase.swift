@@ -5,7 +5,7 @@ import Synchronization
 /// A shop with stock, which can be made to run out of a thing or to be
 /// unreachable altogether.
 ///
-/// One stub for Bag, StockAlert and Wishlist. There had been two — a
+/// One stub for Bag, Waitlist and Wishlist. There had been two — a
 /// `FakeLookUpProductsUseCase` handed its products and a `FakeLookUpProductsUseCase` that made them up from the
 /// ids it was told it sells — with the same lock, the same `cannotBeReached`,
 /// the same record of what it was asked and the same filtering. `stock` and

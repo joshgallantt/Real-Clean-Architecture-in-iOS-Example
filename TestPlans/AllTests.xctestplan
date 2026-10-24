@@ -341,17 +341,17 @@
     {
       "parallelizable": true,
       "target": {
-        "containerPath": "container:Component/StockAlert",
-        "identifier": "StockAlertAcceptanceTests",
-        "name": "StockAlertAcceptanceTests"
+        "containerPath": "container:Component/Waitlist",
+        "identifier": "WaitlistAcceptanceTests",
+        "name": "WaitlistAcceptanceTests"
       }
     },
     {
       "parallelizable": true,
       "target": {
-        "containerPath": "container:Component/StockAlert",
-        "identifier": "StockAlertUnitTests",
-        "name": "StockAlertUnitTests"
+        "containerPath": "container:Component/Waitlist",
+        "identifier": "WaitlistUnitTests",
+        "name": "WaitlistUnitTests"
       }
     },
     {

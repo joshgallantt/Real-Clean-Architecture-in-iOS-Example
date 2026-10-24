@@ -2,7 +2,7 @@ import SnackbarUITestSupport
 import Bag
 import Money
 import Product
-import StockAlert
+import Waitlist
 import Wishlist
 import AuthUI
 import SnackbarUI

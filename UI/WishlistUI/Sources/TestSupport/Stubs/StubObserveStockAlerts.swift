@@ -6,14 +6,14 @@ import Product
 import Session
 import SessionTestSupport
 import SnackbarUI
-import StockAlert
+import Waitlist
 @testable import WishlistUI
 
 @MainActor
 final class StubObserveStockAlerts {
-    private let subject = CurrentValueSubject<StockAlerts, Never>(StockAlerts())
+    private let subject = CurrentValueSubject<Waitlist, Never>(Waitlist())
 
-    func callAsFunction() -> AnyPublisher<StockAlerts, Never> { subject.eraseToAnyPublisher() }
+    func callAsFunction() -> AnyPublisher<Waitlist, Never> { subject.eraseToAnyPublisher() }
 
-    func send(_ alerts: StockAlerts) { subject.send(alerts) }
+    func send(_ alerts: Waitlist) { subject.send(alerts) }
 }

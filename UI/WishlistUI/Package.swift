@@ -23,7 +23,7 @@ let package = Package(
     dependencies: [
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Wishlist"),
-        .package(path: "../../Component/StockAlert"),
+        .package(path: "../../Component/Waitlist"),
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Money"),
         .package(path: "../../Component/Session"),
@@ -37,7 +37,7 @@ let package = Package(
             name: "WishlistUI",
             dependencies: [
                 .product(name: "Wishlist", package: "Wishlist"),
-                .product(name: "StockAlert", package: "StockAlert"),
+                .product(name: "Waitlist", package: "Waitlist"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
@@ -54,7 +54,7 @@ let package = Package(
             dependencies: [
                 "WishlistUI",
                 .product(name: "Wishlist", package: "Wishlist"),
-                .product(name: "StockAlert", package: "StockAlert"),
+                .product(name: "Waitlist", package: "Waitlist"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
@@ -84,7 +84,7 @@ let package = Package(
                 .product(name: "SessionTestSupport", package: "Session"),
                 "WishlistUI",
                 .product(name: "Wishlist", package: "Wishlist"),
-                .product(name: "StockAlert", package: "StockAlert"),
+                .product(name: "Waitlist", package: "Waitlist"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
@@ -105,7 +105,7 @@ let package = Package(
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
-                .product(name: "StockAlert", package: "StockAlert"),
+                .product(name: "Waitlist", package: "Waitlist"),
                 .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
             path: "Tests/WishlistUIUnitTests"
@@ -118,7 +118,7 @@ let package = Package(
                 "WishlistUI",
                 "WishlistUITestSupport",
                 .product(name: "Wishlist", package: "Wishlist"),
-                .product(name: "StockAlert", package: "StockAlert"),
+                .product(name: "Waitlist", package: "Waitlist"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),

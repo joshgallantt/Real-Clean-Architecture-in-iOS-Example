@@ -3,7 +3,7 @@ import ProductTestSupport
 import SnackbarUITestSupport
 import Testing
 import Product
-import StockAlert
+import Waitlist
 @testable import WishlistUI
 @testable import WishlistUITestSupport
 
@@ -48,7 +48,7 @@ struct AlertedProductsViewModelTests {
         await viewModel.onAppear()
         let loadsSoFar = load.callCount
 
-        changes.send(StockAlerts(alerts: [StockAlert(productId: pid(1))]))
+        changes.send(Waitlist(items: [WaitlistItem(productId: pid(1))]))
         await viewModel.inFlight?.value
 
         #expect(load.callCount > loadsSoFar)
@@ -60,7 +60,7 @@ struct AlertedProductsViewModelTests {
         let changes = StubObserveStockAlerts()
         let viewModel = makeViewModel(load: load, changes: changes)
         await viewModel.onAppear()
-        let same = StockAlerts(alerts: [StockAlert(productId: pid(1))])
+        let same = Waitlist(items: [WaitlistItem(productId: pid(1))])
         changes.send(same)
         await viewModel.inFlight?.value
         let loadsSoFar = load.callCount

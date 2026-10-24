@@ -11,7 +11,7 @@ public protocol OrderRepository: Sendable {
     @MainActor
     var ordersPublisher: AnyPublisher<Orders, Never> { get }
 
-    /// Does not throw, and that is the difference between this and `StockAlertRepository.save`.
+    /// Does not throw, and that is the difference between this and `WaitlistRepository.save`.
     /// An ask that was never written down is a promise nobody made, so that one throws and the
     /// shopper is told. By the time an order is saved the money has already moved — refusing it
     /// here would tell a shopper a payment failed that did not.

@@ -2,7 +2,7 @@ import Combine
 import Foundation
 import Product
 import SnackbarUI
-import StockAlert
+import Waitlist
 
 @MainActor
 @Observable
@@ -29,8 +29,8 @@ public final class AlertedProductsViewModel {
     private(set) var products: [Product] = []
     private(set) var isLoading = false
 
-    private let load: @MainActor () async -> Result<[Product], StockAlertError>
-    private let changes: () -> AnyPublisher<StockAlerts, Never>
+    private let load: @MainActor () async -> Result<[Product], WaitlistError>
+    private let changes: () -> AnyPublisher<Waitlist, Never>
     private let clear: @MainActor ([ProductID]) async -> Void
     private let snackbar: SnackbarPresenting
     private let couldNotLoad: String
@@ -38,8 +38,8 @@ public final class AlertedProductsViewModel {
     private var cancellables = Set<AnyCancellable>()
 
     public init(
-        load: @escaping @MainActor () async -> Result<[Product], StockAlertError>,
-        changes: @escaping () -> AnyPublisher<StockAlerts, Never>,
+        load: @escaping @MainActor () async -> Result<[Product], WaitlistError>,
+        changes: @escaping () -> AnyPublisher<Waitlist, Never>,
         clear: @escaping @MainActor ([ProductID]) async -> Void,
         snackbar: SnackbarPresenting,
         couldNotLoad: String
