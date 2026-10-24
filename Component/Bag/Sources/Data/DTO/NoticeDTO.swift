@@ -1,0 +1,105 @@
+import Bag
+import Money
+import Product
+
+/// Fowler, *PoEAA* (2002), Ch. 15 — Data Transfer Object: the serialisation shape, kept out of the
+/// domain. It maps at the boundary, so a wire format change stops here.
+///
+/// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: a payload naming a kind
+/// this build no longer has stops at the boundary rather than failing the whole bag. Losing a
+/// notice is a small harm; losing the shopper's bag is not.
+struct NoticeDTO: Codable, Sendable {
+    /// Its own list, spelled out rather than shared with `Notice.Kind`. These names are on disk in
+    /// bags this app has already written, so they are a format to be kept rather than a spelling to
+    /// be refactored, and `storedKind(of:)` below is where the two are made to agree.
+    enum Kind: String, Codable, Sendable {
+        case priceWentUp
+        case priceWentDown
+        case onlySomeLeft
+        case outOfStock
+
+        /// Names this build no longer writes. A bag saved by an older one still reads: both meant
+        /// the line had gone, and out of stock is the one of the two a shopper can act on.
+        static let legacyGone = "noLongerAvailable"
+        static let legacyDiscontinued = "discontinued"
+    }
+
+    /// Held as its raw form, not as `Kind`. Decoding straight into the enum throws on a kind this
+    /// build does not have, and one throw anywhere in the payload costs the shopper their whole
+    /// bag. Read as a string, an unrecognised notice is simply a notice that cannot be shown.
+    let kind: String
+    let productId: Int
+    let fromMinorUnits: Int?
+    let toMinorUnits: Int?
+    let currencyCode: String?
+    let available: Int?
+
+    init(from notice: Notice) {
+        self.kind = Self.storedKind(of: notice.kind).rawValue
+        self.productId = notice.productId.rawValue
+
+        switch notice {
+        case .priceWentUp(_, let from, let to), .priceWentDown(_, let from, let to):
+            self.fromMinorUnits = from.minorUnits
+            self.toMinorUnits = to.minorUnits
+            self.currencyCode = to.currency.code
+            self.available = nil
+
+        case .onlySomeLeft(_, let available):
+            self.fromMinorUnits = nil
+            self.toMinorUnits = nil
+            self.currencyCode = nil
+            self.available = available
+
+        case .outOfStock:
+            self.fromMinorUnits = nil
+            self.toMinorUnits = nil
+            self.currencyCode = nil
+            self.available = nil
+        }
+    }
+
+    func toDomain() -> Notice? {
+        let id = ProductID(rawValue: productId)
+
+        if kind == Kind.legacyGone || kind == Kind.legacyDiscontinued {
+            return .outOfStock(productId: id)
+        }
+
+        switch Kind(rawValue: kind) {
+        case .none:
+            return nil
+        case .priceWentUp:
+            guard let prices = priceMove() else { return nil }
+            return .priceWentUp(productId: id, from: prices.from, to: prices.to)
+        case .priceWentDown:
+            guard let prices = priceMove() else { return nil }
+            return .priceWentDown(productId: id, from: prices.from, to: prices.to)
+        case .onlySomeLeft:
+            guard let available else { return nil }
+            return .onlySomeLeft(productId: id, available: available)
+        case .outOfStock:
+            return .outOfStock(productId: id)
+        }
+    }
+
+    /// The one place the domain's list of notices and the one on disk are made to agree. A sixth
+    /// kind of notice fails to compile here until it has been given a name to be stored under.
+    private static func storedKind(of kind: Notice.Kind) -> Kind {
+        switch kind {
+        case .priceWentUp: .priceWentUp
+        case .priceWentDown: .priceWentDown
+        case .onlySomeLeft: .onlySomeLeft
+        case .outOfStock: .outOfStock
+        }
+    }
+
+    private func priceMove() -> (from: Money, to: Money)? {
+        guard let fromMinorUnits, let toMinorUnits, let currencyCode else { return nil }
+        let currency = Currency(code: currencyCode, minorUnitsPerMajor: 100)
+        return (
+            Money(minorUnits: fromMinorUnits, currency: currency),
+            Money(minorUnits: toMinorUnits, currency: currency)
+        )
+    }
+}

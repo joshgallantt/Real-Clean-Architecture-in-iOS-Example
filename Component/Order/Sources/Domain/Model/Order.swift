@@ -1,6 +1,5 @@
 import Foundation
 import Money
-import Product
 
 /// Evans, *Domain-Driven Design* (2003), Ch. 5 — Entities: "An object defined primarily by its
 /// identity is called an ENTITY." Two orders holding the same lines for the same money are still
@@ -40,20 +39,5 @@ public struct Order: Equatable, Sendable, Identifiable {
 
     public var itemCount: Int {
         lines.reduce(0) { $0 + $1.quantity }
-    }
-}
-
-/// Fowler, *PoEAA* (2002), Ch. 12 — Identity Field. Evans, Ch. 5 — Entities: identity is the one
-/// part of an order another context may hold, which is exactly why it is worth a type rather than
-/// a `String` that could be a product id, a name or a payment reference.
-public struct OrderID: Equatable, Hashable, Sendable {
-    public let rawValue: String
-
-    public init(rawValue: String) {
-        self.rawValue = rawValue
-    }
-
-    public init() {
-        self.init(rawValue: UUID().uuidString)
     }
 }

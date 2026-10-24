@@ -96,21 +96,3 @@ final class FakeCatalog: HTTPClient, @unchecked Sendable {
         return PagePayload(products: window, total: items.count, skip: skip, limit: limit)
     }
 }
-
-struct PagePayload: Encodable {
-    let products: [CatalogItem]
-    let total: Int
-    let skip: Int
-    let limit: Int
-}
-
-struct CategoryPayload: Encodable {
-    let slug: String
-    let name: String
-
-    static let sampleCategories = [
-        CategoryPayload(slug: "beauty", name: "Beauty"),
-        CategoryPayload(slug: "fragrances", name: "Fragrances"),
-        CategoryPayload(slug: "furniture", name: "Furniture")
-    ]
-}

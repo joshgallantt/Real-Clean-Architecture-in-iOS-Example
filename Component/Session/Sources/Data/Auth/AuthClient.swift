@@ -1,12 +1,4 @@
-import Foundation
 import Session
-
-public enum AuthClientError: Error, Equatable {
-    case invalidCredentials
-    case emailAlreadyInUse
-    case networkFailure
-    case unknown
-}
 
 /// Fowler, *PoEAA* (2002) — Gateway: wraps one external system behind a domain-shaped call.
 ///

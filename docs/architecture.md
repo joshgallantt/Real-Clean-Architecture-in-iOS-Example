@@ -244,6 +244,7 @@ You can find the full vocabulary of the application when you read the domain alo
 | `Wishlist` | `ObserveWishlistUseCase`, `ObserveProductIsWishlistedUseCase`, `SetProductIsWishlistedUseCase` |
 | `Bag` | `ObserveBagUseCase`, `ObserveNoticesUseCase`, `ObserveBagItemQuantityUseCase`, `AddItemToBagUseCase`, `SetBagItemQuantityUseCase`, `BringBagUpToDateUseCase`, `AcknowledgeNoticesUseCase` |
 | `Order` | `PlaceOrderUseCase`, `ObserveOrdersUseCase` |
+| `Waitlist` | `ObserveWaitlistUseCase`, `ObserveProductIsWaitlistedUseCase`, `SetProductIsWaitlistedUseCase`, `GetStillSoldOutProductsUseCase`, `GetBackInStockProductsUseCase` |
 
 Each name states something that a shopper wants to do. That is the test that a use case name must satisfy. `LookUpProductsUseCase` describes how the application fills in the items on a list that the shopper already has. `getProductsByIds` would describe only the query that it uses. If you name the use case layer after the methods of the repository, the layer that must list the intentions of the application lists its data access instead.
 
@@ -969,7 +970,7 @@ That is not a preference of style. One unreadable notice in a saved bag discards
 | [`WishlistAcceptanceTests`](../Component/Wishlist/Tests/WishlistAcceptanceTests/SavingProductsTests.swift) | Saving, the heart on a card, and the account a list belongs to |
 | [`SearchHistoryAcceptanceTests`](../Component/SearchHistory/Tests/SearchHistoryAcceptanceTests/SearchingAgainTests.swift) | Recent searches, whose they are, and what counts as a search |
 | [`OrderAcceptanceTests`](../Component/Order/Tests/OrderAcceptanceTests/BuyingSomethingTests.swift) | Buying, what an order records, a declined payment, and coming back to what you bought |
-| [`BagUIAcceptanceTests`](../UI/BagUI/Tests/BagUIAcceptanceTests/TheBagScreenTests.swift) | The bag screen: what it asks the shop, when, and what it shows while waiting |
+| [`BagUIAcceptanceTests`](../UI/BagUI/Tests/BagUIAcceptanceTests/BagScreenViewModelTests.swift) | The bag screen: what it asks the shop, when, and what it shows while waiting |
 | [`OrderUIAcceptanceTests`](../UI/OrderUI/Tests/OrderUIAcceptanceTests/BuyingFromAProductPageTests.swift) | Buy Now and checking out: what each one buys, what it leaves behind, and who it asks to sign in |
 | [`WishlistUIAcceptanceTests`](../UI/WishlistUI/Tests/WishlistUIAcceptanceTests/KeepingAnEyeOnThingsTests.swift) | Both saved lists: filling them in, paging, and telling a dropped connection from a product that has gone |
 | [`MoneyAcceptanceTests`](../Component/Money/Tests/MoneyAcceptanceTests/PayingForABasketTests.swift) | What a basket comes to, what three of a thing cost, and which way a half-penny goes |
