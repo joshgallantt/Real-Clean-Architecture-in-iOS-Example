@@ -85,7 +85,7 @@ public final class SearchTabScreenViewModel {
     /// again. Both are the shopper asking the shop the same question.
     func didSubmitSearch(_ term: SearchTerm, in context: TrackingContext) {
         recordSearch(term)
-        trackEvent(TrackingEvent(name: .productsSearched, context: context, items: [], properties: [.query: term.text]))
+        trackEvent(TrackingEvent(name: .productsSearched, context: context, items: [], properties: ["query": term.text]))
     }
 
     // MARK: - The categories list

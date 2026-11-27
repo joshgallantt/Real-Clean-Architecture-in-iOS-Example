@@ -7,6 +7,6 @@ public struct DefaultTrackScreenViewUseCase: TrackScreenViewUseCase {
 
     @MainActor
     public func callAsFunction(_ screen: String) {
-        trackEvent(.screenViewed(screen))
+        trackEvent(TrackingEvent(name: .screenViewed, context: .screen(screen), items: [], properties: [:]))
     }
 }

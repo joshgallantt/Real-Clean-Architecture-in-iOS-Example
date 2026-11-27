@@ -22,7 +22,7 @@ struct TrackingRulesTests {
     func screenViewed() {
         screenView(home)
 
-        #expect(repository.events == [.screenViewed(home)])
+        #expect(repository.events == [TrackingEvent(name: .screenViewed, context: .screen(home), items: [], properties: [:])])
     }
 
     @Test("Seeing and touching, about an item or not, are four different events")
@@ -33,10 +33,10 @@ struct TrackingRulesTests {
         tap(card, about: item(1), in: .screen(home))
 
         #expect(repository.events == [
-            .viewed("saved", in: .screen(home)),
-            .viewed(card, about: item(1), in: .screen(home)),
-            .tapped("retry", in: .screen(home)),
-            .tapped(card, about: item(1), in: .screen(home))
+            TrackingEvent(name: .elementViewed, context: .screen(home), items: [], properties: ["element": "saved"]),
+            TrackingEvent(name: .elementViewed, context: .screen(home), items: [item(1)], properties: ["element": card]),
+            TrackingEvent(name: .elementSelected, context: .screen(home), items: [], properties: ["element": "retry"]),
+            TrackingEvent(name: .elementSelected, context: .screen(home), items: [item(1)], properties: ["element": card])
         ])
     }
 
@@ -64,13 +64,11 @@ struct TrackingRulesTests {
         #expect(repository.events.isEmpty)
     }
 
-    @Test("Asking for consent and sending what is held both go to the repository")
-    func consentAndFlush() async {
+    @Test("Asking for consent goes to the repository")
+    func consent() async {
         await DefaultRequestTrackingConsentUseCase(repository: repository)()
-        DefaultSendHeldTrackingUseCase(repository: repository)()
 
         #expect(repository.timesAskedForConsent == 1)
-        #expect(repository.flushCount == 1)
     }
 }
 

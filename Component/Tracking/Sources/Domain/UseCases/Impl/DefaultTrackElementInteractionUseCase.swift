@@ -8,11 +8,11 @@ public struct DefaultTrackElementInteractionUseCase: TrackElementInteractionUseC
 
     @MainActor
     public func callAsFunction(_ element: String, in context: TrackingContext) {
-        trackEvent(.tapped(element, in: context))
+        trackEvent(TrackingEvent(name: .elementSelected, context: context, items: [], properties: ["element": element]))
     }
 
     @MainActor
     public func callAsFunction(_ element: String, about item: TrackedItem, in context: TrackingContext) {
-        trackEvent(.tapped(element, about: item, in: context))
+        trackEvent(TrackingEvent(name: .elementSelected, context: context, items: [item], properties: ["element": element]))
     }
 }

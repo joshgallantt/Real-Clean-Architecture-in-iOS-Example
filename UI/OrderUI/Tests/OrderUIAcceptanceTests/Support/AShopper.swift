@@ -86,7 +86,7 @@ final class AShopper {
         let button = CheckoutButtonViewModel(
             observeBag: DefaultObserveBagUseCase(repository: bag),
             placeOrder: placeOrder,
-            setBagItemQuantity: DefaultSetBagItemQuantityUseCase(repository: bag),
+            setBagItem: DefaultSetBagItemUseCase(repository: bag),
             authPresenter: signIn,
             snackbarPresenter: snackbars,
             confirm: { [weak self] in self?.confirmed.append($0) },
@@ -104,7 +104,7 @@ final class AShopper {
 
     func putInBag(_ id: Int, quantity: Int = 1, at price: Decimal) {
         bag.save(
-            bag: bag.bag.adding(
+            bag: bag.bag.setting(
                 BagItem(productId: pid(id), quantity: quantity, lastKnownPrice: usd(price))
             ),
             notices: bag.notices

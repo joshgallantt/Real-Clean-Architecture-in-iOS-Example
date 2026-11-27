@@ -6,19 +6,21 @@ import TrackingTestSupport
 
 @MainActor
 /// Martin, *Clean Architecture* (2017), Ch. 28 — The Test Boundary: the testing API. A screen says
-/// what a shopper saw and did; the analyst reads what reached GA4, as a person watching Console
+/// what a shopper saw and did; the analyst reads what reached Firebase, as a person watching Console
 /// would see it.
 ///
 /// Martin, Ch. 26 — The Main Component: the component wired as the composition root wires it — its
-/// use cases in front of the GA4 destination — with the two edges it cannot own here, the unified
+/// use cases in front of its clients — with the edges it cannot own here, the vendors, the unified
 /// log and the system's consent prompt, swapped for ones a test can read and answer.
 final class Analyst {
-    private let log = SpyTrackingLog()
+    private let firebase = SpyFirebaseClient()
     private let di: TrackingDI
 
     init(shopperHasSaid status: TrackingConsentStatus, andWillSay answer: TrackingConsentStatus) {
         di = TrackingDI(
-            destinations: [GA4Destination(log: log, batchWindow: .seconds(60))],
+            firebase: firebase,
+            mParticle: SpyMParticleClient(),
+            logger: SpyLoggerClient(),
             consent: StubTrackingConsentSource(status: status, answer: answer)
         )
     }
@@ -43,29 +45,6 @@ final class Analyst {
         await di.requestTrackingConsentUseCase()
     }
 
-    func appGoesToTheBackground() {
-        di.sendHeldTrackingUseCase()
-    }
-
-    /// Each line read back as GA4 reads it: an event name and its parameters.
-    var events: [Event] {
-        log.entries.compactMap { line in
-            guard
-                let object = (try? JSONSerialization.jsonObject(with: Data(line.utf8))) as? [String: Any],
-                let name = object["name"] as? String,
-                let params = object["params"] as? [String: Any]
-            else {
-                return nil
-            }
-            return Event(name: name, params: params)
-        }
-    }
-
-    struct Event {
-        let name: String
-        let params: [String: Any]
-
-        func text(_ key: String) -> String? { params[key] as? String }
-        var items: [[String: Any]] { params["items"] as? [[String: Any]] ?? [] }
-    }
+    /// What reached Firebase, in the order it was sent.
+    var events: [FirebaseEventDTO] { firebase.events }
 }

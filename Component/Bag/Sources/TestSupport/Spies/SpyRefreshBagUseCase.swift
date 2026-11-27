@@ -4,7 +4,7 @@ import Product
 import ProductTestSupport
 
 @MainActor
-public final class SpyBringBagUpToDateUseCase: BringBagUpToDateUseCase {
+public final class SpyRefreshBagUseCase: RefreshBagUseCase {
     public var products: [Product] = []
     public private(set) var callCount = 0
 

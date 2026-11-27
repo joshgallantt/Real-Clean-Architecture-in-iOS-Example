@@ -6,6 +6,7 @@ import Testing
 import Tracking
 import TrackingTestSupport
 import Bag
+import Money
 import Product
 @testable import ProductActionsUI
 @testable import ProductActionsUITestSupport
@@ -15,15 +16,15 @@ import Product
 struct BagButtonViewModelTests {
     private func makeViewModel(
         product: Product = .fixture(id: 1),
-        observeBagItemQuantity: StubObserveBagItemQuantityUseCase = StubObserveBagItemQuantityUseCase(),
-        addItemToBag: SpyAddItemToBagUseCase = SpyAddItemToBagUseCase(),
+        observeBag: StubObserveBagUseCase = StubObserveBagUseCase(Bag(items: [])),
+        setBagItem: SpySetBagItemUseCase = SpySetBagItemUseCase(),
         navigation: SpyProductActionsNavigation = SpyProductActionsNavigation(),
         snackbarPresenter: SpySnackbarPresenting = SpySnackbarPresenting()
     ) -> BagButtonViewModel {
         let viewModel = BagButtonViewModel(
             product: product,
-            observeBagItemQuantity: observeBagItemQuantity,
-            addItemToBag: addItemToBag,
+            observeBag: observeBag,
+            setBagItem: setBagItem,
             navigation: navigation,
             snackbarPresenter: snackbarPresenter,
             trackElementView: SpyTrackElementViewUseCase(),
@@ -36,22 +37,26 @@ struct BagButtonViewModelTests {
         return viewModel
     }
 
-    @Test("The count shown follows what the bag already holds")
+    @Test("The count shown is how many of this product the bag holds, whatever else is in it")
     func quantityFollowsTheBag() {
-        let viewModel = makeViewModel(observeBagItemQuantity: StubObserveBagItemQuantityUseCase(3))
+        let bag = Bag(items: [
+            BagItem(productId: pid(1), quantity: 3, lastKnownPrice: Money(amount: 5, currency: .usd), dateAdded: .distantPast),
+            BagItem(productId: pid(2), quantity: 7, lastKnownPrice: Money(amount: 5, currency: .usd), dateAdded: .distantPast)
+        ])
+        let viewModel = makeViewModel(observeBag: StubObserveBagUseCase(bag))
 
         #expect(viewModel.quantity == 3)
     }
 
     @Test("Tapping adds exactly one of the product, at its price, to the bag")
     func tappingAddsOneAtItsPrice() {
-        let addItemToBag = SpyAddItemToBagUseCase()
-        let viewModel = makeViewModel(product: .fixture(id: 1), addItemToBag: addItemToBag)
+        let setBagItem = SpySetBagItemUseCase()
+        let viewModel = makeViewModel(product: .fixture(id: 1), setBagItem: setBagItem)
 
         viewModel.didTap(in: .screen("product_details"))
 
-        #expect(addItemToBag.added.map(\.productId) == [pid(1)])
-        #expect(addItemToBag.added.map(\.quantity) == [1])
+        #expect(setBagItem.calls.map(\.productId) == [pid(1)])
+        #expect(setBagItem.calls.map(\.quantity) == [1])
     }
 
     @Test("Tapping tells the shopper it is in the bag, with somewhere to go and see it")
@@ -69,17 +74,17 @@ struct BagButtonViewModelTests {
 
     @Test("A bag button can never put in something the shop cannot supply")
     func neverAddsWhatCannotBeSupplied() {
-        let addItemToBag = SpyAddItemToBagUseCase()
+        let setBagItem = SpySetBagItemUseCase()
         let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(
             product: .fixture(id: 1, availability: .outOfStock),
-            addItemToBag: addItemToBag,
+            setBagItem: setBagItem,
             snackbarPresenter: snackbarPresenter
         )
 
         viewModel.didTap(in: .screen("product_details"))
 
-        #expect(addItemToBag.added.isEmpty)
+        #expect(setBagItem.calls.isEmpty)
         #expect(snackbarPresenter.shown.isEmpty)
     }
 }

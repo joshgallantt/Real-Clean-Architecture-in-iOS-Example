@@ -25,7 +25,7 @@ struct TrackingTheSettingsScreenTests {
     func screenView() {
         makeViewModel().didAppear(in: .screen("settings"))
 
-        #expect(screens.events == [.screenViewed("settings")])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen("settings"), items: [], properties: [:])])
     }
 
     @Test("Turning a switch off reports that switch, left off, on the settings screen")
@@ -33,7 +33,7 @@ struct TrackingTheSettingsScreenTests {
         makeViewModel().didToggle(.bagPriceIncreases, to: false, in: .screen("settings"))
 
         #expect(taps.events == [
-            .tapped("bag_price_increases_off", in: .screen("settings"))
+            TrackingEvent(name: .elementSelected, context: .screen("settings"), items: [], properties: ["element": "bag_price_increases_off"])
         ])
     }
 
@@ -48,6 +48,6 @@ struct TrackingTheSettingsScreenTests {
     func everySwitchHasAName(_ example: (SettingKey, String)) {
         makeViewModel().didToggle(example.0, to: true, in: .screen("settings"))
 
-        #expect(taps.events == [.tapped(example.1 + "_on", in: .screen("settings"))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: .screen("settings"), items: [], properties: ["element": example.1 + "_on"])])
     }
 }

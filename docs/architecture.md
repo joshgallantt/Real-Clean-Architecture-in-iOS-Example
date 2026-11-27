@@ -242,7 +242,7 @@ You can find the full vocabulary of the application when you read the domain alo
 | `Product` | `BrowseCatalogUseCase`, `ViewProductUseCase`, `LookUpProductsUseCase`, `BrowseCategoriesUseCase` |
 | `SearchHistory` | `GetSearchHistoryUseCase`, `RecordSearchUseCase`, `ClearSearchHistoryUseCase` |
 | `Wishlist` | `ObserveWishlistUseCase`, `ObserveProductIsWishlistedUseCase`, `SetProductIsWishlistedUseCase` |
-| `Bag` | `ObserveBagUseCase`, `ObserveNoticesUseCase`, `ObserveBagItemQuantityUseCase`, `AddItemToBagUseCase`, `SetBagItemQuantityUseCase`, `BringBagUpToDateUseCase`, `AcknowledgeNoticesUseCase` |
+| `Bag` | `ObserveBagUseCase`, `ObserveNoticesUseCase`, `SetBagItemUseCase`, `RefreshBagUseCase`, `AcknowledgeNoticesUseCase` |
 | `Order` | `PlaceOrderUseCase`, `ObserveOrdersUseCase` |
 | `Waitlist` | `ObserveWaitlistUseCase`, `ObserveProductIsWaitlistedUseCase`, `SetProductIsWaitlistedUseCase`, `GetStillSoldOutProductsUseCase`, `GetBackInStockProductsUseCase` |
 

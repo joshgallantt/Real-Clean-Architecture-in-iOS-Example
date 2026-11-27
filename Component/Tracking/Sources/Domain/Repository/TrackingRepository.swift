@@ -1,7 +1,6 @@
 /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: the domain says it
 /// needs somewhere to put an event and someone to ask about consent; the data layer decides whether
-/// an event may be sent yet, and each destination decides in what shape, and whether to send each
-/// at once or several together.
+/// an event may be sent yet, and each client's mapper decides in what shape.
 ///
 /// Evans, *Domain-Driven Design* (2003) — Repositories. Fowler, *PoEAA* (2002) — Separated Interface.
 ///
@@ -10,9 +9,6 @@
 @MainActor
 public protocol TrackingRepository: Sendable {
     func record(_ event: TrackingEvent)
-
-    /// Send anything held back. Called on the way to the background.
-    func flush()
 
     /// Asks the person, if nobody has yet, whether they may be tracked.
     func requestConsent() async -> TrackingConsentStatus

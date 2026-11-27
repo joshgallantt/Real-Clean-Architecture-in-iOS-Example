@@ -1,4 +1,6 @@
+import Bag
 import BagTestSupport
+import Foundation
 import Money
 import Product
 import SnackbarUITestSupport
@@ -16,8 +18,8 @@ func theBagButtonInvitesAFirstTap() {
     let button = BagButtonView(
         viewModel: BagButtonViewModel(
             product: aProduct(),
-            observeBagItemQuantity: StubObserveBagItemQuantityUseCase(0),
-            addItemToBag: SpyAddItemToBagUseCase(),
+            observeBag: StubObserveBagUseCase(Bag(items: [])),
+            setBagItem: SpySetBagItemUseCase(),
             navigation: SpyProductActionsNavigation(),
             snackbarPresenter: SpySnackbarPresenting(),
             trackElementView: SpyTrackElementViewUseCase(),
@@ -35,8 +37,8 @@ func theBagButtonShowsTheCount() {
     let button = BagButtonView(
         viewModel: BagButtonViewModel(
             product: aProduct(),
-            observeBagItemQuantity: StubObserveBagItemQuantityUseCase(3),
-            addItemToBag: SpyAddItemToBagUseCase(),
+            observeBag: StubObserveBagUseCase(Bag(items: [BagItem(productId: ProductID(rawValue: 1), quantity: 3, lastKnownPrice: Money(amount: 24.99, currency: .usd), dateAdded: .distantPast)])),
+            setBagItem: SpySetBagItemUseCase(),
             navigation: SpyProductActionsNavigation(),
             snackbarPresenter: SpySnackbarPresenting(),
             trackElementView: SpyTrackElementViewUseCase(),

@@ -8,24 +8,51 @@ import Product
 
 @Suite("Changing a bag")
 struct BagChangeTests {
-    @Test("Adding something new puts it in")
-    func addingNew() {
-        #expect(Bag().adding(item(1, at: 5)).quantity(of: pid(1)) == 1)
+    @Test("Setting something new puts it in")
+    func settingNew() {
+        #expect(Bag().setting(item(1, at: 5)).quantity(of: pid(1)) == 1)
     }
 
-    @Test("Adding something already there adds to it")
-    func addingMore() {
-        let bag = Bag(items: [item(1, quantity: 2, at: 5)]).adding(item(1, quantity: 3, at: 5))
+    @Test("Setting something already there makes it that many, not that many more")
+    func settingReplaces() {
+        let bag = Bag(items: [item(1, quantity: 2, at: 5)]).setting(item(1, quantity: 3, at: 5))
 
-        #expect(bag.quantity(of: pid(1)) == 5)
+        #expect(bag.quantity(of: pid(1)) == 3)
         #expect(bag.items.count == 1)
     }
 
-    @Test("Adding again takes the newer price")
-    func addingTakesNewPrice() {
-        let bag = Bag(items: [item(1, at: 5)]).adding(item(1, at: 7))
+    @Test("Setting takes the price it was given")
+    func settingTakesPrice() {
+        let bag = Bag(items: [item(1, at: 5)]).setting(item(1, quantity: 2, at: 7))
 
         #expect(bag.total == usd(14))
+    }
+
+    @Test("A line keeps its place when how many changes")
+    func settingKeepsPlace() {
+        let old = BagItem(productId: pid(1), quantity: 1, lastKnownPrice: usd(5), dateAdded: .distantPast)
+        let new = BagItem(productId: pid(2), quantity: 1, lastKnownPrice: usd(5), dateAdded: .now)
+
+        let bag = Bag(items: [old, new]).setting(item(1, quantity: 4, at: 5))
+
+        #expect(bag.items.map(\.productId) == [pid(2), pid(1)])
+    }
+
+    @Test("Setting to none takes the line out")
+    func settingToZero() {
+        #expect(Bag(items: [item(1, at: 5)]).setting(item(1, quantity: 0, at: 5)).isEmpty)
+    }
+
+    @Test("Setting to less than none takes it out too")
+    func settingToNegative() {
+        #expect(Bag(items: [item(1, at: 5)]).setting(item(1, quantity: -1, at: 5)).isEmpty)
+    }
+
+    @Test("Setting none of something never chosen changes nothing")
+    func settingNoneOfNothing() {
+        let bag = Bag(items: [item(1, at: 5)])
+
+        #expect(bag.setting(item(9, quantity: 0, at: 5)) == bag)
     }
 
     @Test("Removing takes the line out")
@@ -47,39 +74,10 @@ struct BagChangeTests {
         #expect(bag.removing(productId: pid(9)) == bag)
     }
 
-    @Test("Changing how many changes how many")
-    func changingQuantity() {
-        #expect(Bag(items: [item(1, at: 5)]).changingQuantity(of: pid(1), to: 4).quantity(of: pid(1)) == 4)
-    }
-
-    @Test("Changing to none takes the line out")
-    func changingToZero() {
-        #expect(Bag(items: [item(1, at: 5)]).changingQuantity(of: pid(1), to: 0).isEmpty)
-    }
-
-    @Test("Changing to less than none takes it out too")
-    func changingToNegative() {
-        #expect(Bag(items: [item(1, at: 5)]).changingQuantity(of: pid(1), to: -1).isEmpty)
-    }
-
-    @Test("Changing how many of something never chosen changes nothing")
-    func changingWhatIsNotThere() {
-        let bag = Bag(items: [item(1, at: 5)])
-
-        #expect(bag.changingQuantity(of: pid(9), to: 3) == bag)
-    }
-
-    @Test("Changing how many keeps the price the shopper was quoted")
-    func changingKeepsPrice() {
-        let bag = Bag(items: [item(1, at: 5)]).changingQuantity(of: pid(1), to: 2)
-
-        #expect(bag.total == usd(10))
-    }
-
-    @Test("Changing never alters the bag it was asked of")
+    @Test("Setting never alters the bag it was asked of")
     func sideEffectFree() {
         let before = Bag(items: [item(1, at: 5)])
-        _ = before.changingQuantity(of: pid(1), to: 9)
+        _ = before.setting(item(1, quantity: 9, at: 5))
 
         #expect(before.quantity(of: pid(1)) == 1)
     }

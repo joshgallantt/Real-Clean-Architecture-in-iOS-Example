@@ -32,7 +32,7 @@ public final class CheckoutButtonViewModel {
 
     private let observeBag: ObserveBagUseCase
     private let placeOrder: PlaceOrderUseCase
-    private let setBagItemQuantity: SetBagItemQuantityUseCase
+    private let setBagItem: SetBagItemUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private let confirm: (Order) -> Void
@@ -46,7 +46,7 @@ public final class CheckoutButtonViewModel {
     public init(
         observeBag: ObserveBagUseCase,
         placeOrder: PlaceOrderUseCase,
-        setBagItemQuantity: SetBagItemQuantityUseCase,
+        setBagItem: SetBagItemUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
         confirm: @escaping (Order) -> Void,
@@ -58,7 +58,7 @@ public final class CheckoutButtonViewModel {
     ) {
         self.observeBag = observeBag
         self.placeOrder = placeOrder
-        self.setBagItemQuantity = setBagItemQuantity
+        self.setBagItem = setBagItem
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
         self.confirm = confirm
@@ -106,7 +106,7 @@ public final class CheckoutButtonViewModel {
 
     /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the Interface Adapters
     /// ring, converting what a bag holds into what an order is made of. The price a shopper is
-    /// charged is the one their bag was showing them, which `BringBagUpToDateUseCase` has already
+    /// charged is the one their bag was showing them, which `RefreshBagUseCase` has already
     /// brought level with the shop.
     private var whatTheyAreBuying: [OrderLine] {
         bag.items.map {
@@ -117,7 +117,7 @@ public final class CheckoutButtonViewModel {
     /// A step through ordering, about the lines it concerns at the price being paid — never
     /// today's. A line the bag screen cannot name is left out, and a step with nothing nameable in
     /// it is not reported.
-    private func report(_ name: EventName, about lines: [OrderLine], properties: [PropertyKey: String], in context: TrackingContext) {
+    private func report(_ name: EventName, about lines: [OrderLine], properties: [String: String], in context: TrackingContext) {
         let named = products()
         let items = lines.compactMap { line in
             named[line.productId].map { TrackedProduct.item($0, price: line.pricePaid, quantity: line.quantity) }
@@ -135,7 +135,7 @@ public final class CheckoutButtonViewModel {
         switch await placeOrder(whatTheyAreBuying) {
         case .success(let order):
             /// The order's own id goes with it, so a purchase reported twice is one purchase in the report.
-            report(.orderCompleted, about: order.lines, properties: [.orderId: order.id.rawValue], in: context)
+            report(.orderCompleted, about: order.lines, properties: ["order_id": order.id.rawValue], in: context)
             emptyTheBag()
             confirm(order)
 
@@ -181,7 +181,7 @@ public final class CheckoutButtonViewModel {
     /// domain to keep in step with the first.
     private func emptyTheBag() {
         for item in bag.items {
-            setBagItemQuantity(productId: item.productId, to: 0)
+            setBagItem(item.withQuantity(0))
         }
     }
 }

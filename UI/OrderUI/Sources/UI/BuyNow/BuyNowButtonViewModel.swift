@@ -94,7 +94,7 @@ public final class BuyNowButtonViewModel {
     /// A step through ordering, about the lines it concerns at the price being paid — never
     /// today's. The page can name one product, its own: a line about anything else is left out, and
     /// a step with nothing nameable in it is not reported.
-    private func report(_ name: EventName, about lines: [OrderLine], properties: [PropertyKey: String], in context: TrackingContext) {
+    private func report(_ name: EventName, about lines: [OrderLine], properties: [String: String], in context: TrackingContext) {
         let items = lines
             .filter { $0.productId == product.id }
             .map { TrackedProduct.item(product, price: $0.pricePaid, quantity: $0.quantity) }
@@ -111,7 +111,7 @@ public final class BuyNowButtonViewModel {
         switch await placeOrder(whatTheyAreBuying) {
         case .success(let order):
             /// The order's own id goes with it, so a purchase reported twice is one purchase in the report.
-            report(.orderCompleted, about: order.lines, properties: [.orderId: order.id.rawValue], in: context)
+            report(.orderCompleted, about: order.lines, properties: ["order_id": order.id.rawValue], in: context)
             confirm(order)
 
         /// The same move the wishlist heart makes: ask at the moment it is actually needed, and

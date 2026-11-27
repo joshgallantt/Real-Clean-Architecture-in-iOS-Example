@@ -16,10 +16,8 @@ public struct BagDI {
 
     public let observeBagUseCase: ObserveBagUseCase
     public let observeNoticesUseCase: ObserveNoticesUseCase
-    public let observeBagItemQuantityUseCase: ObserveBagItemQuantityUseCase
-    public let addItemToBagUseCase: AddItemToBagUseCase
-    public let setBagItemQuantityUseCase: SetBagItemQuantityUseCase
-    public let bringBagUpToDateUseCase: BringBagUpToDateUseCase
+    public let setBagItemUseCase: SetBagItemUseCase
+    public let refreshBagUseCase: RefreshBagUseCase
     public let acknowledgeNoticesUseCase: AcknowledgeNoticesUseCase
 
     @MainActor
@@ -43,10 +41,8 @@ public struct BagDI {
 
         self.observeBagUseCase = DefaultObserveBagUseCase(repository: repository)
         self.observeNoticesUseCase = DefaultObserveNoticesUseCase(repository: repository)
-        self.observeBagItemQuantityUseCase = DefaultObserveBagItemQuantityUseCase(repository: repository)
-        self.addItemToBagUseCase = DefaultAddItemToBagUseCase(repository: repository)
-        self.setBagItemQuantityUseCase = DefaultSetBagItemQuantityUseCase(repository: repository)
-        self.bringBagUpToDateUseCase = DefaultBringBagUpToDateUseCase(
+        self.setBagItemUseCase = DefaultSetBagItemUseCase(repository: repository)
+        self.refreshBagUseCase = DefaultRefreshBagUseCase(
             repository: repository,
             lookUpProducts: lookUpProducts
         )

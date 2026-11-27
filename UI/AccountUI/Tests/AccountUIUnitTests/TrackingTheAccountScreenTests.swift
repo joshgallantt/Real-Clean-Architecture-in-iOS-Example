@@ -33,21 +33,21 @@ struct TrackingTheAccountScreenTests {
         viewModel.didAppear(in: .screen("account"))
         viewModel.didAppear(in: .screen("account"))
 
-        #expect(screens.events == [.screenViewed("account"), .screenViewed("account")])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen("account"), items: [], properties: [:]), TrackingEvent(name: .screenViewed, context: .screen("account"), items: [], properties: [:])])
     }
 
     @Test("Logging out is reported as the log out button, on the account screen")
     func logOut() async {
         await makeViewModel().didTapLogOut(in: .screen("account"))
 
-        #expect(taps.events == [.tapped("log_out", in: .screen("account"))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: .screen("account"), items: [], properties: ["element": "log_out"])])
     }
 
     @Test("Opening your orders is counted and goes to your orders")
     func orders() {
         makeViewModel().didTapOrders(in: .screen("account"))
 
-        #expect(taps.events == [.tapped("your_orders", in: .screen("account"))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: .screen("account"), items: [], properties: ["element": "your_orders"])])
         #expect(navigation.openedOrderHistory == 1)
     }
 
@@ -55,7 +55,7 @@ struct TrackingTheAccountScreenTests {
     func settings() {
         makeViewModel().didTapSettings(in: .screen("account"))
 
-        #expect(taps.events == [.tapped("settings", in: .screen("account"))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: .screen("account"), items: [], properties: ["element": "settings"])])
         #expect(navigation.openedSettings == 1)
     }
 }

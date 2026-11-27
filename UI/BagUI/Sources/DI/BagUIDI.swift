@@ -18,8 +18,8 @@ public struct BagUIDI {
     private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase
     private let observeNotices: ObserveNoticesUseCase
-    private let setBagItemQuantity: SetBagItemQuantityUseCase
-    private let bringBagUpToDate: BringBagUpToDateUseCase
+    private let setBagItem: SetBagItemUseCase
+    private let refreshBag: RefreshBagUseCase
     private let acknowledgeNotices: AcknowledgeNoticesUseCase
 
     /// The peer containers themselves, rather than closures handing this one two finished
@@ -45,8 +45,8 @@ public struct BagUIDI {
         navigation: BagNavigation,
         observeBag: ObserveBagUseCase,
         observeNotices: ObserveNoticesUseCase,
-        setBagItemQuantity: SetBagItemQuantityUseCase,
-        bringBagUpToDate: BringBagUpToDateUseCase,
+        setBagItem: SetBagItemUseCase,
+        refreshBag: RefreshBagUseCase,
         acknowledgeNotices: AcknowledgeNoticesUseCase,
         productActionsUIDI: ProductActionsUIDI,
         orderUIDI: OrderUIDI,
@@ -58,8 +58,8 @@ public struct BagUIDI {
         self.navigation = navigation
         self.observeBag = observeBag
         self.observeNotices = observeNotices
-        self.setBagItemQuantity = setBagItemQuantity
-        self.bringBagUpToDate = bringBagUpToDate
+        self.setBagItem = setBagItem
+        self.refreshBag = refreshBag
         self.acknowledgeNotices = acknowledgeNotices
         self.productActionsUIDI = productActionsUIDI
         self.orderUIDI = orderUIDI
@@ -75,8 +75,8 @@ public struct BagUIDI {
             navigation: navigation,
             observeBag: observeBag,
             observeNotices: observeNotices,
-            setBagItemQuantity: setBagItemQuantity,
-            bringBagUpToDate: bringBagUpToDate,
+            setBagItem: setBagItem,
+            refreshBag: refreshBag,
             acknowledgeNotices: acknowledgeNotices,
             trackScreenView: trackScreenView,
             trackElementView: trackElementView,

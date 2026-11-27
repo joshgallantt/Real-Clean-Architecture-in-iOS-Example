@@ -45,12 +45,6 @@ final class CompositionRoot {
 
     // MARK: - Root
 
-    /// Whatever the tracking sink is holding back for a batch, sent now — the app is on its way to
-    /// the background, where a scheduled send may never run.
-    func sendHeldBackTracking() {
-        domain.tracking.sendHeldTrackingUseCase()
-    }
-
     func makeMainViewModel() -> MainViewModel {
         MainViewModel(getSession: domain.session.getSessionUseCase, requestTrackingConsent: domain.tracking.requestTrackingConsentUseCase)
     }

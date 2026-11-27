@@ -6,19 +6,26 @@ import TrackingTestSupport
 @MainActor
 @Suite("Nothing is sent that the person has not agreed to")
 struct ConsentTests {
-    private let destination = SpyTrackingDestination()
-    private let screen = TrackingEvent.screenViewed("home")
-    private let tap = TrackingEvent.tapped("retry", in: .screen("home"))
+    private let firebase = SpyFirebaseClient()
+    private let mParticle = SpyMParticleClient()
+    private let logger = SpyLoggerClient()
+    private let screen = TrackingEvent(name: .screenViewed, context: .screen("home"), items: [], properties: [:])
+    private let tap = TrackingEvent(name: .elementSelected, context: .screen("home"), items: [], properties: ["element": "retry"])
 
     private func repository(_ status: TrackingConsentStatus, answer: TrackingConsentStatus) -> DefaultTrackingRepository {
-        DefaultTrackingRepository(destinations: [destination], consent: StubTrackingConsentSource(status: status, answer: answer))
+        DefaultTrackingRepository(
+            firebase: firebase,
+            mParticle: mParticle,
+            logger: logger,
+            consent: StubTrackingConsentSource(status: status, answer: answer)
+        )
     }
 
     @Test("Once they have agreed, every event goes through")
     func granted() {
         repository(.granted, answer: .granted).record(screen)
 
-        #expect(destination.events == [screen])
+        #expect(logger.lines == ["Screen Viewed | screen=home"])
     }
 
     @Test("Once they have declined, nothing does")
@@ -26,10 +33,8 @@ struct ConsentTests {
         let repository = repository(.denied, answer: .denied)
 
         repository.record(screen)
-        repository.flush()
 
-        #expect(destination.events.isEmpty)
-        #expect(destination.flushCount == 0)
+        #expect(logger.lines.isEmpty)
     }
 
     @Test("Before they are asked, events wait — and are sent, in order, if they agree")
@@ -38,11 +43,11 @@ struct ConsentTests {
 
         repository.record(screen)
         repository.record(tap)
-        #expect(destination.events.isEmpty)
+        #expect(logger.lines.isEmpty)
 
         _ = await repository.requestConsent()
 
-        #expect(destination.events == [screen, tap])
+        #expect(logger.lines == ["Screen Viewed | screen=home", "Element Selected | screen=home | element=retry"])
     }
 
     @Test("Events that waited are forgotten if they decline")
@@ -53,7 +58,7 @@ struct ConsentTests {
         _ = await repository.requestConsent()
         repository.record(tap)
 
-        #expect(destination.events.isEmpty)
+        #expect(logger.lines.isEmpty)
     }
 
     @Test("A prompt nobody answers does not hold on to everything forever")
@@ -63,7 +68,7 @@ struct ConsentTests {
         for _ in 0..<(DefaultTrackingRepository.maxWaiting + 10) { repository.record(screen) }
         _ = await repository.requestConsent()
 
-        #expect(destination.events.count == DefaultTrackingRepository.maxWaiting)
+        #expect(logger.lines.count == DefaultTrackingRepository.maxWaiting)
     }
 
     @Test("Asking again once they have answered sends nothing twice")
@@ -74,21 +79,15 @@ struct ConsentTests {
         _ = await repository.requestConsent()
         _ = await repository.requestConsent()
 
-        #expect(destination.events.count == 1)
+        #expect(logger.lines.count == 1)
     }
 
-    @Test("Every destination hears every event")
-    func everyDestination() {
-        let second = SpyTrackingDestination()
-        let repository = DefaultTrackingRepository(
-            destinations: [destination, second],
-            consent: StubTrackingConsentSource(status: .granted, answer: .granted)
-        )
+    @Test("Every client hears every event, each in its own shape")
+    func everyClient() {
+        repository(.granted, answer: .granted).record(screen)
 
-        repository.record(screen)
-        repository.flush()
-
-        #expect(destination.events == second.events)
-        #expect(second.flushCount == 1)
+        #expect(firebase.events.map(\.name) == ["screen_view"])
+        #expect(mParticle.events.map(\.kind) == [.screenView])
+        #expect(logger.lines == ["Screen Viewed | screen=home"])
     }
 }

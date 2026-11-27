@@ -68,7 +68,7 @@ struct TrackingSearchTests {
         viewModel.didAppear(in: .screen(search))
         viewModel.didAppear(in: .screen(search))
 
-        #expect(screens.events == [.screenViewed(search), .screenViewed(search)])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen(search), items: [], properties: [:]), TrackingEvent(name: .screenViewed, context: .screen(search), items: [], properties: [:])])
     }
 
     @Test("All Products and a category are seen as rows of the categories list, where each sits")
@@ -79,8 +79,8 @@ struct TrackingSearchTests {
         viewModel.didSee(toys, in: .list(search, categoriesList, index: 2))
 
         #expect(views.events == [
-            .viewed("category", about: .content(id: "all", name: "All Products"), in: .list(search, categoriesList, index: 0)),
-            .viewed("category", about: .content(id: "toys", name: "Toys"), in: .list(search, categoriesList, index: 2))
+            TrackingEvent(name: .elementViewed, context: .list(search, categoriesList, index: 0), items: [.content(id: "all", name: "All Products")], properties: ["element": "category"]),
+            TrackingEvent(name: .elementViewed, context: .list(search, categoriesList, index: 2), items: [.content(id: "toys", name: "Toys")], properties: ["element": "category"])
         ])
     }
 
@@ -90,14 +90,14 @@ struct TrackingSearchTests {
 
         tab(browse: SpyBrowseCategoriesUseCase()).didSelectCategory(beauty, in: where_)
 
-        #expect(taps.events == [.tapped("category", about: .content(id: "beauty", name: "Beauty"), in: where_)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: where_, items: [.content(id: "beauty", name: "Beauty")], properties: ["element": "category"])])
     }
 
     @Test("Submitting a search is a search for what was typed, on the screen it was typed on")
     func submitted() {
         tab(browse: SpyBrowseCategoriesUseCase()).didSubmitSearch(SearchTerm("lipstick")!, in: .screen(search))
 
-        #expect(reported.events == [TrackingEvent(name: .productsSearched, context: .screen(search), items: [], properties: [.query: "lipstick"])])
+        #expect(reported.events == [TrackingEvent(name: .productsSearched, context: .screen(search), items: [], properties: ["query": "lipstick"])])
     }
 
     @Test("Categories that will not load say so, and the snackbar saying it is seen on the tab")
@@ -107,7 +107,7 @@ struct TrackingSearchTests {
 
         await tab(browse: browse).onAppear(in: .screen(search))
 
-        #expect(views.events == [.viewed("nothing_s_loading", in: .screen(search))])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: .screen(search), items: [], properties: ["element": "nothing_s_loading"])])
     }
 
     // MARK: - Recent searches and suggestions
@@ -120,8 +120,8 @@ struct TrackingSearchTests {
         viewModel.didSee(SearchTerm("lipstick")!, in: where_)
         viewModel.didSelect(SearchTerm("lipstick")!, in: where_)
 
-        #expect(views.events == [.viewed("recent_search", about: .content(id: "lipstick", name: "lipstick"), in: where_)])
-        #expect(taps.events == [.tapped("recent_search", about: .content(id: "lipstick", name: "lipstick"), in: where_)])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: where_, items: [.content(id: "lipstick", name: "lipstick")], properties: ["element": "recent_search"])])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: where_, items: [.content(id: "lipstick", name: "lipstick")], properties: ["element": "recent_search"])])
     }
 
     @Test("A suggestion is a product, reported in the suggestions list")
@@ -131,14 +131,14 @@ struct TrackingSearchTests {
 
         searching().didSelect(product, in: where_)
 
-        #expect(taps.events == [.tapped("suggestion", about: TrackedProduct.item(product), in: where_)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: where_, items: [TrackedProduct.item(product)], properties: ["element": "suggestion"])])
     }
 
     @Test("Clearing the history is a tap on the screen")
     func clearHistory() {
         searching().clearHistory(in: .screen(search))
 
-        #expect(taps.events == [.tapped("clear_history", in: .screen(search))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: .screen(search), items: [], properties: ["element": "clear_history"])])
     }
 
     // MARK: - Results
@@ -147,7 +147,7 @@ struct TrackingSearchTests {
     func resultsView() {
         catalog(.all, browse: SpyBrowseCatalogUseCase()).didAppear(in: .screen(results))
 
-        #expect(screens.events == [.screenViewed(results)])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen(results), items: [], properties: [:])])
     }
 
     @Test("Each kind of results is its own list: all of it, a category, or any search")
@@ -164,7 +164,7 @@ struct TrackingSearchTests {
 
         catalog(.category(beauty), browse: SpyBrowseCatalogUseCase()).didSelect(product, in: where_)
 
-        #expect(taps.events == [.tapped("product", about: TrackedProduct.item(product), in: where_)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: where_, items: [TrackedProduct.item(product)], properties: ["element": "product"])])
     }
 
     @Test("Results that will not load say so, and the snackbar saying it is seen on the results screen")
@@ -174,7 +174,7 @@ struct TrackingSearchTests {
 
         await catalog(.all, browse: browse).onAppear(in: .screen(results))
 
-        #expect(views.events == [.viewed("nothing_s_loading", in: .screen(results))])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: .screen(results), items: [], properties: ["element": "nothing_s_loading"])])
     }
 
     @Test("Only the last card laid out asks for the next page")

@@ -7,7 +7,7 @@ import Product
 ///
 /// Evans, *Domain-Driven Design* (2003), Ch. 5 — Services: behaviour belonging to no single
 /// aggregate, and holding no state.
-public struct DefaultBringBagUpToDateUseCase: BringBagUpToDateUseCase {
+public struct DefaultRefreshBagUseCase: RefreshBagUseCase {
     private let repository: BagRepository
     private let lookUpProducts: LookUpProductsUseCase
 

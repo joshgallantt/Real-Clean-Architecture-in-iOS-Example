@@ -56,25 +56,19 @@ public struct Bag: Equatable, Sendable {
 
     // MARK: - How the bag changes
 
-    public func adding(_ item: BagItem) -> Bag {
+    /// The bag with this line as given: this many, at this price. None of something takes it out.
+    /// A line that was already there keeps its place — when it was first added does not change
+    /// because how many did.
+    public func setting(_ item: BagItem) -> Bag {
+        guard item.quantity > 0 else { return removing(productId: item.productId) }
         guard let existing = items.first(where: { $0.productId == item.productId }) else {
             return Bag(items: items + [item])
         }
-        return replacing(
-            existing
-                .withQuantity(existing.quantity + item.quantity)
-                .withPrice(item.lastKnownPrice)
-        )
+        return replacing(existing.withQuantity(item.quantity).withPrice(item.lastKnownPrice))
     }
 
     public func removing(productId: ProductID) -> Bag {
         Bag(items: items.filter { $0.productId != productId })
-    }
-
-    public func changingQuantity(of productId: ProductID, to quantity: Int) -> Bag {
-        guard quantity > 0 else { return removing(productId: productId) }
-        guard let existing = items.first(where: { $0.productId == productId }) else { return self }
-        return replacing(existing.withQuantity(quantity))
     }
 
     private func replacing(_ item: BagItem) -> Bag {

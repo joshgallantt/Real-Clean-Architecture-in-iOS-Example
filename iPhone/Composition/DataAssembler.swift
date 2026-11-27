@@ -34,18 +34,16 @@ struct DataAssembler {
     /// `FakeAuthClient`. Swapping it for a real gateway is a change to this line.
     let paymentClient: PaymentService
 
-    /// Everywhere tracking events are sent. None of the three sends anything yet: each maps an event
-    /// to what its vendor would be sent and writes that to the unified log under a category of its
-    /// own, so the three can be watched side by side in Console. Another destination is another
-    /// entry in this list, and nothing that reports an event changes.
-    let trackingDestinations: [TrackingDestination]
+    /// Where tracking events go. Firebase and mParticle send nothing yet — their SDKs are not
+    /// linked — and the logger writes every event to the unified log, where it can be watched in
+    /// Console under `category:Tracking`.
+    let firebaseClient: FirebaseClient
+    let mParticleClient: MParticleClient
+    let trackingLogger: LoggerClient
 
     /// Who to ask whether the person may be tracked: the system's App Tracking Transparency prompt.
-    /// Nothing reaches a destination until they have agreed.
+    /// Nothing reaches a client until they have agreed.
     let trackingConsent: TrackingConsentSource
-
-    /// How long list impressions are held so a carousel coming on screen is one event, not five.
-    static let impressionBatchWindow: Duration = .milliseconds(500)
 
     static let trackingSubsystem = "io.flixly.iPhone"
 
@@ -65,14 +63,9 @@ struct DataAssembler {
         stockAlertStore = FileWaitlistStore()
         orderStore = FileOrderStore()
         paymentClient = FakePaymentService()
-        trackingDestinations = [
-            GA4Destination(
-                log: OSLogTrackingLog(subsystem: Self.trackingSubsystem, category: "Tracking.GA4"),
-                batchWindow: Self.impressionBatchWindow
-            ),
-            FirebaseDestination(log: OSLogTrackingLog(subsystem: Self.trackingSubsystem, category: "Tracking.Firebase")),
-            MParticleDestination(log: OSLogTrackingLog(subsystem: Self.trackingSubsystem, category: "Tracking.mParticle"))
-        ]
+        firebaseClient = NoOpFirebaseClient()
+        mParticleClient = NoOpMParticleClient()
+        trackingLogger = OSLogLoggerClient(subsystem: Self.trackingSubsystem, category: "Tracking")
         trackingConsent = AppTrackingTransparencyConsentSource()
     }
 }

@@ -24,7 +24,7 @@ public struct DefaultTrackEventUseCase: TrackEventUseCase {
             assertionFailure("Reported from a view with no .trackingScreen above it")
             return false
         }
-        if case .inList(_, let index) = context.placement { return index >= 0 }
+        if let position = context.listPosition { return position.index >= 0 }
         return true
     }
 }

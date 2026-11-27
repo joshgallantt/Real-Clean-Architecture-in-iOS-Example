@@ -24,7 +24,6 @@ struct AskingFirstTests {
         analyst.screenIsViewed("home")
         await analyst.shopperIsAskedAboutTracking()
         analyst.buttonIsTapped("retry", on: "home")
-        analyst.appGoesToTheBackground()
 
         #expect(analyst.events.isEmpty)
     }

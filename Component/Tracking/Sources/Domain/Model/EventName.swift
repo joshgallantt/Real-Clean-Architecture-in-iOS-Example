@@ -1,8 +1,8 @@
 /// What an event is called: the conventional vocabulary of a shop — what any screen reports, and
 /// the steps every shop reports and every analytics tool has a word for.
 ///
-/// One closed list, so each destination's vocabulary is a `switch` the compiler checks: a new
-/// event here does not build until every destination has said what it calls it. There is no case
+/// One closed list, so each vendor's mapper is a `switch` the compiler checks: a new
+/// event here does not build until every vendor's mapper has said what it calls it. There is no case
 /// for "anything else", because an event nobody has a word for is one no report can count.
 ///
 /// The raw value is the title a person reads — a thing and what became of it — spelled here and

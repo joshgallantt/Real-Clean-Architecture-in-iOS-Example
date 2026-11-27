@@ -5,7 +5,7 @@ import Product
 /// rather than one port taking a flag and making every caller say which half it wants.
 ///
 /// Asking the catalog is part of the rule, not something a screen does on its behalf — the same
-/// arrangement `BringBagUpToDateUseCase` and `PlaceOrderUseCase` have.
+/// arrangement `RefreshBagUseCase` and `PlaceOrderUseCase` have.
 struct WaitlistedProducts: Sendable {
     let repository: WaitlistRepository
     let lookUpProducts: LookUpProductsUseCase

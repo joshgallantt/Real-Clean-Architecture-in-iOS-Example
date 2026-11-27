@@ -57,8 +57,8 @@ final class AProduct {
     func bagButton() -> BagButtonViewModel {
         let button = BagButtonViewModel(
             product: product,
-            observeBagItemQuantity: DefaultObserveBagItemQuantityUseCase(repository: bagRepository),
-            addItemToBag: DefaultAddItemToBagUseCase(repository: bagRepository),
+            observeBag: DefaultObserveBagUseCase(repository: bagRepository),
+            setBagItem: DefaultSetBagItemUseCase(repository: bagRepository),
             navigation: navigation,
             snackbarPresenter: snackbars,
             trackElementView: SpyTrackElementViewUseCase(),

@@ -20,7 +20,7 @@ public struct OrderUIDI {
     private let placeOrder: PlaceOrderUseCase
     private let observeOrders: ObserveOrdersUseCase
     private let observeBag: ObserveBagUseCase
-    private let setBagItemQuantity: SetBagItemQuantityUseCase
+    private let setBagItem: SetBagItemUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private let sheetPresenter: SheetPresenting
@@ -33,7 +33,7 @@ public struct OrderUIDI {
         placeOrder: PlaceOrderUseCase,
         observeOrders: ObserveOrdersUseCase,
         observeBag: ObserveBagUseCase,
-        setBagItemQuantity: SetBagItemQuantityUseCase,
+        setBagItem: SetBagItemUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
         sheetPresenter: SheetPresenting,
@@ -45,7 +45,7 @@ public struct OrderUIDI {
         self.placeOrder = placeOrder
         self.observeOrders = observeOrders
         self.observeBag = observeBag
-        self.setBagItemQuantity = setBagItemQuantity
+        self.setBagItem = setBagItem
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
         self.sheetPresenter = sheetPresenter
@@ -81,7 +81,7 @@ public struct OrderUIDI {
             viewModel: CheckoutButtonViewModel(
                 observeBag: observeBag,
                 placeOrder: placeOrder,
-                setBagItemQuantity: setBagItemQuantity,
+                setBagItem: setBagItem,
                 authPresenter: authPresenter,
                 snackbarPresenter: snackbarPresenter,
                 confirm: confirm,

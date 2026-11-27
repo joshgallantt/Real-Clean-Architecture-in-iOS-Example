@@ -47,7 +47,7 @@ struct TrackingSigningInTests {
     func logInScreen() {
         sheet(.logIn, login: SpyLoginUseCase(), createAccount: SpyCreateAccountUseCase()).didAppear()
 
-        #expect(screens.events == [.screenViewed(logIn)])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen(logIn), items: [], properties: [:])])
     }
 
     @Test("Switching to creating an account is a tap on the way there, then a view of where it went")
@@ -56,17 +56,17 @@ struct TrackingSigningInTests {
 
         viewModel.switchToPeerMode()
 
-        #expect(taps.events == [.tapped("switch_to_create_account", in: .screen(logIn))])
-        #expect(screens.events == [.screenViewed(createAccount)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: .screen(logIn), items: [], properties: ["element": "switch_to_create_account"])])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen(createAccount), items: [], properties: [:])])
     }
 
     @Test("A shopper who logs in is a submit, then a login by email")
     func loggingIn() async {
         await sheet(.logIn, login: SpyLoginUseCase(), createAccount: SpyCreateAccountUseCase()).submit()
 
-        #expect(taps.events == [.tapped("submit", in: .screen(logIn))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: .screen(logIn), items: [], properties: ["element": "submit"])])
         #expect(reported.events == [
-            TrackingEvent(name: .signedIn, context: .screen(logIn), items: [], properties: [.method: "email"])
+            TrackingEvent(name: .signedIn, context: .screen(logIn), items: [], properties: ["method": "email"])
         ])
         #expect(views.events.isEmpty)
     }
@@ -76,7 +76,7 @@ struct TrackingSigningInTests {
         await sheet(.createAccount, login: SpyLoginUseCase(), createAccount: SpyCreateAccountUseCase()).submit()
 
         #expect(reported.events == [
-            TrackingEvent(name: .signedUp, context: .screen(createAccount), items: [], properties: [.method: "email"])
+            TrackingEvent(name: .signedUp, context: .screen(createAccount), items: [], properties: ["method": "email"])
         ])
     }
 
@@ -87,8 +87,8 @@ struct TrackingSigningInTests {
 
         await sheet(.logIn, login: login, createAccount: SpyCreateAccountUseCase()).submit()
 
-        #expect(taps.events == [.tapped("submit", in: .screen(logIn))])
-        #expect(views.events == [.viewed("auth_error", in: .screen(logIn))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: .screen(logIn), items: [], properties: ["element": "submit"])])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: .screen(logIn), items: [], properties: ["element": "auth_error"])])
         #expect(reported.events.isEmpty)
     }
 
@@ -133,7 +133,7 @@ struct TrackingTheWelcomeScreenTests {
     func screenView() {
         makeViewModel().didAppear(in: .screen(welcome))
 
-        #expect(screens.events == [.screenViewed(welcome)])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen(welcome), items: [], properties: [:])])
     }
 
     @Test("Each way in is reported by its own name, on the welcome screen")
@@ -147,9 +147,9 @@ struct TrackingTheWelcomeScreenTests {
         viewModel.didContinueAsGuest(in: .screen("welcome"))
 
         #expect(taps.events == [
-            .tapped("log_in", in: .screen(welcome)),
-            .tapped("create_account", in: .screen(welcome)),
-            .tapped("continue_as_guest", in: .screen(welcome))
+            TrackingEvent(name: .elementSelected, context: .screen(welcome), items: [], properties: ["element": "log_in"]),
+            TrackingEvent(name: .elementSelected, context: .screen(welcome), items: [], properties: ["element": "create_account"]),
+            TrackingEvent(name: .elementSelected, context: .screen(welcome), items: [], properties: ["element": "continue_as_guest"])
         ])
     }
 }

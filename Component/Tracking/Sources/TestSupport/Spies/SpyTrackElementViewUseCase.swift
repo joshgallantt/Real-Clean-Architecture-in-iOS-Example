@@ -9,10 +9,10 @@ public final class SpyTrackElementViewUseCase: TrackElementViewUseCase {
     public private(set) var events: [TrackingEvent] = []
 
     public func callAsFunction(_ element: String, in context: TrackingContext) {
-        events.append(.viewed(element, in: context))
+        events.append(TrackingEvent(name: .elementViewed, context: context, items: [], properties: ["element": element]))
     }
 
     public func callAsFunction(_ element: String, about item: TrackedItem, in context: TrackingContext) {
-        events.append(.viewed(element, about: item, in: context))
+        events.append(TrackingEvent(name: .elementViewed, context: context, items: [item], properties: ["element": element]))
     }
 }

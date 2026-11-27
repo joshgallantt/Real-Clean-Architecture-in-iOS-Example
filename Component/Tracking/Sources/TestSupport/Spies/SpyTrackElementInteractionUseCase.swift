@@ -8,10 +8,10 @@ public final class SpyTrackElementInteractionUseCase: TrackElementInteractionUse
     public private(set) var events: [TrackingEvent] = []
 
     public func callAsFunction(_ element: String, in context: TrackingContext) {
-        events.append(.tapped(element, in: context))
+        events.append(TrackingEvent(name: .elementSelected, context: context, items: [], properties: ["element": element]))
     }
 
     public func callAsFunction(_ element: String, about item: TrackedItem, in context: TrackingContext) {
-        events.append(.tapped(element, about: item, in: context))
+        events.append(TrackingEvent(name: .elementSelected, context: context, items: [item], properties: ["element": element]))
     }
 }

@@ -26,7 +26,7 @@ struct TrackingOrdersTests {
     private let views = SpyTrackElementViewUseCase()
     private let taps = SpyTrackElementInteractionUseCase()
     private let reported = SpyTrackEventUseCase()
-    private let setBagItemQuantity = SpySetBagItemQuantityUseCase()
+    private let setBagItem = SpySetBagItemUseCase()
 
     private let onTheProductPage = TrackingContext.screen("product_details")
     private let inTheBag = TrackingContext.screen("bag")
@@ -54,7 +54,7 @@ struct TrackingOrdersTests {
         let viewModel = CheckoutButtonViewModel(
             observeBag: StubObserveBagUseCase(Bag(items: items)),
             placeOrder: placeOrder,
-            setBagItemQuantity: setBagItemQuantity,
+            setBagItem: setBagItem,
             authPresenter: SpyAuthPresenting(),
             snackbarPresenter: SpySnackbarPresenting(),
             confirm: { _ in },
@@ -86,10 +86,10 @@ struct TrackingOrdersTests {
         await viewModel.settle()
 
         let item = TrackedProduct.item(product)
-        #expect(taps.events == [.tapped("buy_now", about: item, in: onTheProductPage)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: onTheProductPage, items: [item], properties: ["element": "buy_now"])])
         #expect(reported.events == [
             TrackingEvent(name: .checkoutStarted, context: onTheProductPage, items: [item], properties: [:]),
-            TrackingEvent(name: .orderCompleted, context: onTheProductPage, items: [item], properties: [.orderId: "A1B2"])
+            TrackingEvent(name: .orderCompleted, context: onTheProductPage, items: [item], properties: ["order_id": "A1B2"])
         ])
     }
 
@@ -108,7 +108,7 @@ struct TrackingOrdersTests {
 
         #expect(reported.events == [
             TrackingEvent(name: .checkoutStarted, context: onTheProductPage, items: [TrackedProduct.item(product)], properties: [:]),
-            TrackingEvent(name: .orderCompleted, context: onTheProductPage, items: [TrackedProduct.item(product, price: usd(20), quantity: 2)], properties: [.orderId: "A1B2"])
+            TrackingEvent(name: .orderCompleted, context: onTheProductPage, items: [TrackedProduct.item(product, price: usd(20), quantity: 2)], properties: ["order_id": "A1B2"])
         ])
     }
 
@@ -136,7 +136,7 @@ struct TrackingOrdersTests {
 
         let item = TrackedProduct.item(.fixture(id: 1))
         #expect(reported.events == [TrackingEvent(name: .checkoutStarted, context: onTheProductPage, items: [item], properties: [:])])
-        #expect(views.events == [.viewed("payment_declined", about: item, in: onTheProductPage)])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: onTheProductPage, items: [item], properties: ["element": "payment_declined"])])
     }
 
     @Test("Signing in part-way through is still the one tap and the one checkout, and the page behind the sheet is viewed again")
@@ -155,9 +155,9 @@ struct TrackingOrdersTests {
         #expect(taps.events.count == 1)
         #expect(reported.events == [
             TrackingEvent(name: .checkoutStarted, context: onTheProductPage, items: [item], properties: [:]),
-            TrackingEvent(name: .orderCompleted, context: onTheProductPage, items: [item], properties: [.orderId: "A1B2"])
+            TrackingEvent(name: .orderCompleted, context: onTheProductPage, items: [item], properties: ["order_id": "A1B2"])
         ])
-        #expect(screens.events == [.screenViewed("product_details")])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen("product_details"), items: [], properties: [:])])
     }
 
     // MARK: - Checking out
@@ -182,10 +182,10 @@ struct TrackingOrdersTests {
             TrackedProduct.item(lipstick, price: usd(9.99), quantity: 2),
             TrackedProduct.item(.fixture(id: 4), price: usd(5), quantity: 1)
         ]
-        #expect(taps.events == [.tapped("check_out", in: inTheBag)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: inTheBag, items: [], properties: ["element": "check_out"])])
         #expect(reported.events == [
             TrackingEvent(name: .checkoutStarted, context: inTheBag, items: items, properties: [:]),
-            TrackingEvent(name: .orderCompleted, context: inTheBag, items: items, properties: [.orderId: "A1B2"])
+            TrackingEvent(name: .orderCompleted, context: inTheBag, items: items, properties: ["order_id": "A1B2"])
         ])
     }
 
@@ -207,7 +207,7 @@ struct TrackingOrdersTests {
         let item = TrackedProduct.item(lipstick, price: usd(9.99), quantity: 2)
         #expect(reported.events == [
             TrackingEvent(name: .checkoutStarted, context: inTheBag, items: [item], properties: [:]),
-            TrackingEvent(name: .orderCompleted, context: inTheBag, items: [item], properties: [.orderId: "A1B2"])
+            TrackingEvent(name: .orderCompleted, context: inTheBag, items: [item], properties: ["order_id": "A1B2"])
         ])
     }
 
@@ -218,7 +218,7 @@ struct TrackingOrdersTests {
         viewModel.didTap(in: inTheBag)
         await viewModel.settle()
 
-        #expect(taps.events == [.tapped("check_out", in: inTheBag)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: inTheBag, items: [], properties: ["element": "check_out"])])
         #expect(reported.events.isEmpty)
     }
 
@@ -233,7 +233,7 @@ struct TrackingOrdersTests {
 
         let item = TrackedProduct.item(.fixture(id: 1), price: usd(1), quantity: 1)
         #expect(reported.events == [TrackingEvent(name: .checkoutStarted, context: inTheBag, items: [item], properties: [:])])
-        #expect(views.events == [.viewed("that_didn_t_go_through", in: inTheBag)])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: inTheBag, items: [], properties: ["element": "that_didn_t_go_through"])])
     }
 
     @Test("The purchase is named before the bag is emptied, while the bag screen can still say what was in it")
@@ -241,7 +241,7 @@ struct TrackingOrdersTests {
         let placeOrder = SpyPlaceOrderUseCase()
         placeOrder.result = .success(placedOrder("A1B2", lines: [OrderLine(productId: pid(1), quantity: 1, pricePaid: usd(1))]))
         /// A bag screen stops drawing a product once its line has gone.
-        let emptied = setBagItemQuantity
+        let emptied = setBagItem
         let viewModel = checkout(
             [BagItem(productId: pid(1), lastKnownPrice: usd(1))],
             products: { emptied.calls.isEmpty ? [pid(1): .fixture(id: 1)] : [:] },
@@ -255,7 +255,7 @@ struct TrackingOrdersTests {
         #expect(emptied.calls.map(\.productId) == [pid(1)])
         #expect(reported.events == [
             TrackingEvent(name: .checkoutStarted, context: inTheBag, items: [item], properties: [:]),
-            TrackingEvent(name: .orderCompleted, context: inTheBag, items: [item], properties: [.orderId: "A1B2"])
+            TrackingEvent(name: .orderCompleted, context: inTheBag, items: [item], properties: ["order_id": "A1B2"])
         ])
     }
 
@@ -269,7 +269,7 @@ struct TrackingOrdersTests {
         viewModel.didAppear(in: history)
         viewModel.didAppear(in: history)
 
-        #expect(screens.events == [.screenViewed("order_history"), .screenViewed("order_history")])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen("order_history"), items: [], properties: [:]), TrackingEvent(name: .screenViewed, context: .screen("order_history"), items: [], properties: [:])])
     }
 
     @Test("The confirmation reports its screen, and Done as a tap on it")
@@ -286,8 +286,8 @@ struct TrackingOrdersTests {
         viewModel.didAppear(in: confirmation)
         viewModel.didTapDone(in: confirmation)
 
-        #expect(screens.events == [.screenViewed("order_confirmation")])
-        #expect(taps.events == [.tapped("done", in: confirmation)])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen("order_confirmation"), items: [], properties: [:])])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: confirmation, items: [], properties: ["element": "done"])])
         #expect(dismissed)
     }
 }

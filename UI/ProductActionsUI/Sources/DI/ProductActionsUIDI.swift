@@ -23,8 +23,8 @@ public struct ProductActionsUIDI {
     private let observeProductIsWishlisted: ObserveProductIsWishlistedUseCase
     private let setProductIsWishlisted: SetProductIsWishlistedUseCase
 
-    private let observeBagItemQuantity: ObserveBagItemQuantityUseCase
-    private let addItemToBag: AddItemToBagUseCase
+    private let observeBag: ObserveBagUseCase
+    private let setBagItem: SetBagItemUseCase
 
     private let observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase
     private let setProductIsWaitlisted: SetProductIsWaitlistedUseCase
@@ -41,8 +41,8 @@ public struct ProductActionsUIDI {
         navigation: ProductActionsNavigation,
         observeProductIsWishlisted: ObserveProductIsWishlistedUseCase,
         setProductIsWishlisted: SetProductIsWishlistedUseCase,
-        observeBagItemQuantity: ObserveBagItemQuantityUseCase,
-        addItemToBag: AddItemToBagUseCase,
+        observeBag: ObserveBagUseCase,
+        setBagItem: SetBagItemUseCase,
         observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase,
         setProductIsWaitlisted: SetProductIsWaitlistedUseCase,
         authPresenter: AuthPresenting,
@@ -55,8 +55,8 @@ public struct ProductActionsUIDI {
         self.navigation = navigation
         self.observeProductIsWishlisted = observeProductIsWishlisted
         self.setProductIsWishlisted = setProductIsWishlisted
-        self.observeBagItemQuantity = observeBagItemQuantity
-        self.addItemToBag = addItemToBag
+        self.observeBag = observeBag
+        self.setBagItem = setBagItem
         self.observeProductIsWaitlisted = observeProductIsWaitlisted
         self.setProductIsWaitlisted = setProductIsWaitlisted
         self.authPresenter = authPresenter
@@ -136,8 +136,8 @@ public struct ProductActionsUIDI {
     private func makeBagViewModel(product: Product) -> BagButtonViewModel {
         BagButtonViewModel(
             product: product,
-            observeBagItemQuantity: observeBagItemQuantity,
-            addItemToBag: addItemToBag,
+            observeBag: observeBag,
+            setBagItem: setBagItem,
             navigation: navigation,
             snackbarPresenter: snackbarPresenter,
             trackElementView: trackElementView,

@@ -8,6 +8,6 @@ public final class SpyTrackScreenViewUseCase: TrackScreenViewUseCase {
     public private(set) var events: [TrackingEvent] = []
 
     public func callAsFunction(_ screen: String) {
-        events.append(.screenViewed(screen))
+        events.append(TrackingEvent(name: .screenViewed, context: .screen(screen), items: [], properties: [:]))
     }
 }

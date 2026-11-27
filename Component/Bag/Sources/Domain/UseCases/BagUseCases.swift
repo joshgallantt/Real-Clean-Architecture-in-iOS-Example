@@ -14,23 +14,27 @@ public protocol AcknowledgeNoticesUseCase: Sendable {
     func callAsFunction(aboutProductId productId: ProductID)
 }
 
-public protocol AddItemToBagUseCase: Sendable {
+/// The one way a shopper changes what their bag holds: this product, this many, at this price.
+/// The first of something puts it in, a different count changes it, and none takes it out. It
+/// takes a whole line because the line may not exist yet, and a caller that has one already says
+/// what it should become with `withQuantity`.
+public protocol SetBagItemUseCase: Sendable {
     @MainActor
     func callAsFunction(_ item: BagItem)
 }
 
+/// Checks the bag against the shop as it is now: each line takes today's price, is cut to what is
+/// left in stock, or goes if the shop has none, and a notice is left for whatever changed. Returns
+/// the products it was told about, so the screen need not ask twice.
+///
 /// It asks the shop itself rather than being handed the answer. `PlaceOrderUseCase` reaches for
 /// `GetSessionUseCase` the same way: a use case may compose another component's use cases, and
 /// asking is part of catching up rather than something a screen does on its behalf.
-public protocol BringBagUpToDateUseCase: Sendable {
+public protocol RefreshBagUseCase: Sendable {
     @discardableResult
     func callAsFunction() async -> [Product]
 }
 
-public protocol ObserveBagItemQuantityUseCase: Sendable {
-    @MainActor
-    func callAsFunction(productId: ProductID) -> AnyPublisher<Int, Never>
-}
 
 public protocol ObserveBagUseCase: Sendable {
     @MainActor
@@ -42,7 +46,3 @@ public protocol ObserveNoticesUseCase: Sendable {
     func callAsFunction() -> AnyPublisher<Notices, Never>
 }
 
-public protocol SetBagItemQuantityUseCase: Sendable {
-    @MainActor
-    func callAsFunction(productId: ProductID, to quantity: Int)
-}

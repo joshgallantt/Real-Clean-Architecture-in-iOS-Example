@@ -76,7 +76,7 @@ library cannot be made to learn about a component in order to hold a fake.
 ```
 Component/Bag/Sources/TestSupport/
   Stubs/StubObserveBag.swift
-  Spies/SpyAddItemToBag.swift
+  Spies/SpySetBagItem.swift
   Fakes/InMemoryBagRepository.swift
   Builders/bagItem.swift
 ```

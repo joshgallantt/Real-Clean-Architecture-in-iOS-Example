@@ -30,14 +30,14 @@ struct TrackingTheBagTests {
     }
 
     private func makeViewModel(_ items: [BagItem], notices: Notices, shopKnows products: [Product]) -> BagScreenViewModel {
-        let shop = SpyBringBagUpToDateUseCase()
+        let shop = SpyRefreshBagUseCase()
         shop.products = products
         return BagScreenViewModel(
             navigation: SpyBagNavigation(),
             observeBag: StubObserveBagUseCase(Bag(items: items)),
             observeNotices: StubObserveNoticesUseCase(notices),
-            setBagItemQuantity: SpySetBagItemQuantityUseCase(),
-            bringBagUpToDate: shop,
+            setBagItem: SpySetBagItemUseCase(),
+            refreshBag: shop,
             acknowledgeNotices: SpyAcknowledgeNoticesUseCase(),
             trackScreenView: screens,
             trackElementView: views,
@@ -74,7 +74,7 @@ struct TrackingTheBagTests {
 
         await appear(viewModel)
 
-        #expect(screens.events == [.screenViewed(bag)])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen(bag), items: [], properties: [:])])
         #expect(reported.events == [event(.cartViewed, about: [item(lipstick, price: 9.99, quantity: 2)], in: onTheScreen)])
     }
 
@@ -142,7 +142,7 @@ struct TrackingTheBagTests {
 
         viewModel.didSee(second, in: line(1))
 
-        #expect(views.events == [.viewed("bag_line", about: item(.fixture(id: 2), price: 2, quantity: 1), in: line(1))])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: line(1), items: [item(.fixture(id: 2), price: 2, quantity: 1)], properties: ["element": "bag_line"])])
     }
 
     @Test("A line the shop has not named yet is not seen yet")
@@ -166,8 +166,8 @@ struct TrackingTheBagTests {
         viewModel.didChangeQuantity(productId: pid(1), quantity: 1, in: line(0))
 
         #expect(taps.events == [
-            .tapped("quantity_up", about: item(.fixture(id: 1), price: 5, quantity: 1), in: line(0)),
-            .tapped("quantity_down", about: item(.fixture(id: 1), price: 5, quantity: 2), in: line(0))
+            TrackingEvent(name: .elementSelected, context: line(0), items: [item(.fixture(id: 1), price: 5, quantity: 1)], properties: ["element": "quantity_up"]),
+            TrackingEvent(name: .elementSelected, context: line(0), items: [item(.fixture(id: 1), price: 5, quantity: 2)], properties: ["element": "quantity_down"])
         ])
         #expect(changes == [
             event(.productAdded, about: [item(.fixture(id: 1), price: 5, quantity: 1)], in: line(0)),
@@ -214,7 +214,7 @@ struct TrackingTheBagTests {
 
         viewModel.didChangeQuantity(productId: pid(1), quantity: 3, in: line(0))
 
-        #expect(taps.events == [.tapped("quantity_up", in: line(0))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: line(0), items: [], properties: ["element": "quantity_up"])])
         #expect(reported.events.isEmpty)
     }
 
@@ -227,7 +227,7 @@ struct TrackingTheBagTests {
 
         viewModel.didSwipeToDelete(productId: pid(7), in: line(0))
 
-        #expect(taps.events == [.tapped("remove", about: item(.fixture(id: 7), price: 3, quantity: 2), in: line(0))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: line(0), items: [item(.fixture(id: 7), price: 3, quantity: 2)], properties: ["element": "remove"])])
         #expect(changes == [event(.productRemoved, about: [item(.fixture(id: 7), price: 3, quantity: 2)], in: line(0))])
     }
 
@@ -240,7 +240,7 @@ struct TrackingTheBagTests {
 
         viewModel.didRemoveChangedItem(productId: pid(7), in: priceWentUp)
 
-        #expect(taps.events == [.tapped("remove_from_bag", about: item(.fixture(id: 7), price: 4, quantity: 2), in: priceWentUp)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: priceWentUp, items: [item(.fixture(id: 7), price: 4, quantity: 2)], properties: ["element": "remove_from_bag"])])
         #expect(changes == [event(.productRemoved, about: [item(.fixture(id: 7), price: 4, quantity: 2)], in: priceWentUp)])
     }
 
@@ -256,7 +256,7 @@ struct TrackingTheBagTests {
 
         viewModel.didRemoveEverything(in: onTheScreen)
 
-        #expect(taps.events == [.tapped("remove_all", in: onTheScreen)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: onTheScreen, items: [], properties: ["element": "remove_all"])])
         #expect(changes == [
             event(.productRemoved, about: [item(.fixture(id: 1), price: 9.99, quantity: 2), item(.fixture(id: 2), price: 5, quantity: 1)], in: onTheScreen)
         ])
@@ -279,7 +279,7 @@ struct TrackingTheBagTests {
 
         viewModel.didRemoveEverything(in: onTheScreen)
 
-        #expect(taps.events == [.tapped("remove_all", in: onTheScreen)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: onTheScreen, items: [], properties: ["element": "remove_all"])])
         #expect(reported.events.isEmpty)
     }
 
@@ -290,7 +290,7 @@ struct TrackingTheBagTests {
 
         viewModel.didSwipeToDelete(productId: pid(1), in: line(0))
 
-        #expect(taps.events == [.tapped("remove", in: line(0))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: line(0), items: [], properties: ["element": "remove"])])
         #expect(reported.events.isEmpty)
     }
 
@@ -303,7 +303,7 @@ struct TrackingTheBagTests {
 
         viewModel.didTapRow(viewModel.rows[0], in: line(0))
 
-        #expect(taps.events == [.tapped("bag_line", about: item(.fixture(id: 1), price: 1, quantity: 1), in: line(0))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: line(0), items: [item(.fixture(id: 1), price: 1, quantity: 1)], properties: ["element": "bag_line"])])
     }
 
     @Test("Tapping a notice line is reported in that notice's own list")
@@ -315,7 +315,7 @@ struct TrackingTheBagTests {
 
         viewModel.didTapRow(viewModel.notices(in: .outOfStock)[0], in: soldOut)
 
-        #expect(taps.events == [.tapped("notice_line", about: TrackedProduct.item(.fixture(id: 4)), in: soldOut)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: soldOut, items: [TrackedProduct.item(.fixture(id: 4))], properties: ["element": "notice_line"])])
     }
 
     @Test("Okay on a section is a tap named for that section")
@@ -325,6 +325,6 @@ struct TrackingTheBagTests {
 
         viewModel.didAcceptAll(.outOfStock, in: onTheScreen)
 
-        #expect(taps.events == [.tapped("accept_all_out_of_stock", in: onTheScreen)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: onTheScreen, items: [], properties: ["element": "accept_all_out_of_stock"])])
     }
 }

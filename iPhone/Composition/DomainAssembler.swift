@@ -44,7 +44,12 @@ struct DomainAssembler {
             browseCategories: catalog.browseCategories
         )
 
-        tracking = TrackingDI(destinations: data.trackingDestinations, consent: data.trackingConsent)
+        tracking = TrackingDI(
+            firebase: data.firebaseClient,
+            mParticle: data.mParticleClient,
+            logger: data.trackingLogger,
+            consent: data.trackingConsent
+        )
 
         let session = SessionDI(
             sessionStore: data.sessionStore,

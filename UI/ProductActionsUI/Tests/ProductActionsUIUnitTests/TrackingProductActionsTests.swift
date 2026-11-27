@@ -23,7 +23,7 @@ struct TrackingProductActionsTests {
     private let views = SpyTrackElementViewUseCase()
     private let taps = SpyTrackElementInteractionUseCase()
     private let reported = SpyTrackEventUseCase()
-    private let bag = SpyAddItemToBagUseCase()
+    private let bag = SpySetBagItemUseCase()
 
     private let onTheThirdCard = TrackingContext.list("home", TrackingContext.List(id: "home_carousel_beauty", name: "Beauty"), index: 2)
     private let onAPage = TrackingContext.screen("product_details")
@@ -52,8 +52,8 @@ struct TrackingProductActionsTests {
     private func bagButton(_ product: Product, snackbars: SpySnackbarPresenting) -> BagButtonViewModel {
         BagButtonViewModel(
             product: product,
-            observeBagItemQuantity: StubObserveBagItemQuantityUseCase(0),
-            addItemToBag: bag,
+            observeBag: StubObserveBagUseCase(Bag(items: [])),
+            setBagItem: bag,
             navigation: SpyProductActionsNavigation(),
             snackbarPresenter: snackbars,
             trackElementView: views,
@@ -72,7 +72,7 @@ struct TrackingProductActionsTests {
         viewModel.didTap(in: onTheThirdCard)
         await viewModel.inFlight?.value
 
-        #expect(taps.events == [.tapped("wishlist_on", about: TrackedProduct.item(product), in: onTheThirdCard)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: onTheThirdCard, items: [TrackedProduct.item(product)], properties: ["element": "wishlist_on"])])
         #expect(reported.events == [
             TrackingEvent(name: .productAddedToWishlist, context: onTheThirdCard, items: [TrackedProduct.item(product)], properties: [:])
         ])
@@ -85,7 +85,7 @@ struct TrackingProductActionsTests {
         viewModel.didTap(in: onAPage)
         await viewModel.inFlight?.value
 
-        #expect(taps.events == [.tapped("wishlist_on", about: TrackedProduct.item(.fixture(id: 3)), in: onAPage)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: onAPage, items: [TrackedProduct.item(.fixture(id: 3))], properties: ["element": "wishlist_on"])])
     }
 
     @Test("Un-hearting is the heart turned off, and saves nothing")
@@ -95,7 +95,7 @@ struct TrackingProductActionsTests {
         viewModel.didTap(in: onAPage)
         await viewModel.inFlight?.value
 
-        #expect(taps.events == [.tapped("wishlist_off", about: TrackedProduct.item(.fixture(id: 3)), in: onAPage)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: onAPage, items: [TrackedProduct.item(.fixture(id: 3))], properties: ["element": "wishlist_off"])])
         #expect(reported.events.isEmpty)
     }
 
@@ -127,7 +127,7 @@ struct TrackingProductActionsTests {
         #expect(reported.events == [
             TrackingEvent(name: .productAddedToWishlist, context: onTheThirdCard, items: [TrackedProduct.item(product)], properties: [:])
         ])
-        #expect(screens.events == [.screenViewed("home")])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen("home"), items: [], properties: [:])])
     }
 
     @Test("The snackbar the heart shows is seen where the heart was")
@@ -137,7 +137,7 @@ struct TrackingProductActionsTests {
         viewModel.didTap(in: onAPage)
         await viewModel.inFlight?.value
 
-        #expect(views.events == [.viewed("saved", about: TrackedProduct.item(.fixture(id: 3)), in: onAPage)])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: onAPage, items: [TrackedProduct.item(.fixture(id: 3))], properties: ["element": "saved"])])
     }
 
     // MARK: - The bag button
@@ -149,8 +149,8 @@ struct TrackingProductActionsTests {
         bagButton(product, snackbars: SpySnackbarPresenting()).didTap(in: onTheThirdCard)
 
         let item = TrackedProduct.item(product)
-        #expect(taps.events == [.tapped("add_to_bag", about: item, in: onTheThirdCard)])
-        #expect(views.events == [.viewed("in_the_bag", about: item, in: onTheThirdCard)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: onTheThirdCard, items: [item], properties: ["element": "add_to_bag"])])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: onTheThirdCard, items: [item], properties: ["element": "in_the_bag"])])
         #expect(reported.events == [
             TrackingEvent(
                 name: .productAdded,
@@ -159,8 +159,8 @@ struct TrackingProductActionsTests {
                 properties: [:]
             )
         ])
-        #expect(bag.added.map(\.quantity) == [1])
-        #expect(bag.added.map(\.lastKnownPrice) == [product.price])
+        #expect(bag.calls.map(\.quantity) == [1])
+        #expect(bag.calls.map(\.lastKnownPrice) == [product.price])
     }
 
     @Test("Following the snackbar to the bag is its own tap, where the button was")
@@ -170,7 +170,7 @@ struct TrackingProductActionsTests {
         bagButton(.fixture(id: 8), snackbars: snackbars).didTap(in: onAPage)
         snackbars.shown.first?.action?.handler()
 
-        #expect(taps.events.last == .tapped("snackbar_view_bag", in: onAPage))
+        #expect(taps.events.last == TrackingEvent(name: .elementSelected, context: onAPage, items: [], properties: ["element": "snackbar_view_bag"]))
     }
 
     @Test("A bag button that refuses a sold-out product reports nothing, because nothing happened")
@@ -203,8 +203,8 @@ struct TrackingProductActionsTests {
         await viewModel.inFlight?.value
 
         #expect(taps.events == [
-            .tapped("stock_alert_on", about: TrackedProduct.item(product), in: onAPage),
-            .tapped("remove_from_waitlist", about: TrackedProduct.item(product), in: onAPage)
+            TrackingEvent(name: .elementSelected, context: onAPage, items: [TrackedProduct.item(product)], properties: ["element": "stock_alert_on"]),
+            TrackingEvent(name: .elementSelected, context: onAPage, items: [TrackedProduct.item(product)], properties: ["element": "remove_from_waitlist"])
         ])
     }
 
@@ -226,6 +226,6 @@ struct TrackingProductActionsTests {
         viewModel.didTap(in: onAPage)
         await viewModel.inFlight?.value
 
-        #expect(taps.events == [.tapped("stock_alert_off", about: TrackedProduct.item(product), in: onAPage)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: onAPage, items: [TrackedProduct.item(product)], properties: ["element": "stock_alert_off"])])
     }
 }

@@ -54,17 +54,22 @@ final class Shopper {
     // MARK: - What a shopper does
 
     func choose(productId: Int, atPrice price: Decimal) {
-        di.addItemToBagUseCase(
-            BagItem(productId: pid(productId), lastKnownPrice: usd(price))
+        di.setBagItemUseCase(
+            BagItem(productId: pid(productId), quantity: bag.quantity(of: pid(productId)) + 1, lastKnownPrice: usd(price))
         )
     }
 
     func changeQuantity(ofProductId productId: Int, to quantity: Int) {
-        di.setBagItemQuantityUseCase(productId: pid(productId), to: quantity)
+        set(productId, to: quantity)
     }
 
     func remove(productId: Int) {
-        di.setBagItemQuantityUseCase(productId: pid(productId), to: 0)
+        set(productId, to: 0)
+    }
+
+    private func set(_ productId: Int, to quantity: Int) {
+        guard let line = bag.items.first(where: { $0.productId == pid(productId) }) else { return }
+        di.setBagItemUseCase(line.withQuantity(quantity))
     }
 
     func seen(productId: Int) {
@@ -89,13 +94,13 @@ final class Shopper {
 
     /// The shopper looks again, and the bag catches up with whatever the shop is saying today.
     func comesBack() async {
-        await di.bringBagUpToDateUseCase()
+        await di.refreshBagUseCase()
     }
 
     /// The shop could not be reached at all. Nothing was learned, so nothing may be concluded.
     func theShopCannotBeReached() async {
         shop.cannotBeReached = true
-        await di.bringBagUpToDateUseCase()
+        await di.refreshBagUseCase()
         shop.cannotBeReached = false
     }
 

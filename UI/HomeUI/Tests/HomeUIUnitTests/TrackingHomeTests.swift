@@ -39,7 +39,7 @@ struct TrackingHomeTests {
         viewModel.didAppear(in: .screen(screen))
         viewModel.didAppear(in: .screen(screen))
 
-        #expect(screens.events == [.screenViewed(screen), .screenViewed(screen)])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen(screen), items: [], properties: [:]), TrackingEvent(name: .screenViewed, context: .screen(screen), items: [], properties: [:])])
     }
 
     @Test("Coming back to a Home that has already loaded is still a visit, though nothing is asked of the shop")
@@ -64,7 +64,7 @@ struct TrackingHomeTests {
 
         makeViewModel(drawHomeFeed: SpyDrawHomeFeedUseCase()).didSee(product, in: where_)
 
-        #expect(views.events == [.viewed("product", about: TrackedProduct.item(product), in: where_)])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: where_, items: [TrackedProduct.item(product)], properties: ["element": "product"])])
     }
 
     @Test("A card tapped in a carousel is a tap in that carousel, at its position")
@@ -74,7 +74,7 @@ struct TrackingHomeTests {
 
         makeViewModel(drawHomeFeed: SpyDrawHomeFeedUseCase()).didSelect(product, in: where_)
 
-        #expect(taps.events == [.tapped("product", about: TrackedProduct.item(product), in: where_)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: where_, items: [TrackedProduct.item(product)], properties: ["element": "product"])])
     }
 
     @Test("Each carousel is its own list, named for its category")
@@ -86,13 +86,13 @@ struct TrackingHomeTests {
     func viewAll() {
         makeViewModel(drawHomeFeed: SpyDrawHomeFeedUseCase()).didTapViewAll(for: beauty, in: .screen(screen))
 
-        #expect(taps.events == [.tapped("view_all", about: .content(id: "beauty", name: "Beauty"), in: .screen(screen))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: .screen(screen), items: [.content(id: "beauty", name: "Beauty")], properties: ["element": "view_all"])])
     }
 
     @Test("Trying again is a tap about nothing in particular")
     func retry() {
         makeViewModel(drawHomeFeed: SpyDrawHomeFeedUseCase()).didTapRetry(in: .screen(screen))
 
-        #expect(taps.events == [.tapped("retry", in: .screen(screen))])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: .screen(screen), items: [], properties: ["element": "retry"])])
     }
 }

@@ -70,14 +70,14 @@ struct TrackingWishlistTests {
     func tabView() {
         theTab(auth: SpyAuthPresenting()).didAppear(in: tab)
 
-        #expect(screens.events == [.screenViewed("wishlist")])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen("wishlist"), items: [], properties: [:])])
     }
 
     @Test("A full list coming into view is its own screen")
     func fullListView() {
         faves(lookUp: SpyLookUpProductsUseCase(), opened: { _ in }).didAppear(in: .screen("wishlist_faves"))
 
-        #expect(screens.events == [.screenViewed("wishlist_faves")])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen("wishlist_faves"), items: [], properties: [:])])
     }
 
     @Test("A card seen in My Faves is an impression in that list, at its position")
@@ -87,7 +87,7 @@ struct TrackingWishlistTests {
 
         faves(lookUp: SpyLookUpProductsUseCase(), opened: { _ in }).didSee(product, in: where_)
 
-        #expect(views.events == [.viewed("product", about: TrackedProduct.item(product), in: where_)])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: where_, items: [TrackedProduct.item(product)], properties: ["element": "product"])])
     }
 
     @Test("A card tapped on the waitlist is a tap in the waitlist, and then opens the product")
@@ -98,7 +98,7 @@ struct TrackingWishlistTests {
 
         waitlist(load: SpyGetAlertedProducts(), opened: { opened.append($0.id) }).didSelect(product, in: where_)
 
-        #expect(taps.events == [.tapped("product", about: TrackedProduct.item(product), in: where_)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: where_, items: [TrackedProduct.item(product)], properties: ["element": "product"])])
         #expect(opened == [product.id])
     }
 
@@ -107,7 +107,7 @@ struct TrackingWishlistTests {
         theTab(auth: SpyAuthPresenting()).didTapViewAll(WishlistTrackingPlan.backInStock, in: tab)
 
         #expect(taps.events == [
-            .tapped("view_all", about: .content(id: "wishlist_back_in_stock", name: "Back in Stock"), in: tab)
+            TrackingEvent(name: .elementSelected, context: tab, items: [.content(id: "wishlist_back_in_stock", name: "Back in Stock")], properties: ["element": "view_all"])
         ])
     }
 
@@ -120,7 +120,7 @@ struct TrackingWishlistTests {
 
         viewModel.didConfirmClear(in: tab)
 
-        #expect(taps.events == [.tapped("clear", about: .content(id: "wishlist_waitlist", name: "Waitlist"), in: tab)])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: tab, items: [.content(id: "wishlist_waitlist", name: "Waitlist")], properties: ["element": "clear"])])
     }
 
     @Test("Clearing a list that is already empty is not reported, because nothing was cleared")
@@ -139,7 +139,7 @@ struct TrackingWishlistTests {
         viewModel.onAppear(in: tab)
         await viewModel.inFlight?.value
 
-        #expect(views.events == [.viewed("faves_won_t_load", in: tab)])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: tab, items: [], properties: ["element": "faves_won_t_load"])])
     }
 
     @Test("Signing in from the guest prompt is a tap, and the tab is viewed again once the sheet closes")
@@ -149,7 +149,7 @@ struct TrackingWishlistTests {
         viewModel.didTapSignIn(in: tab)
         await viewModel.inFlight?.value
 
-        #expect(taps.events == [.tapped("sign_in", in: tab)])
-        #expect(screens.events == [.screenViewed("wishlist")])
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: tab, items: [], properties: ["element": "sign_in"])])
+        #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen("wishlist"), items: [], properties: [:])])
     }
 }

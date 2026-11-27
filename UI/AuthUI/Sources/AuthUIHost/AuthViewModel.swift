@@ -151,7 +151,7 @@ final class AuthViewModel {
     /// A shopper got in. Logging in and creating an account are two events, and the name says
     /// which; how they got in is the same for both, because this sheet has one way.
     private func authenticated(_ name: EventName) -> TrackingEvent {
-        TrackingEvent(name: name, context: context, items: [], properties: [.method: AuthTrackingPlan.Method.email.rawValue])
+        TrackingEvent(name: name, context: context, items: [], properties: ["method": AuthTrackingPlan.Method.email.rawValue])
     }
 
     private func greeting(_ lead: String) -> String {

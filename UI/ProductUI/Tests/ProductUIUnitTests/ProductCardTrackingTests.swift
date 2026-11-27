@@ -17,7 +17,7 @@ struct ProductCardTrackingTests {
 
         ProductCardTracking(trackElementView: elements, trackElementInteraction: SpyTrackElementInteractionUseCase()).seen(.fixture(id: 7), in: carousel)
 
-        #expect(elements.events == [.viewed("product", about: TrackedProduct.item(.fixture(id: 7)), in: carousel)])
+        #expect(elements.events == [TrackingEvent(name: .elementViewed, context: carousel, items: [TrackedProduct.item(.fixture(id: 7))], properties: ["element": "product"])])
     }
 
     @Test("A card tapped is a tap on its product, where the card was")
@@ -26,6 +26,6 @@ struct ProductCardTrackingTests {
 
         ProductCardTracking(trackElementView: SpyTrackElementViewUseCase(), trackElementInteraction: elements).selected(.fixture(id: 7), in: carousel)
 
-        #expect(elements.events == [.tapped("product", about: TrackedProduct.item(.fixture(id: 7)), in: carousel)])
+        #expect(elements.events == [TrackingEvent(name: .elementSelected, context: carousel, items: [TrackedProduct.item(.fixture(id: 7))], properties: ["element": "product"])])
     }
 }

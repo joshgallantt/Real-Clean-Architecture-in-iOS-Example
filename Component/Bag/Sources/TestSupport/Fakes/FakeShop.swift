@@ -84,21 +84,17 @@ public final class FakeShop: BagRepository {
     // MARK: - The real use cases, over this as their repository
 
     public var observeBag: ObserveBagUseCase { DefaultObserveBagUseCase(repository: self) }
-    public var observeBagItemQuantity: ObserveBagItemQuantityUseCase {
-        DefaultObserveBagItemQuantityUseCase(repository: self)
-    }
     public var observeNotices: ObserveNoticesUseCase { DefaultObserveNoticesUseCase(repository: self) }
-    public var setBagItemQuantity: SetBagItemQuantityUseCase { DefaultSetBagItemQuantityUseCase(repository: self) }
-    public var bringUpToDate: BringBagUpToDateUseCase {
-        DefaultBringBagUpToDateUseCase(repository: self, lookUpProducts: lookUpProducts)
+    public var setBagItem: SetBagItemUseCase { DefaultSetBagItemUseCase(repository: self) }
+    public var refreshBag: RefreshBagUseCase {
+        DefaultRefreshBagUseCase(repository: self, lookUpProducts: lookUpProducts)
     }
     public var acknowledge: AcknowledgeNoticesUseCase { DefaultAcknowledgeNoticesUseCase(repository: self) }
-    public var addItemToBag: AddItemToBagUseCase { DefaultAddItemToBagUseCase(repository: self) }
 
     public nonisolated var lookUpProducts: LookUpProductsUseCase { Lookup(shop: self) }
 
     public func choose(_ item: BagItem) {
-        addItemToBag(item)
+        setBagItem(item.withQuantity(bag.quantity(of: item.productId) + item.quantity))
     }
 
     // MARK: - BagRepository

@@ -35,7 +35,7 @@ struct ProductDetailsViewModelTests {
         viewModel.didAppear(in: page)
         viewModel.didAppear(in: page)
 
-        #expect(screens.events == Array(repeating: .screenViewed("product_details"), count: 2))
+        #expect(screens.events == Array(repeating: TrackingEvent(name: .screenViewed, context: .screen("product_details"), items: [], properties: [:]), count: 2))
         #expect(reported.events == Array(
             repeating: TrackingEvent(name: .productViewed, context: page, items: [TrackedProduct.item(product)], properties: [:]),
             count: 2

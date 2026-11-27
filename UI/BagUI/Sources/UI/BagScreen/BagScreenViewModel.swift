@@ -33,8 +33,8 @@ public final class BagScreenViewModel {
     private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase
     private let observeNotices: ObserveNoticesUseCase
-    private let setBagItemQuantity: SetBagItemQuantityUseCase
-    private let bringBagUpToDate: BringBagUpToDateUseCase
+    private let setBagItem: SetBagItemUseCase
+    private let refreshBag: RefreshBagUseCase
     private let acknowledgeNotices: AcknowledgeNoticesUseCase
 
     private let trackScreenView: TrackScreenViewUseCase
@@ -77,8 +77,8 @@ public final class BagScreenViewModel {
         navigation: BagNavigation,
         observeBag: ObserveBagUseCase,
         observeNotices: ObserveNoticesUseCase,
-        setBagItemQuantity: SetBagItemQuantityUseCase,
-        bringBagUpToDate: BringBagUpToDateUseCase,
+        setBagItem: SetBagItemUseCase,
+        refreshBag: RefreshBagUseCase,
         acknowledgeNotices: AcknowledgeNoticesUseCase,
         trackScreenView: TrackScreenViewUseCase,
         trackElementView: TrackElementViewUseCase,
@@ -88,8 +88,8 @@ public final class BagScreenViewModel {
         self.navigation = navigation
         self.observeBag = observeBag
         self.observeNotices = observeNotices
-        self.setBagItemQuantity = setBagItemQuantity
-        self.bringBagUpToDate = bringBagUpToDate
+        self.setBagItem = setBagItem
+        self.refreshBag = refreshBag
         self.acknowledgeNotices = acknowledgeNotices
         self.trackScreenView = trackScreenView
         self.trackElementView = trackElementView
@@ -193,8 +193,8 @@ public final class BagScreenViewModel {
             let change = quantity - line.quantity
             tapped(change > 0 ? BagTrackingPlan.quantityUp : BagTrackingPlan.quantityDown, on: line, quantity: abs(change), in: context)
             reportQuantityChange(of: line, to: quantity, in: context)
+            setBagItem(line.withQuantity(quantity))
         }
-        setBagItemQuantity(productId: productId, to: quantity)
         startAskingTheShop()
     }
 
@@ -202,8 +202,8 @@ public final class BagScreenViewModel {
         if let line = line(productId) {
             tapped(BagTrackingPlan.swipeRemove, on: line, quantity: line.quantity, in: context)
             report(.productRemoved, about: [line], in: context)
+            setBagItem(line.withQuantity(0))
         }
-        setBagItemQuantity(productId: productId, to: 0)
         startAskingTheShop()
     }
 
@@ -258,7 +258,7 @@ public final class BagScreenViewModel {
         trackElementInteraction(BagTrackingPlan.removeAll, in: context)
         report(.productRemoved, about: bag.items, in: context)
         for item in bag.items {
-            setBagItemQuantity(productId: item.id, to: 0)
+            setBagItem(item.withQuantity(0))
         }
         startAskingTheShop()
     }
@@ -268,8 +268,8 @@ public final class BagScreenViewModel {
         if let line = line(productId) {
             tapped(BagTrackingPlan.removeChanged, on: line, quantity: line.quantity, in: context)
             report(.productRemoved, about: [line], in: context)
+            setBagItem(line.withQuantity(0))
         }
-        setBagItemQuantity(productId: productId, to: 0)
         startAskingTheShop()
     }
 
@@ -345,7 +345,7 @@ public final class BagScreenViewModel {
 
         guard !onScreen.isEmpty else { return }
 
-        let products = await bringBagUpToDate()
+        let products = await refreshBag()
         guard !Task.isCancelled else { return }
 
         for product in products {

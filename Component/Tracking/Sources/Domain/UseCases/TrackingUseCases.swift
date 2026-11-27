@@ -47,9 +47,3 @@ public protocol RequestTrackingConsentUseCase: Sendable {
     @discardableResult
     func callAsFunction() async -> TrackingConsentStatus
 }
-
-/// Sends anything held back for batching, before the app is suspended.
-public protocol SendHeldTrackingUseCase: Sendable {
-    @MainActor
-    func callAsFunction()
-}

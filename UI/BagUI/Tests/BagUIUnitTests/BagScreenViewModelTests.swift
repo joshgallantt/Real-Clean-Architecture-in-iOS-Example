@@ -19,16 +19,16 @@ struct BagScreenViewModelTests {
         navigation: SpyBagNavigation = SpyBagNavigation(),
         observeBag: StubObserveBagUseCase = StubObserveBagUseCase(),
         observeNotices: StubObserveNoticesUseCase = StubObserveNoticesUseCase(),
-        setBagItemQuantity: SpySetBagItemQuantityUseCase = SpySetBagItemQuantityUseCase(),
-        bringBagUpToDate: SpyBringBagUpToDateUseCase = SpyBringBagUpToDateUseCase(),
+        setBagItem: SpySetBagItemUseCase = SpySetBagItemUseCase(),
+        refreshBag: SpyRefreshBagUseCase = SpyRefreshBagUseCase(),
         acknowledgeNotices: SpyAcknowledgeNoticesUseCase = SpyAcknowledgeNoticesUseCase()
     ) -> BagScreenViewModel {
         BagScreenViewModel(
             navigation: navigation,
             observeBag: observeBag,
             observeNotices: observeNotices,
-            setBagItemQuantity: setBagItemQuantity,
-            bringBagUpToDate: bringBagUpToDate,
+            setBagItem: setBagItem,
+            refreshBag: refreshBag,
             acknowledgeNotices: acknowledgeNotices,
             trackScreenView: SpyTrackScreenViewUseCase(),
             trackElementView: SpyTrackElementViewUseCase(),
@@ -50,70 +50,76 @@ struct BagScreenViewModelTests {
 
     @Test("Changing how many delegates to the use case with that product and the new quantity")
     func changingQuantityDelegates() async {
-        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
-        let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
+        let observeBag = StubObserveBagUseCase(Bag(items: [bagItem(1, price: 9.99), bagItem(9, price: 5)]))
+        let setBagItem = SpySetBagItemUseCase()
+        let viewModel = makeViewModel(observeBag: observeBag, setBagItem: setBagItem)
+        await viewModel.onAppear()
 
         viewModel.didChangeQuantity(productId: pid(1), quantity: 3, in: inTheBag)
 
-        #expect(setBagItemQuantity.calls.map(\.productId) == [pid(1)])
-        #expect(setBagItemQuantity.calls.map(\.quantity) == [3])
+        #expect(setBagItem.calls.map(\.productId) == [pid(1)])
+        #expect(setBagItem.calls.map(\.quantity) == [3])
     }
 
     @Test("Swiping to delete sets that product's quantity to zero, not just any product's")
-    func swipeToDeleteTargetsTheRightProduct() {
-        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
-        let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
+    func swipeToDeleteTargetsTheRightProduct() async {
+        let observeBag = StubObserveBagUseCase(Bag(items: [bagItem(2, price: 9.99), bagItem(9, price: 5)]))
+        let setBagItem = SpySetBagItemUseCase()
+        let viewModel = makeViewModel(observeBag: observeBag, setBagItem: setBagItem)
+        await viewModel.onAppear()
 
         viewModel.didSwipeToDelete(productId: pid(2), in: inTheBag)
 
-        #expect(setBagItemQuantity.calls.map(\.productId) == [pid(2)])
-        #expect(setBagItemQuantity.calls.map(\.quantity) == [0])
+        #expect(setBagItem.calls.map(\.productId) == [pid(2)])
+        #expect(setBagItem.calls.map(\.quantity) == [0])
     }
 
     @Test("Removing a repriced line sets that one product's quantity to zero")
-    func removingAChangedItemTargetsTheRightProduct() {
-        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
-        let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
+    func removingAChangedItemTargetsTheRightProduct() async {
+        let observeBag = StubObserveBagUseCase(Bag(items: [bagItem(4, price: 9.99), bagItem(9, price: 5)]))
+        let setBagItem = SpySetBagItemUseCase()
+        let viewModel = makeViewModel(observeBag: observeBag, setBagItem: setBagItem)
+        await viewModel.onAppear()
 
         viewModel.didRemoveChangedItem(productId: pid(4), in: inTheBag)
 
-        #expect(setBagItemQuantity.calls.map(\.productId) == [pid(4)])
-        #expect(setBagItemQuantity.calls.map(\.quantity) == [0])
+        #expect(setBagItem.calls.map(\.productId) == [pid(4)])
+        #expect(setBagItem.calls.map(\.quantity) == [0])
     }
 
     @Test("Emptying the bag sets every line's quantity to zero, and no other product's")
     func removingEverythingClearsEveryLine() async {
         let observeBag = StubObserveBagUseCase(Bag(items: [bagItem(1, price: 9.99), bagItem(2, price: 5)]))
-        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
-        let viewModel = makeViewModel(observeBag: observeBag, setBagItemQuantity: setBagItemQuantity)
+        let setBagItem = SpySetBagItemUseCase()
+        let viewModel = makeViewModel(observeBag: observeBag, setBagItem: setBagItem)
         await viewModel.onAppear()
 
         viewModel.didRemoveEverything(in: inTheBag)
 
-        #expect(Set(setBagItemQuantity.calls.map(\.productId)) == Set([pid(1), pid(2)]))
-        #expect(setBagItemQuantity.calls.allSatisfy { $0.quantity == 0 })
+        #expect(Set(setBagItem.calls.map(\.productId)) == Set([pid(1), pid(2)]))
+        #expect(setBagItem.calls.allSatisfy { $0.quantity == 0 })
     }
 
     @Test("Emptying an already-empty bag asks the use case for nothing")
     func removingEverythingFromAnEmptyBagDoesNothing() async {
-        let setBagItemQuantity = SpySetBagItemQuantityUseCase()
-        let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
+        let setBagItem = SpySetBagItemUseCase()
+        let viewModel = makeViewModel(setBagItem: setBagItem)
         await viewModel.onAppear()
 
         viewModel.didRemoveEverything(in: inTheBag)
 
-        #expect(setBagItemQuantity.calls.isEmpty)
+        #expect(setBagItem.calls.isEmpty)
     }
 
     @Test("Tapping a line opens that product, and no other")
     func tappingARowOpensThatProduct() async {
         let navigation = SpyBagNavigation()
-        let bringBagUpToDate = SpyBringBagUpToDateUseCase()
-        bringBagUpToDate.products = [.fixture(id: 3), .fixture(id: 4)]
+        let refreshBag = SpyRefreshBagUseCase()
+        refreshBag.products = [.fixture(id: 3), .fixture(id: 4)]
         let viewModel = makeViewModel(
             navigation: navigation,
             observeBag: StubObserveBagUseCase(Bag(items: [bagItem(3, price: 9.99), bagItem(4, price: 4.99)])),
-            bringBagUpToDate: bringBagUpToDate
+            refreshBag: refreshBag
         )
         await viewModel.onAppear()
 
@@ -167,12 +173,12 @@ struct BagScreenViewModelTests {
     @Test("What the shop is told to catch up on is what the screen appeared showing")
     func asksTheShopWhatIsOnScreen() async {
         let observeBag = StubObserveBagUseCase(Bag(items: [bagItem(1, price: 9.99), bagItem(2, price: 5)]))
-        let bringBagUpToDate = SpyBringBagUpToDateUseCase()
-        let viewModel = makeViewModel(observeBag: observeBag, bringBagUpToDate: bringBagUpToDate)
+        let refreshBag = SpyRefreshBagUseCase()
+        let viewModel = makeViewModel(observeBag: observeBag, refreshBag: refreshBag)
 
         await viewModel.onAppear()
 
-        #expect(bringBagUpToDate.callCount == 1)
+        #expect(refreshBag.callCount == 1)
     }
 }
 

@@ -19,8 +19,8 @@ public final class BagButtonViewModel {
     private(set) var quantity = 0
 
     private let product: Product
-    private let observeBagItemQuantity: ObserveBagItemQuantityUseCase
-    private let addItemToBag: AddItemToBagUseCase
+    private let observeBag: ObserveBagUseCase
+    private let setBagItem: SetBagItemUseCase
     private let navigation: ProductActionsNavigation
     private let snackbarPresenter: SnackbarPresenting
     private let trackElementView: TrackElementViewUseCase
@@ -30,8 +30,8 @@ public final class BagButtonViewModel {
 
     public init(
         product: Product,
-        observeBagItemQuantity: ObserveBagItemQuantityUseCase,
-        addItemToBag: AddItemToBagUseCase,
+        observeBag: ObserveBagUseCase,
+        setBagItem: SetBagItemUseCase,
         navigation: ProductActionsNavigation,
         snackbarPresenter: SnackbarPresenting,
         trackElementView: TrackElementViewUseCase,
@@ -39,8 +39,8 @@ public final class BagButtonViewModel {
         trackEvent: TrackEventUseCase
     ) {
         self.product = product
-        self.observeBagItemQuantity = observeBagItemQuantity
-        self.addItemToBag = addItemToBag
+        self.observeBag = observeBag
+        self.setBagItem = setBagItem
         self.navigation = navigation
         self.snackbarPresenter = snackbarPresenter
         self.trackElementView = trackElementView
@@ -54,7 +54,10 @@ public final class BagButtonViewModel {
     func onAppear() {
         guard cancellables.isEmpty else { return }
 
-        observeBagItemQuantity(productId: product.id)
+        let productId = product.id
+        observeBag()
+            .map { $0.quantity(of: productId) }
+            .removeDuplicates()
             .sink { [weak self] value in
                 self?.quantity = value
             }
@@ -75,9 +78,11 @@ public final class BagButtonViewModel {
     private var item: TrackedItem { TrackedProduct.item(product) }
 
     private func addToBag(in context: TrackingContext) {
-        let line = BagItem(productId: product.id, lastKnownPrice: product.price)
-        addItemToBag(line)
-        trackEvent(added(line, in: context))
+        /// One more than the bag holds, at the price the shopper is looking at. What is reported
+        /// is the one that was added, not the line it left behind.
+        let one = BagItem(productId: product.id, quantity: 1, lastKnownPrice: product.price, dateAdded: Date())
+        setBagItem(one.withQuantity(quantity + 1))
+        trackEvent(added(one, in: context))
 
         let snackbar = Snackbar(
             title: "In the Bag",
