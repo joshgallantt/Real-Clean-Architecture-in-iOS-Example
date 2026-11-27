@@ -4,6 +4,8 @@ import ProductTestSupport
 import SnackbarUITestSupport
 import WaitlistTestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Product
 @testable import ProductActionsUI
 @testable import ProductActionsUITestSupport
@@ -12,18 +14,21 @@ import Product
 @Suite("The stock alert bell")
 struct StockAlertButtonViewModelTests {
     private func makeViewModel(
-        productId: ProductID = pid(1),
+        product: Product = .fixture(id: 1),
         observeProductIsWaitlisted: StubObserveProductIsWaitlistedUseCase = StubObserveProductIsWaitlistedUseCase(),
         setProductIsWaitlisted: SpySetProductIsWaitlistedUseCase = SpySetProductIsWaitlistedUseCase(),
         authPresenter: SpyAuthPresenting = SpyAuthPresenting(),
         snackbarPresenter: SpySnackbarPresenting = SpySnackbarPresenting()
     ) -> StockAlertButtonViewModel {
         let viewModel = StockAlertButtonViewModel(
-            productId: productId,
+            product: product,
             observeProductIsWaitlisted: observeProductIsWaitlisted,
             setProductIsWaitlisted: setProductIsWaitlisted,
             authPresenter: authPresenter,
-            snackbarPresenter: snackbarPresenter
+            snackbarPresenter: snackbarPresenter,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
         )
         /// The screen subscribes on appear rather than in `init`, so the test has
         /// to do what the screen does before it can expect anything published.
@@ -42,12 +47,12 @@ struct StockAlertButtonViewModelTests {
     func tapWhenNotWaitingAsksToBeAdded() async {
         let setProductIsWaitlisted = SpySetProductIsWaitlistedUseCase()
         let viewModel = makeViewModel(
-            productId: pid(1),
+            product: .fixture(id: 1),
             observeProductIsWaitlisted: StubObserveProductIsWaitlistedUseCase(false),
             setProductIsWaitlisted: setProductIsWaitlisted
         )
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(setProductIsWaitlisted.calls.map(\.productId) == [pid(1)])
@@ -59,7 +64,7 @@ struct StockAlertButtonViewModelTests {
         let setProductIsWaitlisted = SpySetProductIsWaitlistedUseCase()
         let viewModel = makeViewModel(observeProductIsWaitlisted: StubObserveProductIsWaitlistedUseCase(true), setProductIsWaitlisted: setProductIsWaitlisted)
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(setProductIsWaitlisted.calls.map(\.isWaitlisted) == [false])
@@ -75,8 +80,8 @@ struct StockAlertButtonViewModelTests {
             setProductIsWaitlisted: setProductIsWaitlisted
         )
 
-        viewModel.didTap()
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(setProductIsWaitlisted.calls.map(\.isWaitlisted) == [true, false])
@@ -93,8 +98,8 @@ struct StockAlertButtonViewModelTests {
             setProductIsWaitlisted: setProductIsWaitlisted
         )
 
-        viewModel.didTap()
-        viewModel.didTapRemove()
+        viewModel.didTap(in: .screen("product_details"))
+        viewModel.didTapRemove(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(setProductIsWaitlisted.calls.map(\.isWaitlisted) == [true, false])
@@ -106,7 +111,7 @@ struct StockAlertButtonViewModelTests {
         let setProductIsWaitlisted = SpySetProductIsWaitlistedUseCase()
         let viewModel = makeViewModel(observeProductIsWaitlisted: StubObserveProductIsWaitlistedUseCase(false), setProductIsWaitlisted: setProductIsWaitlisted)
 
-        viewModel.didTapRemove()
+        viewModel.didTapRemove(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(setProductIsWaitlisted.calls.map(\.isWaitlisted) == [false])
@@ -117,7 +122,7 @@ struct StockAlertButtonViewModelTests {
         let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(snackbarPresenter: snackbarPresenter)
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(snackbarPresenter.shown.first?.title == "You're on the List")
@@ -131,7 +136,7 @@ struct StockAlertButtonViewModelTests {
         authPresenter.signsIn = true
         let viewModel = makeViewModel(setProductIsWaitlisted: setProductIsWaitlisted, authPresenter: authPresenter)
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(authPresenter.timesAsked == 1)
@@ -148,7 +153,7 @@ struct StockAlertButtonViewModelTests {
         let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(setProductIsWaitlisted: setProductIsWaitlisted, authPresenter: authPresenter, snackbarPresenter: snackbarPresenter)
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(setProductIsWaitlisted.calls.count == 1)

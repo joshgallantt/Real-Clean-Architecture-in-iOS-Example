@@ -1,15 +1,18 @@
 import SwiftUI
 import Home
 import Product
+import Tracking
+import TrackingUI
 
 public struct HomeScreenView: View {
+    @Environment(\.trackingContext) private var trackingContext
     let viewModel: HomeScreenViewModel
-    let wishlistButton: (ProductID) -> AnyView
+    let wishlistButton: (Product) -> AnyView
     let bagButton: (Product) -> AnyView
 
     public init(
         viewModel: HomeScreenViewModel,
-        wishlistButton: @escaping (ProductID) -> AnyView,
+        wishlistButton: @escaping (Product) -> AnyView,
         bagButton: @escaping (Product) -> AnyView
     ) {
         self.viewModel = viewModel
@@ -30,10 +33,11 @@ public struct HomeScreenView: View {
                 } description: {
                     Text("Check your signal and give it another go.")
                 } actions: {
-                    Button("Try Again") { viewModel.didTapRetry() }
+                    Button("Try Again") { viewModel.didTapRetry(in: trackingContext) }
                 }
             }
         }
+        .onScreenAppear { viewModel.didAppear(in: $0) }
         .task {
             await viewModel.onAppear()
         }
@@ -45,11 +49,13 @@ public struct HomeScreenView: View {
                 ForEach(feed.carousels) { carousel in
                     HomeCarouselView(
                         carousel: carousel,
-                        onSelect: { viewModel.didSelect($0) },
-                        onViewAll: { viewModel.didTapViewAll(for: carousel) },
-                        accessory: { product in wishlistButton(product.id) },
+                        onSelect: { viewModel.didSelect($0, in: $1) },
+                        onSeen: { viewModel.didSee($0, in: $1) },
+                        onViewAll: { viewModel.didTapViewAll(for: carousel, in: $0) },
+                        accessory: { product in wishlistButton(product) },
                         leadingAccessory: { product in bagButton(product) }
                     )
+                    .trackingList(HomeTrackingPlan.list(carousel))
                 }
             }
             .padding(.vertical)

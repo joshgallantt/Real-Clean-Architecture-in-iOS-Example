@@ -1,7 +1,10 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 import UIKit
 
 public struct BagButtonView: View {
+    @Environment(\.trackingContext) private var trackingContext
     @State private var viewModel: BagButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> BagButtonViewModel) {
@@ -11,7 +14,7 @@ public struct BagButtonView: View {
     public var body: some View {
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            viewModel.didTap()
+            viewModel.didTap(in: trackingContext)
         } label: {
             ZStack(alignment: .topTrailing) {
                 Image(systemName: "bag.fill")

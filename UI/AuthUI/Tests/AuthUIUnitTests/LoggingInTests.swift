@@ -3,6 +3,8 @@ import ProductTestSupport
 import Foundation
 import SessionTestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Session
 @testable import AuthUIDI
 
@@ -20,6 +22,10 @@ struct LoggingInTests {
             loginUseCase: loginUseCase,
             createAccountUseCase: SpyCreateAccountUseCase(),
             getSession: getSession,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase(),
             onAuthenticated: onAuthenticated
         )
         viewModel.email = "ada@example.com"

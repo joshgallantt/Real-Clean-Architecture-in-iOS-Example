@@ -1,6 +1,8 @@
 import SwiftUI
 import Product
 import ProductUI
+import Tracking
+import TrackingUI
 
 /// What a carousel's View All opens: the same products, all of them, in the grid every other
 /// full list in this app uses. It is one screen rather than two because the lists differ in their
@@ -10,12 +12,13 @@ public struct SavedProductsListView: View {
     /// built by `makeView()` every time the navigation stack re-evaluates. Observing a view model
     /// handed in fresh each render would reset the list and re-ask the shop on every redraw.
     @State private var viewModel: SavedProductsViewModel
+    @Environment(\.trackingContext) private var trackingContext
 
     let title: String
     let emptyTitle: String
     let emptyIcon: String
     let emptyMessage: String
-    let onSelect: (Product) -> Void
+    let listContext: TrackingContext.List
     let accessory: (Product) -> AnyView
     let leadingAccessory: (Product) -> AnyView
 
@@ -25,7 +28,7 @@ public struct SavedProductsListView: View {
         emptyTitle: String,
         emptyIcon: String,
         emptyMessage: String,
-        onSelect: @escaping (Product) -> Void,
+        listContext: TrackingContext.List,
         accessory: @escaping (Product) -> AnyView,
         leadingAccessory: @escaping (Product) -> AnyView
     ) {
@@ -34,7 +37,7 @@ public struct SavedProductsListView: View {
         self.emptyTitle = emptyTitle
         self.emptyIcon = emptyIcon
         self.emptyMessage = emptyMessage
-        self.onSelect = onSelect
+        self.listContext = listContext
         self.accessory = accessory
         self.leadingAccessory = leadingAccessory
     }
@@ -43,11 +46,13 @@ public struct SavedProductsListView: View {
         ProductGridListView(
             products: viewModel.products,
             isLoadingMore: viewModel.isLoadingMore,
-            onSelect: onSelect,
-            onReachEnd: { viewModel.onReachEnd() },
+            onSelect: { viewModel.didSelect($0, in: $1) },
+            onSeen: { viewModel.didSee($0, in: $1) },
+            onCardAppear: { viewModel.didLayOut($0, in: trackingContext) },
             accessory: accessory,
             leadingAccessory: leadingAccessory
         )
+        .trackingList(listContext)
         .overlay {
             if viewModel.isEmpty && !viewModel.isLoading {
                 ContentUnavailableView(
@@ -59,6 +64,9 @@ public struct SavedProductsListView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { viewModel.onAppear() }
+        .onScreenAppear { context in
+            viewModel.didAppear(in: context)
+            viewModel.onAppear(in: context)
+        }
     }
 }

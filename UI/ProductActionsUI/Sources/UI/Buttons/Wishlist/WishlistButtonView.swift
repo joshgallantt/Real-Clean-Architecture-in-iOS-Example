@@ -1,7 +1,10 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 import UIKit
 
 public struct WishlistButtonView: View {
+    @Environment(\.trackingContext) private var trackingContext
     @State private var viewModel: WishlistButtonViewModel
 
     /// Belongs to the tap, not to the saved state.
@@ -15,7 +18,7 @@ public struct WishlistButtonView: View {
         Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
             beat()
-            viewModel.didTap()
+            viewModel.didTap(in: trackingContext)
         } label: {
             Image(systemName: viewModel.isInWishlist ? "heart.fill" : "heart")
                 .font(.subheadline.weight(.bold))

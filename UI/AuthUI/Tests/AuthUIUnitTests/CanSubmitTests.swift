@@ -3,6 +3,8 @@ import ProductTestSupport
 import Foundation
 import SessionTestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Session
 @testable import AuthUIDI
 
@@ -13,7 +15,7 @@ struct CanSubmitTests {
         mode: AuthMode = .logIn,
         loginUseCase: SpyLoginUseCase = SpyLoginUseCase(),
         createAccountUseCase: SpyCreateAccountUseCase = SpyCreateAccountUseCase(),
-        getSession: StubGetSessionUseCase = StubGetSessionUseCase()
+        getSession: StubGetSessionUseCase = StubGetSessionUseCase(),
     ) -> AuthViewModel {
         AuthViewModel(
             mode: mode,
@@ -21,6 +23,10 @@ struct CanSubmitTests {
             loginUseCase: loginUseCase,
             createAccountUseCase: createAccountUseCase,
             getSession: getSession,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase(),
             onAuthenticated: {}
         )
     }

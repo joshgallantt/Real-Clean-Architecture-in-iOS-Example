@@ -1,6 +1,8 @@
 import Combine
 import Foundation
 import Settings
+import Tracking
+import TrackingTestSupport
 import SettingsTestSupport
 @testable import SettingsUI
 
@@ -22,7 +24,9 @@ final class Shopper {
             settings: settingsSubject,
             signedIn: signedInSubject
         ),
-        setSetting: setSetting
+        setSetting: setSetting,
+        trackScreenView: SpyTrackScreenViewUseCase(),
+        trackElementInteraction: SpyTrackElementInteractionUseCase()
     )
 
     init(signedIn: Bool = false, settings: Settings = Settings()) {
@@ -38,7 +42,7 @@ final class Shopper {
     }
 
     func toggles(_ key: SettingKey, to isOn: Bool) {
-        screen.didToggle(key, to: isOn)
+        screen.didToggle(key, to: isOn, in: .screen("settings"))
     }
 
     /// What the shop says the moment somebody signs in: a shopper with an account now, and that

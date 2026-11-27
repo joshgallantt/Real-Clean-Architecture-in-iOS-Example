@@ -5,13 +5,21 @@ import Product
 import SnapshotTesting
 import SwiftUI
 import Testing
+import Tracking
+import TrackingUI
+import TrackingTestSupport
 @testable import OrderUI
 
 @MainActor
 @Test("A placed order is confirmed with its reference, date and total")
 func aPlacedOrderIsConfirmed() {
     assertSnapshot(
-        of: OrderConfirmationView(order: OrderSummary(anOrder(quantity: 2)), done: {}),
+        of: OrderConfirmationView(viewModel: OrderConfirmationViewModel(
+            order: OrderSummary(anOrder(quantity: 2)),
+            done: {},
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
+        )),
         as: .image(layout: .device(config: .iPhone13))
     )
 }
@@ -20,7 +28,12 @@ func aPlacedOrderIsConfirmed() {
 @Test("A single item is confirmed in the singular, not as one items")
 func aSingleItemReadsAsSingular() {
     assertSnapshot(
-        of: OrderConfirmationView(order: OrderSummary(anOrder(quantity: 1)), done: {}),
+        of: OrderConfirmationView(viewModel: OrderConfirmationViewModel(
+            order: OrderSummary(anOrder(quantity: 1)),
+            done: {},
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
+        )),
         as: .image(layout: .device(config: .iPhone13))
     )
 }

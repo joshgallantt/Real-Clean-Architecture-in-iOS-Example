@@ -67,6 +67,9 @@
             reference = "container:Component/Settings/SettingsTests.xctestplan">
          </TestPlanReference>
          <TestPlanReference
+            reference = "container:Component/Tracking/TrackingTests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
             reference = "container:Component/Waitlist/WaitlistTests.xctestplan">
          </TestPlanReference>
          <TestPlanReference
@@ -104,6 +107,9 @@
          </TestPlanReference>
          <TestPlanReference
             reference = "container:UI/SnackbarUI/SnackbarUITests.xctestplan">
+         </TestPlanReference>
+         <TestPlanReference
+            reference = "container:UI/TrackingUI/TrackingUITests.xctestplan">
          </TestPlanReference>
          <TestPlanReference
             reference = "container:UI/WishlistUI/WishlistUITests.xctestplan">

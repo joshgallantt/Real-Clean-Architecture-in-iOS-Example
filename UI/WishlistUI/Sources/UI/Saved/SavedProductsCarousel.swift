@@ -1,6 +1,8 @@
 import SwiftUI
 import Product
 import ProductUI
+import Tracking
+import TrackingUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: a heading, a row of
 /// cards, and a way to see the rest. It decides nothing — what it is called, what it holds and
@@ -12,21 +14,23 @@ import ProductUI
 /// with the first, and a shopper would have to learn it twice.
 struct SavedProductsCarousel: View {
     @State private var isConfirmingClear = false
+    @Environment(\.trackingContext) private var trackingContext
 
     /// Products and a count, not a view model. A wishlist is a list of ids that has to be filled in
     /// and paged; the alert lists are answered whole by a use case. Typing this to either would
     /// make the other one wrong, and a row of cards has no business knowing the difference.
     let products: [Product]
     let total: Int
-    let onClear: () -> Void
+    let onClear: (TrackingContext) -> Void
 
     let title: String
     let icon: String
     let tint: Color
     let description: String
     let emptyMessage: String?
-    let onSelect: (Product) -> Void
-    let onViewAll: () -> Void
+    let onSelect: (Product, TrackingContext) -> Void
+    let onSeen: (Product, TrackingContext) -> Void
+    let onViewAll: (TrackingContext) -> Void
     let accessory: (Product) -> AnyView
     let leadingAccessory: (Product) -> AnyView
 
@@ -49,7 +53,7 @@ struct SavedProductsCarousel: View {
                 /// it means anything, and two disabled buttons say less than no buttons.
                 if total > 0 {
                     HStack(spacing: 12) {
-                        Button("View All (\(total))", action: onViewAll)
+                        Button("View All (\(total))") { onViewAll(trackingContext) }
 
                         /// Red, because it is the only thing in this heading that takes something
                         /// away — and asked about first, because there is no undo behind it.
@@ -69,6 +73,7 @@ struct SavedProductsCarousel: View {
                 ProductCardRowView(
                     products: Array(products.prefix(atMost)),
                     onSelect: onSelect,
+                    onSeen: onSeen,
                     accessory: accessory,
                     leadingAccessory: leadingAccessory
                 )
@@ -82,7 +87,7 @@ struct SavedProductsCarousel: View {
             isPresented: $isConfirmingClear,
             titleVisibility: .visible
         ) {
-            Button("Clear \(title)", role: .destructive) { onClear() }
+            Button("Clear \(title)", role: .destructive) { onClear(trackingContext) }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This empties \(title). It cannot be undone.")

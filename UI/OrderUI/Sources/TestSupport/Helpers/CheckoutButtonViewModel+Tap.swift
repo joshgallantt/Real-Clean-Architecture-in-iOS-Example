@@ -6,12 +6,17 @@ import Order
 import Product
 import AuthUI
 import SnackbarUI
+import Tracking
 @testable import OrderUI
 
 @MainActor
 extension CheckoutButtonViewModel {
+    /// Where the button is drawn in the app. A test about what a tap does, not where it was, has no
+    /// reason to say.
+    static let whereItSits = TrackingContext.screen("bag")
+
     func tapAndSettle() async {
-        didTap()
+        didTap(in: Self.whereItSits)
         await settle()
     }
 

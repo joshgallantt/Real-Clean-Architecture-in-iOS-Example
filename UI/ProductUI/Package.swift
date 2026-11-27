@@ -17,6 +17,8 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../TrackingUI"),
+        .package(path: "../../Component/Tracking"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Money"),
@@ -28,6 +30,8 @@ let package = Package(
         .target(
             name: "ProductUI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Kingfisher", package: "Kingfisher")
@@ -39,6 +43,8 @@ let package = Package(
         .target(
             name: "ProductUIDI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 "ProductUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
@@ -50,6 +56,9 @@ let package = Package(
         .testTarget(
             name: "ProductUIUnitTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 "ProductUI",
                 .product(name: "Product", package: "Product"),

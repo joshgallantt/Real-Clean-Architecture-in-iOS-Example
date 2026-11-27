@@ -1,14 +1,18 @@
 import SwiftUI
 import Product
+import Tracking
+import TrackingUI
 
 public struct SearchingView: View {
+    @Environment(\.trackingContext) private var trackingContext
+
     let viewModel: SearchingViewModel
-    let onSelectHistory: (SearchTerm) -> Void
+    let onSelectHistory: (SearchTerm, TrackingContext) -> Void
     let onSelectSuggestion: (Product) -> Void
 
     public init(
         viewModel: SearchingViewModel,
-        onSelectHistory: @escaping (SearchTerm) -> Void,
+        onSelectHistory: @escaping (SearchTerm, TrackingContext) -> Void,
         onSelectSuggestion: @escaping (Product) -> Void
     ) {
         self.viewModel = viewModel
@@ -20,29 +24,41 @@ public struct SearchingView: View {
         List {
             if viewModel.suggestions.isEmpty {
                 Section("Recent Searches") {
-                    ForEach(viewModel.history.terms, id: \.text) { term in
-                        Button {
-                            onSelectHistory(term)
-                        } label: {
+                    ForEach(Array(viewModel.history.terms.enumerated()), id: \.element.text) { index, term in
+                        TrackedRow(
+                            onTap: { context in
+                                viewModel.didSelect(term, in: context)
+                                onSelectHistory(term, context)
+                            },
+                            onSeen: { viewModel.didSee(term, in: $0) }
+                        ) {
                             Label(term.text, systemImage: "clock")
                         }
+                        .trackingPosition(index)
                     }
                     if !viewModel.history.isEmpty {
                         Button("Clear History", role: .destructive) {
-                            viewModel.clearHistory()
+                            viewModel.clearHistory(in: trackingContext)
                         }
                     }
                 }
+                .trackingList(SearchTrackingPlan.history)
             } else {
                 Section("Suggestions") {
-                    ForEach(viewModel.suggestions) { product in
-                        Button {
-                            onSelectSuggestion(product)
-                        } label: {
+                    ForEach(Array(viewModel.suggestions.enumerated()), id: \.element.id) { index, product in
+                        TrackedRow(
+                            onTap: { context in
+                                viewModel.didSelect(product, in: context)
+                                onSelectSuggestion(product)
+                            },
+                            onSeen: { viewModel.didSee(product, in: $0) }
+                        ) {
                             Text(product.title)
                         }
+                        .trackingPosition(index)
                     }
                 }
+                .trackingList(SearchTrackingPlan.suggestions)
             }
         }
         .listStyle(.plain)

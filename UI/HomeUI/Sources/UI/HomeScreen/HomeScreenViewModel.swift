@@ -1,6 +1,8 @@
 import Foundation
 import Home
 import Product
+import ProductUI
+import Tracking
 
 @MainActor
 @Observable
@@ -25,10 +27,31 @@ public final class HomeScreenViewModel {
 
     private let drawHomeFeed: DrawHomeFeedUseCase
     private let navigation: HomeNavigation
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let cardTracking: ProductCardTracking
 
-    public init(drawHomeFeed: DrawHomeFeedUseCase, navigation: HomeNavigation) {
+    public init(
+        drawHomeFeed: DrawHomeFeedUseCase,
+        navigation: HomeNavigation,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase
+    ) {
         self.drawHomeFeed = drawHomeFeed
         self.navigation = navigation
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.cardTracking = ProductCardTracking(trackElementView: trackElementView, trackElementInteraction: trackElementInteraction)
+    }
+
+    /// Every time Home comes into view, not only the first: a shopper coming back to the tab is a
+    /// visit. Kept apart from `onAppear()`, whose guard skips the load once the feed is drawn — a
+    /// guard that must never skip the visit too.
+    func didAppear(in context: TrackingContext) {
+        trackScreenView(context.screen)
     }
 
     func onAppear() async {
@@ -36,7 +59,8 @@ public final class HomeScreenViewModel {
         await load()
     }
 
-    func didTapRetry() {
+    func didTapRetry(in context: TrackingContext) {
+        trackElementInteraction(HomeTrackingPlan.retry, in: context)
         inFlight = Task { await load() }
     }
 
@@ -51,11 +75,20 @@ public final class HomeScreenViewModel {
         }
     }
 
-    func didSelect(_ product: Product) {
+    /// Which carousel and where in it are part of the tap — the third card in Beauty and the first
+    /// card in Toys are different decisions about the same feed — and both arrive in `context`,
+    /// from the carousel and the card that drew it.
+    func didSelect(_ product: Product, in context: TrackingContext) {
+        cardTracking.selected(product, in: context)
         navigation.openProductDetails(product: product)
     }
 
-    func didTapViewAll(for carousel: HomeCarousel) {
+    func didSee(_ product: Product, in context: TrackingContext) {
+        cardTracking.seen(product, in: context)
+    }
+
+    func didTapViewAll(for carousel: HomeCarousel, in context: TrackingContext) {
+        trackElementInteraction(HomeTrackingPlan.viewAll, about: HomeTrackingPlan.item(carousel.category), in: context)
         navigation.openCatalog(filter: .category(carousel.category))
     }
 }

@@ -4,6 +4,8 @@ import Product
 import BagUI
 import OrderUIDI
 import ProductActionsUIDI
+import Tracking
+import TrackingUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
 /// hierarchy and holds its collaborators.
@@ -34,6 +36,11 @@ public struct BagUIDI {
     private let productActionsUIDI: ProductActionsUIDI
     private let orderUIDI: OrderUIDI
 
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let trackEvent: TrackEventUseCase
+
     public init(
         navigation: BagNavigation,
         observeBag: ObserveBagUseCase,
@@ -42,7 +49,11 @@ public struct BagUIDI {
         bringBagUpToDate: BringBagUpToDateUseCase,
         acknowledgeNotices: AcknowledgeNoticesUseCase,
         productActionsUIDI: ProductActionsUIDI,
-        orderUIDI: OrderUIDI
+        orderUIDI: OrderUIDI,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
+        trackEvent: TrackEventUseCase
     ) {
         self.navigation = navigation
         self.observeBag = observeBag
@@ -52,21 +63,32 @@ public struct BagUIDI {
         self.acknowledgeNotices = acknowledgeNotices
         self.productActionsUIDI = productActionsUIDI
         self.orderUIDI = orderUIDI
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.trackEvent = trackEvent
     }
 
     @MainActor
     public func mainView() -> some View {
-        BagScreenView(
-            viewModel: BagScreenViewModel(
-                navigation: navigation,
-                observeBag: observeBag,
-                observeNotices: observeNotices,
-                setBagItemQuantity: setBagItemQuantity,
-                bringBagUpToDate: bringBagUpToDate,
-                acknowledgeNotices: acknowledgeNotices
-            ),
-            stockAlertButton: { AnyView(productActionsUIDI.stockAlertButton(productId: $0)) },
-            checkoutButton: AnyView(orderUIDI.checkoutButton())
+        let viewModel = BagScreenViewModel(
+            navigation: navigation,
+            observeBag: observeBag,
+            observeNotices: observeNotices,
+            setBagItemQuantity: setBagItemQuantity,
+            bringBagUpToDate: bringBagUpToDate,
+            acknowledgeNotices: acknowledgeNotices,
+            trackScreenView: trackScreenView,
+            trackElementView: trackElementView,
+            trackElementInteraction: trackElementInteraction,
+            trackEvent: trackEvent
         )
+        return BagScreenView(
+            viewModel: viewModel,
+            stockAlertButton: { AnyView(productActionsUIDI.stockAlertButton(product: $0)) },
+            /// The checkout names what is being bought from what this screen is drawing.
+            checkoutButton: AnyView(orderUIDI.checkoutButton(products: { viewModel.products }))
+        )
+        .trackingScreen(BagTrackingPlan.screen)
     }
 }

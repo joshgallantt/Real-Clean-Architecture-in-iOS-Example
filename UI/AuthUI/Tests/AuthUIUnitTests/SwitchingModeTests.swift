@@ -3,6 +3,8 @@ import ProductTestSupport
 import Foundation
 import SessionTestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Session
 @testable import AuthUIDI
 
@@ -17,6 +19,10 @@ struct SwitchingModeTests {
             loginUseCase: SpyLoginUseCase(),
             createAccountUseCase: SpyCreateAccountUseCase(),
             getSession: StubGetSessionUseCase(),
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase(),
             onAuthenticated: {}
         )
 
@@ -35,6 +41,10 @@ struct SwitchingModeTests {
             loginUseCase: loginUseCase,
             createAccountUseCase: SpyCreateAccountUseCase(),
             getSession: StubGetSessionUseCase(),
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase(),
             onAuthenticated: {}
         )
         viewModel.email = "ada@example.com"

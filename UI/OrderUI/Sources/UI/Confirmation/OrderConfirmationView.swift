@@ -1,4 +1,6 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: it is handed the
 /// order that was placed and renders it. There is nothing to fetch and nothing that can fail —
@@ -8,13 +10,14 @@ import SwiftUI
 /// are called today. That is not a shortcut: an order is a record of a payment, and a confirmation
 /// that went looking for product names would break for anything since withdrawn.
 public struct OrderConfirmationView: View {
-    private let order: OrderSummary
-    private let done: () -> Void
+    @Environment(\.trackingContext) private var trackingContext
+    private let viewModel: OrderConfirmationViewModel
 
-    public init(order: OrderSummary, done: @escaping () -> Void) {
-        self.order = order
-        self.done = done
+    public init(viewModel: OrderConfirmationViewModel) {
+        self.viewModel = viewModel
     }
+
+    private var order: OrderSummary { viewModel.order }
 
     public var body: some View {
         VStack(spacing: 24) {
@@ -43,13 +46,14 @@ public struct OrderConfirmationView: View {
 
             Spacer()
 
-            Button("Done", action: done)
+            Button("Done") { viewModel.didTapDone(in: trackingContext) }
                 .fontWeight(.semibold)
                 .frame(maxWidth: .infinity)
                 .buttonStyle(.borderedProminent)
                 .controlSize(.large)
         }
         .padding()
+        .onScreenAppear { viewModel.didAppear(in: $0) }
     }
 
     private func row(_ label: String, _ value: String) -> some View {

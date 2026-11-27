@@ -3,6 +3,8 @@ import Product
 import ProductUI
 import OrderUIDI
 import ProductActionsUIDI
+import Tracking
+import TrackingUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
 /// hierarchy and holds its collaborators.
@@ -28,13 +30,19 @@ public struct ProductUIDI {
     /// package list says a product page can be bought from, and `Package.swift` breaks if that ever
     /// stops being true.
     private let orderUIDI: OrderUIDI
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackEvent: TrackEventUseCase
 
     public init(
         productActionsUIDI: ProductActionsUIDI,
-        orderUIDI: OrderUIDI
+        orderUIDI: OrderUIDI,
+        trackScreenView: TrackScreenViewUseCase,
+        trackEvent: TrackEventUseCase
     ) {
         self.productActionsUIDI = productActionsUIDI
         self.orderUIDI = orderUIDI
+        self.trackScreenView = trackScreenView
+        self.trackEvent = trackEvent
     }
 
     /// A product, never an id. Every route to this screen already holds the thing it is about —
@@ -43,10 +51,16 @@ public struct ProductUIDI {
     @MainActor
     public func detailView(product: Product) -> some View {
         ProductDetailsScreen(
-            viewModel: ProductDetailsViewModel(product: product),
+            viewModel: ProductDetailsViewModel(
+                product: product,
+                trackScreenView: trackScreenView,
+                trackEvent: trackEvent
+            ),
             actionButton: { product in AnyView(productActionsUIDI.detailsActionButton(product: product)) },
-            wishlistButton: AnyView(productActionsUIDI.wishlistButton(productId: product.id)),
+            wishlistButton: AnyView(productActionsUIDI.wishlistButton(product: product)),
             buyNowButton: { AnyView(orderUIDI.buyNowButton(product: $0)) }
         )
+        /// Every button on the page reads where it is from here.
+        .trackingScreen(ProductTrackingPlan.details)
     }
 }

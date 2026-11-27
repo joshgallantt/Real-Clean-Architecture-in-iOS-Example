@@ -4,6 +4,8 @@ import Product
 import Waitlist
 import AuthUI
 import SnackbarUI
+import Tracking
+import TrackingUI
 
 @MainActor
 @Observable
@@ -24,28 +26,37 @@ import SnackbarUI
 public final class StockAlertButtonViewModel {
     private(set) var isWaiting = false
 
-    private let productId: ProductID
+    private let product: Product
     private let observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase
     private let setProductIsWaitlisted: SetProductIsWaitlistedUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
     private var cancellables = Set<AnyCancellable>()
     /// The work the last tap started. Public so a test can wait for exactly
     /// that, and so the screen could cancel it on disappear.
     public private(set) var inFlight: Task<Void, Never>?
 
     public init(
-        productId: ProductID,
+        product: Product,
         observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase,
         setProductIsWaitlisted: SetProductIsWaitlistedUseCase,
         authPresenter: AuthPresenting,
-        snackbarPresenter: SnackbarPresenting
+        snackbarPresenter: SnackbarPresenting,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase
     ) {
-        self.productId = productId
+        self.product = product
         self.observeProductIsWaitlisted = observeProductIsWaitlisted
         self.setProductIsWaitlisted = setProductIsWaitlisted
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
     }
 
     /// Subscribing happens here rather than in `init`. See `WishlistButtonViewModel`:
@@ -54,7 +65,7 @@ public final class StockAlertButtonViewModel {
     func onAppear() {
         guard cancellables.isEmpty else { return }
 
-        observeProductIsWaitlisted(productId: productId)
+        observeProductIsWaitlisted(productId: product.id)
             .sink { [weak self] value in
                 self?.isWaiting = value
             }
@@ -66,17 +77,30 @@ public final class StockAlertButtonViewModel {
     /// state the first one had set out to change, so tapping on and straight off again left the
     /// shopper on the list. The decision is made inside the queued work instead, once the tap
     /// before it has settled.
-    func didTap() {
+    func didTap(in context: TrackingContext) {
         enqueue { [weak self] in
             guard let self else { return }
-            await self.apply(isOn: !self.isWaiting)
+            let isOn = !self.isWaiting
+            self.trackElementInteraction(ProductActionsTrackingPlan.stockAlert(isOn: isOn), about: self.item, in: context)
+            await self.apply(isOn: isOn, in: context)
         }
     }
 
     /// Taking it off the list, whatever the bell happens to say. A minus on a waitlist card means
     /// one thing, and it must not become "put it back" because the state arrived late.
-    func didTapRemove() {
-        enqueue { [weak self] in await self?.apply(isOn: false) }
+    func didTapRemove(in context: TrackingContext) {
+        enqueue { [weak self] in
+            guard let self else { return }
+            self.trackElementInteraction(ProductActionsTrackingPlan.removeFromWaitlist, about: self.item, in: context)
+            await self.apply(isOn: false, in: context)
+        }
+    }
+
+    private var item: TrackedItem { TrackedProduct.item(product) }
+
+    private func show(_ snackbar: Snackbar, in context: TrackingContext) {
+        trackElementView(snackbar.trackingName, about: item, in: context)
+        snackbarPresenter.show(snackbar)
     }
 
     /// One tap at a time, in the order the shopper made them, so two taps are two decisions rather
@@ -89,22 +113,24 @@ public final class StockAlertButtonViewModel {
         }
     }
 
-    private func apply(isOn: Bool) async {
-        switch await setProductIsWaitlisted(productId: productId, isWaitlisted: isOn) {
+    private func apply(isOn: Bool, in context: TrackingContext) async {
+        switch await setProductIsWaitlisted(productId: product.id, isWaitlisted: isOn) {
         case .success:
-            snackbarPresenter.show(told(isOn))
+            show(told(isOn), in: context)
 
         case .failure(.unauthenticated):
-            guard await authPresenter.show(prompt(isOn)) else { return }
-            await apply(isOn: isOn)
+            let signedIn = await authPresenter.show(prompt(isOn))
+            trackScreenView(context.screen)
+            guard signedIn else { return }
+            await apply(isOn: isOn, in: context)
 
         case .failure(.unavailable):
-            snackbarPresenter.show(Snackbar(
+            show(Snackbar(
                 title: isOn ? "Couldn't Set a Reminder" : "Couldn't Change That",
                 message: "That didn't stick. Try again?",
                 icon: "bell.slash",
-                action: .retry { Task { await self.apply(isOn: isOn) } }
-            ))
+                action: .retry { Task { await self.apply(isOn: isOn, in: context) } }
+            ), in: context)
         }
     }
 

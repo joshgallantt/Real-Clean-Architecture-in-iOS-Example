@@ -3,6 +3,8 @@ import Foundation
 import Product
 import SnackbarUI
 import Waitlist
+import ProductUI
+import Tracking
 
 @MainActor
 @Observable
@@ -34,6 +36,12 @@ public final class AlertedProductsViewModel {
     private let clear: @MainActor ([ProductID]) async -> Void
     private let snackbar: SnackbarPresenting
     private let couldNotLoad: String
+    private let list: TrackingContext.List
+    private let openProduct: @MainActor (Product) -> Void
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let cardTracking: ProductCardTracking
 
     private var cancellables = Set<AnyCancellable>()
 
@@ -42,13 +50,24 @@ public final class AlertedProductsViewModel {
         changes: @escaping () -> AnyPublisher<Waitlist, Never>,
         clear: @escaping @MainActor ([ProductID]) async -> Void,
         snackbar: SnackbarPresenting,
-        couldNotLoad: String
+        couldNotLoad: String,
+        list: TrackingContext.List,
+        openProduct: @escaping @MainActor (Product) -> Void,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase
     ) {
         self.load = load
         self.changes = changes
         self.clear = clear
         self.snackbar = snackbar
         self.couldNotLoad = couldNotLoad
+        self.list = list
+        self.openProduct = openProduct
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.cardTracking = ProductCardTracking(trackElementView: trackElementView, trackElementInteraction: trackElementInteraction)
     }
 
     var isEmpty: Bool { products.isEmpty }
@@ -60,38 +79,65 @@ public final class AlertedProductsViewModel {
     /// `async` so the list can await it from `.task`: SwiftUI then owns the load
     /// for as long as the row is on screen and cancels it on the way out. The two
     /// synchronous callers below — a change in what was asked, and the retry
-    /// button — go through `startReloading()`, which is where the handle earns its
+    /// button — go through `startReloading(in:)`, which is where the handle earns its
     /// keep.
-    func onAppear() async {
+    func onAppear(in context: TrackingContext) async {
         if cancellables.isEmpty {
             changes()
                 .removeDuplicates()
-                .sink { [weak self] _ in self?.startReloading() }
+                .sink { [weak self] _ in self?.startReloading(in: context) }
                 .store(in: &cancellables)
         }
 
-        await reload()
+        await reload(in: context)
     }
 
-    func didConfirmClear() {
+    func didConfirmClear(in context: TrackingContext) {
         let losing = products.map(\.id)
         guard !losing.isEmpty else { return }
+        trackElementInteraction(WishlistTrackingPlan.clear, about: WishlistTrackingPlan.item(list), in: context)
         inFlight = Task { await clear(losing) }
     }
 
-    private func startReloading() {
+    // MARK: - What the shopper saw and did
+
+    /// Only on the list's own screen. On the tab this list is one of three, and the tab's view is
+    /// the tab's to report.
+    func didAppear(in context: TrackingContext) {
+        trackScreenView(context.screen)
+    }
+
+    func didSee(_ product: Product, in context: TrackingContext) {
+        cardTracking.seen(product, in: context)
+    }
+
+    /// The card is reported where it was — which list, which position — and then opened. Opening it
+    /// is the view model's to do, so no screen can open a product without saying so.
+    func didSelect(_ product: Product, in context: TrackingContext) {
+        cardTracking.selected(product, in: context)
+        openProduct(product)
+    }
+
+    private func show(_ snackbar: Snackbar, in context: TrackingContext) {
+        trackElementView(snackbar.trackingName, in: context)
+        self.snackbar.show(snackbar)
+    }
+
+    private func startReloading(in context: TrackingContext) {
         reloadTask?.cancel()
         isLoading = true
 
         let task = Task { [weak self] in
             guard let self else { return }
-            await self.reload()
+            await self.reload(in: context)
         }
         reloadTask = task
         inFlight = task
     }
 
-    private func reload() async {
+    /// `context` is where the list is drawn, handed down from the view that asked for the load, so
+    /// a snackbar after a load that failed is reported on the screen it was seen on.
+    private func reload(in context: TrackingContext) async {
         isLoading = true
 
         let result = await load()
@@ -104,12 +150,12 @@ public final class AlertedProductsViewModel {
         /// The list is left as it was. A dropped connection is not evidence that a shopper has
         /// stopped waiting on anything, and emptying the row would say that it is.
         case .failure:
-            snackbar.show(Snackbar(
+            show(Snackbar(
                 title: couldNotLoad,
                 message: "Check your signal and give it another go.",
                 icon: "wifi.exclamationmark",
-                action: .retry { [weak self] in self?.startReloading() }
-            ))
+                action: .retry { [weak self] in self?.startReloading(in: context) }
+            ), in: context)
         }
 
         isLoading = false

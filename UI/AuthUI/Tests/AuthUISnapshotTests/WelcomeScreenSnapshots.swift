@@ -4,6 +4,8 @@ import SheetUITestSupport
 import SnapshotTesting
 import SwiftUI
 import Testing
+import Tracking
+import TrackingTestSupport
 @testable import AuthUIDI
 @testable import AuthUITestSupport
 
@@ -16,8 +18,14 @@ func theWelcomeScreenOffersBothWaysIn() {
                 sheetPresenting: SpySheetPresenting(),
                 loginUseCase: SpyLoginUseCase(),
                 createAccountUseCase: SpyCreateAccountUseCase(),
-                getSession: StubGetSessionUseCase(.guest)
+                getSession: StubGetSessionUseCase(.guest),
+                trackScreenView: SpyTrackScreenViewUseCase(),
+                trackElementView: SpyTrackElementViewUseCase(),
+                trackElementInteraction: SpyTrackElementInteractionUseCase(),
+                trackEvent: SpyTrackEventUseCase()
             ),
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
             onContinueAsGuest: {},
             onAuthenticated: {}
         )

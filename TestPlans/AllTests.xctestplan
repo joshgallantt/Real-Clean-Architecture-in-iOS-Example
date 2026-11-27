@@ -341,6 +341,30 @@
     {
       "parallelizable": true,
       "target": {
+        "containerPath": "container:Component/Tracking",
+        "identifier": "TrackingAcceptanceTests",
+        "name": "TrackingAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/TrackingUI",
+        "identifier": "TrackingUIUnitTests",
+        "name": "TrackingUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Tracking",
+        "identifier": "TrackingUnitTests",
+        "name": "TrackingUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
         "containerPath": "container:Component/Waitlist",
         "identifier": "WaitlistAcceptanceTests",
         "name": "WaitlistAcceptanceTests"

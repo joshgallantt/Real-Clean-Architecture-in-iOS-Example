@@ -3,6 +3,9 @@ import BagTestSupport
 import Foundation
 import ProductTestSupport
 import Testing
+import Tracking
+import TrackingUI
+import TrackingTestSupport
 import Bag
 import Money
 import Product
@@ -23,7 +26,11 @@ struct BagScreenViewModelTests {
             observeNotices: shop.observeNotices,
             setBagItemQuantity: shop.setBagItemQuantity,
             bringBagUpToDate: shop.bringUpToDate,
-            acknowledgeNotices: shop.acknowledge
+            acknowledgeNotices: shop.acknowledge,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
     }
 
@@ -42,8 +49,8 @@ struct BagScreenViewModelTests {
 
         await viewModel.onAppear()
 
-        #expect(viewModel.notices(in: .outOfStock).first?.name == "Product 1")
-        #expect(viewModel.notices(in: .outOfStock).first?.imageURL != nil)
+        #expect(viewModel.notices(in: .outOfStock).first?.product?.title == "Product 1")
+        #expect(viewModel.notices(in: .outOfStock).first?.product?.thumbnail != nil)
     }
 
     @Test("A notice waiting from a previous visit still says what it is about")
@@ -58,7 +65,7 @@ struct BagScreenViewModelTests {
         await viewModel.onAppear()
 
         #expect(viewModel.notices(in: .outOfStock).map(\.id) == [pid(7)])
-        #expect(viewModel.notices(in: .outOfStock).first?.name == "Product 7")
+        #expect(viewModel.notices(in: .outOfStock).first?.product?.title == "Product 7")
     }
 
     @Test("A price notice about something still in the bag keeps its name too")
@@ -68,7 +75,7 @@ struct BagScreenViewModelTests {
 
         await viewModel.onAppear()
 
-        #expect(viewModel.notices(in: .priceWentUp).first?.name == "Product 1")
+        #expect(viewModel.notices(in: .priceWentUp).first?.product?.title == "Product 1")
     }
 
     @Test("Opening the bag asks the shop about everything in it")
@@ -219,7 +226,7 @@ struct BagScreenViewModelTests {
         await viewModel.onAppear()
         #expect(viewModel.notices(in: .priceWentUp).map(\.id) == [pid(1)])
 
-        viewModel.didRemoveChangedItem(productId: pid(1))
+        viewModel.didRemoveChangedItem(productId: pid(1), in: inTheBag)
         await viewModel.inFlight?.value
 
         #expect(shop.currentBag.isEmpty)
@@ -249,7 +256,7 @@ struct BagScreenViewModelTests {
         let viewModel = makeViewModel(shop: shop)
         await viewModel.onAppear()
 
-        viewModel.didAcceptAll(.priceWentUp)
+        viewModel.didAcceptAll(.priceWentUp, in: inTheBag)
 
         #expect(viewModel.notices(in: .priceWentUp).isEmpty)
         #expect(viewModel.notices(in: .priceWentDown).map(\.id) == [pid(2)])
@@ -275,7 +282,7 @@ struct BagScreenViewModelTests {
         let viewModel = makeViewModel(shop: shop)
         await viewModel.onAppear()
 
-        viewModel.didChangeQuantity(productId: pid(1), quantity: 3)
+        viewModel.didChangeQuantity(productId: pid(1), quantity: 3, in: inTheBag)
         await viewModel.inFlight?.value
 
         #expect(shop.lookups.count == 2)
@@ -294,7 +301,7 @@ struct BagScreenViewModelTests {
         let viewModel = makeViewModel(shop: shop)
         await viewModel.onAppear()
 
-        viewModel.didSwipeToDelete(productId: pid(2))
+        viewModel.didSwipeToDelete(productId: pid(2), in: inTheBag)
         await viewModel.inFlight?.value
 
         #expect(shop.currentBag.items.map(\.id) == [pid(1)])
@@ -309,7 +316,7 @@ struct BagScreenViewModelTests {
         let asksSoFar = shop.lookups.count
         #expect(viewModel.notices(in: .priceWentUp).count == 1)
 
-        viewModel.didAcceptAll(.priceWentUp)
+        viewModel.didAcceptAll(.priceWentUp, in: inTheBag)
         await viewModel.inFlight?.value
 
         #expect(shop.lookups.count == asksSoFar)
@@ -358,7 +365,7 @@ struct BagScreenViewModelTests {
         await shop.untilAsked()
 
         #expect(viewModel.rows.map(\.id) == [pid(1)])
-        #expect(viewModel.rows.first?.name == nil)
+        #expect(viewModel.rows.first?.product?.title == nil)
         #expect(viewModel.total == usd(9.99))
 
         shop.answerNow()
@@ -372,6 +379,10 @@ struct BagScreenViewModelTests {
 
         await viewModel.onAppear()
 
-        #expect(viewModel.rows.first?.name == "Product 1")
+        #expect(viewModel.rows.first?.product?.title == "Product 1")
     }
 }
+
+/// Where the bag's own buttons are drawn. A test about what a tap does to the bag has no reason to
+/// say more than that.
+private let inTheBag = TrackingContext.screen("bag")

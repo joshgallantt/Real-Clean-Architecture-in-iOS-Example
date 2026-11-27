@@ -1,7 +1,8 @@
 import SwiftUI
 import Product
 import ProductUI
-import AuthUI
+import Tracking
+import TrackingUI
 
 /// The tab a shopper keeps an eye on things from. Three lists: what they are still waiting on, what
 /// has come back, and what they saved because they liked it. The first two are the same set of asks
@@ -9,6 +10,8 @@ import AuthUI
 ///
 /// Each shows a handful, offers the rest, and can be emptied in one go.
 public struct WishlistScreenView: View {
+    @Environment(\.trackingContext) private var trackingContext
+
     let session: WishlistScreenViewModel
     let faves: SavedProductsViewModel
     let waitlist: AlertedProductsViewModel
@@ -22,8 +25,6 @@ public struct WishlistScreenView: View {
     let backInStockAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView)
     let favesAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView)
 
-    let authPresenter: AuthPresenting
-
     public init(
         session: WishlistScreenViewModel,
         faves: SavedProductsViewModel,
@@ -32,8 +33,7 @@ public struct WishlistScreenView: View {
         navigation: WishlistNavigation,
         waitlistAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView),
         backInStockAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView),
-        favesAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView),
-        authPresenter: AuthPresenting
+        favesAccessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView)
     ) {
         self.session = session
         self.faves = faves
@@ -43,7 +43,6 @@ public struct WishlistScreenView: View {
         self.waitlistAccessories = waitlistAccessories
         self.backInStockAccessories = backInStockAccessories
         self.favesAccessories = favesAccessories
-        self.authPresenter = authPresenter
     }
 
     public var body: some View {
@@ -54,11 +53,12 @@ public struct WishlistScreenView: View {
                 guestPrompt
             }
         }
+        .onScreenAppear { session.didAppear(in: $0) }
         .task {
             session.onAppear()
-            faves.onAppear()
-            async let waiting: Void = waitlist.onAppear()
-            async let restocked: Void = backInStock.onAppear()
+            faves.onAppear(in: trackingContext)
+            async let waiting: Void = waitlist.onAppear(in: trackingContext)
+            async let restocked: Void = backInStock.onAppear(in: trackingContext)
             _ = await (waiting, restocked)
         }
     }
@@ -70,17 +70,19 @@ public struct WishlistScreenView: View {
                 SavedProductsCarousel(
                     products: waitlist.products,
                     total: waitlist.count,
-                    onClear: { waitlist.didConfirmClear() },
+                    onClear: { waitlist.didConfirmClear(in: $0) },
                     title: "Waitlist",
                     icon: "bell.fill",
                     tint: .orange,
                     description: "Sold out. You asked, so we'll tell you.",
                     emptyMessage: nil,
-                    onSelect: { navigation.openProductDetails(product: $0) },
-                    onViewAll: { navigation.openAllWaitlist() },
+                    onSelect: { waitlist.didSelect($0, in: $1) },
+                    onSeen: { waitlist.didSee($0, in: $1) },
+                    onViewAll: { session.didTapViewAll(WishlistTrackingPlan.waitlist, in: $0); navigation.openAllWaitlist() },
                     accessory: waitlistAccessories.trailing,
                     leadingAccessory: waitlistAccessories.leading
                 )
+                .trackingList(WishlistTrackingPlan.waitlist)
 
                 /// The same asks as above, split by what the shop says today. A shopper does not
                 /// need telling twice that something is still sold out, and does need telling once
@@ -88,32 +90,36 @@ public struct WishlistScreenView: View {
                 SavedProductsCarousel(
                     products: backInStock.products,
                     total: backInStock.count,
-                    onClear: { backInStock.didConfirmClear() },
+                    onClear: { backInStock.didConfirmClear(in: $0) },
                     title: "Back in Stock",
                     icon: "sparkles",
                     tint: .green,
                     description: "You asked, they're back. Get in before they go again.",
                     emptyMessage: nil,
-                    onSelect: { navigation.openProductDetails(product: $0) },
-                    onViewAll: { navigation.openAllBackInStock() },
+                    onSelect: { backInStock.didSelect($0, in: $1) },
+                    onSeen: { backInStock.didSee($0, in: $1) },
+                    onViewAll: { session.didTapViewAll(WishlistTrackingPlan.backInStock, in: $0); navigation.openAllBackInStock() },
                     accessory: backInStockAccessories.trailing,
                     leadingAccessory: backInStockAccessories.leading
                 )
+                .trackingList(WishlistTrackingPlan.backInStock)
 
                 SavedProductsCarousel(
                     products: faves.products,
                     total: faves.savedCount,
-                    onClear: { faves.didConfirmClear() },
+                    onClear: { faves.didConfirmClear(in: $0) },
                     title: "My Faves",
                     icon: "heart.fill",
                     tint: .accentColor,
                     description: "Everything you've saved. No rush.",
                     emptyMessage: "Tap the heart on anything you like the look of.",
-                    onSelect: { navigation.openProductDetails(product: $0) },
-                    onViewAll: { navigation.openAllFaves() },
+                    onSelect: { faves.didSelect($0, in: $1) },
+                    onSeen: { faves.didSee($0, in: $1) },
+                    onViewAll: { session.didTapViewAll(WishlistTrackingPlan.faves, in: $0); navigation.openAllFaves() },
                     accessory: favesAccessories.trailing,
                     leadingAccessory: favesAccessories.leading
                 )
+                .trackingList(WishlistTrackingPlan.faves)
             }
             .padding(.vertical)
         }
@@ -128,13 +134,7 @@ public struct WishlistScreenView: View {
             Text("Sign in and everything you save sticks around.")
         } actions: {
             Button {
-                Task {
-                    await authPresenter.show(AuthenticationPrompt(
-                        title: "Keep Your Faves",
-                        message: "Sign in and everything you save sticks around.",
-                        icon: "heart.fill"
-                    ))
-                }
+                session.didTapSignIn(in: trackingContext)
             } label: {
                 Text("Sign In")
                     .frame(maxWidth: .infinity)

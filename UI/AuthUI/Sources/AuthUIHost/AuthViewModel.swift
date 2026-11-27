@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import Session
 import AuthUI
+import Tracking
 
 @MainActor
 @Observable
@@ -26,6 +27,10 @@ final class AuthViewModel {
     private let loginUseCase: LoginUseCase
     private let createAccountUseCase: CreateAccountUseCase
     private let getSession: GetSessionUseCase
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let trackEvent: TrackEventUseCase
     private let onAuthenticated: () -> Void
 
     init(
@@ -34,6 +39,10 @@ final class AuthViewModel {
         loginUseCase: LoginUseCase,
         createAccountUseCase: CreateAccountUseCase,
         getSession: GetSessionUseCase,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
+        trackEvent: TrackEventUseCase,
         onAuthenticated: @escaping () -> Void
     ) {
         self.mode = mode
@@ -42,6 +51,10 @@ final class AuthViewModel {
         self.loginUseCase = loginUseCase
         self.createAccountUseCase = createAccountUseCase
         self.getSession = getSession
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.trackEvent = trackEvent
         self.onAuthenticated = onAuthenticated
     }
 
@@ -74,7 +87,23 @@ final class AuthViewModel {
             (!firstName.isEmpty || !lastName.isEmpty || !email.isEmpty || !password.isEmpty)
     }
 
+    /// The screen the sheet is showing, which is the mode it is in.
+    ///
+    /// The sheet is its own screen, and says so itself: it is presented over whatever was there, so
+    /// nothing above it in the view tree knows which of the two it is showing.
+    private var screen: String { AuthTrackingPlan.screen(for: mode) }
+
+    private var context: TrackingContext { .screen(screen) }
+
+    func didAppear() {
+        trackScreenView(screen)
+    }
+
+    /// The tap is on the screen being left; the view that follows is of the one arrived at. The
+    /// sheet does not appear again for a change of mode, so this is the only place that can say so.
     func switchToPeerMode() {
+        trackElementInteraction(AuthTrackingPlan.switchMode(to: mode.peer), in: context)
+        defer { trackScreenView(screen) }
         var transaction = Transaction()
         transaction.disablesAnimations = true
         withTransaction(transaction) {
@@ -85,6 +114,7 @@ final class AuthViewModel {
 
     func submit() async {
         guard canSubmit else { return }
+        trackElementInteraction(AuthTrackingPlan.submit, in: context)
         error = nil
         isLoading = true
         defer { isLoading = false }
@@ -93,9 +123,11 @@ final class AuthViewModel {
         case .logIn:
             switch await loginUseCase(email: Email(email), password: Password(password)) {
             case .success:
+                trackEvent(authenticated(.signedIn))
                 confirmationMessage = greeting("Welcome back")
                 onAuthenticated()
             case .failure(let failure):
+                trackElementView(AuthTrackingPlan.error, in: context)
                 error = AuthenticationErrorMessages.message(for: failure)
             }
         case .createAccount:
@@ -106,12 +138,20 @@ final class AuthViewModel {
             )
             switch result {
             case .success:
+                trackEvent(authenticated(.signedUp))
                 confirmationMessage = greeting("Welcome")
                 onAuthenticated()
             case .failure(let failure):
+                trackElementView(AuthTrackingPlan.error, in: context)
                 error = AuthenticationErrorMessages.message(for: failure)
             }
         }
+    }
+
+    /// A shopper got in. Logging in and creating an account are two events, and the name says
+    /// which; how they got in is the same for both, because this sheet has one way.
+    private func authenticated(_ name: EventName) -> TrackingEvent {
+        TrackingEvent(name: name, context: context, items: [], properties: [.method: AuthTrackingPlan.Method.email.rawValue])
     }
 
     private func greeting(_ lead: String) -> String {

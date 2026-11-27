@@ -1,5 +1,7 @@
 import Foundation
 import Product
+import Tracking
+import TrackingUI
 
 @MainActor
 @Observable
@@ -17,7 +19,19 @@ import Product
 public final class ProductDetailsViewModel {
     let product: Product
 
-    public init(product: Product) {
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackEvent: TrackEventUseCase
+
+    public init(product: Product, trackScreenView: TrackScreenViewUseCase, trackEvent: TrackEventUseCase) {
         self.product = product
+        self.trackScreenView = trackScreenView
+        self.trackEvent = trackEvent
+    }
+
+    /// Every time the page comes into view — back from the bag counts as looking at it again —
+    /// and the product with it, because a product page in view is the product being viewed.
+    func didAppear(in context: TrackingContext) {
+        trackScreenView(context.screen)
+        trackEvent(TrackingEvent(name: .productViewed, context: context, items: [TrackedProduct.item(product)], properties: [:]))
     }
 }

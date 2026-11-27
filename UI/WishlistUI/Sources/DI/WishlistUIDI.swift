@@ -8,6 +8,8 @@ import AuthUI
 import SnackbarUI
 import WishlistUI
 import ProductActionsUIDI
+import Tracking
+import TrackingUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
 /// hierarchy and holds its collaborators.
@@ -29,6 +31,9 @@ public struct WishlistUIDI {
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private let productActionsUIDI: ProductActionsUIDI
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
 
     public init(
         navigation: WishlistNavigation,
@@ -42,7 +47,10 @@ public struct WishlistUIDI {
         observeSession: ObserveSessionUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
-        productActionsUIDI: ProductActionsUIDI
+        productActionsUIDI: ProductActionsUIDI,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase
     ) {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
@@ -56,26 +64,36 @@ public struct WishlistUIDI {
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
         self.productActionsUIDI = productActionsUIDI
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
     }
 
+    /// The heart, for whichever screen draws it — Home and Search draw it too, and where it is drawn
+    /// is in the environment it is drawn into.
     @MainActor
-    public func button(productId: ProductID) -> some View {
-        productActionsUIDI.wishlistButton(productId: productId)
+    public func button(product: Product) -> some View {
+        productActionsUIDI.wishlistButton(product: product)
     }
 
     @MainActor
     public func mainView() -> some View {
         WishlistScreenView(
-            session: WishlistScreenViewModel(observeSession: observeSession),
+            session: WishlistScreenViewModel(
+                observeSession: observeSession,
+                authPresenter: authPresenter,
+                trackScreenView: trackScreenView,
+                trackElementInteraction: trackElementInteraction
+            ),
             faves: favesViewModel(),
             waitlist: waitlistViewModel(),
             backInStock: backInStockViewModel(),
             navigation: navigation,
             waitlistAccessories: waitlistAccessories(),
             backInStockAccessories: backInStockAccessories(),
-            favesAccessories: favesAccessories(),
-            authPresenter: authPresenter
+            favesAccessories: favesAccessories()
         )
+        .trackingScreen(WishlistTrackingPlan.screen)
     }
 
     @MainActor
@@ -87,6 +105,7 @@ public struct WishlistUIDI {
             emptyIcon: "heart",
             emptyMessage: "Tap the heart on anything you like the look of."
         )
+        .trackingScreen(WishlistTrackingPlan.favesScreen)
     }
 
     @MainActor
@@ -94,11 +113,13 @@ public struct WishlistUIDI {
         alertedList(
             viewModel: waitlistViewModel(),
             accessories: waitlistAccessories(),
+            listContext: WishlistTrackingPlan.waitlist,
             title: "Waitlist",
             emptyTitle: "Nothing to Wait For",
             emptyIcon: "bell",
             emptyMessage: "Hit the bell on anything sold out and it waits here."
         )
+        .trackingScreen(WishlistTrackingPlan.waitlistScreen)
     }
 
     @MainActor
@@ -106,11 +127,13 @@ public struct WishlistUIDI {
         alertedList(
             viewModel: backInStockViewModel(),
             accessories: backInStockAccessories(),
+            listContext: WishlistTrackingPlan.backInStock,
             title: "Back in Stock",
             emptyTitle: "Nothing Back Yet",
             emptyIcon: "sparkles",
             emptyMessage: "Anything you're waiting on lands here the second it's back."
         )
+        .trackingScreen(WishlistTrackingPlan.backInStockScreen)
     }
 
     // MARK: -
@@ -121,7 +144,7 @@ public struct WishlistUIDI {
     private func waitlistAccessories() -> (leading: (Product) -> AnyView, trailing: (Product) -> AnyView) {
         (
             leading: { _ in AnyView(EmptyView()) },
-            trailing: { product in AnyView(self.removeFromWaitlistButton(productId: product.id)) }
+            trailing: { product in AnyView(self.removeFromWaitlistButton(product: product)) }
         )
     }
 
@@ -131,7 +154,7 @@ public struct WishlistUIDI {
     private func backInStockAccessories() -> (leading: (Product) -> AnyView, trailing: (Product) -> AnyView) {
         (
             leading: { product in AnyView(self.productActionsUIDI.cardActionButton(product: product)) },
-            trailing: { product in AnyView(self.removeFromWaitlistButton(productId: product.id)) }
+            trailing: { product in AnyView(self.removeFromWaitlistButton(product: product)) }
         )
     }
 
@@ -139,19 +162,20 @@ public struct WishlistUIDI {
     private func favesAccessories() -> (leading: (Product) -> AnyView, trailing: (Product) -> AnyView) {
         (
             leading: { product in AnyView(self.productActionsUIDI.cardActionButton(product: product)) },
-            trailing: { product in AnyView(self.button(productId: product.id)) }
+            trailing: { product in AnyView(self.button(product: product)) }
         )
     }
 
     @MainActor
-    private func removeFromWaitlistButton(productId: ProductID) -> some View {
-        productActionsUIDI.removeFromWaitlistButton(productId: productId)
+    private func removeFromWaitlistButton(product: Product) -> some View {
+        productActionsUIDI.removeFromWaitlistButton(product: product)
     }
 
     @MainActor
     private func alertedList(
         viewModel: @autoclosure @escaping () -> AlertedProductsViewModel,
         accessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView),
+        listContext: TrackingContext.List,
         title: String,
         emptyTitle: String,
         emptyIcon: String,
@@ -163,7 +187,7 @@ public struct WishlistUIDI {
             emptyTitle: emptyTitle,
             emptyIcon: emptyIcon,
             emptyMessage: emptyMessage,
-            onSelect: { [navigation] product in navigation.openProductDetails(product: product) },
+            listContext: listContext,
             accessory: accessories.trailing,
             leadingAccessory: accessories.leading
         )
@@ -183,8 +207,8 @@ public struct WishlistUIDI {
             emptyTitle: emptyTitle,
             emptyIcon: emptyIcon,
             emptyMessage: emptyMessage,
-            onSelect: { [navigation] product in navigation.openProductDetails(product: product) },
-            accessory: { product in AnyView(button(productId: product.id)) },
+            listContext: WishlistTrackingPlan.faves,
+            accessory: { product in AnyView(button(product: product)) },
             leadingAccessory: { product in AnyView(productActionsUIDI.cardActionButton(product: product)) }
         )
     }
@@ -202,6 +226,11 @@ public struct WishlistUIDI {
             lookUpProducts: lookUpProducts,
             snackbar: snackbarPresenter,
             couldNotLoad: "Faves Won't Load",
+            list: WishlistTrackingPlan.faves,
+            openProduct: { [navigation] product in navigation.openProductDetails(product: product) },
+            trackScreenView: trackScreenView,
+            trackElementView: trackElementView,
+            trackElementInteraction: trackElementInteraction,
             clear: { [setProductIsWishlisted] ids in
                 for id in ids { await setProductIsWishlisted(productId: id, isWishlisted: false) }
             }
@@ -213,18 +242,27 @@ public struct WishlistUIDI {
     /// rule about stock inside a DI container.
     @MainActor
     private func waitlistViewModel() -> AlertedProductsViewModel {
-        alertedProducts(from: { [getStillSoldOutProducts] in await getStillSoldOutProducts() }, couldNotLoad: "Waitlist Won't Load")
+        alertedProducts(
+            from: { [getStillSoldOutProducts] in await getStillSoldOutProducts() },
+            couldNotLoad: "Waitlist Won't Load",
+            list: WishlistTrackingPlan.waitlist
+        )
     }
 
     @MainActor
     private func backInStockViewModel() -> AlertedProductsViewModel {
-        alertedProducts(from: { [getBackInStockProducts] in await getBackInStockProducts() }, couldNotLoad: "That List Won't Load")
+        alertedProducts(
+            from: { [getBackInStockProducts] in await getBackInStockProducts() },
+            couldNotLoad: "That List Won't Load",
+            list: WishlistTrackingPlan.backInStock
+        )
     }
 
     @MainActor
     private func alertedProducts(
         from load: @escaping @MainActor () async -> Result<[Product], WaitlistError>,
-        couldNotLoad: String
+        couldNotLoad: String,
+        list: TrackingContext.List
     ) -> AlertedProductsViewModel {
         AlertedProductsViewModel(
             load: load,
@@ -233,7 +271,12 @@ public struct WishlistUIDI {
                 for id in ids { _ = await setProductIsWaitlisted(productId: id, isWaitlisted: false) }
             },
             snackbar: snackbarPresenter,
-            couldNotLoad: couldNotLoad
+            couldNotLoad: couldNotLoad,
+            list: list,
+            openProduct: { [navigation] product in navigation.openProductDetails(product: product) },
+            trackScreenView: trackScreenView,
+            trackElementView: trackElementView,
+            trackElementInteraction: trackElementInteraction
         )
     }
 }

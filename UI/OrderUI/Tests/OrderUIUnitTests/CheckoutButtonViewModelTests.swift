@@ -6,6 +6,9 @@ import OrderTestSupport
 import ProductTestSupport
 import SnackbarUITestSupport
 import Testing
+import Tracking
+import TrackingUI
+import TrackingTestSupport
 import Bag
 import Money
 import Order
@@ -30,7 +33,12 @@ struct CheckoutButtonViewModelTests {
             setBagItemQuantity: setBagItemQuantity,
             authPresenter: authPresenter,
             snackbarPresenter: snackbarPresenter,
-            confirm: confirm
+            confirm: confirm,
+            products: { [:] },
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
         /// The screen subscribes on appear rather than in `init`, so the test has
         /// to do what the screen does before it can expect anything published.

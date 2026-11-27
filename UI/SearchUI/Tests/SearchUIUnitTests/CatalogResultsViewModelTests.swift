@@ -2,6 +2,8 @@ import Foundation
 import ProductTestSupport
 import SnackbarUITestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Product
 @testable import SearchUI
 
@@ -13,7 +15,14 @@ struct CatalogResultsViewModelTests {
         browseCatalog: SpyBrowseCatalogUseCase = SpyBrowseCatalogUseCase(),
         snackbar: SpySnackbarPresenting = SpySnackbarPresenting()
     ) -> CatalogResultsViewModel {
-        CatalogResultsViewModel(filter: filter, browseCatalog: browseCatalog, snackbar: snackbar)
+        CatalogResultsViewModel(
+            filter: filter,
+            browseCatalog: browseCatalog,
+            snackbar: snackbar,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
+        )
     }
 
     @Test("Browsing everything is titled for that, not for the absence of a category")
@@ -43,7 +52,7 @@ struct CatalogResultsViewModelTests {
         let category = ProductCategory(id: CategoryID(rawValue: "beauty"), name: "Beauty")
         let viewModel = makeViewModel(filter: .category(category), browseCatalog: browseCatalog)
 
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(SearchTrackingPlan.resultsScreen))
 
         #expect(viewModel.results.map(\.id) == [pid(1)])
         #expect(browseCatalog.queries.map(\.filter) == [.category(category)])
@@ -55,9 +64,9 @@ struct CatalogResultsViewModelTests {
         let browseCatalog = SpyBrowseCatalogUseCase()
         browseCatalog.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(browseCatalog: browseCatalog)
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(SearchTrackingPlan.resultsScreen))
 
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(SearchTrackingPlan.resultsScreen))
 
         #expect(browseCatalog.queries.count == 1)
     }
@@ -68,10 +77,10 @@ struct CatalogResultsViewModelTests {
         let fullFirstPage = (1...30).map { Product.fixture(id: $0) }
         browseCatalog.result = .success(fullFirstPage)
         let viewModel = makeViewModel(browseCatalog: browseCatalog)
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(SearchTrackingPlan.resultsScreen))
         browseCatalog.result = .success([.fixture(id: 31)])
 
-        await viewModel.loadMore()
+        await viewModel.loadMore(in: TrackingContext.screen(SearchTrackingPlan.resultsScreen))
 
         #expect(browseCatalog.queries.map(\.page) == [0, 1])
         #expect(viewModel.results.count == 31)
@@ -83,9 +92,9 @@ struct CatalogResultsViewModelTests {
         let browseCatalog = SpyBrowseCatalogUseCase()
         browseCatalog.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(browseCatalog: browseCatalog)
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(SearchTrackingPlan.resultsScreen))
 
-        await viewModel.loadMore()
+        await viewModel.loadMore(in: TrackingContext.screen(SearchTrackingPlan.resultsScreen))
 
         #expect(browseCatalog.queries.count == 1)
     }
@@ -97,7 +106,7 @@ struct CatalogResultsViewModelTests {
         let snackbar = SpySnackbarPresenting()
         let viewModel = makeViewModel(browseCatalog: browseCatalog, snackbar: snackbar)
 
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(SearchTrackingPlan.resultsScreen))
 
         #expect(viewModel.results.isEmpty)
         #expect(snackbar.shown.first?.title == "Nothing's Loading")

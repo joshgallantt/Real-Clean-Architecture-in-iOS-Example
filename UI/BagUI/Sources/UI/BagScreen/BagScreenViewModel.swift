@@ -3,6 +3,8 @@ import Foundation
 import Bag
 import Money
 import Product
+import Tracking
+import TrackingUI
 
 @MainActor
 @Observable
@@ -35,6 +37,19 @@ public final class BagScreenViewModel {
     private let bringBagUpToDate: BringBagUpToDateUseCase
     private let acknowledgeNotices: AcknowledgeNoticesUseCase
 
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let trackEvent: TrackEventUseCase
+
+    /// Where the last visit to this screen was, as its view said — so the bag viewed once the shop
+    /// answers is reported on the screen that asked.
+    @ObservationIgnored private var visit = TrackingContext.screen(BagTrackingPlan.screen)
+
+    /// Whether this visit has reported the bag as viewed yet. A visit starts when the screen comes
+    /// into view; the bag counts as viewed once the shop has said what is in it.
+    @ObservationIgnored private var hasReportedBagViewed = false
+
     private var cancellables = Set<AnyCancellable>()
     private var bag = Bag()
     private var news = Notices()
@@ -64,7 +79,11 @@ public final class BagScreenViewModel {
         observeNotices: ObserveNoticesUseCase,
         setBagItemQuantity: SetBagItemQuantityUseCase,
         bringBagUpToDate: BringBagUpToDateUseCase,
-        acknowledgeNotices: AcknowledgeNoticesUseCase
+        acknowledgeNotices: AcknowledgeNoticesUseCase,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
+        trackEvent: TrackEventUseCase
     ) {
         self.navigation = navigation
         self.observeBag = observeBag
@@ -72,6 +91,89 @@ public final class BagScreenViewModel {
         self.setBagItemQuantity = setBagItemQuantity
         self.bringBagUpToDate = bringBagUpToDate
         self.acknowledgeNotices = acknowledgeNotices
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.trackEvent = trackEvent
+    }
+
+    /// The products this screen has been told about, for the checkout button below it to name what
+    /// is being bought. Public because the button is built in another package's container.
+    public var products: [ProductID: Product] { catalog }
+
+    // MARK: - Tracking
+
+    func didAppear(in context: TrackingContext) {
+        visit = context
+        hasReportedBagViewed = false
+        trackScreenView(context.screen)
+    }
+
+    /// A line seen, where its view says it is. Not until the shop has said what it is: a placeholder
+    /// row has no name to report it by.
+    func didSee(_ row: BagRow, in context: TrackingContext) {
+        guard let product = row.product, let line = line(row.id) else { return }
+        trackElementView(BagTrackingPlan.line, about: item(line, product: product, quantity: line.quantity), in: context)
+    }
+
+    func didSee(_ row: NoticeRow, in context: TrackingContext) {
+        guard let product = row.product else { return }
+        trackElementView(BagTrackingPlan.noticeLine, about: TrackedProduct.item(product), in: context)
+    }
+
+    /// Once per visit, and only once the shop has answered — so a bag viewed carries the names and
+    /// the prices the shopper is looking at, not a list of ids.
+    private func reportBagViewedIfDue() {
+        guard !hasReportedBagViewed, !bag.isEmpty else { return }
+        hasReportedBagViewed = true
+        report(.cartViewed, about: bag.items, in: visit)
+    }
+
+    /// A tap on something on a line, about that line where the shop has said what it is.
+    private func tapped(_ element: String, on line: BagItem, quantity: Int, in context: TrackingContext) {
+        guard let product = catalog[line.productId] else {
+            trackElementInteraction(element, in: context)
+            return
+        }
+        trackElementInteraction(element, about: item(line, product: product, quantity: quantity), in: context)
+    }
+
+    /// A line set to a new quantity. Up is something added and down is something removed, by however
+    /// much it moved — a shopper taking two off a line of five has removed two, not five.
+    ///
+    /// The bag's own floor applies — nothing goes below none — so setting a line to -3 removes what
+    /// the line had, and setting it to what it already holds is no step at all. A line the shop has
+    /// not answered about has no name to be reported by.
+    private func reportQuantityChange(of line: BagItem, to quantity: Int, in context: TrackingContext) {
+        let change = max(quantity, 0) - line.quantity
+        guard change != 0, let product = catalog[line.productId] else { return }
+
+        let name: EventName = change > 0 ? .productAdded : .productRemoved
+        let items = [item(line, product: product, quantity: abs(change))]
+        trackEvent(TrackingEvent(name: name, context: context, items: items, properties: [:]))
+    }
+
+    /// Whole lines in one event: the ones that left the bag, or the bag as it was looked at.
+    ///
+    /// The bag keeps ids and a report wants names. A line the shop has not answered about has no name
+    /// to report, so it is left out — and an event left with nothing in it did not happen, so it is
+    /// not reported at all. A bag viewed empty is not a bag viewed.
+    private func report(_ name: EventName, about lines: [BagItem], in context: TrackingContext) {
+        let items = lines.compactMap { line in
+            catalog[line.productId].map { item(line, product: $0, quantity: line.quantity) }
+        }
+        guard !items.isEmpty else { return }
+        trackEvent(TrackingEvent(name: name, context: context, items: items, properties: [:]))
+    }
+
+    /// A bag line as something the shop can measure — at the price the shopper agreed to, not
+    /// today's — and however many of it the event is about.
+    private func item(_ line: BagItem, product: Product, quantity: Int) -> TrackedItem {
+        TrackedProduct.item(product, price: line.lastKnownPrice, quantity: quantity)
+    }
+
+    private func line(_ productId: ProductID) -> BagItem? {
+        bag.items.first { $0.id == productId }
     }
 
     /// `async` so the screen can await it from `.task`, which ties the ask to how
@@ -84,12 +186,23 @@ public final class BagScreenViewModel {
         await askTheShop()
     }
 
-    func didChangeQuantity(productId: ProductID, quantity: Int) {
+    /// Two things to say: which way the stepper went, and what that added to or took from the bag.
+    /// A line the shop has not answered about has no name to be reported by, so only the tap is.
+    func didChangeQuantity(productId: ProductID, quantity: Int, in context: TrackingContext) {
+        if let line = line(productId), quantity != line.quantity {
+            let change = quantity - line.quantity
+            tapped(change > 0 ? BagTrackingPlan.quantityUp : BagTrackingPlan.quantityDown, on: line, quantity: abs(change), in: context)
+            reportQuantityChange(of: line, to: quantity, in: context)
+        }
         setBagItemQuantity(productId: productId, to: quantity)
         startAskingTheShop()
     }
 
-    func didSwipeToDelete(productId: ProductID) {
+    func didSwipeToDelete(productId: ProductID, in context: TrackingContext) {
+        if let line = line(productId) {
+            tapped(BagTrackingPlan.swipeRemove, on: line, quantity: line.quantity, in: context)
+            report(.productRemoved, about: [line], in: context)
+        }
         setBagItemQuantity(productId: productId, to: 0)
         startAskingTheShop()
     }
@@ -107,8 +220,20 @@ public final class BagScreenViewModel {
     /// what it is drawing rather than asking the app layer to go and find it again. A line the shop
     /// has not answered about yet has no page to open, and drawing it as a name-less row is the
     /// same fact said in the other direction.
-    func didTapRow(productId: ProductID) {
-        guard let product = catalog[productId] else { return }
+    ///
+    /// A product can be both in the bag and in a notice — a price that went up is still in the bag —
+    /// so there is one of these for each, and the view says which it was tapped in by which it calls.
+    func didTapRow(_ row: BagRow, in context: TrackingContext) {
+        guard let product = catalog[row.id] else { return }
+        if let line = line(row.id) {
+            trackElementInteraction(BagTrackingPlan.line, about: item(line, product: product, quantity: line.quantity), in: context)
+        }
+        navigation.openProductDetails(product: product)
+    }
+
+    func didTapRow(_ row: NoticeRow, in context: TrackingContext) {
+        guard let product = catalog[row.id] else { return }
+        trackElementInteraction(BagTrackingPlan.noticeLine, about: TrackedProduct.item(product), in: context)
         navigation.openProductDetails(product: product)
     }
 
@@ -120,7 +245,8 @@ public final class BagScreenViewModel {
     /// section, so a section is what this is told. It used to be handed the rows themselves, read
     /// back off the property they came from — which let a caller pair one section's button with
     /// another section's contents, and said nothing a reader would recognise.
-    func didAcceptAll(_ kind: Notice.Kind) {
+    func didAcceptAll(_ kind: Notice.Kind, in context: TrackingContext) {
+        trackElementInteraction(BagTrackingPlan.acceptAll(kind), in: context)
         for row in notices(in: kind) {
             acknowledgeNotices(aboutProductId: row.id)
         }
@@ -128,14 +254,21 @@ public final class BagScreenViewModel {
 
     /// The shopper empties their own bag. Every line goes the way a single swipe sends one, so
     /// there is no second path through the domain to keep in step with the first.
-    func didRemoveEverything() {
+    func didRemoveEverything(in context: TrackingContext) {
+        trackElementInteraction(BagTrackingPlan.removeAll, in: context)
+        report(.productRemoved, about: bag.items, in: context)
         for item in bag.items {
             setBagItemQuantity(productId: item.id, to: 0)
         }
         startAskingTheShop()
     }
 
-    func didRemoveChangedItem(productId: ProductID) {
+    /// Remove sits only on a notice line about a price rise, so that is the list it is reported in.
+    func didRemoveChangedItem(productId: ProductID, in context: TrackingContext) {
+        if let line = line(productId) {
+            tapped(BagTrackingPlan.removeChanged, on: line, quantity: line.quantity, in: context)
+            report(.productRemoved, about: [line], in: context)
+        }
         setBagItemQuantity(productId: productId, to: 0)
         startAskingTheShop()
     }
@@ -171,7 +304,7 @@ public final class BagScreenViewModel {
 
     private func render() {
         rows = bag.items.map { item in
-            BagRow(item: item, name: catalog[item.id]?.title, imageURL: catalog[item.id]?.thumbnail)
+            BagRow(item: item, product: catalog[item.id])
         }
 
         noticeSections = NoticeSection.readingOrder
@@ -181,11 +314,7 @@ public final class BagScreenViewModel {
 
     private func noticeRows(for notices: [Notice]) -> [NoticeRow] {
         notices.map { notice in
-            NoticeRow(
-                notice: notice,
-                name: catalog[notice.productId]?.title,
-                imageURL: catalog[notice.productId]?.thumbnail
-            )
+            NoticeRow(notice: notice, product: catalog[notice.productId])
         }
     }
 
@@ -224,5 +353,6 @@ public final class BagScreenViewModel {
         }
 
         render()
+        reportBagViewedIfDue()
     }
 }

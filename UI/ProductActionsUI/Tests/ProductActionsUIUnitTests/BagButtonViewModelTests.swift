@@ -3,6 +3,8 @@ import Foundation
 import ProductTestSupport
 import SnackbarUITestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Bag
 import Product
 @testable import ProductActionsUI
@@ -23,7 +25,10 @@ struct BagButtonViewModelTests {
             observeBagItemQuantity: observeBagItemQuantity,
             addItemToBag: addItemToBag,
             navigation: navigation,
-            snackbarPresenter: snackbarPresenter
+            snackbarPresenter: snackbarPresenter,
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
         /// The screen subscribes on appear rather than in `init`, so the test has
         /// to do what the screen does before it can expect anything published.
@@ -43,7 +48,7 @@ struct BagButtonViewModelTests {
         let addItemToBag = SpyAddItemToBagUseCase()
         let viewModel = makeViewModel(product: .fixture(id: 1), addItemToBag: addItemToBag)
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
 
         #expect(addItemToBag.added.map(\.productId) == [pid(1)])
         #expect(addItemToBag.added.map(\.quantity) == [1])
@@ -55,7 +60,7 @@ struct BagButtonViewModelTests {
         let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(navigation: navigation, snackbarPresenter: snackbarPresenter)
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
 
         #expect(snackbarPresenter.shown.first?.title == "In the Bag")
         snackbarPresenter.shown.first?.action?.handler()
@@ -72,7 +77,7 @@ struct BagButtonViewModelTests {
             snackbarPresenter: snackbarPresenter
         )
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
 
         #expect(addItemToBag.added.isEmpty)
         #expect(snackbarPresenter.shown.isEmpty)

@@ -28,14 +28,14 @@ struct NoticeRow: Identifiable, Equatable {
     }
 
     let id: ProductID
-    let name: String?
-    let imageURL: String?
+
+    /// The product the notice is about, once the shop has said what it is. See `BagRow`.
+    let product: Product?
     let says: Says
 
-    init(notice: Notice, name: String?, imageURL: String?) {
+    init(notice: Notice, product: Product?) {
         self.id = notice.productId
-        self.name = name
-        self.imageURL = imageURL
+        self.product = product
         self.says = Self.says(about: notice)
     }
 

@@ -1,17 +1,20 @@
 import SwiftUI
 import Product
 import ProductUI
+import Tracking
+import TrackingUI
 
 public struct CatalogResultsView: View {
+    @Environment(\.trackingContext) private var trackingContext
     @State private var viewModel: CatalogResultsViewModel
     let navigation: SearchNavigation
-    let wishlistButton: (ProductID) -> AnyView
+    let wishlistButton: (Product) -> AnyView
     let bagButton: (Product) -> AnyView
 
     public init(
         viewModel: @autoclosure @escaping () -> CatalogResultsViewModel,
         navigation: SearchNavigation,
-        wishlistButton: @escaping (ProductID) -> AnyView,
+        wishlistButton: @escaping (Product) -> AnyView,
         bagButton: @escaping (Product) -> AnyView
     ) {
         self._viewModel = State(wrappedValue: viewModel())
@@ -24,16 +27,16 @@ public struct CatalogResultsView: View {
         ProductGridListView(
             products: viewModel.results,
             isLoadingMore: viewModel.isLoadingMore,
-            onSelect: { product in
-                viewModel.didSelect(product)
+            onSelect: { product, context in
+                viewModel.didSelect(product, in: context)
                 navigation.openProductDetails(product: product)
             },
-            onReachEnd: {
-                Task { await viewModel.loadMore() }
-            },
-            accessory: { product in wishlistButton(product.id) },
+            onSeen: { viewModel.didSee($0, in: $1) },
+            onCardAppear: { viewModel.didLayOut($0, in: trackingContext) },
+            accessory: { product in wishlistButton(product) },
             leadingAccessory: { product in bagButton(product) }
         )
+        .trackingList(viewModel.list)
         .overlay {
             if viewModel.isLoading && viewModel.results.isEmpty {
                 ProgressView()
@@ -42,8 +45,9 @@ public struct CatalogResultsView: View {
             }
         }
         .navigationTitle(viewModel.title)
+        .onScreenAppear { viewModel.didAppear(in: $0) }
         .task {
-            await viewModel.onAppear()
+            await viewModel.onAppear(in: trackingContext)
         }
     }
 }

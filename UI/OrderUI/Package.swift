@@ -21,6 +21,8 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../TrackingUI"),
+        .package(path: "../../Component/Tracking"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Order"),
         .package(path: "../../Component/Bag"),
@@ -35,6 +37,8 @@ let package = Package(
         .target(
             name: "OrderUI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "Order", package: "Order"),
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "Product", package: "Product"),
@@ -49,6 +53,8 @@ let package = Package(
         .target(
             name: "OrderUIDI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 "OrderUI",
                 .product(name: "Order", package: "Order"),
                 .product(name: "Bag", package: "Bag"),
@@ -62,6 +68,9 @@ let package = Package(
         .testTarget(
             name: "OrderUIAcceptanceTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 "OrderUITestSupport",
                 .product(name: "MoneyTestSupport", package: "Money"),
                 .product(name: "AuthUITestSupport", package: "AuthUI"),
@@ -84,6 +93,7 @@ let package = Package(
         .target(
             name: "OrderUITestSupport",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
                 "OrderUI",
@@ -99,6 +109,9 @@ let package = Package(
         .testTarget(
             name: "OrderUIUnitTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "MoneyTestSupport", package: "Money"),
                 .product(name: "AuthUITestSupport", package: "AuthUI"),
                 .product(name: "OrderTestSupport", package: "Order"),
@@ -119,6 +132,9 @@ let package = Package(
         .testTarget(
             name: "OrderUISnapshotTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 "OrderUI",
                 "OrderUITestSupport",
                 .product(name: "Order", package: "Order"),

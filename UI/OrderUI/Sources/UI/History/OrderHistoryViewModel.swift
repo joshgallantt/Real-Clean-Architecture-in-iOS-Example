@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import Order
+import Tracking
 
 @MainActor
 @Observable
@@ -14,10 +15,17 @@ public final class OrderHistoryViewModel {
     private(set) var orders: [OrderSummary] = []
 
     private let observeOrders: ObserveOrdersUseCase
+    private let trackScreenView: TrackScreenViewUseCase
     private var cancellables = Set<AnyCancellable>()
 
-    public init(observeOrders: ObserveOrdersUseCase) {
+    public init(observeOrders: ObserveOrdersUseCase, trackScreenView: TrackScreenViewUseCase) {
         self.observeOrders = observeOrders
+        self.trackScreenView = trackScreenView
+    }
+
+    /// Every time the screen comes into view, not only the first: coming back to it is looking again.
+    func didAppear(in context: TrackingContext) {
+        trackScreenView(context.screen)
     }
 
     /// Subscribing happens here rather than in `init`, because `@State` builds its

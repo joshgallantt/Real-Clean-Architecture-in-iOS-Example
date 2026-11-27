@@ -2,6 +2,8 @@ import AuthUITestSupport
 import BagTestSupport
 import Combine
 import Foundation
+import Tracking
+import TrackingTestSupport
 import Bag
 import Money
 import Product
@@ -58,7 +60,10 @@ final class AProduct {
             observeBagItemQuantity: DefaultObserveBagItemQuantityUseCase(repository: bagRepository),
             addItemToBag: DefaultAddItemToBagUseCase(repository: bagRepository),
             navigation: navigation,
-            snackbarPresenter: snackbars
+            snackbarPresenter: snackbars,
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
         button.onAppear()
         return button
@@ -66,14 +71,17 @@ final class AProduct {
 
     func stockAlertButton() -> StockAlertButtonViewModel {
         let button = StockAlertButtonViewModel(
-            productId: product.id,
+            product: product,
             observeProductIsWaitlisted: DefaultObserveProductIsWaitlistedUseCase(repository: waitlistRepository),
             setProductIsWaitlisted: DefaultSetProductIsWaitlistedUseCase(
                 repository: waitlistRepository,
                 getSession: session
             ),
             authPresenter: auth,
-            snackbarPresenter: snackbars
+            snackbarPresenter: snackbars,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
         )
         button.onAppear()
         return button

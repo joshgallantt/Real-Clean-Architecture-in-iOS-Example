@@ -4,6 +4,8 @@ import Money
 import Product
 import Home
 import ProductTestSupport
+import Tracking
+import TrackingTestSupport
 @testable import HomeUITestSupport
 @testable import HomeUI
 
@@ -35,23 +37,35 @@ final class Shopper {
 
     @discardableResult
     func opensHome() async -> Shopper {
-        let viewModel = home ?? HomeScreenViewModel(drawHomeFeed: drawHomeFeed, navigation: navigation)
+        let viewModel = home ?? HomeScreenViewModel(
+            drawHomeFeed: drawHomeFeed,
+            navigation: navigation,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
+        )
         home = viewModel
         await viewModel.onAppear()
         return self
     }
 
+    /// From whichever carousel the shopper can see it in — the first, as a thumb would find it.
     func selects(_ product: Product) {
-        home?.didSelect(product)
+        for carousel in carouselsShown {
+            if let index = carousel.products.firstIndex(of: product) {
+                home?.didSelect(product, in: .list(HomeTrackingPlan.screen, HomeTrackingPlan.list(carousel), index: index))
+                return
+            }
+        }
     }
 
     func tapsViewAll(for category: ProductCategory) {
         guard let carousel = carouselsShown.first(where: { $0.category.id == category.id }) else { return }
-        home?.didTapViewAll(for: carousel)
+        home?.didTapViewAll(for: carousel, in: TrackingContext.screen(HomeTrackingPlan.screen))
     }
 
     func triesAgain() async {
-        home?.didTapRetry()
+        home?.didTapRetry(in: TrackingContext.screen(HomeTrackingPlan.screen))
         await home?.inFlight?.value
     }
 

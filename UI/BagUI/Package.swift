@@ -21,6 +21,8 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../TrackingUI"),
+        .package(path: "../../Component/Tracking"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Bag"),
         .package(path: "../../Component/Product"),
@@ -33,6 +35,8 @@ let package = Package(
         .target(
             name: "BagUI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
@@ -45,6 +49,8 @@ let package = Package(
         .target(
             name: "BagUIDI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 "BagUI",
                 .product(name: "Bag", package: "Bag"),
                 .product(name: "Product", package: "Product"),
@@ -57,6 +63,9 @@ let package = Package(
         .testTarget(
             name: "BagUIAcceptanceTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "MoneyTestSupport", package: "Money"),
                 .product(name: "BagTestSupport", package: "Bag"),
                 .product(name: "ProductTestSupport", package: "Product"),
@@ -84,6 +93,9 @@ let package = Package(
         .testTarget(
             name: "BagUIUnitTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "MoneyTestSupport", package: "Money"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "BagTestSupport", package: "Bag"),
@@ -98,6 +110,9 @@ let package = Package(
         .testTarget(
             name: "BagUISnapshotTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "BagTestSupport", package: "Bag"),
                 "BagUI",
                 "BagUITestSupport",

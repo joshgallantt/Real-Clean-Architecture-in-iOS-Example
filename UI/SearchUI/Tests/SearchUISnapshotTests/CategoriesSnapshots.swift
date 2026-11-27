@@ -13,8 +13,10 @@ func theCategoriesListOffersEveryCategory() {
             ProductCategory(id: CategoryID(rawValue: "beauty"), name: "Beauty"),
             ProductCategory(id: CategoryID(rawValue: "outdoors"), name: "Outdoors")
         ],
-        onSelectAll: {},
-        onSelect: { _ in }
+        onSelectAll: { _ in },
+        onSelect: { _, _ in },
+        onSeeAll: { _ in },
+        onSee: { _, _ in }
     )
 
     assertSnapshot(of: categories, as: .image(layout: .device(config: .iPhone13)))
@@ -23,7 +25,7 @@ func theCategoriesListOffersEveryCategory() {
 @MainActor
 @Test("A shop with nothing in it still renders, rather than collapsing to nothing")
 func anEmptyCategoriesListStillRenders() {
-    let categories = CategoriesView(categories: [], onSelectAll: {}, onSelect: { _ in })
+    let categories = CategoriesView(categories: [], onSelectAll: { _ in }, onSelect: { _, _ in }, onSeeAll: { _ in }, onSee: { _, _ in })
 
     assertSnapshot(of: categories, as: .image(layout: .device(config: .iPhone13)))
 }

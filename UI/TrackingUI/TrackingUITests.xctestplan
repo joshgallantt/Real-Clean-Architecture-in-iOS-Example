@@ -1,0 +1,21 @@
+{
+  "configurations": [
+    {
+      "id": "64FB3B7B-72B9-463C-BA56-ADD551F6F46B",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/TrackingUI",
+        "identifier": "TrackingUIUnitTests",
+        "name": "TrackingUIUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

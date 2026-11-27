@@ -2,6 +2,7 @@ import SwiftUI
 import Session
 import SheetUI
 import AuthUI
+import Tracking
 
 @MainActor
 public final class AuthPresenter: AuthPresenting {
@@ -15,6 +16,10 @@ public final class AuthPresenter: AuthPresenting {
     private let loginUseCase: LoginUseCase
     private let createAccountUseCase: CreateAccountUseCase
     private let getSession: GetSessionUseCase
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let trackEvent: TrackEventUseCase
     private var waiting: [CheckedContinuation<Bool, Never>] = []
     private var didAuthenticate = false
     private var confirmationTask: Task<Void, Never>?
@@ -23,12 +28,20 @@ public final class AuthPresenter: AuthPresenting {
         sheetPresenting: SheetPresenting,
         loginUseCase: LoginUseCase,
         createAccountUseCase: CreateAccountUseCase,
-        getSession: GetSessionUseCase
+        getSession: GetSessionUseCase,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
+        trackEvent: TrackEventUseCase
     ) {
         self.sheetPresenting = sheetPresenting
         self.loginUseCase = loginUseCase
         self.createAccountUseCase = createAccountUseCase
         self.getSession = getSession
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.trackEvent = trackEvent
     }
 
     @discardableResult
@@ -63,6 +76,10 @@ public final class AuthPresenter: AuthPresenting {
         let loginUseCase = loginUseCase
         let createAccountUseCase = createAccountUseCase
         let getSession = getSession
+        let trackScreenView = trackScreenView
+        let trackElementView = trackElementView
+        let trackElementInteraction = trackElementInteraction
+        let trackEvent = trackEvent
 
         sheetPresenting.present(
             onDismiss: { [weak self] in self?.sheetWasDismissedByUser() },
@@ -73,6 +90,10 @@ public final class AuthPresenter: AuthPresenting {
                     loginUseCase: loginUseCase,
                     createAccountUseCase: createAccountUseCase,
                     getSession: getSession,
+                    trackScreenView: trackScreenView,
+                    trackElementView: trackElementView,
+                    trackElementInteraction: trackElementInteraction,
+                    trackEvent: trackEvent,
                     onAuthenticated: { [weak self] in self?.authenticationSucceeded() }
                 ))
             }

@@ -1,4 +1,6 @@
 import Settings
+import Tracking
+import TrackingTestSupport
 import SettingsTestSupport
 import SnapshotTesting
 import SwiftUI
@@ -19,7 +21,9 @@ func theSettingsScreenListsEverySetting() {
                 Setting(key: .bagOutOfStockNotice, isOn: false),
                 Setting(key: .bagPriceDecreases, isOn: true)
             ]),
-            setSetting: SpySetSettingUseCase()
+            setSetting: SpySetSettingUseCase(),
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
         )
     )
 
@@ -32,7 +36,9 @@ func anEmptySettingsScreenStillRenders() {
     let screen = SettingsScreenView(
         viewModel: SettingsScreenViewModel(
             observeOfferedSettings: SpyObserveOfferedSettingsUseCase(),
-            setSetting: SpySetSettingUseCase()
+            setSetting: SpySetSettingUseCase(),
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
         )
     )
 

@@ -21,6 +21,8 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../TrackingUI"),
+        .package(path: "../../Component/Tracking"),
         .package(path: "../../Component/Product"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Session"),
@@ -35,6 +37,8 @@ let package = Package(
         .target(
             name: "AuthUIDI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 "AuthUI",
                 .product(name: "Session", package: "Session"),
                 .product(name: "SheetUI", package: "SheetUI")
@@ -58,6 +62,8 @@ let package = Package(
         .testTarget(
             name: "AuthUIUnitTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "SheetUITestSupport", package: "SheetUI"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 "AuthUITestSupport",
@@ -71,6 +77,8 @@ let package = Package(
         .testTarget(
             name: "AuthUISnapshotTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "SheetUITestSupport", package: "SheetUI"),
                 .product(name: "Session", package: "Session"),
                 "AuthUIDI",

@@ -3,6 +3,8 @@ import Foundation
 import Bag
 import Product
 import SnackbarUI
+import Tracking
+import TrackingUI
 
 @MainActor
 @Observable
@@ -21,6 +23,9 @@ public final class BagButtonViewModel {
     private let addItemToBag: AddItemToBagUseCase
     private let navigation: ProductActionsNavigation
     private let snackbarPresenter: SnackbarPresenting
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let trackEvent: TrackEventUseCase
     private var cancellables = Set<AnyCancellable>()
 
     public init(
@@ -28,13 +33,19 @@ public final class BagButtonViewModel {
         observeBagItemQuantity: ObserveBagItemQuantityUseCase,
         addItemToBag: AddItemToBagUseCase,
         navigation: ProductActionsNavigation,
-        snackbarPresenter: SnackbarPresenting
+        snackbarPresenter: SnackbarPresenting,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
+        trackEvent: TrackEventUseCase
     ) {
         self.product = product
         self.observeBagItemQuantity = observeBagItemQuantity
         self.addItemToBag = addItemToBag
         self.navigation = navigation
         self.snackbarPresenter = snackbarPresenter
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.trackEvent = trackEvent
     }
 
     /// Subscribing happens here rather than in `init`. See `WishlistButtonViewModel`:
@@ -54,20 +65,41 @@ public final class BagButtonViewModel {
     /// second decision about which button to be. It is the one thing a bag button must never do:
     /// put something the shop cannot supply into a shopper's bag. What to offer instead belongs to
     /// `StockAlertButtonViewModel`, which can actually keep the promise it makes.
-    func didTap() {
+    func didTap(in context: TrackingContext) {
         guard product.availability.isAvailable else { return }
-        addToBag()
+        trackElementInteraction(ProductActionsTrackingPlan.addToBag, about: item, in: context)
+        addToBag(in: context)
     }
 
-    private func addToBag() {
-        addItemToBag(BagItem(productId: product.id, lastKnownPrice: product.price))
+    /// One of this product, at the price the shopper is looking at — what a tap puts in the bag.
+    private var item: TrackedItem { TrackedProduct.item(product) }
 
-        let navigation = navigation
-        snackbarPresenter.show(Snackbar(
+    private func addToBag(in context: TrackingContext) {
+        let line = BagItem(productId: product.id, lastKnownPrice: product.price)
+        addItemToBag(line)
+        trackEvent(added(line, in: context))
+
+        let snackbar = Snackbar(
             title: "In the Bag",
             message: "It'll be there when you're ready.",
             icon: "bag.fill",
-            action: .view { navigation.switchToBagTab() }
-        ))
+            action: .view { [navigation, trackElementInteraction] in
+                trackElementInteraction(ProductActionsTrackingPlan.viewBag, in: context)
+                navigation.switchToBagTab()
+            }
+        )
+        trackElementView(snackbar.trackingName, about: item, in: context)
+        snackbarPresenter.show(snackbar)
+    }
+
+    /// The product added, read off the line the bag was handed — its price and how many — so a
+    /// report and the bag cannot disagree about what a tap put in.
+    private func added(_ line: BagItem, in context: TrackingContext) -> TrackingEvent {
+        TrackingEvent(
+            name: .productAdded,
+            context: context,
+            items: [TrackedProduct.item(product, price: line.lastKnownPrice, quantity: line.quantity)],
+            properties: [:]
+        )
     }
 }

@@ -1,7 +1,10 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 
 public struct SettingsScreenView: View {
     @State private var viewModel: SettingsScreenViewModel
+    @Environment(\.trackingContext) private var trackingContext
 
     public init(viewModel: @autoclosure @escaping () -> SettingsScreenViewModel) {
         self._viewModel = State(wrappedValue: viewModel())
@@ -16,7 +19,7 @@ public struct SettingsScreenView: View {
                             row.title,
                             isOn: Binding(
                                 get: { row.isOn },
-                                set: { viewModel.didToggle(row.id, to: $0) }
+                                set: { viewModel.didToggle(row.id, to: $0, in: trackingContext) }
                             )
                         )
                     }
@@ -24,8 +27,7 @@ public struct SettingsScreenView: View {
             }
         }
         .navigationTitle("Settings")
-        .onAppear {
-            viewModel.onAppear()
-        }
+        .onAppear { viewModel.onAppear() }
+        .onScreenAppear { viewModel.didAppear(in: $0) }
     }
 }

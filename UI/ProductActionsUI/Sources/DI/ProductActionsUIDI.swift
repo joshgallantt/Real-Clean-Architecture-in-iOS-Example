@@ -5,6 +5,7 @@ import Waitlist
 import Wishlist
 import AuthUI
 import SnackbarUI
+import Tracking
 import ProductActionsUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds the buttons more than
@@ -31,6 +32,11 @@ public struct ProductActionsUIDI {
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
 
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let trackEvent: TrackEventUseCase
+
     public init(
         navigation: ProductActionsNavigation,
         observeProductIsWishlisted: ObserveProductIsWishlistedUseCase,
@@ -40,7 +46,11 @@ public struct ProductActionsUIDI {
         observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase,
         setProductIsWaitlisted: SetProductIsWaitlistedUseCase,
         authPresenter: AuthPresenting,
-        snackbarPresenter: SnackbarPresenting
+        snackbarPresenter: SnackbarPresenting,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
+        trackEvent: TrackEventUseCase
     ) {
         self.navigation = navigation
         self.observeProductIsWishlisted = observeProductIsWishlisted
@@ -51,25 +61,32 @@ public struct ProductActionsUIDI {
         self.setProductIsWaitlisted = setProductIsWaitlisted
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.trackEvent = trackEvent
     }
 
     @MainActor
-    public func wishlistButton(productId: ProductID) -> some View {
-        WishlistButtonView(viewModel: makeWishlistViewModel(productId: productId))
+    public func wishlistButton(product: Product) -> some View {
+        WishlistButtonView(viewModel: makeWishlistViewModel(product: product))
     }
 
     @MainActor
-    public func stockAlertButton(productId: ProductID) -> some View {
-        StockAlertButtonView(viewModel: makeStockAlertViewModel(productId: productId))
+    public func stockAlertButton(product: Product) -> some View {
+        StockAlertButtonView(viewModel: makeStockAlertViewModel(product: product))
     }
 
     /// The minus on a card that is already on the waitlist. Same use case as the bell, said the way
     /// a list needs it said.
     @MainActor
-    public func removeFromWaitlistButton(productId: ProductID) -> some View {
-        RemoveFromWaitlistButton(viewModel: makeStockAlertViewModel(productId: productId))
+    public func removeFromWaitlistButton(product: Product) -> some View {
+        RemoveFromWaitlistButton(viewModel: makeStockAlertViewModel(product: product))
     }
 
+    /// No button is told the screen it is drawn on. The same heart is on six of them, and where it is
+    /// — a screen, or a position in a list on one — is in the environment it is drawn into.
+    ///
     /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: what the shop
     /// can supply decides which button a product gets, here, once. A single button that worked out
     /// what to be would be asked the question again on every render, and every caller would have to
@@ -82,7 +99,7 @@ public struct ProductActionsUIDI {
         case .inStock:
             BagButtonView(viewModel: makeBagViewModel(product: product))
         case .outOfStock:
-            StockAlertButtonView(viewModel: makeStockAlertViewModel(productId: product.id))
+            StockAlertButtonView(viewModel: makeStockAlertViewModel(product: product))
         }
     }
 
@@ -94,20 +111,24 @@ public struct ProductActionsUIDI {
         case .inStock:
             AddToBagButton(viewModel: makeBagViewModel(product: product))
         case .outOfStock:
-            NotifyMeButton(viewModel: makeStockAlertViewModel(productId: product.id))
+            NotifyMeButton(viewModel: makeStockAlertViewModel(product: product))
         }
     }
 
     // MARK: -
 
     @MainActor
-    private func makeWishlistViewModel(productId: ProductID) -> WishlistButtonViewModel {
+    private func makeWishlistViewModel(product: Product) -> WishlistButtonViewModel {
         WishlistButtonViewModel(
-            productId: productId,
+            product: product,
             observeProductIsWishlisted: observeProductIsWishlisted,
             setProductIsWishlisted: setProductIsWishlisted,
             authPresenter: authPresenter,
-            snackbarPresenter: snackbarPresenter
+            snackbarPresenter: snackbarPresenter,
+            trackScreenView: trackScreenView,
+            trackElementView: trackElementView,
+            trackElementInteraction: trackElementInteraction,
+            trackEvent: trackEvent
         )
     }
 
@@ -118,18 +139,24 @@ public struct ProductActionsUIDI {
             observeBagItemQuantity: observeBagItemQuantity,
             addItemToBag: addItemToBag,
             navigation: navigation,
-            snackbarPresenter: snackbarPresenter
+            snackbarPresenter: snackbarPresenter,
+            trackElementView: trackElementView,
+            trackElementInteraction: trackElementInteraction,
+            trackEvent: trackEvent
         )
     }
 
     @MainActor
-    private func makeStockAlertViewModel(productId: ProductID) -> StockAlertButtonViewModel {
+    private func makeStockAlertViewModel(product: Product) -> StockAlertButtonViewModel {
         StockAlertButtonViewModel(
-            productId: productId,
+            product: product,
             observeProductIsWaitlisted: observeProductIsWaitlisted,
             setProductIsWaitlisted: setProductIsWaitlisted,
             authPresenter: authPresenter,
-            snackbarPresenter: snackbarPresenter
+            snackbarPresenter: snackbarPresenter,
+            trackScreenView: trackScreenView,
+            trackElementView: trackElementView,
+            trackElementInteraction: trackElementInteraction
         )
     }
 }

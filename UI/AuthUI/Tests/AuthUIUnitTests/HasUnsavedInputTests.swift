@@ -3,6 +3,8 @@ import ProductTestSupport
 import Foundation
 import SessionTestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Session
 @testable import AuthUIDI
 
@@ -16,6 +18,10 @@ struct HasUnsavedInputTests {
             loginUseCase: SpyLoginUseCase(),
             createAccountUseCase: SpyCreateAccountUseCase(),
             getSession: StubGetSessionUseCase(),
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase(),
             onAuthenticated: {}
         )
     }

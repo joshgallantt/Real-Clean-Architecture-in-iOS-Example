@@ -39,6 +39,7 @@ struct AuthSheetView: View {
             Button("Discard", role: .destructive) { dismiss() }
             Button("Keep Editing", role: .cancel) {}
         }
+        .onAppear { viewModel.didAppear() }
         .presentationDragIndicator(.visible)
         .presentationCornerRadius(28)
     }

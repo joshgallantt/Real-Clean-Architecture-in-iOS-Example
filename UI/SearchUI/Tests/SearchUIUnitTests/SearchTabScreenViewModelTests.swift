@@ -3,6 +3,8 @@ import ProductTestSupport
 import SearchHistoryTestSupport
 import SnackbarUITestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Product
 @testable import SearchUI
 
@@ -14,7 +16,15 @@ struct SearchTabScreenViewModelTests {
         recordSearch: SpyRecordSearchUseCase = SpyRecordSearchUseCase(),
         snackbar: SpySnackbarPresenting = SpySnackbarPresenting()
     ) -> SearchTabScreenViewModel {
-        SearchTabScreenViewModel(browseCategories: browseCategories, recordSearch: recordSearch, snackbar: snackbar)
+        SearchTabScreenViewModel(
+            browseCategories: browseCategories,
+            recordSearch: recordSearch,
+            snackbar: snackbar,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
+        )
     }
 
     @Test("Appearing loads the categories the shop divides itself into")
@@ -24,7 +34,7 @@ struct SearchTabScreenViewModelTests {
         browseCategories.result = .success([category])
         let viewModel = makeViewModel(browseCategories: browseCategories)
 
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(SearchTrackingPlan.screen))
 
         #expect(viewModel.categories == [category])
     }
@@ -34,9 +44,9 @@ struct SearchTabScreenViewModelTests {
         let browseCategories = SpyBrowseCategoriesUseCase()
         browseCategories.result = .success([ProductCategory(id: CategoryID(rawValue: "beauty"), name: "Beauty")])
         let viewModel = makeViewModel(browseCategories: browseCategories)
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(SearchTrackingPlan.screen))
 
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(SearchTrackingPlan.screen))
 
         #expect(browseCategories.callCount == 1)
     }
@@ -48,7 +58,7 @@ struct SearchTabScreenViewModelTests {
         let snackbar = SpySnackbarPresenting()
         let viewModel = makeViewModel(browseCategories: browseCategories, snackbar: snackbar)
 
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(SearchTrackingPlan.screen))
 
         #expect(viewModel.categories.isEmpty)
         #expect(snackbar.shown.first?.title == "Nothing's Loading")
@@ -59,7 +69,7 @@ struct SearchTabScreenViewModelTests {
         let recordSearch = SpyRecordSearchUseCase()
         let viewModel = makeViewModel(recordSearch: recordSearch)
 
-        viewModel.didSubmitSearch(SearchTerm("lipstick")!)
+        viewModel.didSubmitSearch(SearchTerm("lipstick")!, in: TrackingContext.screen(SearchTrackingPlan.screen))
 
         #expect(recordSearch.recorded == [SearchTerm("lipstick")!])
     }

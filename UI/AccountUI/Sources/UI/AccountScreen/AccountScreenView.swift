@@ -1,23 +1,21 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 
 public struct AccountScreenView: View {
+    @Environment(\.trackingContext) private var trackingContext
     let viewModel: AccountScreenViewModel
+    /// `loginButton` stays an `AnyView` because it is a cross-cutting port — another package's
+    /// whole button, presented here. The rows this screen draws and owns go through the view model,
+    /// which knows where they lead.
     private let loginButton: AnyView
-
-    /// Where the rows go. `loginButton` stays an `AnyView` because it is a
-    /// cross-cutting port — another package's whole button, presented here.
-    /// A row that this screen draws and this screen owns is a different thing,
-    /// and it asks for a destination rather than being handed one.
-    private let navigation: any AccountNavigation
 
     public init(
         viewModel: AccountScreenViewModel,
-        loginButton: AnyView,
-        navigation: any AccountNavigation
+        loginButton: AnyView
     ) {
         self.viewModel = viewModel
         self.loginButton = loginButton
-        self.navigation = navigation
     }
 
     public var body: some View {
@@ -27,7 +25,7 @@ public struct AccountScreenView: View {
                     LabeledContent("Name", value: user.name.full)
                     LabeledContent("Email", value: user.email.value)
                     Button("Log Out", role: .destructive) {
-                        Task { await viewModel.didTapLogOut() }
+                        Task { await viewModel.didTapLogOut(in: trackingContext) }
                     }
                 } else {
                     Text("You're just looking right now.")
@@ -37,21 +35,20 @@ public struct AccountScreenView: View {
             }
 
             Section("Orders") {
-                Button { navigation.openOrderHistory() } label: {
+                Button { viewModel.didTapOrders(in: trackingContext) } label: {
                     Label("Your Orders", systemImage: "shippingbox")
                 }
                 .foregroundStyle(.primary)
             }
 
             Section("Settings") {
-                Button { navigation.openSettings() } label: {
+                Button { viewModel.didTapSettings(in: trackingContext) } label: {
                     Label("Settings", systemImage: "gearshape")
                 }
                 .foregroundStyle(.primary)
             }
         }
-        .onAppear {
-            viewModel.onAppear()
-        }
+        .onAppear { viewModel.onAppear() }
+        .onScreenAppear { viewModel.didAppear(in: $0) }
     }
 }

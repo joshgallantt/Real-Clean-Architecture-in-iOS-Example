@@ -17,6 +17,8 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../TrackingUI"),
+        .package(path: "../../Component/Tracking"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Money"),
@@ -30,6 +32,8 @@ let package = Package(
         .target(
             name: "SearchUI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "SearchHistory", package: "SearchHistory"),
@@ -43,6 +47,8 @@ let package = Package(
         .target(
             name: "SearchUIDI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 "SearchUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
@@ -56,6 +62,9 @@ let package = Package(
         .testTarget(
             name: "SearchUIUnitTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "SearchHistoryTestSupport", package: "SearchHistory"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),

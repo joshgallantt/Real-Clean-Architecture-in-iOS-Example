@@ -3,6 +3,8 @@ import ProductTestSupport
 import Foundation
 import SessionTestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Session
 @testable import AuthUIDI
 
@@ -19,6 +21,10 @@ struct CreatingAnAccountTests {
             loginUseCase: SpyLoginUseCase(),
             createAccountUseCase: createAccountUseCase,
             getSession: StubGetSessionUseCase(),
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase(),
             onAuthenticated: onAuthenticated
         )
         viewModel.firstName = "Ada"

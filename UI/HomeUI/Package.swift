@@ -22,6 +22,8 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../TrackingUI"),
+        .package(path: "../../Component/Tracking"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Home"),
@@ -34,6 +36,8 @@ let package = Package(
         .target(
             name: "HomeUI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Home", package: "Home"),
                 .product(name: "Money", package: "Money"),
@@ -46,6 +50,8 @@ let package = Package(
         .target(
             name: "HomeUIDI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 "HomeUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Home", package: "Home"),
@@ -58,6 +64,8 @@ let package = Package(
         .testTarget(
             name: "HomeUIAcceptanceTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "HomeTestSupport", package: "Home"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 "HomeUI",
@@ -83,6 +91,9 @@ let package = Package(
         .testTarget(
             name: "HomeUIUnitTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "HomeTestSupport", package: "Home"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 "HomeUI",
@@ -96,6 +107,8 @@ let package = Package(
         .testTarget(
             name: "HomeUISnapshotTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "HomeTestSupport", package: "Home"),
                 "HomeUI",
                 "HomeUITestSupport",

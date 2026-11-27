@@ -4,6 +4,8 @@ import SheetUITestSupport
 import Foundation
 import SessionTestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Session
 import SheetUI
 @testable import AuthUIDI
@@ -19,7 +21,11 @@ struct WelcomeScreenViewModelTests {
             sheetPresenting: sheetPresenting,
             loginUseCase: SpyLoginUseCase(),
             createAccountUseCase: SpyCreateAccountUseCase(),
-            getSession: getSession
+            getSession: getSession,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
     }
 
@@ -30,11 +36,13 @@ struct WelcomeScreenViewModelTests {
         var authenticated = false
         let viewModel = WelcomeScreenViewModel(
             presenter: makePresenter(sheetPresenting: sheetPresenting),
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
             onContinueAsGuest: { continuedAsGuest = true },
             onAuthenticated: { authenticated = true }
         )
 
-        viewModel.didContinueAsGuest()
+        viewModel.didContinueAsGuest(in: .screen("welcome"))
 
         #expect(continuedAsGuest)
         #expect(authenticated == false)
@@ -49,11 +57,13 @@ struct WelcomeScreenViewModelTests {
         var authenticated = false
         let viewModel = WelcomeScreenViewModel(
             presenter: makePresenter(getSession: getSession, sheetPresenting: sheetPresenting),
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
             onContinueAsGuest: {},
             onAuthenticated: { authenticated = true }
         )
 
-        viewModel.didTapLogIn()
+        viewModel.didTapLogIn(in: .screen("welcome"))
         await viewModel.inFlight?.value
 
         #expect(authenticated)
@@ -66,11 +76,13 @@ struct WelcomeScreenViewModelTests {
         var authenticated = false
         let viewModel = WelcomeScreenViewModel(
             presenter: makePresenter(sheetPresenting: sheetPresenting),
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
             onContinueAsGuest: {},
             onAuthenticated: { authenticated = true }
         )
 
-        viewModel.didTapLogIn()
+        viewModel.didTapLogIn(in: .screen("welcome"))
         await sheetPresenting.untilPresented()
         sheetPresenting.userDismissedTheSheet()
         await viewModel.inFlight?.value
@@ -87,11 +99,13 @@ struct WelcomeScreenViewModelTests {
         var authenticated = false
         let viewModel = WelcomeScreenViewModel(
             presenter: makePresenter(getSession: getSession, sheetPresenting: sheetPresenting),
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
             onContinueAsGuest: {},
             onAuthenticated: { authenticated = true }
         )
 
-        viewModel.didTapCreateAccount()
+        viewModel.didTapCreateAccount(in: .screen("welcome"))
         await viewModel.inFlight?.value
 
         #expect(authenticated)

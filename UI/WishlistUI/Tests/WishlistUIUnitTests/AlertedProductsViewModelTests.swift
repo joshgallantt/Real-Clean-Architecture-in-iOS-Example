@@ -2,6 +2,8 @@ import Foundation
 import ProductTestSupport
 import SnackbarUITestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Product
 import Waitlist
 @testable import WishlistUI
@@ -22,7 +24,12 @@ struct AlertedProductsViewModelTests {
             changes: changes.callAsFunction,
             clear: clear.callAsFunction,
             snackbar: snackbar,
-            couldNotLoad: couldNotLoad
+            couldNotLoad: couldNotLoad,
+            list: WishlistTrackingPlan.waitlist,
+            openProduct: { _ in },
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
         )
     }
 
@@ -32,7 +39,7 @@ struct AlertedProductsViewModelTests {
         load.result = .success([.fixture(id: 1), .fixture(id: 2)])
         let viewModel = makeViewModel(load: load)
 
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
         #expect(viewModel.products.map(\.id) == [pid(1), pid(2)])
         #expect(viewModel.count == 2)
@@ -45,7 +52,7 @@ struct AlertedProductsViewModelTests {
         load.result = .success([])
         let changes = StubObserveStockAlerts()
         let viewModel = makeViewModel(load: load, changes: changes)
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         let loadsSoFar = load.callCount
 
         changes.send(Waitlist(items: [WaitlistItem(productId: pid(1))]))
@@ -59,7 +66,7 @@ struct AlertedProductsViewModelTests {
         let load = SpyGetAlertedProducts()
         let changes = StubObserveStockAlerts()
         let viewModel = makeViewModel(load: load, changes: changes)
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         let same = Waitlist(items: [WaitlistItem(productId: pid(1))])
         changes.send(same)
         await viewModel.inFlight?.value
@@ -76,10 +83,10 @@ struct AlertedProductsViewModelTests {
         let load = SpyGetAlertedProducts()
         load.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(load: load)
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
         load.result = .failure(.unavailable)
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
         #expect(viewModel.products.map(\.id) == [pid(1)])
     }
@@ -91,7 +98,7 @@ struct AlertedProductsViewModelTests {
         let snackbar = SpySnackbarPresenting()
         let viewModel = makeViewModel(load: load, snackbar: snackbar, couldNotLoad: "Couldn't Load the Waitlist")
 
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
         #expect(snackbar.shown.first?.title == "Couldn't Load the Waitlist")
     }
@@ -102,9 +109,9 @@ struct AlertedProductsViewModelTests {
         load.result = .success([.fixture(id: 1), .fixture(id: 2)])
         let clear = SpyClearTheList()
         let viewModel = makeViewModel(load: load, clear: clear)
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
-        viewModel.didConfirmClear()
+        viewModel.didConfirmClear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(clear.calls == [[pid(1), pid(2)]])
@@ -114,9 +121,9 @@ struct AlertedProductsViewModelTests {
     func clearingAnEmptyListAsksNothing() async {
         let clear = SpyClearTheList()
         let viewModel = makeViewModel(clear: clear)
-        await viewModel.onAppear()
+        await viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
-        viewModel.didConfirmClear()
+        viewModel.didConfirmClear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(clear.calls.isEmpty)

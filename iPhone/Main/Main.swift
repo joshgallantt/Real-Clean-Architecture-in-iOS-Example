@@ -7,6 +7,7 @@ import SnackbarUIDI
 @main
 struct Main: App {
     @State private var viewModel = CompositionRoot.shared.makeMainViewModel()
+    @Environment(\.scenePhase) private var scenePhase
 
     var body: some Scene {
         WindowGroup {
@@ -41,6 +42,11 @@ struct Main: App {
             .sheetHost(CompositionRoot.shared.presentation.sheet.presenter)
             .task {
                 await viewModel.onAppear()
+            }
+            /// List views are held back and sent in batches, and a suspended app never gets to the
+            /// end of its batch window. Going to the background is the last moment to send them.
+            .onChange(of: scenePhase) { _, phase in
+                if phase == .background { CompositionRoot.shared.sendHeldBackTracking() }
             }
         }
     }

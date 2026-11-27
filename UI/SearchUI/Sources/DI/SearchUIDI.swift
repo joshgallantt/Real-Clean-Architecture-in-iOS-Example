@@ -5,6 +5,8 @@ import SearchHistory
 import SnackbarUI
 import WishlistUIDI
 import ProductActionsUIDI
+import Tracking
+import TrackingUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
 /// hierarchy and holds its collaborators.
@@ -23,6 +25,10 @@ public struct SearchUIDI {
     private let snackbarPresenter: SnackbarPresenting
     private let wishlistUIDI: WishlistUIDI
     private let productActionsUIDI: ProductActionsUIDI
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let trackEvent: TrackEventUseCase
 
     public init(
         navigation: SearchNavigation,
@@ -33,7 +39,11 @@ public struct SearchUIDI {
         clearSearchHistory: ClearSearchHistoryUseCase,
         snackbarPresenter: SnackbarPresenting,
         wishlistUIDI: WishlistUIDI,
-        productActionsUIDI: ProductActionsUIDI
+        productActionsUIDI: ProductActionsUIDI,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
+        trackEvent: TrackEventUseCase
     ) {
         self.navigation = navigation
         self.browseCatalog = browseCatalog
@@ -44,6 +54,10 @@ public struct SearchUIDI {
         self.snackbarPresenter = snackbarPresenter
         self.wishlistUIDI = wishlistUIDI
         self.productActionsUIDI = productActionsUIDI
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.trackEvent = trackEvent
     }
 
     @MainActor
@@ -52,15 +66,24 @@ public struct SearchUIDI {
             viewModel: SearchTabScreenViewModel(
                 browseCategories: browseCategories,
                 recordSearch: recordSearch,
-                snackbar: snackbarPresenter
+                snackbar: snackbarPresenter,
+                trackScreenView: trackScreenView,
+                trackElementView: trackElementView,
+                trackElementInteraction: trackElementInteraction,
+                trackEvent: trackEvent
             ),
             searchingViewModel: SearchingViewModel(
                 getSearchHistory: getSearchHistory,
                 clearSearchHistory: clearSearchHistory,
-                browseCatalog: browseCatalog
+                browseCatalog: browseCatalog,
+                trackElementView: trackElementView,
+                trackElementInteraction: trackElementInteraction
             ),
             navigation: navigation
         )
+        /// Declared here, above the screen, so the screen's own body — and every row drawn inside
+        /// it — reads it.
+        .trackingScreen(SearchTrackingPlan.screen)
     }
 
     @MainActor
@@ -69,11 +92,15 @@ public struct SearchUIDI {
             viewModel: CatalogResultsViewModel(
                 filter: filter,
                 browseCatalog: browseCatalog,
-                snackbar: snackbarPresenter
+                snackbar: snackbarPresenter,
+                trackScreenView: trackScreenView,
+                trackElementView: trackElementView,
+                trackElementInteraction: trackElementInteraction
             ),
             navigation: navigation,
-            wishlistButton: { id in AnyView(wishlistUIDI.button(productId: id)) },
+            wishlistButton: { product in AnyView(wishlistUIDI.button(product: product)) },
             bagButton: { product in AnyView(productActionsUIDI.cardActionButton(product: product)) }
         )
+        .trackingScreen(SearchTrackingPlan.resultsScreen)
     }
 }

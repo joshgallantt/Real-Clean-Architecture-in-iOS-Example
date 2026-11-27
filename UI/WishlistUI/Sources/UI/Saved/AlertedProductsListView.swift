@@ -1,6 +1,8 @@
 import SwiftUI
 import Product
 import ProductUI
+import Tracking
+import TrackingUI
 
 /// What a stock-alert carousel's View All opens: the same products, all of them, in the grid every
 /// other full list in this app uses.
@@ -9,6 +11,7 @@ import ProductUI
 /// genuinely different things — a wishlist is a list of ids to fill in and page through, and these
 /// are answered whole by a use case. Only the grid is shared, which is the part that is the same.
 public struct AlertedProductsListView: View {
+    @Environment(\.trackingContext) private var trackingContext
     /// Owned, not observed. `makeView()` builds it afresh on every navigation re-evaluation, and an
     /// observed one handed in each render would reload on every redraw.
     @State private var viewModel: AlertedProductsViewModel
@@ -17,7 +20,7 @@ public struct AlertedProductsListView: View {
     let emptyTitle: String
     let emptyIcon: String
     let emptyMessage: String
-    let onSelect: (Product) -> Void
+    let listContext: TrackingContext.List
     let accessory: (Product) -> AnyView
     let leadingAccessory: (Product) -> AnyView
 
@@ -27,7 +30,7 @@ public struct AlertedProductsListView: View {
         emptyTitle: String,
         emptyIcon: String,
         emptyMessage: String,
-        onSelect: @escaping (Product) -> Void,
+        listContext: TrackingContext.List,
         accessory: @escaping (Product) -> AnyView,
         leadingAccessory: @escaping (Product) -> AnyView
     ) {
@@ -36,7 +39,7 @@ public struct AlertedProductsListView: View {
         self.emptyTitle = emptyTitle
         self.emptyIcon = emptyIcon
         self.emptyMessage = emptyMessage
-        self.onSelect = onSelect
+        self.listContext = listContext
         self.accessory = accessory
         self.leadingAccessory = leadingAccessory
     }
@@ -45,11 +48,13 @@ public struct AlertedProductsListView: View {
         ProductGridListView(
             products: viewModel.products,
             isLoadingMore: false,
-            onSelect: onSelect,
-            onReachEnd: {},
+            onSelect: { viewModel.didSelect($0, in: $1) },
+            onSeen: { viewModel.didSee($0, in: $1) },
+            onCardAppear: { _ in },
             accessory: accessory,
             leadingAccessory: leadingAccessory
         )
+        .trackingList(listContext)
         .overlay {
             if viewModel.isEmpty && !viewModel.isLoading {
                 ContentUnavailableView(
@@ -61,6 +66,7 @@ public struct AlertedProductsListView: View {
         }
         .navigationTitle(title)
         .navigationBarTitleDisplayMode(.inline)
-        .task { await viewModel.onAppear() }
+        .onScreenAppear { viewModel.didAppear(in: $0) }
+        .task { await viewModel.onAppear(in: trackingContext) }
     }
 }

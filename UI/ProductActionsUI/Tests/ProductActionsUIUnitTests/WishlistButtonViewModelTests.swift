@@ -3,6 +3,8 @@ import Foundation
 import ProductTestSupport
 import SnackbarUITestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Product
 import WishlistTestSupport
 @testable import ProductActionsUI
@@ -12,18 +14,22 @@ import WishlistTestSupport
 @Suite("The wishlist heart")
 struct WishlistButtonViewModelTests {
     private func makeViewModel(
-        productId: ProductID = pid(1),
+        product: Product = .fixture(id: 1),
         observeProductIsWishlisted: StubObserveProductIsWishlistedUseCase = StubObserveProductIsWishlistedUseCase(),
         setProductIsWishlisted: SpySetProductIsWishlistedUseCase = SpySetProductIsWishlistedUseCase(),
         authPresenter: SpyAuthPresenting = SpyAuthPresenting(),
         snackbarPresenter: SpySnackbarPresenting = SpySnackbarPresenting()
     ) -> WishlistButtonViewModel {
         let viewModel = WishlistButtonViewModel(
-            productId: productId,
+            product: product,
             observeProductIsWishlisted: observeProductIsWishlisted,
             setProductIsWishlisted: setProductIsWishlisted,
             authPresenter: authPresenter,
-            snackbarPresenter: snackbarPresenter
+            snackbarPresenter: snackbarPresenter,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
         /// The screen subscribes on appear rather than in `init`, so the test has
         /// to do what the screen does before it can expect anything published.
@@ -42,11 +48,11 @@ struct WishlistButtonViewModelTests {
     func tappingWhenNotSavedSavesIt() async {
         let setProductIsWishlisted = SpySetProductIsWishlistedUseCase()
         let viewModel = makeViewModel(
-            productId: pid(1),
+            product: .fixture(id: 1),
             setProductIsWishlisted: setProductIsWishlisted
         )
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(setProductIsWishlisted.calls.map(\.productId) == [pid(1)])
@@ -57,12 +63,12 @@ struct WishlistButtonViewModelTests {
     func tappingWhenSavedUnsavesIt() async {
         let setProductIsWishlisted = SpySetProductIsWishlistedUseCase()
         let viewModel = makeViewModel(
-            productId: pid(1),
+            product: .fixture(id: 1),
             observeProductIsWishlisted: StubObserveProductIsWishlistedUseCase(true),
             setProductIsWishlisted: setProductIsWishlisted
         )
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(setProductIsWishlisted.calls.map(\.isWishlisted) == [false])
@@ -74,13 +80,13 @@ struct WishlistButtonViewModelTests {
         let setProductIsWishlisted = SpySetProductIsWishlistedUseCase()
         setProductIsWishlisted.onSuccess = { observeProductIsWishlisted.send($0) }
         let viewModel = makeViewModel(
-            productId: pid(1),
+            product: .fixture(id: 1),
             observeProductIsWishlisted: observeProductIsWishlisted,
             setProductIsWishlisted: setProductIsWishlisted
         )
 
-        viewModel.didTap()
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(setProductIsWishlisted.calls.map(\.isWishlisted) == [true, false])
@@ -92,7 +98,7 @@ struct WishlistButtonViewModelTests {
         let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(snackbarPresenter: snackbarPresenter)
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(snackbarPresenter.shown.map(\.title) == ["Saved"])
@@ -106,7 +112,7 @@ struct WishlistButtonViewModelTests {
             snackbarPresenter: snackbarPresenter
         )
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(snackbarPresenter.shown.map(\.title) == ["Unsaved"])
@@ -120,7 +126,7 @@ struct WishlistButtonViewModelTests {
         authPresenter.signsIn = true
         let viewModel = makeViewModel(setProductIsWishlisted: setProductIsWishlisted, authPresenter: authPresenter)
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(authPresenter.timesAsked == 1)
@@ -140,7 +146,7 @@ struct WishlistButtonViewModelTests {
             snackbarPresenter: snackbarPresenter
         )
 
-        viewModel.didTap()
+        viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(snackbarPresenter.shown.isEmpty)

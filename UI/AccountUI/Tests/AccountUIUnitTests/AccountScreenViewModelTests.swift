@@ -2,6 +2,8 @@ import Foundation
 import ProductTestSupport
 import SessionTestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Session
 @testable import AccountUI
 @testable import AccountUITestSupport
@@ -12,12 +14,18 @@ struct AccountScreenViewModelTests {
     private func makeViewModel(
         getSession: StubGetSessionUseCase = StubGetSessionUseCase(),
         observeSession: SpyObserveSessionUseCase = SpyObserveSessionUseCase(),
-        logoutUseCase: SpyLogoutUseCase = SpyLogoutUseCase()
+        logoutUseCase: SpyLogoutUseCase = SpyLogoutUseCase(),
+        navigation: SpyAccountNavigation = SpyAccountNavigation(),
+        trackScreenView: SpyTrackScreenViewUseCase = SpyTrackScreenViewUseCase(),
+        trackElementInteraction: SpyTrackElementInteractionUseCase = SpyTrackElementInteractionUseCase()
     ) -> AccountScreenViewModel {
         AccountScreenViewModel(
             getSession: getSession,
             observeSession: observeSession,
-            logoutUseCase: logoutUseCase
+            logoutUseCase: logoutUseCase,
+            navigation: navigation,
+            trackScreenView: trackScreenView,
+            trackElementInteraction: trackElementInteraction
         )
     }
 
@@ -72,7 +80,7 @@ struct AccountScreenViewModelTests {
         let logoutUseCase = SpyLogoutUseCase()
         let viewModel = makeViewModel(logoutUseCase: logoutUseCase)
 
-        await viewModel.didTapLogOut()
+        await viewModel.didTapLogOut(in: .screen("account"))
 
         #expect(logoutUseCase.callCount == 1)
     }

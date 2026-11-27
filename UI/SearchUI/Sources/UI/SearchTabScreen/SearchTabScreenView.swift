@@ -1,7 +1,10 @@
 import SwiftUI
 import Product
+import Tracking
+import TrackingUI
 
 public struct SearchTabScreenView: View {
+    @Environment(\.trackingContext) private var trackingContext
     @Bindable var viewModel: SearchTabScreenViewModel
     let searchingViewModel: SearchingViewModel
     let navigation: SearchNavigation
@@ -33,10 +36,10 @@ public struct SearchTabScreenView: View {
             if viewModel.isSearchActive {
                 SearchingView(
                     viewModel: searchingViewModel,
-                    onSelectHistory: { term in
+                    onSelectHistory: { term, context in
                         viewModel.query = term.text
                         isFocused = false
-                        viewModel.didSubmitSearch(term)
+                        viewModel.didSubmitSearch(term, in: context)
                         navigation.openCatalog(filter: .search(term))
                     },
                     onSelectSuggestion: { product in
@@ -47,11 +50,16 @@ public struct SearchTabScreenView: View {
             } else {
                 CategoriesView(
                     categories: viewModel.categories,
-                    onSelectAll: { navigation.openCatalog(filter: .all) },
-                    onSelect: { category in
-                        viewModel.didSelectCategory(category)
+                    onSelectAll: { context in
+                        viewModel.didSelectAllProducts(in: context)
+                        navigation.openCatalog(filter: .all)
+                    },
+                    onSelect: { category, context in
+                        viewModel.didSelectCategory(category, in: context)
                         navigation.openCatalog(filter: .category(category))
-                    }
+                    },
+                    onSeeAll: { viewModel.didSeeAllProducts(in: $0) },
+                    onSee: { viewModel.didSee($0, in: $1) }
                 )
             }
         }
@@ -61,8 +69,9 @@ public struct SearchTabScreenView: View {
                 viewModel.query = ""
             }
         }
+        .onScreenAppear { viewModel.didAppear(in: $0) }
         .task {
-            await viewModel.onAppear()
+            await viewModel.onAppear(in: trackingContext)
         }
     }
 
@@ -73,7 +82,7 @@ public struct SearchTabScreenView: View {
     private func commitSearch(_ typed: String) {
         guard let term = SearchTerm(typed) else { return }
         isFocused = false
-        viewModel.didSubmitSearch(term)
+        viewModel.didSubmitSearch(term, in: trackingContext)
         navigation.openCatalog(filter: .search(term))
     }
 }

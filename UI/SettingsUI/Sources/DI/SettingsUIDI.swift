@@ -1,6 +1,8 @@
 import SwiftUI
 import Settings
 import SettingsUI
+import Tracking
+import TrackingUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
 /// hierarchy and holds its collaborators.
@@ -12,13 +14,19 @@ import SettingsUI
 public struct SettingsUIDI {
     private let observeOfferedSettings: ObserveOfferedSettingsUseCase
     private let setSetting: SetSettingUseCase
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
 
     public init(
         observeOfferedSettings: ObserveOfferedSettingsUseCase,
-        setSetting: SetSettingUseCase
+        setSetting: SetSettingUseCase,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase
     ) {
         self.observeOfferedSettings = observeOfferedSettings
         self.setSetting = setSetting
+        self.trackScreenView = trackScreenView
+        self.trackElementInteraction = trackElementInteraction
     }
 
     @MainActor
@@ -26,8 +34,11 @@ public struct SettingsUIDI {
         SettingsScreenView(
             viewModel: SettingsScreenViewModel(
                 observeOfferedSettings: observeOfferedSettings,
-                setSetting: setSetting
+                setSetting: setSetting,
+                trackScreenView: trackScreenView,
+                trackElementInteraction: trackElementInteraction
             )
         )
+        .trackingScreen(SettingsTrackingPlan.screen)
     }
 }

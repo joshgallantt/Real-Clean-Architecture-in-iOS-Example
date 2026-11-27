@@ -1,3 +1,4 @@
+import Tracking
 import Foundation
 import ProductTestSupport
 import Testing
@@ -13,7 +14,7 @@ struct KeepingAnEyeOnThingsTests {
     func showsWhatIsKept() async {
         let keeper = AKeeper()
         keeper.shop.sells(1, 2)
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
         keeper.keeps(1, 2)
         await keeper.settle()
@@ -25,7 +26,7 @@ struct KeepingAnEyeOnThingsTests {
     @Test("Keeping nothing shows nothing, and asks the shop nothing")
     func nothingKept() async {
         let keeper = AKeeper()
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
         await keeper.settle()
 
@@ -37,7 +38,7 @@ struct KeepingAnEyeOnThingsTests {
     func discontinued() async {
         let keeper = AKeeper()
         keeper.shop.sells(1)
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
         keeper.keeps(1, 2)
         await keeper.settle()
@@ -50,7 +51,7 @@ struct KeepingAnEyeOnThingsTests {
     func cannotBeReached() async {
         let keeper = AKeeper()
         keeper.shop.cannotBeReached = true
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
         keeper.keeps(1, 2)
         await keeper.settle()
@@ -64,7 +65,7 @@ struct KeepingAnEyeOnThingsTests {
         let keeper = AKeeper()
         keeper.pageSize = 2
         keeper.shop.stillSells = Set((1...5).map(pid))
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
         keeper.keeps(idsUpTo: 5)
         await keeper.settle()
@@ -78,11 +79,11 @@ struct KeepingAnEyeOnThingsTests {
         let keeper = AKeeper()
         keeper.pageSize = 2
         keeper.shop.stillSells = Set((1...5).map(pid))
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         keeper.keeps(idsUpTo: 5)
         await keeper.settle()
 
-        keeper.list.onReachEnd()
+        keeper.list.didLayOut(keeper.list.products[keeper.list.products.count - 1], in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await keeper.settle()
 
         #expect(keeper.list.products.count == 4)
@@ -92,7 +93,7 @@ struct KeepingAnEyeOnThingsTests {
     func doesNotReaskForWhatItHas() async {
         let keeper = AKeeper()
         keeper.shop.sells(1, 2)
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         keeper.keeps(1)
         await keeper.settle()
 
@@ -106,7 +107,7 @@ struct KeepingAnEyeOnThingsTests {
     func stopsKeeping() async {
         let keeper = AKeeper()
         keeper.shop.sells(1, 2)
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         keeper.keeps(1, 2)
         await keeper.settle()
 

@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "2D84BAA3-516B-479F-B56C-83D114A31C43",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Tracking",
+        "identifier": "TrackingAcceptanceTests",
+        "name": "TrackingAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Tracking",
+        "identifier": "TrackingUnitTests",
+        "name": "TrackingUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

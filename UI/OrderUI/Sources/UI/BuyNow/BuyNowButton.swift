@@ -1,4 +1,6 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 import UIKit
 
 /// The express path: one product, one tap, no bag. It sits under Add to Bag rather than replacing
@@ -6,6 +8,7 @@ import UIKit
 /// "I am done" — and a screen that offered only the second would make a shopper who wanted to keep
 /// browsing check out to keep anything.
 public struct BuyNowButton: View {
+    @Environment(\.trackingContext) private var trackingContext
     @State private var viewModel: BuyNowButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> BuyNowButtonViewModel) {
@@ -15,7 +18,7 @@ public struct BuyNowButton: View {
     public var body: some View {
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            viewModel.didTap()
+            viewModel.didTap(in: trackingContext)
         } label: {
             HStack {
                 if viewModel.isPlacing {

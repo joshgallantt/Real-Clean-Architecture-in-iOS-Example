@@ -5,6 +5,8 @@ import SnackbarUITestSupport
 import SnapshotTesting
 import SwiftUI
 import Testing
+import Tracking
+import TrackingTestSupport
 @testable import WishlistUI
 @testable import WishlistUITestSupport
 
@@ -16,13 +18,18 @@ func anEmptyWishlistExplainsItself() {
             savedProductIds: { Just([]).eraseToAnyPublisher() },
             lookUpProducts: SpyLookUpProductsUseCase(),
             snackbar: SpySnackbarPresenting(),
-            couldNotLoad: "We could not load your list."
+            couldNotLoad: "We could not load your list.",
+            list: WishlistTrackingPlan.faves,
+            openProduct: { _ in },
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
         ),
         title: "Saved",
         emptyTitle: "Nothing saved yet",
         emptyIcon: "heart",
         emptyMessage: "Tap the heart on anything you want to come back to.",
-        onSelect: { _ in },
+        listContext: WishlistTrackingPlan.faves,
         accessory: { _ in AnyView(EmptyView()) },
         leadingAccessory: { _ in AnyView(EmptyView()) }
     )

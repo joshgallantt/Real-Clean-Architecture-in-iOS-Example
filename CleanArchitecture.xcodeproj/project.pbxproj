@@ -40,6 +40,8 @@
 		FADE010200000000000000A1 /* OrderData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010200000000000000A2 /* OrderData */; };
 		FADE010300000000000000A1 /* OrderUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010300000000000000A2 /* OrderUIDI */; };
 		FADE011100000000000000A1 /* HomeDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE011100000000000000A2 /* HomeDI */; };
+		FADE012100000000000000A1 /* TrackingDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE012100000000000000A2 /* TrackingDI */; };
+		FADE012200000000000000A1 /* TrackingData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE012200000000000000A2 /* TrackingData */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -108,6 +110,8 @@
 				FADE001000000000000000A1 /* BagDI in Frameworks */,
 				FADE001100000000000000A1 /* ProductActionsUIDI in Frameworks */,
 				FADE011100000000000000A1 /* HomeDI in Frameworks */,
+				FADE012100000000000000A1 /* TrackingDI in Frameworks */,
+				FADE012200000000000000A1 /* TrackingData in Frameworks */,
 				745F0BE8EEEA50B543B999D2 /* SettingsData in Frameworks */,
 				4E26A71E805B07E3A3FDB2B7 /* SettingsDI in Frameworks */,
 				345D3EFC6271AB3E4F68AC5E /* SettingsUIDI in Frameworks */,
@@ -198,6 +202,8 @@
 				FADE001000000000000000A2 /* BagDI */,
 				FADE001100000000000000A2 /* ProductActionsUIDI */,
 				FADE011100000000000000A2 /* HomeDI */,
+				FADE012100000000000000A2 /* TrackingDI */,
+				FADE012200000000000000A2 /* TrackingData */,
 				C500C19B9FBAC79597612384 /* SettingsData */,
 				C68D82F55C1C2508109B344C /* SettingsDI */,
 				15C9A5888A5B8EE7D759C93E /* SettingsUIDI */,
@@ -273,6 +279,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Example;
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "We use what you look at and buy in the app to see what is working and make the shop better. We never sell it.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -311,6 +318,7 @@
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_CFBundleDisplayName = Example;
+				INFOPLIST_KEY_NSUserTrackingUsageDescription = "We use what you look at and buy in the app to see what is working and make the shop better. We never sell it.";
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.education";
 				INFOPLIST_KEY_UIApplicationSceneManifest_Generation = YES;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -576,6 +584,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Component/Home;
 		};
+		FADE012100000000000000B1 /* XCLocalSwiftPackageReference "Component/Tracking" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = Component/Tracking;
+		};
 /* End XCLocalSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
@@ -743,6 +755,16 @@
 			isa = XCSwiftPackageProductDependency;
 			package = FADE011100000000000000B1 /* XCLocalSwiftPackageReference "Component/Home" */;
 			productName = HomeDI;
+		};
+		FADE012100000000000000A2 /* TrackingDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE012100000000000000B1 /* XCLocalSwiftPackageReference "Component/Tracking" */;
+			productName = TrackingDI;
+		};
+		FADE012200000000000000A2 /* TrackingData */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE012100000000000000B1 /* XCLocalSwiftPackageReference "Component/Tracking" */;
+			productName = TrackingData;
 		};
 /* End XCSwiftPackageProductDependency section */
 	};

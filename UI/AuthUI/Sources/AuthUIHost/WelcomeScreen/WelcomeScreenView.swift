@@ -1,6 +1,9 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 
 public struct WelcomeScreenView: View {
+    @Environment(\.trackingContext) private var trackingContext
     @State private var viewModel: WelcomeScreenViewModel
 
     public init(viewModel: @autoclosure @escaping () -> WelcomeScreenViewModel) {
@@ -26,7 +29,7 @@ public struct WelcomeScreenView: View {
 
             VStack(spacing: 16) {
                 Button {
-                    viewModel.didTapLogIn()
+                    viewModel.didTapLogIn(in: trackingContext)
                 } label: {
                     Text("Sign In").frame(maxWidth: .infinity)
                 }
@@ -34,7 +37,7 @@ public struct WelcomeScreenView: View {
                 .controlSize(.large)
 
                 Button {
-                    viewModel.didTapCreateAccount()
+                    viewModel.didTapCreateAccount(in: trackingContext)
                 } label: {
                     Text("Create Account").frame(maxWidth: .infinity)
                 }
@@ -42,7 +45,7 @@ public struct WelcomeScreenView: View {
                 .controlSize(.large)
 
                 Button {
-                    viewModel.didContinueAsGuest()
+                    viewModel.didContinueAsGuest(in: trackingContext)
                 } label: {
                     Text("Just Looking")
                         .fontWeight(.bold)
@@ -53,5 +56,6 @@ public struct WelcomeScreenView: View {
         }
         .padding(.horizontal, 32)
         .padding(.bottom, 32)
+        .onScreenAppear { viewModel.didAppear(in: $0) }
     }
 }

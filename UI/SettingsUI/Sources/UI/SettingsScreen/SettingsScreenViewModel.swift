@@ -1,6 +1,7 @@
 import Combine
 import Foundation
 import Settings
+import Tracking
 
 @MainActor
 @Observable
@@ -25,14 +26,20 @@ public final class SettingsScreenViewModel {
 
     private let observeOfferedSettings: ObserveOfferedSettingsUseCase
     private let setSetting: SetSettingUseCase
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
     private var cancellables = Set<AnyCancellable>()
 
     public init(
         observeOfferedSettings: ObserveOfferedSettingsUseCase,
-        setSetting: SetSettingUseCase
+        setSetting: SetSettingUseCase,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase
     ) {
         self.observeOfferedSettings = observeOfferedSettings
         self.setSetting = setSetting
+        self.trackScreenView = trackScreenView
+        self.trackElementInteraction = trackElementInteraction
     }
 
     func onAppear() {
@@ -45,7 +52,14 @@ public final class SettingsScreenViewModel {
             .store(in: &cancellables)
     }
 
-    func didToggle(_ key: SettingKey, to isOn: Bool) {
+    func didAppear(in context: TrackingContext) {
+        trackScreenView(context.screen)
+    }
+
+    /// Reported with the way it was left, because turning a notice off is the finding — the
+    /// shopper is telling the shop which of its messages are not worth having.
+    func didToggle(_ key: SettingKey, to isOn: Bool, in context: TrackingContext) {
+        trackElementInteraction(SettingsTrackingPlan.toggle(key, isOn: isOn), in: context)
         inFlight = Task { [setSetting] in
             await setSetting(key, isOn: isOn)
         }

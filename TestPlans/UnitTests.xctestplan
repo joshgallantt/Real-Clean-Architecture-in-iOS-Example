@@ -147,6 +147,22 @@
     {
       "parallelizable": true,
       "target": {
+        "containerPath": "container:UI/TrackingUI",
+        "identifier": "TrackingUIUnitTests",
+        "name": "TrackingUIUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/Tracking",
+        "identifier": "TrackingUnitTests",
+        "name": "TrackingUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
         "containerPath": "container:Component/Waitlist",
         "identifier": "WaitlistUnitTests",
         "name": "WaitlistUnitTests"

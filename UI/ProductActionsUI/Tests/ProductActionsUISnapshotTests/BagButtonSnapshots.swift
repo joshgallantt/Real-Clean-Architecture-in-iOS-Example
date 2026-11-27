@@ -5,6 +5,8 @@ import SnackbarUITestSupport
 import SnapshotTesting
 import SwiftUI
 import Testing
+import Tracking
+import TrackingTestSupport
 @testable import ProductActionsUI
 @testable import ProductActionsUITestSupport
 
@@ -17,7 +19,10 @@ func theBagButtonInvitesAFirstTap() {
             observeBagItemQuantity: StubObserveBagItemQuantityUseCase(0),
             addItemToBag: SpyAddItemToBagUseCase(),
             navigation: SpyProductActionsNavigation(),
-            snackbarPresenter: SpySnackbarPresenting()
+            snackbarPresenter: SpySnackbarPresenting(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
     )
 
@@ -33,7 +38,10 @@ func theBagButtonShowsTheCount() {
             observeBagItemQuantity: StubObserveBagItemQuantityUseCase(3),
             addItemToBag: SpyAddItemToBagUseCase(),
             navigation: SpyProductActionsNavigation(),
-            snackbarPresenter: SpySnackbarPresenting()
+            snackbarPresenter: SpySnackbarPresenting(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
     )
 

@@ -2,6 +2,8 @@ import Foundation
 import ProductTestSupport
 import SearchHistoryTestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Product
 import SearchHistory
 @testable import SearchUI
@@ -17,7 +19,9 @@ struct SearchingViewModelTests {
         SearchingViewModel(
             getSearchHistory: getSearchHistory,
             clearSearchHistory: clearSearchHistory,
-            browseCatalog: browseCatalog
+            browseCatalog: browseCatalog,
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
         )
     }
 
@@ -78,7 +82,7 @@ struct SearchingViewModelTests {
         let viewModel = makeViewModel(getSearchHistory: getSearchHistory, clearSearchHistory: clearSearchHistory)
 
         getSearchHistory.history = SearchHistory()
-        viewModel.clearHistory()
+        viewModel.clearHistory(in: TrackingContext.screen(SearchTrackingPlan.screen))
 
         #expect(clearSearchHistory.callCount == 1)
         #expect(viewModel.history.isEmpty)

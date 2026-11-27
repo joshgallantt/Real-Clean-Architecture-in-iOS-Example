@@ -2,6 +2,8 @@ import Combine
 import Foundation
 import Product
 import SnackbarUI
+import ProductUI
+import Tracking
 
 @MainActor
 @Observable
@@ -33,12 +35,17 @@ public final class SavedProductsViewModel {
     private(set) var isLoading = false
     private(set) var isLoadingMore = false
 
-
     private let pageSize: Int
     private let savedProductIds: () -> AnyPublisher<[ProductID], Never>
     private let lookUpProducts: LookUpProductsUseCase
     private let snackbar: SnackbarPresenting
     private let couldNotLoad: String
+    private let list: TrackingContext.List
+    private let openProduct: @MainActor (Product) -> Void
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let cardTracking: ProductCardTracking
 
     /// Which of them belong on this list, decided by what the shop says about them *now*.
     /// Two lists are drawn from the same set of asks — the ones still sold out, and the ones back —
@@ -63,6 +70,11 @@ public final class SavedProductsViewModel {
         lookUpProducts: LookUpProductsUseCase,
         snackbar: SnackbarPresenting,
         couldNotLoad: String,
+        list: TrackingContext.List,
+        openProduct: @escaping @MainActor (Product) -> Void,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
         keeping: (@MainActor (Product) -> Bool)? = nil,
         clear: @escaping @MainActor ([ProductID]) async -> Void = { _ in },
         pageSize: Int = 30
@@ -71,6 +83,12 @@ public final class SavedProductsViewModel {
         self.lookUpProducts = lookUpProducts
         self.snackbar = snackbar
         self.couldNotLoad = couldNotLoad
+        self.list = list
+        self.openProduct = openProduct
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.cardTracking = ProductCardTracking(trackElementView: trackElementView, trackElementInteraction: trackElementInteraction)
         self.keeping = keeping
         self.clear = clear
         self.pageSize = pageSize
@@ -91,38 +109,70 @@ public final class SavedProductsViewModel {
     /// Everything the shopper would lose. Taken from the list as it is, so clearing the waitlist does
     /// not touch what has come back and clearing Back in Stock does not touch what is still waited
     /// on — they are two lists, and each Clear means its own.
-    func didConfirmClear() {
+    func didConfirmClear(in context: TrackingContext) {
         let losing = products.map(\.id)
         guard !losing.isEmpty else { return }
+        trackElementInteraction(WishlistTrackingPlan.clear, about: WishlistTrackingPlan.item(list), in: context)
         inFlight = Task { await clear(losing) }
     }
 
-    func onAppear() {
+    // MARK: - What the shopper saw and did
+
+    /// Only on the list's own screen. On the tab this list is one of three, and the tab's view is
+    /// the tab's to report.
+    func didAppear(in context: TrackingContext) {
+        trackScreenView(context.screen)
+    }
+
+    func didSee(_ product: Product, in context: TrackingContext) {
+        cardTracking.seen(product, in: context)
+    }
+
+    /// The card is reported where it was — which list, which position — and then opened. Opening it
+    /// is the view model's to do, so no screen can open a product without saying so.
+    func didSelect(_ product: Product, in context: TrackingContext) {
+        cardTracking.selected(product, in: context)
+        openProduct(product)
+    }
+
+    private func show(_ snackbar: Snackbar, in context: TrackingContext) {
+        trackElementView(snackbar.trackingName, in: context)
+        self.snackbar.show(snackbar)
+    }
+
+    func onAppear(in context: TrackingContext) {
         guard cancellables.isEmpty else { return }
 
         savedProductIds()
             .sink { [weak self] ids in
-                self?.savedChanged(ids)
+                self?.savedChanged(ids, in: context)
             }
             .store(in: &cancellables)
     }
 
-    func onReachEnd() {
-        guard keeping == nil, loadedCount < saved.count, !isLoading, !isLoadingMore else { return }
-        loadedCount += pageSize
-        hydrate(isPaging: true)
+    /// Told about every card as the grid lays it out. Only the last one means anything: the shopper
+    /// has reached the end of what is loaded, so the next page is worth fetching.
+    func didLayOut(_ product: Product, in context: TrackingContext) {
+        guard product.id == products.last?.id else { return }
+        loadNextPage(in: context)
     }
 
-    private func savedChanged(_ ids: [ProductID]) {
+    private func loadNextPage(in context: TrackingContext) {
+        guard keeping == nil, loadedCount < saved.count, !isLoading, !isLoadingMore else { return }
+        loadedCount += pageSize
+        hydrate(isPaging: true, in: context)
+    }
+
+    private func savedChanged(_ ids: [ProductID], in context: TrackingContext) {
         saved = ids
 
         let held = Set(ids)
         cache = cache.filter { held.contains($0.key) }
 
-        hydrate(isPaging: false)
+        hydrate(isPaging: false, in: context)
     }
 
-    private func hydrate(isPaging: Bool) {
+    private func hydrate(isPaging: Bool, in context: TrackingContext) {
         hydrationTask?.cancel()
 
         let window = keeping == nil ? Array(saved.prefix(loadedCount)) : saved
@@ -152,14 +202,13 @@ public final class SavedProductsViewModel {
                     self.cache[product.id] = product
                 }
 
-
             case .failure:
-                self.snackbar.show(Snackbar(
+                self.show(Snackbar(
                     title: self.couldNotLoad,
                     message: "Check your signal and give it another go.",
                     icon: "wifi.exclamationmark",
-                    action: .retry { [weak self] in self?.hydrate(isPaging: isPaging) }
-                ))
+                    action: .retry { [weak self] in self?.hydrate(isPaging: isPaging, in: context) }
+                ), in: context)
             }
 
             self.products = self.showing(window)

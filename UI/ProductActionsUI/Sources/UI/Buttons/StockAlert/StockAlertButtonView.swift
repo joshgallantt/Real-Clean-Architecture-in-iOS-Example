@@ -1,9 +1,12 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 import UIKit
 
 /// The bell that takes the bag button's place on a card when the shop has run out but expects it
 /// back. A bag it cannot fill would be a promise the shop cannot keep; this is the one it can.
 public struct StockAlertButtonView: View {
+    @Environment(\.trackingContext) private var trackingContext
     @State private var viewModel: StockAlertButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> StockAlertButtonViewModel) {
@@ -13,7 +16,7 @@ public struct StockAlertButtonView: View {
     public var body: some View {
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            viewModel.didTap()
+            viewModel.didTap(in: trackingContext)
         } label: {
             Image(systemName: viewModel.isWaiting ? "bell.fill" : "bell")
                 .font(.subheadline.weight(.bold))

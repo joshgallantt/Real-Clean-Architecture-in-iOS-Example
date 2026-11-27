@@ -1,9 +1,12 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 import UIKit
 
 /// The bag's way out. It shows the total it is about to charge, because a button that takes money
 /// should say how much before it is tapped rather than after.
 public struct CheckoutButton: View {
+    @Environment(\.trackingContext) private var trackingContext
     @State private var viewModel: CheckoutButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> CheckoutButtonViewModel) {
@@ -13,7 +16,7 @@ public struct CheckoutButton: View {
     public var body: some View {
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            viewModel.didTap()
+            viewModel.didTap(in: trackingContext)
         } label: {
             HStack {
                 if viewModel.isPlacing {

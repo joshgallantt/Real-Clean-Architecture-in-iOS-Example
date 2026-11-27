@@ -2,6 +2,8 @@ import Foundation
 import HomeTestSupport
 import ProductTestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Product
 import Home
 @testable import HomeUI
@@ -14,7 +16,13 @@ struct HomeScreenViewModelTests {
         drawHomeFeed: SpyDrawHomeFeedUseCase = SpyDrawHomeFeedUseCase(),
         navigation: SpyHomeNavigation = SpyHomeNavigation()
     ) -> HomeScreenViewModel {
-        HomeScreenViewModel(drawHomeFeed: drawHomeFeed, navigation: navigation)
+        HomeScreenViewModel(
+            drawHomeFeed: drawHomeFeed,
+            navigation: navigation,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
+        )
     }
 
     @Test("Before anything is asked of the shop, Home is loading")
@@ -81,7 +89,7 @@ struct HomeScreenViewModelTests {
         let carousel = HomeCarousel(category: .beauty, products: products(1...5, category: "beauty"))
         drawHomeFeed.result = .success(HomeFeed(carousels: [carousel])!)
 
-        viewModel.didTapRetry()
+        viewModel.didTapRetry(in: TrackingContext.screen(HomeTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(drawHomeFeed.callCount == 2)
@@ -93,8 +101,9 @@ struct HomeScreenViewModelTests {
         let navigation = SpyHomeNavigation()
         let viewModel = makeViewModel(navigation: navigation)
         let product = Product.fixture(id: 1)
+        let carousel = HomeCarousel(category: .beauty, products: [product])
 
-        viewModel.didSelect(product)
+        viewModel.didSelect(product, in: .list(HomeTrackingPlan.screen, HomeTrackingPlan.list(carousel), index: 0))
 
         #expect(navigation.openedProducts == [pid(1)])
     }
@@ -105,7 +114,7 @@ struct HomeScreenViewModelTests {
         let viewModel = makeViewModel(navigation: navigation)
         let carousel = HomeCarousel(category: .fragrances, products: products(101...105, category: "fragrances"))
 
-        viewModel.didTapViewAll(for: carousel)
+        viewModel.didTapViewAll(for: carousel, in: TrackingContext.screen(HomeTrackingPlan.screen))
 
         #expect(navigation.openedCatalogs == [.category(.fragrances)])
     }

@@ -1,4 +1,6 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 import UIKit
 
 /// Taking something off the waitlist, from a card on the list itself. A minus rather than a lit
@@ -8,6 +10,7 @@ import UIKit
 /// It takes the bell's shape and place — a circle on the corner of a card — so the two are tapped
 /// the same way and a shopper does not have to learn a second control.
 public struct RemoveFromWaitlistButton: View {
+    @Environment(\.trackingContext) private var trackingContext
     @State private var viewModel: StockAlertButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> StockAlertButtonViewModel) {
@@ -17,7 +20,7 @@ public struct RemoveFromWaitlistButton: View {
     public var body: some View {
         Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            viewModel.didTapRemove()
+            viewModel.didTapRemove(in: trackingContext)
         } label: {
             Image(systemName: "minus")
                 .font(.subheadline.weight(.bold))

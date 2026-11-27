@@ -4,6 +4,8 @@ import Product
 import Wishlist
 import AuthUI
 import SnackbarUI
+import Tracking
+import TrackingUI
 
 @MainActor
 @Observable
@@ -20,28 +22,40 @@ import SnackbarUI
 public final class WishlistButtonViewModel {
     private(set) var isInWishlist = false
 
-    private let productId: ProductID
+    private let product: Product
     private let observeProductIsWishlisted: ObserveProductIsWishlistedUseCase
     private let setProductIsWishlisted: SetProductIsWishlistedUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let trackEvent: TrackEventUseCase
     private var cancellables = Set<AnyCancellable>()
     /// The work the last tap started. Public so a test can wait for exactly
     /// that, and so the screen could cancel it on disappear.
     public private(set) var inFlight: Task<Void, Never>?
 
     public init(
-        productId: ProductID,
+        product: Product,
         observeProductIsWishlisted: ObserveProductIsWishlistedUseCase,
         setProductIsWishlisted: SetProductIsWishlistedUseCase,
         authPresenter: AuthPresenting,
-        snackbarPresenter: SnackbarPresenting
+        snackbarPresenter: SnackbarPresenting,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
+        trackEvent: TrackEventUseCase
     ) {
-        self.productId = productId
+        self.product = product
         self.observeProductIsWishlisted = observeProductIsWishlisted
         self.setProductIsWishlisted = setProductIsWishlisted
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.trackEvent = trackEvent
     }
 
     /// Subscribing happens here rather than in `init`.
@@ -54,7 +68,7 @@ public final class WishlistButtonViewModel {
     func onAppear() {
         guard cancellables.isEmpty else { return }
 
-        observeProductIsWishlisted(productId: productId)
+        observeProductIsWishlisted(productId: product.id)
             .sink { [weak self] value in
                 self?.isInWishlist = value
             }
@@ -65,11 +79,34 @@ public final class WishlistButtonViewModel {
     /// been kept and published. Deciding at the moment of the tap meant a second tap read the state
     /// the first one had set out to change, so tapping on and straight off again left it on. The
     /// decision is made inside the queued work instead, once the tap before it has settled.
-    func didTap() {
+    ///
+    /// The tap is tracked there too, and once: which way it goes is only known inside the queue,
+    /// and signing in part-way and carrying on is still the one tap. The save is tracked only once
+    /// it has been kept, because a heart that did not stick is not a product saved.
+    ///
+    /// `context` is where the heart is drawn — a card's position in a carousel, or the product page —
+    /// as the view read it. The heart itself never knows which screen it is on.
+    func didTap(in context: TrackingContext) {
         enqueue { [weak self] in
             guard let self else { return }
-            await self.apply(isWishlisted: !self.isInWishlist)
+            let isWishlisted = !self.isInWishlist
+            self.trackElementInteraction(ProductActionsTrackingPlan.wishlist(isOn: isWishlisted), about: self.item, in: context)
+            await self.apply(isWishlisted: isWishlisted, in: context)
         }
+    }
+
+    /// What every event from this heart is about.
+    private var item: TrackedItem { TrackedProduct.item(product) }
+
+    /// The product saved, which is what a report counts. The tap before it was only the attempt.
+    private func saved(in context: TrackingContext) -> TrackingEvent {
+        TrackingEvent(name: .productAddedToWishlist, context: context, items: [item], properties: [:])
+    }
+
+    /// Every snackbar this heart shows is seen, which is what makes a tap on its action a rate.
+    private func show(_ snackbar: Snackbar, in context: TrackingContext) {
+        trackElementView(snackbar.trackingName, about: item, in: context)
+        snackbarPresenter.show(snackbar)
     }
 
     /// One tap at a time, in the order the shopper made them, so two taps are two decisions rather
@@ -82,22 +119,27 @@ public final class WishlistButtonViewModel {
         }
     }
 
-    private func apply(isWishlisted: Bool) async {
-        switch await setProductIsWishlisted(productId: productId, isWishlisted: isWishlisted) {
+    private func apply(isWishlisted: Bool, in context: TrackingContext) async {
+        switch await setProductIsWishlisted(productId: product.id, isWishlisted: isWishlisted) {
         case .success:
-            snackbarPresenter.show(told(isWishlisted))
+            if isWishlisted { trackEvent(saved(in: context)) }
+            show(told(isWishlisted), in: context)
 
         case .failure(.unauthenticated):
-            guard await authPresenter.show(prompt(isWishlisted)) else { return }
-            await apply(isWishlisted: isWishlisted)
+            let signedIn = await authPresenter.show(prompt(isWishlisted))
+            /// The sheet covered the screen; closing it does not make the screen appear again, so it
+            /// is said here — by the one thing that knows a sheet was in the way.
+            trackScreenView(context.screen)
+            guard signedIn else { return }
+            await apply(isWishlisted: isWishlisted, in: context)
 
         case .failure(.unavailable):
-            snackbarPresenter.show(Snackbar(
+            show(Snackbar(
                 title: isWishlisted ? "Didn't Save" : "Didn't Change",
                 message: "That didn't stick. Try again?",
                 icon: "heart.slash",
-                action: .retry { Task { await self.apply(isWishlisted: isWishlisted) } }
-            ))
+                action: .retry { Task { await self.apply(isWishlisted: isWishlisted, in: context) } }
+            ), in: context)
         }
     }
 

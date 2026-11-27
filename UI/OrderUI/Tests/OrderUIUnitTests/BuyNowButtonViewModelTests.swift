@@ -5,6 +5,9 @@ import OrderTestSupport
 import ProductTestSupport
 import SnackbarUITestSupport
 import Testing
+import Tracking
+import TrackingUI
+import TrackingTestSupport
 import Money
 import Order
 import Product
@@ -26,7 +29,11 @@ struct BuyNowButtonViewModelTests {
             placeOrder: placeOrder,
             authPresenter: authPresenter,
             snackbarPresenter: snackbarPresenter,
-            confirm: confirm
+            confirm: confirm,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
     }
 
@@ -59,11 +66,11 @@ struct BuyNowButtonViewModelTests {
         placeOrder.holdTheNextOrderOpen()
         let viewModel = makeViewModel(placeOrder: placeOrder)
 
-        viewModel.didTap()
+        viewModel.didTap(in: BuyNowButtonViewModel.whereItSits)
         await placeOrder.untilHolding()
         #expect(viewModel.isPlacing)
 
-        viewModel.didTap()
+        viewModel.didTap(in: BuyNowButtonViewModel.whereItSits)
         placeOrder.finishTheHeldOrder()
         await viewModel.settle()
 

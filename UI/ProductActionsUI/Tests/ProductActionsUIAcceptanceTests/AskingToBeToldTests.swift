@@ -1,3 +1,4 @@
+import Tracking
 import Foundation
 import ProductTestSupport
 import Testing
@@ -15,7 +16,7 @@ struct AskingToBeToldTests {
         let shown = AProduct(.fixture(id: 1, availability: .outOfStock))
         let bell = shown.stockAlertButton()
 
-        bell.didTap()
+        bell.didTap(in: .screen("product_details"))
         await bell.inFlight?.value
 
         #expect(shown.waitingFor == [pid(1)])
@@ -29,7 +30,7 @@ struct AskingToBeToldTests {
 
         #expect(bell.isWaiting == false)
 
-        bell.didTap()
+        bell.didTap(in: .screen("product_details"))
         await bell.inFlight?.value
 
         #expect(bell.isWaiting == true)
@@ -40,9 +41,9 @@ struct AskingToBeToldTests {
         let shown = AProduct(.fixture(id: 1, availability: .outOfStock))
         let bell = shown.stockAlertButton()
 
-        bell.didTap()
+        bell.didTap(in: .screen("product_details"))
         await bell.inFlight?.value
-        bell.didTap()
+        bell.didTap(in: .screen("product_details"))
         await bell.inFlight?.value
 
         #expect(shown.waitingFor.isEmpty)
@@ -55,8 +56,8 @@ struct AskingToBeToldTests {
         let shown = AProduct(.fixture(id: 1, availability: .outOfStock))
         let bell = shown.stockAlertButton()
 
-        bell.didTap()
-        bell.didTap()
+        bell.didTap(in: .screen("product_details"))
+        bell.didTap(in: .screen("product_details"))
         await bell.inFlight?.value
 
         #expect(shown.waitingFor.isEmpty)
@@ -69,7 +70,7 @@ struct AskingToBeToldTests {
         let shown = AProduct(.fixture(id: 1, availability: .outOfStock), signedIn: false)
         let bell = shown.stockAlertButton()
 
-        bell.didTap()
+        bell.didTap(in: .screen("product_details"))
         await bell.inFlight?.value
 
         #expect(shown.wasAskedToSignIn)
@@ -82,7 +83,7 @@ struct AskingToBeToldTests {
         let shown = AProduct(.fixture(id: 1, availability: .outOfStock), signedIn: false)
         let bell = shown.stockAlertButton()
 
-        bell.didTap()
+        bell.didTap(in: .screen("product_details"))
         await bell.inFlight?.value
 
         #expect(bell.isWaiting == false)

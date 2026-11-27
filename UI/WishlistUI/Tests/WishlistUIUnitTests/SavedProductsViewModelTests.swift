@@ -2,6 +2,8 @@ import Foundation
 import ProductTestSupport
 import SnackbarUITestSupport
 import Testing
+import Tracking
+import TrackingTestSupport
 import Product
 @testable import WishlistUI
 @testable import WishlistUITestSupport
@@ -23,6 +25,11 @@ struct SavedProductsViewModelTests {
             lookUpProducts: lookUpProducts,
             snackbar: snackbar,
             couldNotLoad: couldNotLoad,
+            list: WishlistTrackingPlan.faves,
+            openProduct: { _ in },
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
             keeping: keeping,
             clear: clear.callAsFunction,
             pageSize: pageSize
@@ -36,7 +43,7 @@ struct SavedProductsViewModelTests {
         lookUpProducts.result = .success([.fixture(id: 1), .fixture(id: 2)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
 
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(viewModel.products.map(\.id) == [pid(1), pid(2)])
@@ -48,7 +55,7 @@ struct SavedProductsViewModelTests {
         let lookUpProducts = SpyLookUpProductsUseCase()
         let viewModel = makeViewModel(lookUpProducts: lookUpProducts)
 
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(viewModel.isEmpty)
@@ -62,7 +69,7 @@ struct SavedProductsViewModelTests {
         lookUpProducts.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
 
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(viewModel.products.map(\.id) == [pid(1)])
@@ -75,7 +82,7 @@ struct SavedProductsViewModelTests {
         lookUpProducts.result = .success((1...2).map { .fixture(id: $0) })
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts, pageSize: 2)
 
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(viewModel.products.count == 2)
@@ -88,10 +95,10 @@ struct SavedProductsViewModelTests {
         let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success((1...5).map { .fixture(id: $0) })
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts, pageSize: 2)
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
-        viewModel.onReachEnd()
+        viewModel.didLayOut(viewModel.products[viewModel.products.count - 1], in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(viewModel.products.count == 4)
@@ -103,7 +110,7 @@ struct SavedProductsViewModelTests {
         let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         savedProductIds.send([pid(1), pid(2)])
@@ -127,7 +134,7 @@ struct SavedProductsViewModelTests {
             couldNotLoad: "Couldn't Load My Faves"
         )
 
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(snackbar.shown.first?.title == "Couldn't Load My Faves")
@@ -147,7 +154,7 @@ struct SavedProductsViewModelTests {
             keeping: { !$0.availability.isAvailable }
         )
 
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(viewModel.products.map(\.id) == [pid(1)])
@@ -167,7 +174,7 @@ struct SavedProductsViewModelTests {
             keeping: { !$0.availability.isAvailable }
         )
 
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(viewModel.savedCount == 1)
@@ -180,10 +187,10 @@ struct SavedProductsViewModelTests {
         lookUpProducts.result = .success([.fixture(id: 1), .fixture(id: 2)])
         let clear = SpyClearTheList()
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts, clear: clear)
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
-        viewModel.didConfirmClear()
+        viewModel.didConfirmClear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(clear.calls == [[pid(1), pid(2)]])
@@ -193,10 +200,10 @@ struct SavedProductsViewModelTests {
     func clearingAnEmptyListAsksNothing() async {
         let clear = SpyClearTheList()
         let viewModel = makeViewModel(clear: clear)
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
-        viewModel.didConfirmClear()
+        viewModel.didConfirmClear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         #expect(clear.calls.isEmpty)
@@ -208,7 +215,7 @@ struct SavedProductsViewModelTests {
         let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
         savedProductIds.send([pid(1), pid(2)])
@@ -224,10 +231,10 @@ struct SavedProductsViewModelTests {
         let lookUpProducts = SpyLookUpProductsUseCase()
         lookUpProducts.result = .success([.fixture(id: 1)])
         let viewModel = makeViewModel(savedProductIds: savedProductIds, lookUpProducts: lookUpProducts)
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await viewModel.inFlight?.value
 
-        viewModel.onAppear()
+        viewModel.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         lookUpProducts.result = .success([.fixture(id: 2)])
         savedProductIds.send([pid(1), pid(2)])
         await viewModel.inFlight?.value

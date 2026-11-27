@@ -5,6 +5,7 @@ import OrderDI
 import SearchHistoryDI
 import SessionDI
 import SettingsDI
+import TrackingDI
 import WaitlistDI
 import WishlistDI
 
@@ -31,6 +32,7 @@ struct DomainAssembler {
     let settings: SettingsDI
     let stockAlerts: WaitlistDI
     let orders: OrderDI
+    let tracking: TrackingDI
 
     init(data: DataAssembler, catalog: Catalog) {
         self.catalog = catalog
@@ -41,6 +43,8 @@ struct DomainAssembler {
             browseCatalog: catalog.browseCatalog,
             browseCategories: catalog.browseCategories
         )
+
+        tracking = TrackingDI(destinations: data.trackingDestinations, consent: data.trackingConsent)
 
         let session = SessionDI(
             sessionStore: data.sessionStore,

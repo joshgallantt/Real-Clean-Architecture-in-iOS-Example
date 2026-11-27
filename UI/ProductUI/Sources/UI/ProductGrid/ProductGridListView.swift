@@ -1,11 +1,14 @@
 import SwiftUI
 import Product
+import Tracking
+import TrackingUI
 
 public struct ProductGridListView: View {
     private let products: [Product]
     private let isLoadingMore: Bool
-    private let onSelect: (Product) -> Void
-    private let onReachEnd: () -> Void
+    private let onSelect: (Product, TrackingContext) -> Void
+    private let onSeen: (Product, TrackingContext) -> Void
+    private let onCardAppear: (Product) -> Void
     private let accessory: (Product) -> AnyView
     private let leadingAccessory: (Product) -> AnyView
 
@@ -17,15 +20,17 @@ public struct ProductGridListView: View {
     public init(
         products: [Product],
         isLoadingMore: Bool,
-        onSelect: @escaping (Product) -> Void,
-        onReachEnd: @escaping () -> Void,
-        accessory: @escaping (Product) -> AnyView = { _ in AnyView(EmptyView()) },
-        leadingAccessory: @escaping (Product) -> AnyView = { _ in AnyView(EmptyView()) }
+        onSelect: @escaping (Product, TrackingContext) -> Void,
+        onSeen: @escaping (Product, TrackingContext) -> Void,
+        onCardAppear: @escaping (Product) -> Void,
+        accessory: @escaping (Product) -> AnyView,
+        leadingAccessory: @escaping (Product) -> AnyView
     ) {
         self.products = products
         self.isLoadingMore = isLoadingMore
         self.onSelect = onSelect
-        self.onReachEnd = onReachEnd
+        self.onSeen = onSeen
+        self.onCardAppear = onCardAppear
         self.accessory = accessory
         self.leadingAccessory = leadingAccessory
     }
@@ -33,22 +38,19 @@ public struct ProductGridListView: View {
     public var body: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 16) {
-                ForEach(products) { product in
-                    Button {
-                        onSelect(product)
-                    } label: {
-                        ProductCardView(
-                            product: product,
-                            accessory: { accessory(product) },
-                            leadingAccessory: { leadingAccessory(product) }
-                        )
-                    }
-                    .buttonStyle(.plain)
-                    .onAppear {
-                        if product.id == products.last?.id {
-                            onReachEnd()
-                        }
-                    }
+                ForEach(Array(products.enumerated()), id: \.element.id) { index, product in
+                    TrackedProductCard(
+                        product: product,
+                        onSelect: onSelect,
+                        onSeen: onSeen,
+                        accessory: accessory,
+                        leadingAccessory: leadingAccessory
+                    )
+                    .trackingPosition(index)
+                    /// Built, not seen: what to fetch next is decided by whoever owns the list, which
+                    /// is told about every card as it is laid out and can tell the last one from
+                    /// the rest itself.
+                    .onAppear { onCardAppear(product) }
                 }
             }
             .padding()

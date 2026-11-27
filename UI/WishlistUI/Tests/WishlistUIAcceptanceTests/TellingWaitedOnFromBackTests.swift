@@ -1,3 +1,4 @@
+import Tracking
 import Foundation
 import ProductTestSupport
 import Testing
@@ -16,7 +17,7 @@ struct TellingWaitedOnFromBackTests {
         keeper.keeping = { !$0.availability.isAvailable }
         keeper.shop.sells(1, 2)
         keeper.shop.soldOut = [pid(1)]
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
         keeper.keeps(1, 2)
         await keeper.settle()
@@ -30,7 +31,7 @@ struct TellingWaitedOnFromBackTests {
         keeper.keeping = { $0.availability.isAvailable }
         keeper.shop.sells(1, 2)
         keeper.shop.soldOut = [pid(1)]
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
 
         keeper.keeps(1, 2)
         await keeper.settle()
@@ -44,11 +45,11 @@ struct TellingWaitedOnFromBackTests {
         keeper.keeping = { !$0.availability.isAvailable }
         keeper.shop.sells(1, 2)
         keeper.shop.soldOut = [pid(1)]
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         keeper.keeps(1, 2)
         await keeper.settle()
 
-        keeper.list.didConfirmClear()
+        keeper.list.didConfirmClear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await keeper.settle()
 
         #expect(keeper.cleared == [pid(1)])
@@ -57,10 +58,10 @@ struct TellingWaitedOnFromBackTests {
     @Test("Clearing an empty list asks nothing of anybody")
     func clearingNothing() async {
         let keeper = AKeeper()
-        keeper.list.onAppear()
+        keeper.list.onAppear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await keeper.settle()
 
-        keeper.list.didConfirmClear()
+        keeper.list.didConfirmClear(in: TrackingContext.screen(WishlistTrackingPlan.screen))
         await keeper.settle()
 
         #expect(keeper.cleared.isEmpty)

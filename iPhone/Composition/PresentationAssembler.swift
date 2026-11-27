@@ -19,6 +19,7 @@ import SettingsDI
 import SettingsUIDI
 import SheetUIDI
 import SnackbarUIDI
+import TrackingDI
 import WishlistUIDI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the third phase. Feature
@@ -61,6 +62,7 @@ struct PresentationAssembler {
     init(domain: DomainAssembler) {
         let session = domain.session
         let catalog = domain.catalog
+        let tracking = domain.tracking
 
         let snackbar = SnackbarUIDI()
         let sheet = SheetUIDI()
@@ -73,7 +75,11 @@ struct PresentationAssembler {
             loginUseCase: session.loginUseCase,
             createAccountUseCase: session.createAccountUseCase,
             getSessionUseCase: session.getSessionUseCase,
-            sheetPresenting: sheet.presenter
+            sheetPresenting: sheet.presenter,
+            trackScreenView: tracking.trackScreenViewUseCase,
+            trackElementView: tracking.trackElementViewUseCase,
+            trackElementInteraction: tracking.trackElementInteractionUseCase,
+            trackEvent: tracking.trackEventUseCase
         )
         self.auth = auth
 
@@ -89,7 +95,11 @@ struct PresentationAssembler {
             observeProductIsWaitlisted: domain.stockAlerts.observeProductIsWaitlistedUseCase,
             setProductIsWaitlisted: domain.stockAlerts.setProductIsWaitlistedUseCase,
             authPresenter: auth.presenter,
-            snackbarPresenter: snackbar.presenter
+            snackbarPresenter: snackbar.presenter,
+            trackScreenView: tracking.trackScreenViewUseCase,
+            trackElementView: tracking.trackElementViewUseCase,
+            trackElementInteraction: tracking.trackElementInteractionUseCase,
+            trackEvent: tracking.trackEventUseCase
         )
         self.productActions = productActions
 
@@ -101,7 +111,11 @@ struct PresentationAssembler {
             setBagItemQuantity: domain.bag.setBagItemQuantityUseCase,
             authPresenter: auth.presenter,
             snackbarPresenter: snackbar.presenter,
-            sheetPresenter: sheet.presenter
+            sheetPresenter: sheet.presenter,
+            trackScreenView: tracking.trackScreenViewUseCase,
+            trackElementView: tracking.trackElementViewUseCase,
+            trackElementInteraction: tracking.trackElementInteractionUseCase,
+            trackEvent: tracking.trackEventUseCase
         )
         self.order = order
 
@@ -113,7 +127,11 @@ struct PresentationAssembler {
             bringBagUpToDate: domain.bag.bringBagUpToDateUseCase,
             acknowledgeNotices: domain.bag.acknowledgeNoticesUseCase,
             productActionsUIDI: productActions,
-            orderUIDI: order
+            orderUIDI: order,
+            trackScreenView: tracking.trackScreenViewUseCase,
+            trackElementView: tracking.trackElementViewUseCase,
+            trackElementInteraction: tracking.trackElementInteractionUseCase,
+            trackEvent: tracking.trackEventUseCase
         )
         self.bag = bag
 
@@ -129,19 +147,27 @@ struct PresentationAssembler {
             observeSession: session.observeSessionUseCase,
             authPresenter: auth.presenter,
             snackbarPresenter: snackbar.presenter,
-            productActionsUIDI: productActions
+            productActionsUIDI: productActions,
+            trackScreenView: tracking.trackScreenViewUseCase,
+            trackElementView: tracking.trackElementViewUseCase,
+            trackElementInteraction: tracking.trackElementInteractionUseCase
         )
         self.wishlist = wishlist
 
         product = ProductUIDI(
             productActionsUIDI: productActions,
-            orderUIDI: order
+            orderUIDI: order,
+            trackScreenView: tracking.trackScreenViewUseCase,
+            trackEvent: tracking.trackEventUseCase
         )
         home = HomeUIDI(
             navigation: navigator,
             drawHomeFeed: domain.home.drawHomeFeedUseCase,
             wishlistUIDI: wishlist,
-            productActionsUIDI: productActions
+            productActionsUIDI: productActions,
+            trackScreenView: tracking.trackScreenViewUseCase,
+            trackElementView: tracking.trackElementViewUseCase,
+            trackElementInteraction: tracking.trackElementInteractionUseCase
         )
         let search = SearchUIDI(
             navigation: navigator,
@@ -152,13 +178,19 @@ struct PresentationAssembler {
             clearSearchHistory: domain.searchHistory.clearSearchHistoryUseCase,
             snackbarPresenter: snackbar.presenter,
             wishlistUIDI: wishlist,
-            productActionsUIDI: productActions
+            productActionsUIDI: productActions,
+            trackScreenView: tracking.trackScreenViewUseCase,
+            trackElementView: tracking.trackElementViewUseCase,
+            trackElementInteraction: tracking.trackElementInteractionUseCase,
+            trackEvent: tracking.trackEventUseCase
         )
         self.search = search
 
         let settings = SettingsUIDI(
             observeOfferedSettings: domain.settings.observeOfferedSettingsUseCase,
-            setSetting: domain.settings.setSettingUseCase
+            setSetting: domain.settings.setSettingUseCase,
+            trackScreenView: tracking.trackScreenViewUseCase,
+            trackElementInteraction: tracking.trackElementInteractionUseCase
         )
         self.settings = settings
 
@@ -167,7 +199,9 @@ struct PresentationAssembler {
             observeSession: session.observeSessionUseCase,
             logoutUseCase: session.logoutUseCase,
             authUIDI: auth,
-            navigation: navigator
+            navigation: navigator,
+            trackScreenView: tracking.trackScreenViewUseCase,
+            trackElementInteraction: tracking.trackElementInteractionUseCase
         )
         self.account = account
 

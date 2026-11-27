@@ -17,6 +17,8 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../TrackingUI"),
+        .package(path: "../../Component/Tracking"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Settings")
     ],
@@ -24,6 +26,8 @@ let package = Package(
         .target(
             name: "SettingsUI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "Settings", package: "Settings")
             ],
             path: "Sources",
@@ -33,6 +37,8 @@ let package = Package(
         .target(
             name: "SettingsUIDI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 "SettingsUI",
                 .product(name: "Settings", package: "Settings")
             ],
@@ -41,6 +47,8 @@ let package = Package(
         .testTarget(
             name: "SettingsUIUnitTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "SettingsTestSupport", package: "Settings"),
                 "SettingsUI",
                 .product(name: "Settings", package: "Settings")
@@ -50,6 +58,8 @@ let package = Package(
         .testTarget(
             name: "SettingsUIAcceptanceTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "SettingsTestSupport", package: "Settings"),
                 "SettingsUI",
                 .product(name: "Settings", package: "Settings")
@@ -59,6 +69,8 @@ let package = Package(
         .testTarget(
             name: "SettingsUISnapshotTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "SettingsTestSupport", package: "Settings"),
                 "SettingsUI",
                 .product(name: "Settings", package: "Settings"),

@@ -2,6 +2,8 @@ import ProductTestSupport
 import SnackbarUITestSupport
 import Combine
 import Foundation
+import Tracking
+import TrackingTestSupport
 import Money
 import Product
 import SnackbarUI
@@ -24,6 +26,11 @@ final class AKeeper {
         lookUpProducts: shop,
         snackbar: snackbars,
         couldNotLoad: "Couldn't Load",
+        list: WishlistTrackingPlan.faves,
+        openProduct: { _ in },
+        trackScreenView: SpyTrackScreenViewUseCase(),
+        trackElementView: SpyTrackElementViewUseCase(),
+        trackElementInteraction: SpyTrackElementInteractionUseCase(),
         keeping: keeping,
         clear: { [weak self] ids in self?.cleared.append(contentsOf: ids) },
         pageSize: pageSize

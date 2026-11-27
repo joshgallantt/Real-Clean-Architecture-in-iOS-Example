@@ -3,6 +3,9 @@ import BagTestSupport
 import Foundation
 import ProductTestSupport
 import Testing
+import Tracking
+import TrackingUI
+import TrackingTestSupport
 import Bag
 import Money
 import Product
@@ -26,7 +29,11 @@ struct BagScreenViewModelTests {
             observeNotices: observeNotices,
             setBagItemQuantity: setBagItemQuantity,
             bringBagUpToDate: bringBagUpToDate,
-            acknowledgeNotices: acknowledgeNotices
+            acknowledgeNotices: acknowledgeNotices,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
     }
 
@@ -46,7 +53,7 @@ struct BagScreenViewModelTests {
         let setBagItemQuantity = SpySetBagItemQuantityUseCase()
         let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
 
-        viewModel.didChangeQuantity(productId: pid(1), quantity: 3)
+        viewModel.didChangeQuantity(productId: pid(1), quantity: 3, in: inTheBag)
 
         #expect(setBagItemQuantity.calls.map(\.productId) == [pid(1)])
         #expect(setBagItemQuantity.calls.map(\.quantity) == [3])
@@ -57,7 +64,7 @@ struct BagScreenViewModelTests {
         let setBagItemQuantity = SpySetBagItemQuantityUseCase()
         let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
 
-        viewModel.didSwipeToDelete(productId: pid(2))
+        viewModel.didSwipeToDelete(productId: pid(2), in: inTheBag)
 
         #expect(setBagItemQuantity.calls.map(\.productId) == [pid(2)])
         #expect(setBagItemQuantity.calls.map(\.quantity) == [0])
@@ -68,7 +75,7 @@ struct BagScreenViewModelTests {
         let setBagItemQuantity = SpySetBagItemQuantityUseCase()
         let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
 
-        viewModel.didRemoveChangedItem(productId: pid(4))
+        viewModel.didRemoveChangedItem(productId: pid(4), in: inTheBag)
 
         #expect(setBagItemQuantity.calls.map(\.productId) == [pid(4)])
         #expect(setBagItemQuantity.calls.map(\.quantity) == [0])
@@ -81,7 +88,7 @@ struct BagScreenViewModelTests {
         let viewModel = makeViewModel(observeBag: observeBag, setBagItemQuantity: setBagItemQuantity)
         await viewModel.onAppear()
 
-        viewModel.didRemoveEverything()
+        viewModel.didRemoveEverything(in: inTheBag)
 
         #expect(Set(setBagItemQuantity.calls.map(\.productId)) == Set([pid(1), pid(2)]))
         #expect(setBagItemQuantity.calls.allSatisfy { $0.quantity == 0 })
@@ -93,7 +100,7 @@ struct BagScreenViewModelTests {
         let viewModel = makeViewModel(setBagItemQuantity: setBagItemQuantity)
         await viewModel.onAppear()
 
-        viewModel.didRemoveEverything()
+        viewModel.didRemoveEverything(in: inTheBag)
 
         #expect(setBagItemQuantity.calls.isEmpty)
     }
@@ -110,7 +117,7 @@ struct BagScreenViewModelTests {
         )
         await viewModel.onAppear()
 
-        viewModel.didTapRow(productId: pid(3))
+        viewModel.didTapRow(BagRow(item: bagItem(3, price: 9.99), product: nil), in: inTheBag)
 
         #expect(navigation.openedProducts == [.fixture(id: 3)])
     }
@@ -126,7 +133,7 @@ struct BagScreenViewModelTests {
         )
         await viewModel.onAppear()
 
-        viewModel.didTapRow(productId: pid(3))
+        viewModel.didTapRow(BagRow(item: bagItem(3, price: 9.99), product: nil), in: inTheBag)
 
         #expect(navigation.openedProducts.isEmpty)
     }
@@ -141,7 +148,7 @@ struct BagScreenViewModelTests {
         let viewModel = makeViewModel(observeNotices: observeNotices, acknowledgeNotices: acknowledgeNotices)
         await viewModel.onAppear()
 
-        viewModel.didAcceptAll(.outOfStock)
+        viewModel.didAcceptAll(.outOfStock, in: inTheBag)
 
         #expect(acknowledgeNotices.acknowledged == [pid(1)])
     }
@@ -152,7 +159,7 @@ struct BagScreenViewModelTests {
         let viewModel = makeViewModel(acknowledgeNotices: acknowledgeNotices)
         await viewModel.onAppear()
 
-        viewModel.didAcceptAll(.outOfStock)
+        viewModel.didAcceptAll(.outOfStock, in: inTheBag)
 
         #expect(acknowledgeNotices.acknowledged.isEmpty)
     }
@@ -168,3 +175,7 @@ struct BagScreenViewModelTests {
         #expect(bringBagUpToDate.callCount == 1)
     }
 }
+
+/// Where the bag's own buttons are drawn. A test about what a tap does to the bag has no reason to
+/// say more than that.
+private let inTheBag = TrackingContext.screen("bag")

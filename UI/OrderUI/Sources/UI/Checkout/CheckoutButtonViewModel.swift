@@ -6,6 +6,8 @@ import Order
 import Product
 import AuthUI
 import SnackbarUI
+import Tracking
+import TrackingUI
 
 @MainActor
 @Observable
@@ -34,6 +36,11 @@ public final class CheckoutButtonViewModel {
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private let confirm: (Order) -> Void
+    private let products: @MainActor () -> [ProductID: Product]
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let trackEvent: TrackEventUseCase
     private var cancellables = Set<AnyCancellable>()
 
     public init(
@@ -42,7 +49,12 @@ public final class CheckoutButtonViewModel {
         setBagItemQuantity: SetBagItemQuantityUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
-        confirm: @escaping (Order) -> Void
+        confirm: @escaping (Order) -> Void,
+        products: @escaping @MainActor () -> [ProductID: Product],
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
+        trackEvent: TrackEventUseCase
     ) {
         self.observeBag = observeBag
         self.placeOrder = placeOrder
@@ -50,6 +62,11 @@ public final class CheckoutButtonViewModel {
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
         self.confirm = confirm
+        self.products = products
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.trackEvent = trackEvent
     }
 
     /// Subscribing happens here rather than in `init`, because `@State` builds its
@@ -69,15 +86,21 @@ public final class CheckoutButtonViewModel {
 
     var totalLabel: String { bag.total?.formatted() ?? "" }
 
+    /// The names on a checkout are the bag screen's: it is handed the products the bag is drawing,
+    /// so the report says what was bought, not only which ids. Read before the bag is emptied,
+    /// since an emptied bag stops drawing them.
+    ///
     /// The guard against a second tap lives here rather than in `checkOut`, because `checkOut` calls
     /// itself after a shopper signs in. A guard inside it would treat that resumed order as the
     /// double tap it exists to stop, and the shopper would sign in to nothing happening.
-    func didTap() {
+    func didTap(in context: TrackingContext) {
         guard !isPlacing else { return }
+        trackElementInteraction(OrderTrackingPlan.checkOut, in: context)
+        report(.checkoutStarted, about: whatTheyAreBuying, properties: [:], in: context)
         inFlight = Task {
             isPlacing = true
             defer { isPlacing = false }
-            await checkOut()
+            await checkOut(in: context)
         }
     }
 
@@ -91,43 +114,63 @@ public final class CheckoutButtonViewModel {
         }
     }
 
-    private func checkOut() async {
+    /// A step through ordering, about the lines it concerns at the price being paid — never
+    /// today's. A line the bag screen cannot name is left out, and a step with nothing nameable in
+    /// it is not reported.
+    private func report(_ name: EventName, about lines: [OrderLine], properties: [PropertyKey: String], in context: TrackingContext) {
+        let named = products()
+        let items = lines.compactMap { line in
+            named[line.productId].map { TrackedProduct.item($0, price: line.pricePaid, quantity: line.quantity) }
+        }
+        guard !items.isEmpty else { return }
+        trackEvent(TrackingEvent(name: name, context: context, items: items, properties: properties))
+    }
+
+    private func show(_ snackbar: Snackbar, in context: TrackingContext) {
+        trackElementView(snackbar.trackingName, in: context)
+        snackbarPresenter.show(snackbar)
+    }
+
+    private func checkOut(in context: TrackingContext) async {
         switch await placeOrder(whatTheyAreBuying) {
         case .success(let order):
+            /// The order's own id goes with it, so a purchase reported twice is one purchase in the report.
+            report(.orderCompleted, about: order.lines, properties: [.orderId: order.id.rawValue], in: context)
             emptyTheBag()
             confirm(order)
 
         case .failure(.unauthenticated):
-            guard await authPresenter.show(AuthenticationPrompt(
+            let signedIn = await authPresenter.show(AuthenticationPrompt(
                 title: "Almost Yours",
                 message: "Sign in so we know where to send it.",
                 icon: "bag.fill"
-            )) else {
-                return
-            }
-            await checkOut()
+            ))
+            /// The sheet covered the screen; closing it does not make the screen appear again.
+            trackScreenView(context.screen)
+            guard signedIn else { return }
+            await checkOut(in: context)
 
         case .failure(.paymentDeclined):
-            snackbarPresenter.show(Snackbar(
+            show(Snackbar(
                 title: "Payment Declined",
                 message: "That card didn't go through. Your bag's still here.",
                 icon: "creditcard.trianglebadge.exclamationmark"
-            ))
+            ), in: context)
 
         case .failure(.unavailable):
-            snackbarPresenter.show(Snackbar(
+            show(Snackbar(
                 title: "That Didn't Go Through",
                 message: "Our end, not yours. Your bag's still here.",
                 icon: "exclamationmark.triangle",
-                action: .retry { self.didTap() }
-            ))
+                action: .retry { self.didTap(in: context) }
+            ), in: context)
 
         case .failure(.nothingToOrder):
-            snackbarPresenter.show(Snackbar(
+            show(Snackbar(
                 title: "Nothing in Your Bag",
                 message: "Add something first.",
                 icon: "bag"
-            ))
+            ), in: context)
         }
     }
 

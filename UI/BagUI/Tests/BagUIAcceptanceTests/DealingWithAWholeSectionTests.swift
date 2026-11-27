@@ -3,6 +3,9 @@ import BagTestSupport
 import Foundation
 import ProductTestSupport
 import Testing
+import Tracking
+import TrackingUI
+import TrackingTestSupport
 import Bag
 import Money
 import Product
@@ -23,7 +26,11 @@ struct DealingWithAWholeSectionTests {
             observeNotices: shop.observeNotices,
             setBagItemQuantity: shop.setBagItemQuantity,
             bringBagUpToDate: shop.bringUpToDate,
-            acknowledgeNotices: shop.acknowledge
+            acknowledgeNotices: shop.acknowledge,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
     }
 
@@ -40,7 +47,7 @@ struct DealingWithAWholeSectionTests {
         await viewModel.onAppear()
         #expect(viewModel.notices(in: .outOfStock).count == 2)
 
-        viewModel.didAcceptAll(.outOfStock)
+        viewModel.didAcceptAll(.outOfStock, in: inTheBag)
 
         #expect(viewModel.notices(in: .outOfStock).isEmpty)
     }
@@ -55,7 +62,7 @@ struct DealingWithAWholeSectionTests {
         await viewModel.onAppear()
         #expect(viewModel.notices(in: .priceWentUp).count == 2)
 
-        viewModel.didAcceptAll(.priceWentUp)
+        viewModel.didAcceptAll(.priceWentUp, in: inTheBag)
 
         #expect(viewModel.notices(in: .priceWentUp).isEmpty)
         #expect(viewModel.rows.count == 2)
@@ -74,7 +81,7 @@ struct DealingWithAWholeSectionTests {
         let viewModel = makeViewModel(shop: shop)
         await viewModel.onAppear()
 
-        viewModel.didAcceptAll(.priceWentUp)
+        viewModel.didAcceptAll(.priceWentUp, in: inTheBag)
 
         #expect(viewModel.notices(in: .priceWentUp).isEmpty)
         #expect(viewModel.notices(in: .outOfStock).map(\.id) == [pid(2)])
@@ -89,7 +96,7 @@ struct DealingWithAWholeSectionTests {
         let viewModel = makeViewModel(shop: shop)
         await viewModel.onAppear()
 
-        viewModel.didRemoveEverything()
+        viewModel.didRemoveEverything(in: inTheBag)
         await viewModel.inFlight?.value
 
         #expect(shop.currentBag.isEmpty)
@@ -104,8 +111,12 @@ struct DealingWithAWholeSectionTests {
         let viewModel = makeViewModel(shop: shop)
         await viewModel.onAppear()
 
-        viewModel.didRemoveEverything()
+        viewModel.didRemoveEverything(in: inTheBag)
 
         #expect(shop.currentBag.isEmpty)
     }
 }
+
+/// Where the bag's own buttons are drawn. A test about what a tap does to the bag has no reason to
+/// say more than that.
+private let inTheBag = TrackingContext.screen("bag")

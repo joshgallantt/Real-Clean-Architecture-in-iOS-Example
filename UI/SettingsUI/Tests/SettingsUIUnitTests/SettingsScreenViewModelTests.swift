@@ -2,6 +2,8 @@ import Foundation
 import SettingsTestSupport
 import Testing
 import Settings
+import Tracking
+import TrackingTestSupport
 @testable import SettingsUI
 
 /// Martin, *The Clean Coder* (2011), Ch. 8 — Unit Tests: the screen's own rules, driven through its
@@ -16,7 +18,9 @@ struct SettingsScreenViewModelTests {
     ) -> SettingsScreenViewModel {
         SettingsScreenViewModel(
             observeOfferedSettings: observeOfferedSettings,
-            setSetting: setSetting
+            setSetting: setSetting,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase()
         )
     }
 
@@ -128,7 +132,7 @@ struct SettingsScreenViewModelTests {
         let setSetting = SpySetSettingUseCase()
         let viewModel = makeViewModel(setSetting: setSetting)
 
-        viewModel.didToggle(.bagPriceDecreases, to: false)
+        viewModel.didToggle(.bagPriceDecreases, to: false, in: .screen("settings"))
         await viewModel.inFlight?.value
 
         #expect(setSetting.calls.map(\.key) == [.bagPriceDecreases])

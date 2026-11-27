@@ -1,6 +1,8 @@
 import Foundation
 import Product
 import SearchHistory
+import Tracking
+import TrackingUI
 
 @MainActor
 @Observable
@@ -27,15 +29,21 @@ public final class SearchingViewModel {
     private let getSearchHistory: GetSearchHistoryUseCase
     private let clearSearchHistory: ClearSearchHistoryUseCase
     private let browseCatalog: BrowseCatalogUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
 
     public init(
         getSearchHistory: GetSearchHistoryUseCase,
         clearSearchHistory: ClearSearchHistoryUseCase,
-        browseCatalog: BrowseCatalogUseCase
+        browseCatalog: BrowseCatalogUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase
     ) {
         self.getSearchHistory = getSearchHistory
         self.clearSearchHistory = clearSearchHistory
         self.browseCatalog = browseCatalog
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
     }
 
     func onAppear() async {
@@ -64,8 +72,29 @@ public final class SearchingViewModel {
         }
     }
 
-    func clearHistory() {
+    func clearHistory(in context: TrackingContext) {
+        trackElementInteraction(SearchTrackingPlan.clearHistory, in: context)
         clearSearchHistory()
         history = getSearchHistory()
+    }
+
+    // MARK: - What the shopper saw and picked
+
+    /// Where a row sits — which list, which position — arrives with it, set by the list that drew
+    /// it, so a view model never has to count.
+    func didSee(_ term: SearchTerm, in context: TrackingContext) {
+        trackElementView(SearchTrackingPlan.recentSearchRow, about: SearchTrackingPlan.item(term), in: context)
+    }
+
+    func didSelect(_ term: SearchTerm, in context: TrackingContext) {
+        trackElementInteraction(SearchTrackingPlan.recentSearchRow, about: SearchTrackingPlan.item(term), in: context)
+    }
+
+    func didSee(_ suggestion: Product, in context: TrackingContext) {
+        trackElementView(SearchTrackingPlan.suggestionRow, about: TrackedProduct.item(suggestion), in: context)
+    }
+
+    func didSelect(_ suggestion: Product, in context: TrackingContext) {
+        trackElementInteraction(SearchTrackingPlan.suggestionRow, about: TrackedProduct.item(suggestion), in: context)
     }
 }

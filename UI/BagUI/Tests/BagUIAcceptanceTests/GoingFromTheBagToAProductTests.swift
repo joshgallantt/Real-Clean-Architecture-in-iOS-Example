@@ -3,6 +3,9 @@ import BagTestSupport
 import Foundation
 import ProductTestSupport
 import Testing
+import Tracking
+import TrackingUI
+import TrackingTestSupport
 import Bag
 import Money
 import Product
@@ -24,7 +27,11 @@ struct GoingFromTheBagToAProductTests {
             observeNotices: shop.observeNotices,
             setBagItemQuantity: shop.setBagItemQuantity,
             bringBagUpToDate: shop.bringUpToDate,
-            acknowledgeNotices: shop.acknowledge
+            acknowledgeNotices: shop.acknowledge,
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
     }
 
@@ -34,7 +41,7 @@ struct GoingFromTheBagToAProductTests {
         let viewModel = makeViewModel(shop: shop)
         await viewModel.onAppear()
 
-        viewModel.didTapRow(productId: pid(1))
+        viewModel.didTapRow(viewModel.rows[0], in: inTheBag)
 
         #expect(navigation.openedProducts.map(\.id) == [pid(1)])
     }
@@ -48,7 +55,7 @@ struct GoingFromTheBagToAProductTests {
         let viewModel = makeViewModel(shop: shop)
         await viewModel.onAppear()
 
-        viewModel.didTapRow(productId: pid(1))
+        viewModel.didTapRow(viewModel.notices(in: .outOfStock)[0], in: inTheBag)
 
         #expect(navigation.openedProducts.map(\.id) == [pid(1)])
     }
@@ -62,9 +69,13 @@ struct GoingFromTheBagToAProductTests {
         let viewModel = makeViewModel(shop: shop)
         await viewModel.onAppear()
 
-        viewModel.didTapRow(productId: pid(1))
+        viewModel.didTapRow(viewModel.notices(in: .priceWentUp)[0], in: inTheBag)
 
         #expect(navigation.openedProducts.map(\.id) == [pid(1)])
     }
 
 }
+
+/// Where the bag's own buttons are drawn. A test about what a tap does to the bag has no reason to
+/// say more than that.
+private let inTheBag = TrackingContext.screen("bag")

@@ -1,4 +1,6 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 
 public struct OrderHistoryScreen: View {
     @State private var viewModel: OrderHistoryViewModel
@@ -24,7 +26,10 @@ public struct OrderHistoryScreen: View {
         }
         .navigationTitle("Your Orders")
         .navigationBarTitleDisplayMode(.inline)
-        .onAppear { viewModel.onAppear() }
+        .onScreenAppear { viewModel.didAppear(in: $0) }
+        .onAppear {
+            viewModel.onAppear()
+        }
     }
 
     /// What an order was, in the three facts a shopper is looking for when they come back to it:

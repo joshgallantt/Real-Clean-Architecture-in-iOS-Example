@@ -2,6 +2,8 @@ import SwiftUI
 import AuthUI
 import Session
 import SheetUI
+import Tracking
+import TrackingUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's view
 /// hierarchy and holds its collaborators.
@@ -12,50 +14,63 @@ import SheetUI
 /// layering exists to enforce.
 public struct AuthUIDI {
     public let presenter: AuthPresenter
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
 
     @MainActor
     public init(
         loginUseCase: LoginUseCase,
         createAccountUseCase: CreateAccountUseCase,
         getSessionUseCase: GetSessionUseCase,
-        sheetPresenting: SheetPresenting
+        sheetPresenting: SheetPresenting,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
+        trackEvent: TrackEventUseCase
     ) {
         self.presenter = AuthPresenter(
             sheetPresenting: sheetPresenting,
             loginUseCase: loginUseCase,
             createAccountUseCase: createAccountUseCase,
-            getSession: getSessionUseCase
+            getSession: getSessionUseCase,
+            trackScreenView: trackScreenView,
+            trackElementView: trackElementView,
+            trackElementInteraction: trackElementInteraction,
+            trackEvent: trackEvent
+        )
+        self.trackScreenView = trackScreenView
+        self.trackElementInteraction = trackElementInteraction
+    }
+
+    /// Drawn on another feature's screen, which the environment says — not this container, and not
+    /// the caller.
+    @MainActor
+    public func loginButtonView(title: String, onAuthenticated: @escaping () -> Void) -> some View {
+        AuthEntryButton(
+            viewModel: AuthEntryButtonViewModel(
+                element: AuthTrackingPlan.logIn,
+                authenticate: { [presenter] in await presenter.logIn() },
+                trackElementInteraction: trackElementInteraction,
+                onAuthenticated: onAuthenticated
+            ),
+            title: title
         )
     }
 
     @MainActor
-    public func loginButtonView(
-        title: String = "Log In",
-        onAuthenticated: @escaping () -> Void = {}
-    ) -> some View {
-        Button {
-            Task {
-                if await presenter.logIn() { onAuthenticated() }
-            }
-        } label: {
-            Text(title).frame(maxWidth: .infinity)
-        }
+    public func createAccountButtonView(title: String, onAuthenticated: @escaping () -> Void) -> some View {
+        AuthEntryButton(
+            viewModel: AuthEntryButtonViewModel(
+                element: AuthTrackingPlan.createAccount,
+                authenticate: { [presenter] in await presenter.createAccount() },
+                trackElementInteraction: trackElementInteraction,
+                onAuthenticated: onAuthenticated
+            ),
+            title: title
+        )
     }
 
-    @MainActor
-    public func createAccountButtonView(
-        title: String = "Create Account",
-        onAuthenticated: @escaping () -> Void = {}
-    ) -> some View {
-        Button {
-            Task {
-                if await presenter.createAccount() { onAuthenticated() }
-            }
-        } label: {
-            Text(title).frame(maxWidth: .infinity)
-        }
-    }
-
+    /// The first screen of all, so it declares its own name — nothing above it is a screen.
     @MainActor
     public func welcomeView(
         onContinueAsGuest: @escaping () -> Void,
@@ -64,9 +79,12 @@ public struct AuthUIDI {
         WelcomeScreenView(
             viewModel: WelcomeScreenViewModel(
                 presenter: presenter,
+                trackScreenView: trackScreenView,
+                trackElementInteraction: trackElementInteraction,
                 onContinueAsGuest: onContinueAsGuest,
                 onAuthenticated: onAuthenticated
             )
         )
+        .trackingScreen(AuthTrackingPlan.welcome)
     }
 }

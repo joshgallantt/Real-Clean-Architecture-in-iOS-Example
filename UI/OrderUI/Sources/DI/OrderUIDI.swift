@@ -6,6 +6,8 @@ import AuthUI
 import OrderUI
 import SheetUI
 import SnackbarUI
+import Tracking
+import TrackingUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: builds this feature's views and
 /// holds its collaborators.
@@ -22,6 +24,10 @@ public struct OrderUIDI {
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private let sheetPresenter: SheetPresenting
+    private let trackScreenView: TrackScreenViewUseCase
+    private let trackElementView: TrackElementViewUseCase
+    private let trackElementInteraction: TrackElementInteractionUseCase
+    private let trackEvent: TrackEventUseCase
 
     public init(
         placeOrder: PlaceOrderUseCase,
@@ -30,7 +36,11 @@ public struct OrderUIDI {
         setBagItemQuantity: SetBagItemQuantityUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
-        sheetPresenter: SheetPresenting
+        sheetPresenter: SheetPresenting,
+        trackScreenView: TrackScreenViewUseCase,
+        trackElementView: TrackElementViewUseCase,
+        trackElementInteraction: TrackElementInteractionUseCase,
+        trackEvent: TrackEventUseCase
     ) {
         self.placeOrder = placeOrder
         self.observeOrders = observeOrders
@@ -39,8 +49,13 @@ public struct OrderUIDI {
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
         self.sheetPresenter = sheetPresenter
+        self.trackScreenView = trackScreenView
+        self.trackElementView = trackElementView
+        self.trackElementInteraction = trackElementInteraction
+        self.trackEvent = trackEvent
     }
 
+    /// Where it is drawn is in the environment it is drawn into, like every product button's.
     @MainActor
     public func buyNowButton(product: Product) -> some View {
         BuyNowButton(
@@ -49,13 +64,19 @@ public struct OrderUIDI {
                 placeOrder: placeOrder,
                 authPresenter: authPresenter,
                 snackbarPresenter: snackbarPresenter,
-                confirm: confirm
+                confirm: confirm,
+                trackScreenView: trackScreenView,
+                trackElementView: trackElementView,
+                trackElementInteraction: trackElementInteraction,
+                trackEvent: trackEvent
             )
         )
     }
 
+    /// `products` is what the bag screen is drawing, so a checkout can say what was bought by name.
+    /// The button never looks the catalog up itself: the screen it sits on already has.
     @MainActor
-    public func checkoutButton() -> some View {
+    public func checkoutButton(products: @escaping @MainActor () -> [ProductID: Product]) -> some View {
         CheckoutButton(
             viewModel: CheckoutButtonViewModel(
                 observeBag: observeBag,
@@ -63,14 +84,20 @@ public struct OrderUIDI {
                 setBagItemQuantity: setBagItemQuantity,
                 authPresenter: authPresenter,
                 snackbarPresenter: snackbarPresenter,
-                confirm: confirm
+                confirm: confirm,
+                products: products,
+                trackScreenView: trackScreenView,
+                trackElementView: trackElementView,
+                trackElementInteraction: trackElementInteraction,
+                trackEvent: trackEvent
             )
         )
     }
 
     @MainActor
     public func historyView() -> some View {
-        OrderHistoryScreen(viewModel: OrderHistoryViewModel(observeOrders: observeOrders))
+        OrderHistoryScreen(viewModel: OrderHistoryViewModel(observeOrders: observeOrders, trackScreenView: trackScreenView))
+            .trackingScreen(OrderTrackingPlan.history)
     }
 
     /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: the view models
@@ -84,7 +111,15 @@ public struct OrderUIDI {
     private var confirm: (Order) -> Void {
         { order in
             sheetPresenter.present {
-                OrderConfirmationView(order: OrderSummary(order)) { sheetPresenter.dismiss() }
+                OrderConfirmationView(viewModel: OrderConfirmationViewModel(
+                    order: OrderSummary(order),
+                    done: { sheetPresenter.dismiss() },
+                    trackScreenView: trackScreenView,
+                    trackElementInteraction: trackElementInteraction
+                ))
+                /// Presented by the app's sheet host, above every screen, so nothing above it says
+                /// where it is: it says so itself.
+                .trackingScreen(OrderTrackingPlan.confirmation)
             }
         }
     }

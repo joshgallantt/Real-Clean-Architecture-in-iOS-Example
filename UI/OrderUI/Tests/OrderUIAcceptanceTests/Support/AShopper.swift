@@ -7,6 +7,9 @@ import SessionTestSupport
 import SnackbarUITestSupport
 import Combine
 import Foundation
+import Tracking
+import TrackingUI
+import TrackingTestSupport
 import Bag
 import Money
 import Order
@@ -69,7 +72,11 @@ final class AShopper {
             placeOrder: placeOrder,
             authPresenter: signIn,
             snackbarPresenter: snackbars,
-            confirm: { [weak self] in self?.confirmed.append($0) }
+            confirm: { [weak self] in self?.confirmed.append($0) },
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
     }
 
@@ -82,7 +89,12 @@ final class AShopper {
             setBagItemQuantity: DefaultSetBagItemQuantityUseCase(repository: bag),
             authPresenter: signIn,
             snackbarPresenter: snackbars,
-            confirm: { [weak self] in self?.confirmed.append($0) }
+            confirm: { [weak self] in self?.confirmed.append($0) },
+            products: { [:] },
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
         )
         button.onAppear()
         return button

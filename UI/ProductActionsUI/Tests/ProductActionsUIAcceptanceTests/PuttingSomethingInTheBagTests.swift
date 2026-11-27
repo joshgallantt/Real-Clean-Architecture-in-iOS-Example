@@ -1,3 +1,4 @@
+import Tracking
 import Foundation
 import ProductTestSupport
 import Testing
@@ -15,7 +16,7 @@ struct PuttingSomethingInTheBagTests {
     func addsToBag() async {
         let shown = AProduct()
 
-        shown.bagButton().didTap()
+        shown.bagButton().didTap(in: .screen("product_details"))
 
         #expect(shown.bagContains == [pid(1)])
         #expect(shown.snackbarTitles == ["In the Bag"])
@@ -26,8 +27,8 @@ struct PuttingSomethingInTheBagTests {
         let shown = AProduct()
         let button = shown.bagButton()
 
-        button.didTap()
-        button.didTap()
+        button.didTap(in: .screen("product_details"))
+        button.didTap(in: .screen("product_details"))
 
         #expect(button.quantity == 2)
     }
@@ -36,7 +37,7 @@ struct PuttingSomethingInTheBagTests {
     func neverAddsWhatCannotBeSupplied() async {
         let shown = AProduct(.fixture(id: 1, availability: .outOfStock))
 
-        shown.bagButton().didTap()
+        shown.bagButton().didTap(in: .screen("product_details"))
 
         #expect(shown.bagContains.isEmpty)
         #expect(shown.snackbarTitles.isEmpty)

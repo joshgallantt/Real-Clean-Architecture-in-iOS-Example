@@ -21,6 +21,8 @@ let package = Package(
         )
     ],
     dependencies: [
+        .package(path: "../TrackingUI"),
+        .package(path: "../../Component/Tracking"),
         .package(path: "../../Component/Product"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Session"),
@@ -30,6 +32,8 @@ let package = Package(
         .target(
             name: "AccountUI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "Session", package: "Session")
             ],
             path: "Sources",
@@ -39,6 +43,8 @@ let package = Package(
         .target(
             name: "AccountUIDI",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingUI", package: "TrackingUI"),
                 "AccountUI",
                 .product(name: "Session", package: "Session"),
                 .product(name: "AuthUIDI", package: "AuthUI")
@@ -58,6 +64,8 @@ let package = Package(
         .testTarget(
             name: "AccountUIUnitTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 "AccountUITestSupport",
                 .product(name: "SessionTestSupport", package: "Session"),
@@ -69,6 +77,8 @@ let package = Package(
         .testTarget(
             name: "AccountUISnapshotTests",
             dependencies: [
+                .product(name: "Tracking", package: "Tracking"),
+                .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "SessionTestSupport", package: "Session"),
                 "AccountUI",
                 "AccountUITestSupport",

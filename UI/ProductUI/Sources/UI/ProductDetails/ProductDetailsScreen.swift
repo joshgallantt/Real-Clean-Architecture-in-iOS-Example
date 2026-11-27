@@ -1,4 +1,6 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 import Product
 import Kingfisher
 
@@ -31,6 +33,7 @@ public struct ProductDetailsScreen: View {
         }
         .navigationTitle(viewModel.product.title)
         .navigationBarTitleDisplayMode(.inline)
+        .onScreenAppear { viewModel.didAppear(in: $0) }
     }
 
     @ViewBuilder

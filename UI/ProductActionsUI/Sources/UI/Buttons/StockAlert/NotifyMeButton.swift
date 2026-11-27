@@ -1,8 +1,11 @@
 import SwiftUI
+import Tracking
+import TrackingUI
 import UIKit
 
 /// The same thing said at full width, where the details screen would otherwise offer Add to Bag.
 public struct NotifyMeButton: View {
+    @Environment(\.trackingContext) private var trackingContext
     @State private var viewModel: StockAlertButtonViewModel
 
     public init(viewModel: @autoclosure @escaping () -> StockAlertButtonViewModel) {
@@ -12,7 +15,7 @@ public struct NotifyMeButton: View {
     public var body: some View {
         Button {
             UIImpactFeedbackGenerator(style: .medium).impactOccurred()
-            viewModel.didTap()
+            viewModel.didTap(in: trackingContext)
         } label: {
             HStack {
                 Image(systemName: viewModel.isWaiting ? "bell.fill" : "bell")

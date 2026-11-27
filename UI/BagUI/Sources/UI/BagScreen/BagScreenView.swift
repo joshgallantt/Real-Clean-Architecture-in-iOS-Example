@@ -2,10 +2,13 @@ import SwiftUI
 import UIKit
 import Kingfisher
 import Product
+import Tracking
+import TrackingUI
 
 public struct BagScreenView: View {
     let viewModel: BagScreenViewModel
     @State private var isConfirmingRemoveAll = false
+    @Environment(\.trackingContext) private var trackingContext
 
     /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: a bell this
     /// screen cannot name. `Component/Waitlist` and its buttons live outside this feature, so the
@@ -14,7 +17,7 @@ public struct BagScreenView: View {
     ///
     /// No default. One of these used to be a wishlist button that nothing rendered, and a default
     /// `EmptyView()` is exactly why nobody noticed.
-    let stockAlertButton: (ProductID) -> AnyView
+    let stockAlertButton: (Product) -> AnyView
 
     /// A way out of the bag that this screen cannot name, arriving the same way the bell does.
     /// `Component/Order` lives outside this feature, so the app layer passes a finished button in
@@ -24,7 +27,7 @@ public struct BagScreenView: View {
 
     public init(
         viewModel: BagScreenViewModel,
-        stockAlertButton: @escaping (ProductID) -> AnyView,
+        stockAlertButton: @escaping (Product) -> AnyView,
         checkoutButton: AnyView
     ) {
         self.viewModel = viewModel
@@ -51,13 +54,14 @@ public struct BagScreenView: View {
                 }
             }
         }
+        .onScreenAppear { viewModel.didAppear(in: $0) }
         .task { await viewModel.onAppear() }
         .confirmationDialog(
             "Are you sure?",
             isPresented: $isConfirmingRemoveAll,
             titleVisibility: .visible
         ) {
-            Button("Remove All", role: .destructive) { viewModel.didRemoveEverything() }
+            Button("Remove All", role: .destructive) { viewModel.didRemoveEverything(in: trackingContext) }
             Button("Cancel", role: .cancel) {}
         } message: {
             Text("This clears your whole bag. No undo.")
@@ -71,8 +75,11 @@ public struct BagScreenView: View {
     /// a sixth.
     private func noticeSection(_ section: NoticeSection) -> some View {
         Section {
-            ForEach(section.rows) { row in
-                noticeRow(row, in: section)
+            ForEach(Array(section.rows.enumerated()), id: \.element.id) { index, row in
+                TrackingContextReader { context in noticeRow(row, in: section, context: context) }
+                    .onImpression { viewModel.didSee(row, in: $0) }
+                    .trackingPosition(index)
+                    .trackingList(BagTrackingPlan.notices(section.kind))
             }
         } header: {
             sectionHeader(
@@ -81,7 +88,7 @@ public struct BagScreenView: View {
                 tint: color(section.tint),
                 description: section.description
             ) {
-                Button("Okay") { viewModel.didAcceptAll(section.kind) }
+                Button("Okay") { viewModel.didAcceptAll(section.kind, in: trackingContext) }
             }
         }
     }
@@ -97,11 +104,13 @@ public struct BagScreenView: View {
     }
 
     @ViewBuilder
-    private func accessoryButton(_ accessory: NoticeSection.Accessory, for id: ProductID) -> some View {
+    private func accessoryButton(_ accessory: NoticeSection.Accessory, for row: NoticeRow, context: TrackingContext) -> some View {
         switch accessory {
         case .nothing: EmptyView()
-        case .tellMeWhenItIsBack: stockAlertButton(id)
-        case .removeFromBag: removeFromBagButton(id)
+        /// The bell is about a product, so it waits for the shop to say which one — the same moment
+        /// the row's name stops being a placeholder.
+        case .tellMeWhenItIsBack: if let product = row.product { stockAlertButton(product) }
+        case .removeFromBag: removeFromBagButton(row.id, context: context)
         }
     }
 
@@ -114,10 +123,10 @@ public struct BagScreenView: View {
     /// is what Okay above it already does, and the two are not the same: one keeps the product at
     /// the new price and the other gives it back. Red because this is the only accessory on the
     /// screen that takes something away.
-    private func removeFromBagButton(_ id: ProductID) -> some View {
+    private func removeFromBagButton(_ id: ProductID, context: TrackingContext) -> some View {
         Button {
             UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            viewModel.didRemoveChangedItem(productId: id)
+            viewModel.didRemoveChangedItem(productId: id, in: context)
         } label: {
             Image(systemName: "bag.badge.minus")
                 .font(.subheadline.weight(.bold))
@@ -133,16 +142,16 @@ public struct BagScreenView: View {
     /// One row for every notice, so a shopper reads them the same way wherever they appear. What a
     /// row says is only ever what its heading has not already said, and most say nothing at all —
     /// they are a picture and a name, which is what a shopper opened the section to find out.
-    private func noticeRow(_ row: NoticeRow, in section: NoticeSection) -> some View {
+    private func noticeRow(_ row: NoticeRow, in section: NoticeSection, context: TrackingContext) -> some View {
         HStack(spacing: 12) {
             HStack(spacing: 12) {
-                thumbnail(url: row.imageURL)
+                thumbnail(url: row.product?.thumbnail)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(row.name ?? " ")
+                    Text(row.product?.title ?? " ")
                         .font(.subheadline.weight(.semibold))
                         .lineLimit(2)
-                        .redacted(reason: row.name == nil ? .placeholder : [])
+                        .redacted(reason: row.product == nil ? .placeholder : [])
 
                     switch row.says {
                     case .nothing:
@@ -164,9 +173,9 @@ public struct BagScreenView: View {
             /// The same target as a bag line: everything left of the accessory. A shopper reading
             /// that something got dearer wants to go and look at it, and had no way to.
             .contentShape(Rectangle())
-            .onTapGesture { viewModel.didTapRow(productId: row.id) }
+            .onTapGesture { viewModel.didTapRow(row, in: context) }
 
-            accessoryButton(section.accessory, for: row.id)
+            accessoryButton(section.accessory, for: row, context: context)
         }
         .padding(.vertical, 6)
     }
@@ -229,13 +238,18 @@ public struct BagScreenView: View {
 
     private var bagSection: some View {
         Section {
-            ForEach(viewModel.rows) { row in
-                bagRow(row)
-                    .swipeActions {
-                        Button("Remove", role: .destructive) {
-                            viewModel.didSwipeToDelete(productId: row.id)
+            ForEach(Array(viewModel.rows.enumerated()), id: \.element.id) { index, row in
+                TrackingContextReader { context in
+                    bagRow(row, context: context)
+                        .swipeActions {
+                            Button("Remove", role: .destructive) {
+                                viewModel.didSwipeToDelete(productId: row.id, in: context)
+                            }
                         }
-                    }
+                }
+                .onImpression { viewModel.didSee(row, in: $0) }
+                .trackingPosition(index)
+                .trackingList(BagTrackingPlan.bagLines)
             }
         } header: {
             sectionHeader(
@@ -264,16 +278,16 @@ public struct BagScreenView: View {
     ///
     /// The stepper stays outside it either way. Changing how many you want is not opening the
     /// product, and the two would fight over the same tap.
-    private func bagRow(_ row: BagRow) -> some View {
+    private func bagRow(_ row: BagRow, context: TrackingContext) -> some View {
         HStack(spacing: 12) {
             HStack(spacing: 12) {
-                thumbnail(url: row.imageURL)
+                thumbnail(url: row.product?.thumbnail)
 
                 VStack(alignment: .leading, spacing: 4) {
-                    Text(row.name ?? " ")
+                    Text(row.product?.title ?? " ")
                         .font(.subheadline.weight(.semibold))
                         .lineLimit(2)
-                        .redacted(reason: row.name == nil ? .placeholder : [])
+                        .redacted(reason: row.product == nil ? .placeholder : [])
 
                     Text(row.lineTotal.formatted())
                         .font(.subheadline.weight(.semibold))
@@ -290,14 +304,14 @@ public struct BagScreenView: View {
                 Spacer(minLength: 0)
             }
             .contentShape(Rectangle())
-            .onTapGesture { viewModel.didTapRow(productId: row.id) }
+            .onTapGesture { viewModel.didTapRow(row, in: context) }
 
             Stepper(
                 value: Binding(
                     get: { row.quantity },
                     set: {
                         UISelectionFeedbackGenerator().selectionChanged()
-                        viewModel.didChangeQuantity(productId: row.id, quantity: $0)
+                        viewModel.didChangeQuantity(productId: row.id, quantity: $0, in: context)
                     }
                 ),
                 in: 1...99
