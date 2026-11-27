@@ -61,7 +61,9 @@ public final class SettingsScreenViewModel {
     func didToggle(_ key: SettingKey, to isOn: Bool, in context: TrackingContext) {
         trackElementInteraction(SettingsTrackingPlan.toggle(key, isOn: isOn), in: context)
         inFlight = Task { [setSetting] in
-            await setSetting(key, isOn: isOn)
+            /// The answer is not needed here: the switch is drawn from what was kept, so a
+            /// setting that could not be saved leaves it where it was.
+            _ = await setSetting(key, isOn: isOn)
         }
     }
 
