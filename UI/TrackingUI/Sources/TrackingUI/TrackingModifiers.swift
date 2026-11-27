@@ -22,7 +22,8 @@ extension View {
         transformEnvironment(\.trackingScope) { $0 = $0.at(index) }
     }
 
-    /// The screen came into view: every appearance, tab switches and navigating back included.
+    /// The screen came into view: every arrival, tab switches and navigating back included — but
+    /// not the false one SwiftUI makes while the screen is being left. See `Presence`.
     public func onScreenAppear(perform action: @escaping (TrackingContext) -> Void) -> some View {
         modifier(ScreenAppearModifier(action: action))
     }
@@ -39,8 +40,14 @@ private struct ScreenAppearModifier: ViewModifier {
     @Environment(\.trackingContext) private var context
     let action: (TrackingContext) -> Void
 
+    @State private var presence = Presence()
+
     func body(content: Content) -> some View {
-        content.onAppear { action(context) }
+        content
+            .onAppear {
+                if presence.isArrival(at: .now) { action(context) }
+            }
+            .onDisappear { presence.left(at: .now) }
     }
 }
 
@@ -52,9 +59,15 @@ private struct ImpressionModifier: ViewModifier {
     /// what it is — the same line the ad industry draws for a view.
     static let threshold = 0.5
 
+    @State private var presence = Presence()
+
     func body(content: Content) -> some View {
         content.onScrollVisibilityChange(threshold: Self.threshold) { isVisible in
-            if isVisible { action(context) }
+            if !isVisible {
+                presence.left(at: .now)
+            } else if presence.isArrival(at: .now) {
+                action(context)
+            }
         }
     }
 }
