@@ -6,7 +6,7 @@ import SearchHistoryDI
 import SessionDI
 import SettingsDI
 import TrackingDI
-import WaitlistDI
+import StockAlertDI
 import WishlistDI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: the second phase. Each
@@ -30,7 +30,7 @@ struct DomainAssembler {
     let wishlist: WishlistDI
     let bag: BagDI
     let settings: SettingsDI
-    let stockAlerts: WaitlistDI
+    let stockAlerts: StockAlertDI
     let orders: OrderDI
     let tracking: TrackingDI
 
@@ -78,7 +78,7 @@ struct DomainAssembler {
             observeSession: session.observeSessionUseCase,
             store: data.settingsStore
         )
-        stockAlerts = WaitlistDI(
+        stockAlerts = StockAlertDI(
             getSession: session.getSessionUseCase,
             observeSession: session.observeSessionUseCase,
             lookUpProducts: catalog.lookUpProducts,

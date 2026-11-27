@@ -31,7 +31,7 @@ struct WhenASettingCannotBeKeptTests {
         let guest = Shopper(in: try .unwritableDirectory())
         let shopper = Shopper(in: try .unwritableDirectory(), signedInAs: 42)
 
-        #expect(await guest.turn(.favoritesWaitlistSection, false).failure == .unauthenticated)
+        #expect(await guest.turn(.favoritesStockAlertsSection, false).failure == .unauthenticated)
         #expect(await shopper.turn(.pushNotifications, true).failure == .unavailable)
     }
 }

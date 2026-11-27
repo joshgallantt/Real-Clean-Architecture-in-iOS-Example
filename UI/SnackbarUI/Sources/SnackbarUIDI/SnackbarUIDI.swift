@@ -1,4 +1,3 @@
-import SnackbarUI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: constructs the concrete
 /// presenter behind `SnackbarPresenting`. Features link the port and never this, so the composition

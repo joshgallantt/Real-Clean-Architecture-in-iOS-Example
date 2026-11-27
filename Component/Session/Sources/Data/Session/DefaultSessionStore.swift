@@ -4,7 +4,7 @@ import Session
 
 @MainActor
 public final class DefaultSessionStore: SessionStore {
-    public private(set) var authToken: AuthToken?
+    private var authToken: AuthToken?
     private var expiryTask: Task<Void, Never>?
     private let sessionSubject: CurrentValueSubject<Session, Never>
     private let defaults: UserDefaults

@@ -32,8 +32,6 @@ public final class DefaultOrderRepository: OrderRepository {
             .store(in: &cancellables)
     }
 
-    public var orders: Orders { ordersSubject.value }
-
     public var ordersPublisher: AnyPublisher<Orders, Never> { ordersSubject.eraseToAnyPublisher() }
 
     public func save(_ order: Order) {
@@ -47,10 +45,6 @@ public final class DefaultOrderRepository: OrderRepository {
             await previous?.value
             await store.setOrders(orders, for: owner)
         }
-    }
-
-    func flushPendingWrites() async {
-        await pendingWrite?.value
     }
 
     /// Signing out takes the orders off the screen with it. They are not gone — they are filed

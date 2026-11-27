@@ -365,17 +365,17 @@
     {
       "parallelizable": true,
       "target": {
-        "containerPath": "container:Component/Waitlist",
-        "identifier": "WaitlistAcceptanceTests",
-        "name": "WaitlistAcceptanceTests"
+        "containerPath": "container:Component/StockAlert",
+        "identifier": "StockAlertAcceptanceTests",
+        "name": "StockAlertAcceptanceTests"
       }
     },
     {
       "parallelizable": true,
       "target": {
-        "containerPath": "container:Component/Waitlist",
-        "identifier": "WaitlistUnitTests",
-        "name": "WaitlistUnitTests"
+        "containerPath": "container:Component/StockAlert",
+        "identifier": "StockAlertUnitTests",
+        "name": "StockAlertUnitTests"
       }
     },
     {
@@ -416,6 +416,22 @@
         "containerPath": "container:Component/Wishlist",
         "identifier": "WishlistUnitTests",
         "name": "WishlistUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/StockAlertUI",
+        "identifier": "StockAlertUIAcceptanceTests",
+        "name": "StockAlertUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/StockAlertUI",
+        "identifier": "StockAlertUIUnitTests",
+        "name": "StockAlertUIUnitTests"
       }
     }
   ],

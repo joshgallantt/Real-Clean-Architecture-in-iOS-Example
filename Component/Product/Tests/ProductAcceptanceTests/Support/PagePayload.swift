@@ -1,5 +1,4 @@
 import Foundation
-import Networking
 
 struct PagePayload: Encodable {
     let products: [CatalogItem]

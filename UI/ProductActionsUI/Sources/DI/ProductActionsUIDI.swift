@@ -1,7 +1,7 @@
 import SwiftUI
 import Bag
 import Product
-import Waitlist
+import StockAlert
 import Wishlist
 import AuthUI
 import SnackbarUI
@@ -26,8 +26,8 @@ public struct ProductActionsUIDI {
     private let observeBag: ObserveBagUseCase
     private let setBagItem: SetBagItemUseCase
 
-    private let observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase
-    private let setProductIsWaitlisted: SetProductIsWaitlistedUseCase
+    private let observeProductHasStockAlert: ObserveProductHasStockAlertUseCase
+    private let setProductStockAlert: SetProductStockAlertUseCase
 
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
@@ -43,8 +43,8 @@ public struct ProductActionsUIDI {
         setProductIsWishlisted: SetProductIsWishlistedUseCase,
         observeBag: ObserveBagUseCase,
         setBagItem: SetBagItemUseCase,
-        observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase,
-        setProductIsWaitlisted: SetProductIsWaitlistedUseCase,
+        observeProductHasStockAlert: ObserveProductHasStockAlertUseCase,
+        setProductStockAlert: SetProductStockAlertUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
         trackScreenView: TrackScreenViewUseCase,
@@ -57,8 +57,8 @@ public struct ProductActionsUIDI {
         self.setProductIsWishlisted = setProductIsWishlisted
         self.observeBag = observeBag
         self.setBagItem = setBagItem
-        self.observeProductIsWaitlisted = observeProductIsWaitlisted
-        self.setProductIsWaitlisted = setProductIsWaitlisted
+        self.observeProductHasStockAlert = observeProductHasStockAlert
+        self.setProductStockAlert = setProductStockAlert
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
         self.trackScreenView = trackScreenView
@@ -77,11 +77,11 @@ public struct ProductActionsUIDI {
         StockAlertButtonView(viewModel: makeStockAlertViewModel(product: product))
     }
 
-    /// The minus on a card that is already on the waitlist. Same use case as the bell, said the way
+    /// The minus on a card the shopper already has an alert on. Same use case as the bell, said the way
     /// a list needs it said.
     @MainActor
-    public func removeFromWaitlistButton(product: Product) -> some View {
-        RemoveFromWaitlistButton(viewModel: makeStockAlertViewModel(product: product))
+    public func removeStockAlertButton(product: Product) -> some View {
+        RemoveStockAlertButton(viewModel: makeStockAlertViewModel(product: product))
     }
 
     /// No button is told the screen it is drawn on. The same heart is on six of them, and where it is
@@ -150,8 +150,8 @@ public struct ProductActionsUIDI {
     private func makeStockAlertViewModel(product: Product) -> StockAlertButtonViewModel {
         StockAlertButtonViewModel(
             product: product,
-            observeProductIsWaitlisted: observeProductIsWaitlisted,
-            setProductIsWaitlisted: setProductIsWaitlisted,
+            observeProductHasStockAlert: observeProductHasStockAlert,
+            setProductStockAlert: setProductStockAlert,
             authPresenter: authPresenter,
             snackbarPresenter: snackbarPresenter,
             trackScreenView: trackScreenView,

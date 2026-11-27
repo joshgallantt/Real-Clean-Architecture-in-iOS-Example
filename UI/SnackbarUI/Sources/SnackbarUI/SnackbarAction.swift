@@ -7,10 +7,6 @@ public struct SnackbarAction {
         self.handler = handler
     }
 
-    public static func undo(_ handler: @escaping @MainActor () -> Void) -> SnackbarAction {
-        SnackbarAction(label: "Undo", handler: handler)
-    }
-
     public static func retry(_ handler: @escaping @MainActor () -> Void) -> SnackbarAction {
         SnackbarAction(label: "Retry", handler: handler)
     }

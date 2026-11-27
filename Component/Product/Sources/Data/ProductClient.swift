@@ -1,4 +1,3 @@
-import Networking
 import Product
 
 /// Fowler, *PoEAA* (2002) — Gateway: wraps one external system behind a domain-shaped call.

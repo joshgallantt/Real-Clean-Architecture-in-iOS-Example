@@ -20,10 +20,11 @@ import ProductDI
 ///
 /// The bag is where a shopper sees it happen, and it needs two visits, because the shop only changes
 /// its mind between them. Fill a bag, taking two of at least one thing. Then **quit the app and open
-/// it again**: prices have moved both ways, a line is short, and some have gone — out of stock in
-/// one section, stopped-selling in another. Tap Okay on one and it stays; tap the remove button on a
-/// dearer one and it goes with its notice. Notices a shopper never read are still waiting the launch
-/// after that, because they are kept with the bag.
+/// it again**: the lines already show today's prices and what the shop has left, and one section
+/// above them lists what is different — prices that moved both ways, a line cut short, and what
+/// sold out, each with a bell. Anything the shop stopped selling has simply gone. Leave the bag and
+/// come back and the section is empty: a change is told once, because nothing about it is kept —
+/// it is the difference between the bag as it was last seen and the bag as the shop says it is.
 enum Demo {
     static let isOn = true
 
@@ -47,7 +48,7 @@ enum Demo {
     /// It is counted here rather than in `DataAssembler` because nothing but a demo has any use for
     /// it — the exemplar does not gain a stored counter so that a demo can move. Read once, because
     /// `CompositionRoot.shared` is built once per launch: quitting and opening the app is what
-    /// advances the shop, which is exactly the journey the bag and the waitlist are worth seeing on.
+    /// advances the shop, which is exactly the journey the bag and the stock alerts are worth seeing on.
     private static func thisVisit() -> Int {
         let key = "demo.visit"
         let defaults = UserDefaults.standard

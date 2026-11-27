@@ -39,7 +39,7 @@ Presentation ──▶ Domain ◀── Data
 
 Robert C. Martin collected the five principles that Michael Feathers subsequently called SOLID in *Agile Software Development, Principles, Patterns, and Practices* (2002). He examines each of them again in *Clean Architecture* (2017), Chapters 7 to 11. Each principle prevents a different cause of code that is difficult to change.
 
-- **Single responsibility** — *"A module should be responsible to one, and only one, actor"* (Ch. 7). An actor is the group of people who ask for a change. The older words — one reason to change — are the historical form that the book replaces, and they hide the point: the reason is always a person, and the defect is two groups of people that share one module. `Component/Bag` answers to the people who decide what a bag holds and which notices the shop leaves on it. `BagUI` answers to the people who decide how a bag row looks. Merchandising and design change on different days, thus they do not share a file. This principle also causes the package layout: it becomes the Common Closure Principle at the level of components, and the axis of change that draws the architectural boundaries above that.
+- **Single responsibility** — *"A module should be responsible to one, and only one, actor"* (Ch. 7). An actor is the group of people who ask for a change. The older words — one reason to change — are the historical form that the book replaces, and they hide the point: the reason is always a person, and the defect is two groups of people that share one module. `Component/Bag` answers to the people who decide what a bag holds and what a shopper is told when the shop changes it. `BagUI` answers to the people who decide how a bag row looks. Merchandising and design change on different days, thus they do not share a file. This principle also causes the package layout: it becomes the Common Closure Principle at the level of components, and the axis of change that draws the architectural boundaries above that.
 
 - **Open-closed** — *"A software artifact should be open for extension but closed for modification"* (Ch. 8). New behaviour must come as new code, not as changes to code that already operates. `BagUI` is the example: `BagUIDI` takes `OrderUIDI` and `ProductActionsUIDI` and asks each for a finished button, so checkout and the stock alert bell reached the bag screen without `BagScreenView` changing. Note what this principle is not: to put one `AuthClient` implementation in the place of another is dependency inversion, not the open-closed principle. To replace a detail keeps the behaviour the same; the open-closed principle adds behaviour.
 
@@ -75,15 +75,16 @@ Each module in this project has one axis of change. A new screen design changes 
 │   ├── Product/                # Product catalog (DummyJSON-backed)
 │   ├── SearchHistory/          # Per-user recent search history
 │   ├── Wishlist/               # Per-user wishlist, gated on authentication
-│   ├── Bag/                    # Per-shopper bag, and the notices the shop leaves on it
+│   ├── Bag/                    # Per-shopper bag, and what the shop changed about it since it was last seen
 │   ├── Order/                  # What a shopper bought, for how much, and when
-│   ├── Waitlist/               # What a shopper wants telling about when it is back
+│   ├── StockAlert/             # What a shopper wants telling about when it is back
 │   ├── Home/                   # What the Home feed draws — Domain only, it stores nothing
 │   └── Money/                  # Exact amounts with their currency — Domain only, it stores nothing
 ├── UI/                         # Presentation packages
 │   ├── HomeUI/                 # Home tab
 │   ├── SearchUI/               # Search tab: categories, suggestions, results
-│   ├── WishlistUI/             # Wishlist tab
+│   ├── WishlistUI/             # Wishlist tab: the faves
+│   ├── StockAlertUI/           # The stock alerts a shopper has set, as a row and as a full list
 │   ├── BagUI/                  # Bag tab
 │   ├── AccountUI/              # Account tab: profile, log in/out
 │   ├── ProductUI/              # Shared product UI: card, grid, details screen
@@ -242,9 +243,9 @@ You can find the full vocabulary of the application when you read the domain alo
 | `Product` | `BrowseCatalogUseCase`, `ViewProductUseCase`, `LookUpProductsUseCase`, `BrowseCategoriesUseCase` |
 | `SearchHistory` | `GetSearchHistoryUseCase`, `RecordSearchUseCase`, `ClearSearchHistoryUseCase` |
 | `Wishlist` | `ObserveWishlistUseCase`, `ObserveProductIsWishlistedUseCase`, `SetProductIsWishlistedUseCase` |
-| `Bag` | `ObserveBagUseCase`, `ObserveNoticesUseCase`, `SetBagItemUseCase`, `RefreshBagUseCase`, `AcknowledgeNoticesUseCase` |
+| `Bag` | `ObserveBagUseCase`, `SetBagItemUseCase`, `CheckBagUseCase` |
 | `Order` | `PlaceOrderUseCase`, `ObserveOrdersUseCase` |
-| `Waitlist` | `ObserveWaitlistUseCase`, `ObserveProductIsWaitlistedUseCase`, `SetProductIsWaitlistedUseCase`, `GetStillSoldOutProductsUseCase`, `GetBackInStockProductsUseCase` |
+| `StockAlert` | `ObserveStockAlertsUseCase`, `ObserveProductHasStockAlertUseCase`, `SetProductStockAlertUseCase`, `GetStockAlertProductsUseCase` |
 
 Each name states something that a shopper wants to do. That is the test that a use case name must satisfy. `LookUpProductsUseCase` describes how the application fills in the items on a list that the shopper already has. `getProductsByIds` would describe only the query that it uses. If you name the use case layer after the methods of the repository, the layer that must list the intentions of the application lists its data access instead.
 
@@ -398,15 +399,13 @@ At start-up, `DefaultSessionStore` restores a session that it kept, if the token
 private func switchSession(to session: Session) {
     guard session.user?.id != self.session.user?.id else { return }
     self.session = session
-    let kept = store.getBag(for: session)
-    bagSubject.value = kept.bag
-    noticesSubject.value = kept.notices
+    bagSubject.value = store.getBag(for: session)
 }
 ```
 
 Note the comparison. It is on the id and not on the whole session, because a session also changes when a profile does, and a changed name is not a changed owner. The data layer reads who is signed in and nothing else, and that keeps the rest of the module out of it.
 
-`Wishlist`, `Waitlist` and `Order` key on a `UserID?` instead. A guest cannot save an item, cannot wait for one and cannot place an order, thus there is no guest case to handle. The shape differs because the rule differs.
+`Wishlist`, `StockAlert` and `Order` key on a `UserID?` instead. A guest cannot save an item, cannot wait for one and cannot place an order, thus there is no guest case to handle. The shape differs because the rule differs.
 
 Note what the application gives to the repository: an owner, and a stream of owners. It does not give a `Session` or a session use case. The repository must know whose bag is active. It does not have to understand identity. `BagDI` does that translation one time at the wiring boundary. The name that a bag is filed under is the business of the storage layer, and the only code that changes an owner back into a string is the code that selects a filename.
 
@@ -414,7 +413,7 @@ Note what the application gives to the repository: an owner, and a stream of own
 
 ### DTOs
 
-The DTOs are in the data layer and never move inward. `ProductDTO`, `ProductCategoryDTO`, `WishlistItemDTO`, `BagDTO`, `BagItemDTO`, `NoticeDTO`, `OrderDTO`, `OrderLineDTO`, `SessionSnapshotDTO` and `StoredUser` are the `Codable` types. Each one maps to a domain model at the repository boundary. A domain model has no `Codable` conformance, because serialisation is a storage detail. A `Codable` entity couples the shape of the domain to a wire format, and it does that quietly.
+The DTOs are in the data layer and never move inward. `ProductDTO`, `ProductCategoryDTO`, `WishlistItemDTO`, `BagDTO`, `BagItemDTO`, `OrderDTO`, `OrderLineDTO`, `SessionSnapshotDTO` and `StoredUser` are the `Codable` types. Each one maps to a domain model at the repository boundary. A domain model has no `Codable` conformance, because serialisation is a storage detail. A `Codable` entity couples the shape of the domain to a wire format, and it does that quietly.
 
 ### Shared networking
 
@@ -501,7 +500,7 @@ A view binds to the observable properties and sends each action to the ViewModel
 
 ### Shared UI components
 
-`ProductUI` is a UI package with no tab of its own. It owns the product card, the two arrangements of cards — a paginating grid down the screen and a scrolling row across it — and the product details screen. `HomeUI`, `SearchUI` and `WishlistUI` all need these, and none of them must own them. The views of `ProductUI` take an `accessory` closure. Thus a host feature can add a wishlist button, and `ProductUI` does not learn what a wishlist is.
+`ProductUI` is a UI package with no tab of its own. It owns the product card, the two arrangements of cards — a paginating grid down the screen and a scrolling row across it — the section that puts a heading above a row, and the product details screen. `HomeUI`, `SearchUI`, `WishlistUI` and `StockAlertUI` need these, and none of them must own them. The views of `ProductUI` take an `accessory` closure. Thus a host feature can add a wishlist button, and `ProductUI` does not learn what a wishlist is.
 
 The row shows this clearly. A carousel on Home and a carousel on the wishlist tab are the same row of the same cards. Only the heading above them is different, and each feature keeps its own heading. If the row stayed in `HomeUI`, then `WishlistUI` would import `HomeUI`. But `HomeUI` already imports `WishlistUI` to draw the hearts, thus that is a cycle, and SwiftPM refuses to build it. The arrangement of a card belongs with the card.
 
@@ -513,7 +512,7 @@ There is also a mechanical reason. `BagUI` draws the heart, in the list of remov
 
 A package with the name `SharedUI` would cause the opposite question. A name that states a *relationship* to other packages gives no criterion for what goes in it, thus everything goes in it. A name that states the concept writes the rule for you: if it is not something that a shopper can do to a product, it does not go here.
 
-**Cross-feature UI dependencies are permitted and intentional.** `SearchUI` imports `ProductUI`. `WishlistUI` imports `ProductUI`, `ProductActionsUI` and `AuthUI`. What is not permitted is a UI package that imports the *data* layer of another component.
+**Cross-feature UI dependencies are permitted and intentional.** `SearchUI` imports `ProductUI`. `WishlistUI` imports `ProductUI`, `ProductActionsUI` and `AuthUI`, and `WishlistUIDI` takes `StockAlertUIDI` to show the stock alerts above the faves. What is not permitted is a UI package that imports the *data* layer of another component.
 
 ### DI containers for each feature
 
@@ -542,7 +541,7 @@ public struct HomeUIDI {
 
 **Why single use cases and not the full `ProductDI` container.** This is the interface segregation principle applied to dependency injection. `HomeUIDI` needs one capability — draw the feed — thus it gets one. `HomeDI`, one layer further in, needs two capabilities from `Product`: list the categories of the shop, and list the products in one category. The full `ProductDI` at either point would also supply `viewProductUseCase` and `lookUpProductsUseCase`, which neither of them calls. Fowler warns against this shape with the name Service Locator: a container that *can* resolve anything, in the place of the collaborator that the caller actually needs, makes the boundary less clear. Only the composition root holds a full component container.
 
-There is one exception: a UI container can take another UI container. `HomeUIDI` takes `WishlistUIDI` and `ProductActionsUIDI`, thus a card in a carousel can carry a heart and a bag button. `SearchUIDI` takes the same pair for the same reason, `ProductUIDI` takes `OrderUIDI` so a product page can be bought from, and `BagUIDI` takes both so a bag can ring a bell and check out. That is a view-construction dependency between equals and not a reach into the domain wiring of a component. Note where it stops: the containers reach `HomeUIDI` and not `HomeUI`. The screen itself gets two closures, `(ProductID) -> AnyView` and `(Product) -> AnyView`, and never learns that a wishlist exists.
+There is one exception: a UI container can take another UI container. `HomeUIDI` takes `WishlistUIDI` and `ProductActionsUIDI`, thus a card in a carousel can carry a heart and a bag button. `SearchUIDI` takes the same pair for the same reason, `ProductUIDI` takes `OrderUIDI` so a product page can be bought from, `BagUIDI` takes both so a bag can ring a bell and check out, and `WishlistUIDI` takes `StockAlertUIDI` so the wishlist tab can show the stock alerts of the shopper. That is a view-construction dependency between equals and not a reach into the domain wiring of a component. Note where it stops: the containers reach `HomeUIDI` and not `HomeUI`. The screen itself gets two closures, `(ProductID) -> AnyView` and `(Product) -> AnyView`, and never learns that a wishlist exists.
 
 This is the *only* shape in which one feature's view reaches another. The composition root does not hand a feature container a closure that builds somebody else's button; it hands over the peer container and lets the feature ask. `BagUIDI` and `ProductUIDI` were the two that took closures — `stockAlertButton`, `checkoutButton`, `buyNowButton` — and the arrangement looked like it protected a boundary while it actually split one screen's assembly across two files. The composition root chose the button and the use cases behind it; the feature chose where on the screen it went; and the type said `AnyView`, so neither the feature nor a test could tell one button from another. Declaring the dependency says the true thing: a bag has a way out of itself, and `Package.swift` fails if that stops being true.
 
@@ -656,7 +655,7 @@ The application layer is the composition root. It is the one location where the 
 
 There are no unit tests for the application layer, deliberately: it holds no logic, only wiring.
 
-**A demo is a different catalog and not code in comments.** The catalog reaches `CompositionRoot` as a `Catalog`, which is a set of use case protocols. Thus a demo supplies a different catalog, and nothing in the composition root changes. `Demo.shopThatChangesItsMind()` puts the real use cases in decorators that move prices and sell items out. This is how the application can show the catch-up behaviour of the bag without a real shop that changes its mind.
+**A demo is a different catalog and not code in comments.** The catalog reaches `CompositionRoot` as a `Catalog`, which is a set of use case protocols. Thus a demo supplies a different catalog, and nothing in the composition root changes. `Demo.shopThatChangesItsMind()` puts the real use cases in decorators that move prices and sell items out. This is how the application can show what the bag does when the shop changes a price or sells out, without a real shop that changes its mind.
 
 The important property is that *both arrangements compile at all times*. A demo that you enable when you remove comment marks does not compile in its off state, thus nothing shows that it still operates, and only a person who reads a warning keeps it out of a release. Here the demo is one flag, and the compiler checks both states:
 
@@ -753,6 +752,7 @@ struct PresentationAssembler {
     let product: ProductUIDI
     let home: HomeUIDI
     let search: SearchUIDI
+    let stockAlert: StockAlertUIDI
     let wishlist: WishlistUIDI
     let bag: BagUIDI
     let account: AccountUIDI
@@ -852,8 +852,7 @@ public enum Destination: Hashable {
     case productDetails(Product)
     case orderHistory
     case allFaves
-    case allWaitlist
-    case allBackInStock
+    case allStockAlerts
     case settings
 
     var requiresAuthentication: Bool {
@@ -862,10 +861,10 @@ public enum Destination: Hashable {
         /// to gate here, unlike `orderHistory` and the two saved lists below.
         case .catalog, .productDetails, .settings:
             return false
-        /// Everything a shopper keeps. Orders, faves and the things they are waiting on all belong
+        /// Everything a shopper keeps. Orders, faves and their stock alerts all belong
         /// to somebody, so there is nothing to show a guest — and the prompt happens here, where
         /// the policy already lives, rather than being remembered by each screen.
-        case .orderHistory, .allFaves, .allWaitlist, .allBackInStock:
+        case .orderHistory, .allFaves, .allStockAlerts:
             return true
         }
     }
@@ -885,7 +884,7 @@ public enum Destination: Hashable {
 
 There is one `catalog` case, and not one case for each way to divide the shop, because `CatalogFilter` already states what the division is. A route for each filter would state that enumeration a second time. `productDetails` carries a `Product` and not a `ProductID`: a route is a thing to open, so every caller arrives holding the thing. It used to carry either, through a `ProductReference` of `id` or `product`, so that a caller with only an id could still route and the page would fetch on appear. One caller ever used it — the bag screen, which already held the product it was drawing — and the branch bought a product page that could open empty, fail to load and need a not-found state, for a case that did not exist.
 
-The policy is in the enumeration and not in the screens. A guest can open the catalog, a product and their own settings. Everything that a shopper keeps — the order history, the faves, the waitlist and the back-in-stock list — belongs to a person, thus it needs an account. The switch is exhaustive. If you add a destination, the compiler makes you decide which group it is in, and does not leave a hole. Note that the two comments in the code carry the reason for each group, at the location where the policy is.
+The policy is in the enumeration and not in the screens. A guest can open the catalog, a product and their own settings. Everything that a shopper keeps — the order history, the faves and the stock alerts — belongs to a person, thus it needs an account. The switch is exhaustive. If you add a destination, the compiler makes you decide which group it is in, and does not leave a hole. Note that the two comments in the code carry the reason for each group, at the location where the policy is.
 
 `makeView()` sends the construction to the UIDI container that owns the view. Thus view creation stays in the DI layer. Note that `ProductUIDI` supplies `.productDetails`, and not the feature that pushed it.
 
@@ -941,26 +940,26 @@ Each acceptance suite drives its feature through a **testing API**, which is Mar
 
 **[`Component/Bag/Tests/BagAcceptanceTests/BeingToldWhatChangedTests.swift`](../Component/Bag/Tests/BagAcceptanceTests/BeingToldWhatChangedTests.swift)**
 ```swift
-@Test("A shopper is told a price went up, and the bag is worth the new price")
+@Test("A shopper is told a price went up, and the bag they are shown is worth the new price")
 func priceWentUp() async {
     let shopper = Shopper()
     shopper.choose(productId: 1, atPrice: 9.99)
 
     shopper.theShopNowSells(shopSells(1, at: 12.99))
-    await shopper.comesBack()
+    await shopper.looks()
 
-    #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
-    #expect(shopper.bag.total == usd(12.99))
+    #expect(shopper.shown.changes == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
+    #expect(shopper.shown.bag.total == usd(12.99))
 }
 ```
 
-Every verb belongs to the shopper: `choose`, `theShopNowSells`, `comesBack`. The name of the test is the rule that it holds. [`Support/Shopper.swift`](../Component/Bag/Tests/BagAcceptanceTests/Support/Shopper.swift) supplies those verbs, and it is the only file in the suite that knows a repository exists.
+Every verb belongs to the shopper: `choose`, `theShopNowSells`, `looks`. The name of the test is the rule that it holds. [`Support/Shopper.swift`](../Component/Bag/Tests/BagAcceptanceTests/Support/Shopper.swift) supplies those verbs, and it is the only file in the suite that knows a repository exists.
 
 No acceptance test names a repository, a store, a DTO or a `Default*UseCase`. You can rearrange the feature below these tests, and they continue to assert the same behaviour. That is the purpose of a testing API.
 
 **The suites replace only what the application cannot own.** `Shopper` wires the real `BagDI` over a real `FileBagStore` in a temporary directory: a real repository, real DTOs and real JSON on a real disk. `Shop` fakes the catalog at the `HTTPClient` boundary. Thus the real client, the real decoding, the real repository and the real use cases all operate. `Account` uses the same `FakeAuthClient` that the application contains. Only the session is a stub, and each other component reads the session but never owns it.
 
-That is not a preference of style. One unreadable notice in a saved bag discards the full bag of the shopper, and only a suite that goes through real JSON catches it.
+That is not a preference of style. A bag saved by an older build also holds a list of changes that this build no longer keeps. If that list made the file unreadable, the shopper would lose the full bag, and only a suite that goes through real JSON catches it.
 
 | Suite | What it asserts |
 | --- | --- |
@@ -970,14 +969,15 @@ That is not a preference of style. One unreadable notice in a saved bag discards
 | [`WishlistAcceptanceTests`](../Component/Wishlist/Tests/WishlistAcceptanceTests/SavingProductsTests.swift) | Saving, the heart on a card, and the account a list belongs to |
 | [`SearchHistoryAcceptanceTests`](../Component/SearchHistory/Tests/SearchHistoryAcceptanceTests/SearchingAgainTests.swift) | Recent searches, whose they are, and what counts as a search |
 | [`OrderAcceptanceTests`](../Component/Order/Tests/OrderAcceptanceTests/BuyingSomethingTests.swift) | Buying, what an order records, a declined payment, and coming back to what you bought |
-| [`BagUIAcceptanceTests`](../UI/BagUI/Tests/BagUIAcceptanceTests/BagScreenViewModelTests.swift) | The bag screen: what it asks the shop, when, and what it shows while waiting |
+| [`BagUIAcceptanceTests`](../UI/BagUI/Tests/BagUIAcceptanceTests/LookingInTheBagTests.swift) | The bag screen: lines that are true today, what changed since it was last viewed, and keeping the bag as seen on the way out |
 | [`OrderUIAcceptanceTests`](../UI/OrderUI/Tests/OrderUIAcceptanceTests/BuyingFromAProductPageTests.swift) | Buy Now and checking out: what each one buys, what it leaves behind, and who it asks to sign in |
-| [`WishlistUIAcceptanceTests`](../UI/WishlistUI/Tests/WishlistUIAcceptanceTests/KeepingAnEyeOnThingsTests.swift) | Both saved lists: filling them in, paging, and telling a dropped connection from a product that has gone |
+| [`WishlistUIAcceptanceTests`](../UI/WishlistUI/Tests/WishlistUIAcceptanceTests/KeepingAnEyeOnThingsTests.swift) | The faves: filling them in, paging, and telling a dropped connection from a product that has gone |
+| [`StockAlertUIAcceptanceTests`](../UI/StockAlertUI/Tests/StockAlertUIAcceptanceTests/SeeingWhatIsBackTests.swift) | The stock alerts list: what is back comes first, what is still sold out stays, and Clear empties it |
 | [`MoneyAcceptanceTests`](../Component/Money/Tests/MoneyAcceptanceTests/PayingForABasketTests.swift) | What a basket comes to, what three of a thing cost, and which way a half-penny goes |
 
 **Why this is important.** A test that needs a simulator operates slowly, and fails for infrastructure reasons that have no relation to the logic under test. A test that needs a real network gives different results at different times. A design that uses protocols lets you assemble a full feature and drive it in the process, with the same result each time, in milliseconds. You need no third-party framework to make a double: a conforming struct is sufficient.
 
-The UI packages other than `BagUI`, `HomeUI`, `OrderUI`, `ProductActionsUI`, `SettingsUI` and `WishlistUI` have no acceptance tier yet. The seams are in place; the tests are not.
+The UI packages other than `BagUI`, `HomeUI`, `OrderUI`, `ProductActionsUI`, `SettingsUI`, `StockAlertUI` and `WishlistUI` have no acceptance tier yet. The seams are in place; the tests are not.
 
 ---
 
@@ -1000,7 +1000,7 @@ iPhone (App)
 ├── SheetUIDI    ──▶  SheetUI
 ├── SnackbarUIDI ──▶  SnackbarUI
 ├── AuthUIDI     ──▶  AuthUI, Session, SheetUI
-├── ProductActionsUIDI ──▶ ProductActionsUI ──▶ Wishlist, Bag, Waitlist, Product,
+├── ProductActionsUIDI ──▶ ProductActionsUI ──▶ Wishlist, Bag, StockAlert, Product,
 │                                              SnackbarUI, AuthUI
 ├── ProductUIDI  ──▶  ProductUI   ──▶  Product
 │                ──▶  ProductActionsUIDI
@@ -1008,10 +1008,13 @@ iPhone (App)
 │                ──▶  WishlistUIDI, ProductActionsUIDI
 ├── SearchUIDI   ──▶  SearchUI    ──▶  Product, Money, SearchHistory, ProductUI, SnackbarUI
 │                ──▶  WishlistUIDI, BagUIDI
-├── WishlistUIDI ──▶  WishlistUI  ──▶  Wishlist, Waitlist, Product, Session, ProductUI,
-│                                     SnackbarUI, AuthUI
+├── StockAlertUIDI ──▶ StockAlertUI ──▶ StockAlert, Product, ProductUI, SnackbarUI
 │                ──▶  ProductActionsUIDI
-├── BagUIDI      ──▶  BagUI       ──▶  Bag, Product, Money, SnackbarUI
+├── WishlistUIDI ──▶  WishlistUI  ──▶  Wishlist, Product, Session, Settings, ProductUI,
+│                                     SnackbarUI, AuthUI
+│                ──▶  ProductActionsUIDI, StockAlertUIDI
+├── BagUIDI      ──▶  BagUI       ──▶  Bag, Settings, Product, Money
+│                ──▶  ProductActionsUIDI, OrderUIDI
 ├── OrderUIDI    ──▶  OrderUI     ──▶  Order, Bag, Product, Money, SnackbarUI, AuthUI
 │                ──▶  SheetUI
 └── AccountUIDI  ──▶  AccountUI   ──▶  Session

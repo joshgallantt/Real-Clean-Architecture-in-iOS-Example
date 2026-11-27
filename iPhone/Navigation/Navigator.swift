@@ -38,16 +38,6 @@ final class Navigator {
         }
     }
 
-    func pop() {
-        switch selectedTab {
-        case .home: if !homePath.isEmpty { homePath.removeLast() }
-        case .search: if !searchPath.isEmpty { searchPath.removeLast() }
-        case .bag: if !bagPath.isEmpty { bagPath.removeLast() }
-        case .wishlist: if !wishlistPath.isEmpty { wishlistPath.removeLast() }
-        case .account: if !accountPath.isEmpty { accountPath.removeLast() }
-        }
-    }
-
     // MARK: - NavigationPath controls
 
     private func push(_ destination: Destination, tab: Tabs?) {

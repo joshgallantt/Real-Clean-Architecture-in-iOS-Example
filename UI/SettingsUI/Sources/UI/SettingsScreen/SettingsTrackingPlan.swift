@@ -12,11 +12,8 @@ public enum SettingsTrackingPlan {
     static func toggle(_ key: SettingKey, isOn: Bool) -> String {
         let name = switch key {
         case .pushNotifications: "push_notifications"
-        case .bagOutOfStockNotice: "bag_out_of_stock_notice"
-        case .bagPriceIncreases: "bag_price_increases"
-        case .bagPriceDecreases: "bag_price_decreases"
-        case .favoritesWaitlistSection: "favorites_waitlist_section"
-        case .favoritesBackInStockSection: "favorites_back_in_stock_section"
+        case .bagChangesSection: "bag_changes_section"
+        case .favoritesStockAlertsSection: "favorites_stock_alerts_section"
         }
         /// Which way it was left is part of the name: on and off are two decisions.
         return name + (isOn ? "_on" : "_off")

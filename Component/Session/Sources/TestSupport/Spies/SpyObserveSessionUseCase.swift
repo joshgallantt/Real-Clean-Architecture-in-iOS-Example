@@ -26,11 +26,6 @@ public final class SpyObserveSessionUseCase: ObserveSessionUseCase {
         self.sessions = CurrentValueSubject(initial)
     }
 
-    public var session: Session {
-        get { sessions.value }
-        set { sessions.send(newValue) }
-    }
-
     public func send(_ session: Session) {
         sessions.send(session)
     }

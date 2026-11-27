@@ -1,13 +1,11 @@
-import MoneyTestSupport
 import BagTestSupport
 import Foundation
 import ProductTestSupport
+import SettingsTestSupport
 import Testing
 import Tracking
-import TrackingUI
 import TrackingTestSupport
 import Bag
-import Money
 import Product
 @testable import BagUITestSupport
 @testable import BagUI
@@ -24,10 +22,9 @@ struct GoingFromTheBagToAProductTests {
         BagScreenViewModel(
             navigation: navigation,
             observeBag: shop.observeBag,
-            observeNotices: shop.observeNotices,
             setBagItem: shop.setBagItem,
-            refreshBag: shop.refreshBag,
-            acknowledgeNotices: shop.acknowledge,
+            checkBag: shop.checkBag,
+            observeSetting: StubObserveSettingUseCase(turnedOff: []),
             trackScreenView: SpyTrackScreenViewUseCase(),
             trackElementView: SpyTrackElementViewUseCase(),
             trackElementInteraction: SpyTrackElementInteractionUseCase(),
@@ -47,7 +44,7 @@ struct GoingFromTheBagToAProductTests {
     }
 
     @Test("Tapping something that sold out opens it — it is coming back, and the page is where you wait")
-    func tappingAnOutOfStockNotice() async {
+    func tappingSomethingSoldOut() async {
         let shop = FakeShop(
             bag: Bag(items: [bagItem(1, price: 9.99)]),
             catalog: [.fixture(id: 1, availability: .outOfStock)]
@@ -55,13 +52,13 @@ struct GoingFromTheBagToAProductTests {
         let viewModel = makeViewModel(shop: shop)
         await viewModel.onAppear()
 
-        viewModel.didTapRow(viewModel.notices(in: .outOfStock)[0], in: inTheBag)
+        viewModel.didTapRow(viewModel.changes[0], in: inTheBag)
 
         #expect(navigation.openedProducts.map(\.id) == [pid(1)])
     }
 
-    @Test("Tapping something repriced opens it, because that is where the decision gets made")
-    func tappingAPriceNotice() async {
+    @Test("Tapping something repriced opens it, because that is where a shopper goes to think again")
+    func tappingSomethingRepriced() async {
         let shop = FakeShop(
             bag: Bag(items: [bagItem(1, price: 9.99)]),
             catalog: [.fixture(id: 1, price: 12.99)]
@@ -69,11 +66,10 @@ struct GoingFromTheBagToAProductTests {
         let viewModel = makeViewModel(shop: shop)
         await viewModel.onAppear()
 
-        viewModel.didTapRow(viewModel.notices(in: .priceWentUp)[0], in: inTheBag)
+        viewModel.didTapRow(viewModel.changes[0], in: inTheBag)
 
         #expect(navigation.openedProducts.map(\.id) == [pid(1)])
     }
-
 }
 
 /// Where the bag's own buttons are drawn. A test about what a tap does to the bag has no reason to

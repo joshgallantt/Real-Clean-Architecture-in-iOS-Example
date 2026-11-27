@@ -1,9 +1,7 @@
 import MoneyTestSupport
 import Foundation
-import ProductTestSupport
 import Testing
 import Money
-import Product
 @testable import Bag
 
 @Suite("What a bag is worth")

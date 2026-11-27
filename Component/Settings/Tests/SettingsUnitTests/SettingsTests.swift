@@ -4,7 +4,7 @@ import Testing
 
 /// Martin, *The Clean Coder* (2011), Ch. 8 — Unit Tests: the aggregate's own rules, stated one at a
 /// time. The acceptance suite says a shopper turned something on; these say what turning the same
-/// thing on twice does, and which of the six keys the sign-in rule actually applies to.
+/// thing on twice does, and which of the keys the sign-in rule actually applies to.
 @Suite("Settings")
 struct SettingsTests {
     @Test("A new Settings starts at the app's defaults")
@@ -12,11 +12,8 @@ struct SettingsTests {
         let settings = Settings()
 
         #expect(settings.value(for: .pushNotifications) == false)
-        #expect(settings.value(for: .bagOutOfStockNotice) == true)
-        #expect(settings.value(for: .bagPriceIncreases) == true)
-        #expect(settings.value(for: .bagPriceDecreases) == true)
-        #expect(settings.value(for: .favoritesWaitlistSection) == true)
-        #expect(settings.value(for: .favoritesBackInStockSection) == true)
+        #expect(settings.value(for: .bagChangesSection) == true)
+        #expect(settings.value(for: .favoritesStockAlertsSection) == true)
     }
 
     @Test("Setting one key changes only that key", arguments: SettingKey.allCases)

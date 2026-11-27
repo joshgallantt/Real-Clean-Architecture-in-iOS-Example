@@ -70,9 +70,7 @@ let package = Package(
                 .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
                 "SearchUI",
                 .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money"),
-                .product(name: "SearchHistory", package: "SearchHistory"),
-                .product(name: "SnackbarUI", package: "SnackbarUI")
+                .product(name: "SearchHistory", package: "SearchHistory")
             ],
             path: "Tests/SearchUIUnitTests"
         ),

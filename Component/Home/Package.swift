@@ -54,8 +54,7 @@ let package = Package(
             dependencies: [
                 .product(name: "ProductTestSupport", package: "Product"),
                 "Home",
-                .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money")
+                .product(name: "Product", package: "Product")
             ],
             path: "Tests/HomeUnitTests"
         ),
@@ -65,8 +64,7 @@ let package = Package(
                 .product(name: "ProductTestSupport", package: "Product"),
                 "Home",
                 "HomeDI",
-                .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money")
+                .product(name: "Product", package: "Product")
             ],
             path: "Tests/HomeAcceptanceTests"
         )

@@ -9,7 +9,7 @@ import Bag
 import Tracking
 import TrackingTestSupport
 import TrackingUI
-import WaitlistTestSupport
+import StockAlertTestSupport
 import WishlistTestSupport
 @testable import ProductActionsUI
 @testable import ProductActionsUITestSupport
@@ -188,8 +188,8 @@ struct TrackingProductActionsTests {
         let product = Product.fixture(id: 5, availability: .outOfStock)
         let viewModel = StockAlertButtonViewModel(
             product: product,
-            observeProductIsWaitlisted: StubObserveProductIsWaitlistedUseCase(false),
-            setProductIsWaitlisted: SpySetProductIsWaitlistedUseCase(),
+            observeProductHasStockAlert: StubObserveProductHasStockAlertUseCase(false),
+            setProductStockAlert: SpySetProductStockAlertUseCase(),
             authPresenter: SpyAuthPresenting(),
             snackbarPresenter: SpySnackbarPresenting(),
             trackScreenView: screens,
@@ -204,7 +204,7 @@ struct TrackingProductActionsTests {
 
         #expect(taps.events == [
             TrackingEvent(name: .elementSelected, context: onAPage, items: [TrackedProduct.item(product)], properties: ["element": "stock_alert_on"]),
-            TrackingEvent(name: .elementSelected, context: onAPage, items: [TrackedProduct.item(product)], properties: ["element": "remove_from_waitlist"])
+            TrackingEvent(name: .elementSelected, context: onAPage, items: [TrackedProduct.item(product)], properties: ["element": "remove_stock_alert"])
         ])
     }
 
@@ -213,8 +213,8 @@ struct TrackingProductActionsTests {
         let product = Product.fixture(id: 5, availability: .outOfStock)
         let viewModel = StockAlertButtonViewModel(
             product: product,
-            observeProductIsWaitlisted: StubObserveProductIsWaitlistedUseCase(true),
-            setProductIsWaitlisted: SpySetProductIsWaitlistedUseCase(),
+            observeProductHasStockAlert: StubObserveProductHasStockAlertUseCase(true),
+            setProductStockAlert: SpySetProductStockAlertUseCase(),
             authPresenter: SpyAuthPresenting(),
             snackbarPresenter: SpySnackbarPresenting(),
             trackScreenView: screens,

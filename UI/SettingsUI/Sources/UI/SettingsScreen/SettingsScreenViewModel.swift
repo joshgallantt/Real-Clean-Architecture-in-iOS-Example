@@ -56,8 +56,8 @@ public final class SettingsScreenViewModel {
         trackScreenView(context.screen)
     }
 
-    /// Reported with the way it was left, because turning a notice off is the finding — the
-    /// shopper is telling the shop which of its messages are not worth having.
+    /// Reported with the way it was left, because turning something off is the finding — the
+    /// shopper is telling the shop which part of a screen is not worth having.
     func didToggle(_ key: SettingKey, to isOn: Bool, in context: TrackingContext) {
         trackElementInteraction(SettingsTrackingPlan.toggle(key, isOn: isOn), in: context)
         inFlight = Task { [setSetting] in
@@ -90,11 +90,8 @@ public final class SettingsScreenViewModel {
     private static func title(for key: SettingKey) -> String {
         switch key {
         case .pushNotifications: "Push Notifications"
-        case .bagOutOfStockNotice: "Show Out-of-Stock Notice"
-        case .bagPriceIncreases: "Show Price Increases"
-        case .bagPriceDecreases: "Show Price Decreases"
-        case .favoritesWaitlistSection: "Show Waitlist"
-        case .favoritesBackInStockSection: "Show Back in Stock"
+        case .bagChangesSection: "Show Changes Since You Last Viewed"
+        case .favoritesStockAlertsSection: "Show Stock Alerts"
         }
     }
 }

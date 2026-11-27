@@ -50,11 +50,7 @@ let package = Package(
         .target(
             name: "AuthUITestSupport",
             dependencies: [
-                .product(name: "ProductTestSupport", package: "Product"),
-                "AuthUIDI",
                 .product(name: "Session", package: "Session"),
-                .product(name: "SessionTestSupport", package: "Session"),
-                .product(name: "SheetUI", package: "SheetUI"),
                 "AuthUI",
             ],
             path: "Sources/TestSupport"
@@ -65,7 +61,6 @@ let package = Package(
                 .product(name: "Tracking", package: "Tracking"),
                 .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "SheetUITestSupport", package: "SheetUI"),
-                .product(name: "ProductTestSupport", package: "Product"),
                 "AuthUITestSupport",
                 .product(name: "SessionTestSupport", package: "Session"),
                 "AuthUIDI",
@@ -84,7 +79,6 @@ let package = Package(
                 "AuthUIDI",
                 .product(name: "SessionTestSupport", package: "Session"),
                 "AuthUI",
-                "AuthUITestSupport",
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
             ],
             path: "Tests/AuthUISnapshotTests"

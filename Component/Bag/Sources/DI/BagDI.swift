@@ -15,10 +15,8 @@ public struct BagDI {
     private let repository: BagRepository
 
     public let observeBagUseCase: ObserveBagUseCase
-    public let observeNoticesUseCase: ObserveNoticesUseCase
     public let setBagItemUseCase: SetBagItemUseCase
-    public let refreshBagUseCase: RefreshBagUseCase
-    public let acknowledgeNoticesUseCase: AcknowledgeNoticesUseCase
+    public let checkBagUseCase: CheckBagUseCase
 
     @MainActor
     public init(
@@ -40,12 +38,10 @@ public struct BagDI {
         self.repository = repository
 
         self.observeBagUseCase = DefaultObserveBagUseCase(repository: repository)
-        self.observeNoticesUseCase = DefaultObserveNoticesUseCase(repository: repository)
         self.setBagItemUseCase = DefaultSetBagItemUseCase(repository: repository)
-        self.refreshBagUseCase = DefaultRefreshBagUseCase(
+        self.checkBagUseCase = DefaultCheckBagUseCase(
             repository: repository,
             lookUpProducts: lookUpProducts
         )
-        self.acknowledgeNoticesUseCase = DefaultAcknowledgeNoticesUseCase(repository: repository)
     }
 }

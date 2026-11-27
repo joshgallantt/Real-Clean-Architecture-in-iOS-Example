@@ -7,7 +7,6 @@ import Testing
 import Tracking
 import TrackingTestSupport
 @testable import AuthUIDI
-@testable import AuthUITestSupport
 
 @MainActor
 @Test("The welcome screen offers signing in and carrying on as a guest")

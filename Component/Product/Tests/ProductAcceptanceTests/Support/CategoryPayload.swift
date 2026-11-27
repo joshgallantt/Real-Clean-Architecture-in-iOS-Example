@@ -1,5 +1,4 @@
 import Foundation
-import Networking
 
 struct CategoryPayload: Encodable {
     let slug: String

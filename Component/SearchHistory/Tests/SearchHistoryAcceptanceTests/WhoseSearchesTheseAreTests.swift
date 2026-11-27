@@ -1,6 +1,5 @@
 import Foundation
 import Testing
-import SearchHistory
 
 @MainActor
 @Suite("Whose searches these are")

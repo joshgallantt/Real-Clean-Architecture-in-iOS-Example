@@ -1,6 +1,7 @@
 import SwiftUI
 import Bag
 import Product
+import Settings
 import BagUI
 import OrderUIDI
 import ProductActionsUIDI
@@ -17,10 +18,9 @@ import TrackingUI
 public struct BagUIDI {
     private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase
-    private let observeNotices: ObserveNoticesUseCase
     private let setBagItem: SetBagItemUseCase
-    private let refreshBag: RefreshBagUseCase
-    private let acknowledgeNotices: AcknowledgeNoticesUseCase
+    private let checkBag: CheckBagUseCase
+    private let observeSetting: ObserveSettingUseCase
 
     /// The peer containers themselves, rather than closures handing this one two finished
     /// `AnyView`s.
@@ -31,7 +31,7 @@ public struct BagUIDI {
     /// screen they went. A screen assembled in two places is assembled in neither, and the types
     /// said only `AnyView` — so nothing could tell a bell from a way to pay, here or in a test.
     ///
-    /// The two dependencies are real and are now declared. A bag has a bell on its sold-out lines
+    /// The two dependencies are real and are now declared. A bag has a bell on what sold out of it
     /// and a way out of itself at the bottom; `Package.swift` breaks if either stops being true.
     private let productActionsUIDI: ProductActionsUIDI
     private let orderUIDI: OrderUIDI
@@ -44,10 +44,9 @@ public struct BagUIDI {
     public init(
         navigation: BagNavigation,
         observeBag: ObserveBagUseCase,
-        observeNotices: ObserveNoticesUseCase,
         setBagItem: SetBagItemUseCase,
-        refreshBag: RefreshBagUseCase,
-        acknowledgeNotices: AcknowledgeNoticesUseCase,
+        checkBag: CheckBagUseCase,
+        observeSetting: ObserveSettingUseCase,
         productActionsUIDI: ProductActionsUIDI,
         orderUIDI: OrderUIDI,
         trackScreenView: TrackScreenViewUseCase,
@@ -57,10 +56,9 @@ public struct BagUIDI {
     ) {
         self.navigation = navigation
         self.observeBag = observeBag
-        self.observeNotices = observeNotices
         self.setBagItem = setBagItem
-        self.refreshBag = refreshBag
-        self.acknowledgeNotices = acknowledgeNotices
+        self.checkBag = checkBag
+        self.observeSetting = observeSetting
         self.productActionsUIDI = productActionsUIDI
         self.orderUIDI = orderUIDI
         self.trackScreenView = trackScreenView
@@ -74,10 +72,9 @@ public struct BagUIDI {
         let viewModel = BagScreenViewModel(
             navigation: navigation,
             observeBag: observeBag,
-            observeNotices: observeNotices,
             setBagItem: setBagItem,
-            refreshBag: refreshBag,
-            acknowledgeNotices: acknowledgeNotices,
+            checkBag: checkBag,
+            observeSetting: observeSetting,
             trackScreenView: trackScreenView,
             trackElementView: trackElementView,
             trackElementInteraction: trackElementInteraction,
@@ -86,8 +83,8 @@ public struct BagUIDI {
         return BagScreenView(
             viewModel: viewModel,
             stockAlertButton: { AnyView(productActionsUIDI.stockAlertButton(product: $0)) },
-            /// The checkout names what is being bought from what this screen is drawing.
-            checkoutButton: AnyView(orderUIDI.checkoutButton(products: { viewModel.products }))
+            /// The checkout buys the bag this screen is drawing, and names it from the same place.
+            checkoutButton: AnyView(orderUIDI.checkoutButton(bag: { viewModel.bag }, products: { viewModel.products }))
         )
         .trackingScreen(BagTrackingPlan.screen)
     }

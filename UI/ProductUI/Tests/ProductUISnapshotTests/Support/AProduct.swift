@@ -17,12 +17,6 @@ struct AProduct {
         return copy
     }
 
-    func priced(_ price: Money) -> AProduct {
-        var copy = self
-        copy.price = price
-        return copy
-    }
-
     func soldOut() -> AProduct {
         var copy = self
         copy.availability = .outOfStock

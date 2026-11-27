@@ -11,14 +11,6 @@ public struct URLSessionHTTPClient: HTTPClient {
         try await send(URLRequest(url: url))
     }
 
-    public func post<Body: Encodable, T: Decodable>(_ url: URL, body: Body) async throws -> T {
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        request.httpBody = try JSONEncoder().encode(body)
-        return try await send(request)
-    }
-
     private func send<T: Decodable>(_ request: URLRequest) async throws -> T {
         let data: Data
         let response: URLResponse

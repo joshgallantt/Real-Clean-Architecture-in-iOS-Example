@@ -2,6 +2,7 @@ import BagTestSupport
 import Foundation
 import MoneyTestSupport
 import ProductTestSupport
+import SettingsTestSupport
 import Testing
 import Bag
 import Money
@@ -15,8 +16,8 @@ import TrackingTestSupport
 @MainActor
 @Suite("What the bag tells the shop")
 /// The screen says what was seen and touched, and what that did to the bag: what went in, what came
-/// out and what was looked at, each line at the price the shopper agreed to. Where each thing
-/// happened is the context its view handed over.
+/// out and what was looked at, each line at the price it was showing. Where each thing happened is
+/// the context its view handed over.
 struct TrackingTheBagTests {
     private let screens = SpyTrackScreenViewUseCase()
     private let views = SpyTrackElementViewUseCase()
@@ -29,16 +30,20 @@ struct TrackingTheBagTests {
         .list(bag, TrackingContext.List(id: "bag", name: "Bag"), index: index)
     }
 
-    private func makeViewModel(_ items: [BagItem], notices: Notices, shopKnows products: [Product]) -> BagScreenViewModel {
-        let shop = SpyRefreshBagUseCase()
-        shop.products = products
+    private var changedList: TrackingContext.List {
+        TrackingContext.List(id: "bag_changes", name: "Changes Since You Last Viewed")
+    }
+
+    /// A screen over a kept bag and a shop that describes exactly these products. A line the shop
+    /// does not describe was not asked about, so it stays on screen without a name.
+    private func makeViewModel(_ items: [BagItem], shopKnows products: [Product]) -> BagScreenViewModel {
+        let kept = Bag(items: items)
         return BagScreenViewModel(
             navigation: SpyBagNavigation(),
-            observeBag: StubObserveBagUseCase(Bag(items: items)),
-            observeNotices: StubObserveNoticesUseCase(notices),
+            observeBag: StubObserveBagUseCase(kept),
             setBagItem: SpySetBagItemUseCase(),
-            refreshBag: shop,
-            acknowledgeNotices: SpyAcknowledgeNoticesUseCase(),
+            checkBag: SpyCheckBagUseCase(answer: kept.checked(against: products, asked: Set(products.map(\.id)))),
+            observeSetting: StubObserveSettingUseCase(turnedOff: []),
             trackScreenView: screens,
             trackElementView: views,
             trackElementInteraction: taps,
@@ -69,18 +74,40 @@ struct TrackingTheBagTests {
 
     @Test("Coming into view reports the bag screen, then the bag viewed once the shop has named what is in it")
     func screenThenBagViewed() async {
-        let lipstick = Product.fixture(id: 1, price: 12)
-        let viewModel = makeViewModel([bagItem(1, quantity: 2, price: 9.99)], notices: Notices(), shopKnows: [lipstick])
+        let viewModel = makeViewModel([bagItem(1, quantity: 2, price: 9.99)], shopKnows: [.fixture(id: 1)])
 
         await appear(viewModel)
 
         #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen(bag), items: [], properties: [:])])
-        #expect(reported.events == [event(.cartViewed, about: [item(lipstick, price: 9.99, quantity: 2)], in: onTheScreen)])
+        #expect(reported.events == [event(.cartViewed, about: [item(.fixture(id: 1), price: 9.99, quantity: 2)], in: onTheScreen)])
+    }
+
+    @Test("A bag viewed is the bag as it is drawn: today's price, what the shop has left, and nothing sold out")
+    func bagViewedIsTheTruthfulBag() async {
+        let lines = [
+            bagItem(1, quantity: 5, price: 9.99, addedAt: Date(timeIntervalSince1970: 2)),
+            bagItem(2, price: 5, addedAt: Date(timeIntervalSince1970: 1))
+        ]
+        let lipstick = Product.fixture(id: 1, price: 12, availability: .inStock(remaining: 2))
+        let viewModel = makeViewModel(lines, shopKnows: [lipstick, .fixture(id: 2, availability: .outOfStock)])
+
+        await appear(viewModel)
+
+        #expect(reported.events == [event(.cartViewed, about: [item(lipstick, price: 12, quantity: 2)], in: onTheScreen)])
+    }
+
+    @Test("A bag the shop has sold out of entirely is not a bag viewed")
+    func everythingSoldOut() async {
+        let viewModel = makeViewModel([bagItem(1, price: 9.99)], shopKnows: [.fixture(id: 1, availability: .outOfStock)])
+
+        await appear(viewModel)
+
+        #expect(reported.events.isEmpty)
     }
 
     @Test("The bag is viewed once a visit, however often the shop is asked again")
     func oncePerVisit() async {
-        let viewModel = makeViewModel([bagItem(1, price: 9.99)], notices: Notices(), shopKnows: [.fixture(id: 1)])
+        let viewModel = makeViewModel([bagItem(1, price: 9.99)], shopKnows: [.fixture(id: 1)])
         let viewed = event(.cartViewed, about: [item(.fixture(id: 1), price: 9.99, quantity: 1)], in: onTheScreen)
 
         await appear(viewModel)
@@ -97,7 +124,7 @@ struct TrackingTheBagTests {
             bagItem(1, price: 1, addedAt: Date(timeIntervalSince1970: 1)),
             bagItem(2, quantity: 3, price: 2, addedAt: Date(timeIntervalSince1970: 2))
         ]
-        let viewModel = makeViewModel(lines, notices: Notices(), shopKnows: [.fixture(id: 1), .fixture(id: 2)])
+        let viewModel = makeViewModel(lines, shopKnows: [.fixture(id: 1, price: 1), .fixture(id: 2, price: 2)])
 
         await appear(viewModel)
 
@@ -108,7 +135,7 @@ struct TrackingTheBagTests {
 
     @Test("A bag viewed leaves out a line the shop has not named yet")
     func bagViewedWithoutAnUnnamedLine() async {
-        let viewModel = makeViewModel([bagItem(1, price: 1), bagItem(2, price: 2)], notices: Notices(), shopKnows: [.fixture(id: 1)])
+        let viewModel = makeViewModel([bagItem(1, price: 1), bagItem(2, price: 2)], shopKnows: [.fixture(id: 1, price: 1)])
 
         await appear(viewModel)
 
@@ -117,7 +144,7 @@ struct TrackingTheBagTests {
 
     @Test("An empty bag is not a bag viewed")
     func emptyBag() async {
-        let viewModel = makeViewModel([], notices: Notices(), shopKnows: [])
+        let viewModel = makeViewModel([], shopKnows: [])
 
         await appear(viewModel)
 
@@ -126,7 +153,7 @@ struct TrackingTheBagTests {
 
     @Test("A bag the shop has named nothing in is not a bag viewed either")
     func nothingNamed() async {
-        let viewModel = makeViewModel([bagItem(1, price: 1)], notices: Notices(), shopKnows: [])
+        let viewModel = makeViewModel([bagItem(1, price: 1)], shopKnows: [])
 
         await appear(viewModel)
 
@@ -135,7 +162,7 @@ struct TrackingTheBagTests {
 
     @Test("A line coming into view is seen where its view says it is, once the shop has named it")
     func lineSeen() async throws {
-        let viewModel = makeViewModel([bagItem(1, price: 1), bagItem(2, price: 2)], notices: Notices(), shopKnows: [.fixture(id: 1), .fixture(id: 2)])
+        let viewModel = makeViewModel([bagItem(1, price: 1), bagItem(2, price: 2)], shopKnows: [.fixture(id: 1, price: 1), .fixture(id: 2, price: 2)])
         await appear(viewModel)
 
         let second = try #require(viewModel.rows.first { $0.id == pid(2) })
@@ -147,7 +174,7 @@ struct TrackingTheBagTests {
 
     @Test("A line the shop has not named yet is not seen yet")
     func unnamedLineNotSeen() async {
-        let viewModel = makeViewModel([bagItem(1, price: 1)], notices: Notices(), shopKnows: [])
+        let viewModel = makeViewModel([bagItem(1, price: 1)], shopKnows: [])
         await appear(viewModel)
 
         viewModel.didSee(viewModel.rows[0], in: line(0))
@@ -159,7 +186,7 @@ struct TrackingTheBagTests {
 
     @Test("Turning a line up or down is a tap for how far it moved, and that many added or removed")
     func stepper() async {
-        let viewModel = makeViewModel([bagItem(1, quantity: 3, price: 5)], notices: Notices(), shopKnows: [.fixture(id: 1)])
+        let viewModel = makeViewModel([bagItem(1, quantity: 3, price: 5)], shopKnows: [.fixture(id: 1, price: 5)])
         await appear(viewModel)
 
         viewModel.didChangeQuantity(productId: pid(1), quantity: 4, in: line(0))
@@ -175,20 +202,43 @@ struct TrackingTheBagTests {
         ])
     }
 
-    @Test("Turning a line of two up to five is three added, at the price the line went in at and not today's")
+    @Test("Turning a line of two up to five is three added, at the price the line is showing and not the one it was kept at")
     func quantityUp() async {
         let lipstick = Product.fixture(id: 1, price: 12)
-        let viewModel = makeViewModel([bagItem(1, quantity: 2, price: 9.99)], notices: Notices(), shopKnows: [lipstick])
+        let viewModel = makeViewModel([bagItem(1, quantity: 2, price: 9.99)], shopKnows: [lipstick])
         await appear(viewModel)
 
         viewModel.didChangeQuantity(productId: pid(1), quantity: 5, in: line(0))
 
-        #expect(changes == [event(.productAdded, about: [item(lipstick, price: 9.99, quantity: 3)], in: line(0))])
+        #expect(changes == [event(.productAdded, about: [item(lipstick, price: 12, quantity: 3)], in: line(0))])
+    }
+
+    @Test("Turning a line up past what the shop has left adds only what there is")
+    func quantityUpPastWhatIsLeft() async {
+        let lipstick = Product.fixture(id: 1, price: 12, availability: .inStock(remaining: 3))
+        let viewModel = makeViewModel([bagItem(1, quantity: 2, price: 12)], shopKnows: [lipstick])
+        await appear(viewModel)
+
+        viewModel.didChangeQuantity(productId: pid(1), quantity: 5, in: line(0))
+
+        #expect(changes == [event(.productAdded, about: [item(lipstick, price: 12, quantity: 1)], in: line(0))])
+    }
+
+    @Test("Turning up a line that already holds all the shop has is nothing added, and no tap that moved anything")
+    func quantityUpWithNoneLeft() async {
+        let lipstick = Product.fixture(id: 1, price: 12, availability: .inStock(remaining: 2))
+        let viewModel = makeViewModel([bagItem(1, quantity: 2, price: 12)], shopKnows: [lipstick])
+        await appear(viewModel)
+
+        viewModel.didChangeQuantity(productId: pid(1), quantity: 3, in: line(0))
+
+        #expect(changes.isEmpty)
+        #expect(taps.events.isEmpty)
     }
 
     @Test("Turning a line of five down to three is two removed, not five")
     func quantityDown() async {
-        let viewModel = makeViewModel([bagItem(1, quantity: 5, price: 9.99)], notices: Notices(), shopKnows: [.fixture(id: 1)])
+        let viewModel = makeViewModel([bagItem(1, quantity: 5, price: 9.99)], shopKnows: [.fixture(id: 1)])
         await appear(viewModel)
 
         viewModel.didChangeQuantity(productId: pid(1), quantity: 3, in: line(0))
@@ -198,7 +248,7 @@ struct TrackingTheBagTests {
 
     @Test("Setting a line below none removes what it had; setting it to what it holds is nothing")
     func floorAndNoChange() async {
-        let viewModel = makeViewModel([bagItem(1, quantity: 2, price: 9.99)], notices: Notices(), shopKnows: [.fixture(id: 1)])
+        let viewModel = makeViewModel([bagItem(1, quantity: 2, price: 9.99)], shopKnows: [.fixture(id: 1)])
         await appear(viewModel)
 
         viewModel.didChangeQuantity(productId: pid(1), quantity: -3, in: line(0))
@@ -209,7 +259,7 @@ struct TrackingTheBagTests {
 
     @Test("Turning up a line the shop has not named yet is only the tap")
     func stepperOnAnUnnamedLine() async {
-        let viewModel = makeViewModel([bagItem(1, quantity: 2, price: 5)], notices: Notices(), shopKnows: [])
+        let viewModel = makeViewModel([bagItem(1, quantity: 2, price: 5)], shopKnows: [])
         await appear(viewModel)
 
         viewModel.didChangeQuantity(productId: pid(1), quantity: 3, in: line(0))
@@ -222,26 +272,13 @@ struct TrackingTheBagTests {
 
     @Test("Swiping a line away removes all of it, and says it was a swipe on that line")
     func swipe() async {
-        let viewModel = makeViewModel([bagItem(7, quantity: 2, price: 3)], notices: Notices(), shopKnows: [.fixture(id: 7)])
+        let viewModel = makeViewModel([bagItem(7, quantity: 2, price: 3)], shopKnows: [.fixture(id: 7, price: 3)])
         await appear(viewModel)
 
         viewModel.didSwipeToDelete(productId: pid(7), in: line(0))
 
         #expect(taps.events == [TrackingEvent(name: .elementSelected, context: line(0), items: [item(.fixture(id: 7), price: 3, quantity: 2)], properties: ["element": "remove"])])
         #expect(changes == [event(.productRemoved, about: [item(.fixture(id: 7), price: 3, quantity: 2)], in: line(0))])
-    }
-
-    @Test("Remove on a line whose price went up removes all of it, in that notice's own list")
-    func removeChanged() async {
-        let notices = Notices([.priceWentUp(productId: pid(7), from: usd(3), to: usd(4))])
-        let viewModel = makeViewModel([bagItem(7, quantity: 2, price: 4)], notices: notices, shopKnows: [.fixture(id: 7)])
-        await appear(viewModel)
-        let priceWentUp = TrackingContext.list(bag, TrackingContext.List(id: "bag_notices_price_went_up", name: "Price Went Up"), index: 0)
-
-        viewModel.didRemoveChangedItem(productId: pid(7), in: priceWentUp)
-
-        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: priceWentUp, items: [item(.fixture(id: 7), price: 4, quantity: 2)], properties: ["element": "remove_from_bag"])])
-        #expect(changes == [event(.productRemoved, about: [item(.fixture(id: 7), price: 4, quantity: 2)], in: priceWentUp)])
     }
 
     @Test("Removing everything is one tap on the screen, and one removal of every line, each whole, as the bag keeps them")
@@ -251,7 +288,7 @@ struct TrackingTheBagTests {
             bagItem(1, quantity: 2, price: 9.99, addedAt: Date(timeIntervalSince1970: 2)),
             bagItem(2, price: 5, addedAt: Date(timeIntervalSince1970: 1))
         ]
-        let viewModel = makeViewModel(lines, notices: Notices(), shopKnows: [.fixture(id: 1), .fixture(id: 2)])
+        let viewModel = makeViewModel(lines, shopKnows: [.fixture(id: 1), .fixture(id: 2, price: 5)])
         await appear(viewModel)
 
         viewModel.didRemoveEverything(in: onTheScreen)
@@ -264,7 +301,7 @@ struct TrackingTheBagTests {
 
     @Test("Lines that leave are reported without one the shop has not named yet")
     func removeAllWithoutAnUnnamedLine() async {
-        let viewModel = makeViewModel([bagItem(1, price: 1), bagItem(2, price: 2)], notices: Notices(), shopKnows: [.fixture(id: 1)])
+        let viewModel = makeViewModel([bagItem(1, price: 1), bagItem(2, price: 2)], shopKnows: [.fixture(id: 1, price: 1)])
         await appear(viewModel)
 
         viewModel.didRemoveEverything(in: onTheScreen)
@@ -274,7 +311,7 @@ struct TrackingTheBagTests {
 
     @Test("Removing everything from an empty bag is the tap, and not a removal")
     func nothingToRemove() async {
-        let viewModel = makeViewModel([], notices: Notices(), shopKnows: [])
+        let viewModel = makeViewModel([], shopKnows: [])
         await appear(viewModel)
 
         viewModel.didRemoveEverything(in: onTheScreen)
@@ -285,7 +322,7 @@ struct TrackingTheBagTests {
 
     @Test("Swiping away a line the shop has not named yet is only the tap")
     func swipeOnAnUnnamedLine() async {
-        let viewModel = makeViewModel([bagItem(1, price: 1)], notices: Notices(), shopKnows: [])
+        let viewModel = makeViewModel([bagItem(1, price: 1)], shopKnows: [])
         await appear(viewModel)
 
         viewModel.didSwipeToDelete(productId: pid(1), in: line(0))
@@ -294,11 +331,11 @@ struct TrackingTheBagTests {
         #expect(reported.events.isEmpty)
     }
 
-    // MARK: - Opening and accepting
+    // MARK: - Opening
 
     @Test("Tapping a line opens it, reported as a tap on that line")
     func tapLine() async {
-        let viewModel = makeViewModel([bagItem(1, price: 1)], notices: Notices(), shopKnows: [.fixture(id: 1)])
+        let viewModel = makeViewModel([bagItem(1, price: 1)], shopKnows: [.fixture(id: 1, price: 1)])
         await appear(viewModel)
 
         viewModel.didTapRow(viewModel.rows[0], in: line(0))
@@ -306,25 +343,43 @@ struct TrackingTheBagTests {
         #expect(taps.events == [TrackingEvent(name: .elementSelected, context: line(0), items: [item(.fixture(id: 1), price: 1, quantity: 1)], properties: ["element": "bag_line"])])
     }
 
-    @Test("Tapping a notice line is reported in that notice's own list")
-    func tapNotice() async {
-        let notices = Notices([.outOfStock(productId: pid(4))])
-        let viewModel = makeViewModel([bagItem(1, price: 1)], notices: notices, shopKnows: [.fixture(id: 1), .fixture(id: 4)])
+    // MARK: - What changed since the bag was last viewed
+
+    @Test("Something that changed is seen in the changes list, as the product it is about")
+    func changeSeen() async throws {
+        let dearer = Product.fixture(id: 4, price: 12)
+        let viewModel = makeViewModel([bagItem(4, price: 9.99)], shopKnows: [dearer])
         await appear(viewModel)
-        let soldOut = TrackingContext.list(bag, TrackingContext.List(id: "bag_notices_out_of_stock", name: "Sold Out"), index: 0)
+        let first = TrackingContext.list(bag, changedList, index: 0)
 
-        viewModel.didTapRow(viewModel.notices(in: .outOfStock)[0], in: soldOut)
+        viewModel.didSee(try #require(viewModel.changes.first), in: first)
 
-        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: soldOut, items: [TrackedProduct.item(.fixture(id: 4))], properties: ["element": "notice_line"])])
+        #expect(views.events == [TrackingEvent(name: .elementViewed, context: first, items: [TrackedProduct.item(dearer)], properties: ["element": "bag_change_line"])])
     }
 
-    @Test("Okay on a section is a tap named for that section")
-    func acceptAll() async {
-        let viewModel = makeViewModel([], notices: Notices([.outOfStock(productId: pid(4))]), shopKnows: [])
+    @Test("Tapping something that changed is reported in the changes list, whatever kind of change it was")
+    func changeTapped() async throws {
+        let soldOut = Product.fixture(id: 4, availability: .outOfStock)
+        let viewModel = makeViewModel([bagItem(1, price: 9.99), bagItem(4, price: 9.99)], shopKnows: [.fixture(id: 1), soldOut])
+        await appear(viewModel)
+        let first = TrackingContext.list(bag, changedList, index: 0)
+
+        viewModel.didTapRow(try #require(viewModel.changes.first), in: first)
+
+        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: first, items: [TrackedProduct.item(soldOut)], properties: ["element": "bag_change_line"])])
+    }
+
+    @Test("Leaving the bag reports nothing: keeping it as it was seen is not the shopper taking things out")
+    func leavingReportsNothing() async {
+        let viewModel = makeViewModel(
+            [bagItem(1, quantity: 5, price: 9.99), bagItem(2, price: 5)],
+            shopKnows: [.fixture(id: 1, price: 12, availability: .inStock(remaining: 2)), .fixture(id: 2, availability: .outOfStock)]
+        )
         await appear(viewModel)
 
-        viewModel.didAcceptAll(.outOfStock, in: onTheScreen)
+        viewModel.didDisappear()
 
-        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: onTheScreen, items: [], properties: ["element": "accept_all_out_of_stock"])])
+        #expect(taps.events.isEmpty)
+        #expect(changes.isEmpty)
     }
 }

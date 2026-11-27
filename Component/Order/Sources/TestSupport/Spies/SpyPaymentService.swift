@@ -1,6 +1,5 @@
 import Money
 import Order
-import Product
 import Synchronization
 
 /// Whoever takes the money, standing still: it answers however it was told to
@@ -24,8 +23,6 @@ public final class SpyPaymentService: PaymentService {
     }
 
     public var amountsAskedFor: [Money] { state.withLock { $0.amountsAskedFor } }
-
-    public var timesAsked: Int { amountsAskedFor.count }
 
     public func pay(_ amount: Money) async -> Result<PaymentReference, PaymentFailure> {
         state.withLock { state in

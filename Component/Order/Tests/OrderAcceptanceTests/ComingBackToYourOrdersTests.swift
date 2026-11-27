@@ -3,7 +3,6 @@ import Foundation
 import Testing
 import Money
 import Order
-import Product
 
 @MainActor
 @Suite("Coming back to what you bought")

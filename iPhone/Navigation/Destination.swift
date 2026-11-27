@@ -12,6 +12,8 @@ import OrderUIDI
 import ProductActionsUI
 import ProductUIDI
 import SettingsUIDI
+import StockAlertUI
+import StockAlertUIDI
 
 /// Martin, *Clean Architecture* (2017), Ch. 26 — The Main Component: every route in one place, in
 /// the only layer that may know all the features. It also declares navigation policy — which
@@ -21,8 +23,7 @@ public enum Destination: Hashable {
     case productDetails(Product)
     case orderHistory
     case allFaves
-    case allWaitlist
-    case allBackInStock
+    case allStockAlerts
     case settings
 
     var requiresAuthentication: Bool {
@@ -31,10 +32,10 @@ public enum Destination: Hashable {
         /// to gate here, unlike `orderHistory` and the two saved lists below.
         case .catalog, .productDetails, .settings:
             return false
-        /// Everything a shopper keeps. Orders, faves and the things they are waiting on all belong
+        /// Everything a shopper keeps. Orders, faves and their stock alerts all belong
         /// to somebody, so there is nothing to show a guest — and the prompt happens here, where
         /// the policy already lives, rather than being remembered by each screen.
-        case .orderHistory, .allFaves, .allWaitlist, .allBackInStock:
+        case .orderHistory, .allFaves, .allStockAlerts:
             return true
         }
     }
@@ -50,18 +51,16 @@ public enum Destination: Hashable {
             CompositionRoot.shared.presentation.order.historyView()
         case .allFaves:
             CompositionRoot.shared.presentation.wishlist.allFavesView()
-        case .allWaitlist:
-            CompositionRoot.shared.presentation.wishlist.allWaitlistView()
-        case .allBackInStock:
-            CompositionRoot.shared.presentation.wishlist.allBackInStockView()
+        case .allStockAlerts:
+            CompositionRoot.shared.presentation.stockAlert.allStockAlertsView()
         case .settings:
             CompositionRoot.shared.presentation.settings.mainView()
         }
     }
 }
 
-extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNavigation,
-                     ProductActionsNavigation, AccountNavigation {
+extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, StockAlertNavigation,
+                     BagNavigation, ProductActionsNavigation, AccountNavigation {
     func openOrderHistory() {
         open(.orderHistory)
     }
@@ -82,12 +81,8 @@ extension Navigator: HomeNavigation, SearchNavigation, WishlistNavigation, BagNa
         open(.allFaves)
     }
 
-    func openAllWaitlist() {
-        open(.allWaitlist)
-    }
-
-    func openAllBackInStock() {
-        open(.allBackInStock)
+    func openAllStockAlerts() {
+        open(.allStockAlerts)
     }
 
     func switchToBagTab() {

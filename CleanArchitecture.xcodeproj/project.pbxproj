@@ -12,6 +12,7 @@
 		1418DDBD2E3E542300191417 /* AuthUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBC2E3E542300191417 /* AuthUIDI */; };
 		1418DDBF2E3E542300191417 /* SessionDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDBE2E3E542300191417 /* SessionDI */; };
 		1418DDC12E3E542300191417 /* WishlistUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 1418DDC02E3E542300191417 /* WishlistUIDI */; };
+		FADE013100000000000000A1 /* StockAlertUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE013100000000000000A2 /* StockAlertUIDI */; };
 		2A7AD030AB0C5D47D98AE192 /* Networking in Frameworks */ = {isa = PBXBuildFile; productRef = 905C6EC5E3B21525CBD02EF9 /* Networking */; };
 		345D3EFC6271AB3E4F68AC5E /* SettingsUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = 15C9A5888A5B8EE7D759C93E /* SettingsUIDI */; };
 		4E26A71E805B07E3A3FDB2B7 /* SettingsDI in Frameworks */ = {isa = PBXBuildFile; productRef = C68D82F55C1C2508109B344C /* SettingsDI */; };
@@ -34,8 +35,8 @@
 		FADE001000000000000000A1 /* BagDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE001000000000000000A2 /* BagDI */; };
 		FADE001100000000000000A1 /* ProductActionsUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE001100000000000000A2 /* ProductActionsUIDI */; };
 		FADE002200000000000000B1 /* Money in Frameworks */ = {isa = PBXBuildFile; productRef = FADE002100000000000000B1 /* Money */; };
-		FADE009800000000000000A1 /* WaitlistData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009800000000000000A2 /* WaitlistData */; };
-		FADE009900000000000000A1 /* WaitlistDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009900000000000000A2 /* WaitlistDI */; };
+		FADE009800000000000000A1 /* StockAlertData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009800000000000000A2 /* StockAlertData */; };
+		FADE009900000000000000A1 /* StockAlertDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE009900000000000000A2 /* StockAlertDI */; };
 		FADE010100000000000000A1 /* OrderDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010100000000000000A2 /* OrderDI */; };
 		FADE010200000000000000A1 /* OrderData in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010200000000000000A2 /* OrderData */; };
 		FADE010300000000000000A1 /* OrderUIDI in Frameworks */ = {isa = PBXBuildFile; productRef = FADE010300000000000000A2 /* OrderUIDI */; };
@@ -82,6 +83,7 @@
 			files = (
 				1418DDBB2E3E542300191417 /* HomeUIDI in Frameworks */,
 				1418DDC12E3E542300191417 /* WishlistUIDI in Frameworks */,
+				FADE013100000000000000A1 /* StockAlertUIDI in Frameworks */,
 				1418DDB92E3E542300191417 /* BagUIDI in Frameworks */,
 				1418DDBF2E3E542300191417 /* SessionDI in Frameworks */,
 				1418DDBD2E3E542300191417 /* AuthUIDI in Frameworks */,
@@ -97,8 +99,8 @@
 				FADE000200000000000000A1 /* OnboardingUIDI in Frameworks */,
 				FADE000300000000000000A1 /* ProductUIDI in Frameworks */,
 				FADE000400000000000000A1 /* WishlistDI in Frameworks */,
-				FADE009900000000000000A1 /* WaitlistDI in Frameworks */,
-				FADE009800000000000000A1 /* WaitlistData in Frameworks */,
+				FADE009900000000000000A1 /* StockAlertDI in Frameworks */,
+				FADE009800000000000000A1 /* StockAlertData in Frameworks */,
 				FADE010100000000000000A1 /* OrderDI in Frameworks */,
 				FADE010200000000000000A1 /* OrderData in Frameworks */,
 				FADE010300000000000000A1 /* OrderUIDI in Frameworks */,
@@ -177,6 +179,7 @@
 				1418DDBC2E3E542300191417 /* AuthUIDI */,
 				1418DDBE2E3E542300191417 /* SessionDI */,
 				1418DDC02E3E542300191417 /* WishlistUIDI */,
+				FADE013100000000000000A2 /* StockAlertUIDI */,
 				91547A9FAB7827290BA768A3 /* ProductDI */,
 				9A079E2873908107AF3834BC /* SearchUIDI */,
 				EDD9F67AA3E61BAD6139E5A7 /* AccountUIDI */,
@@ -189,8 +192,8 @@
 				FADE000200000000000000A2 /* OnboardingUIDI */,
 				FADE000300000000000000A2 /* ProductUIDI */,
 				FADE000400000000000000A2 /* WishlistDI */,
-				FADE009900000000000000A2 /* WaitlistDI */,
-				FADE009800000000000000A2 /* WaitlistData */,
+				FADE009900000000000000A2 /* StockAlertDI */,
+				FADE009800000000000000A2 /* StockAlertData */,
 				FADE010100000000000000A2 /* OrderDI */,
 				FADE010200000000000000A2 /* OrderData */,
 				FADE010300000000000000A2 /* OrderUIDI */,
@@ -508,6 +511,10 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = UI/WishlistUI;
 		};
+		FADE013100000000000000B1 /* XCLocalSwiftPackageReference "UI/StockAlertUI" */ = {
+			isa = XCLocalSwiftPackageReference;
+			relativePath = UI/StockAlertUI;
+		};
 		64A1277599C7DE0F41808B36 /* XCLocalSwiftPackageReference "UI/SettingsUI" */ = {
 			isa = XCLocalSwiftPackageReference;
 			relativePath = UI/SettingsUI;
@@ -568,9 +575,9 @@
 			isa = XCLocalSwiftPackageReference;
 			relativePath = Component/Money;
 		};
-		FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/Waitlist" */ = {
+		FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/StockAlert" */ = {
 			isa = XCLocalSwiftPackageReference;
-			relativePath = Component/Waitlist;
+			relativePath = Component/StockAlert;
 		};
 		FADE010100000000000000B1 /* XCLocalSwiftPackageReference "Component/Order" */ = {
 			isa = XCLocalSwiftPackageReference;
@@ -620,6 +627,11 @@
 			isa = XCSwiftPackageProductDependency;
 			package = 3FD7B96A8B93ACD063C9157B /* XCLocalSwiftPackageReference "UI/WishlistUI" */;
 			productName = WishlistUIDI;
+		};
+		FADE013100000000000000A2 /* StockAlertUIDI */ = {
+			isa = XCSwiftPackageProductDependency;
+			package = FADE013100000000000000B1 /* XCLocalSwiftPackageReference "UI/StockAlertUI" */;
+			productName = StockAlertUIDI;
 		};
 		15C9A5888A5B8EE7D759C93E /* SettingsUIDI */ = {
 			isa = XCSwiftPackageProductDependency;
@@ -726,15 +738,15 @@
 			package = FADE002000000000000000B1 /* XCLocalSwiftPackageReference "Component/Money" */;
 			productName = Money;
 		};
-		FADE009800000000000000A2 /* WaitlistData */ = {
+		FADE009800000000000000A2 /* StockAlertData */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/Waitlist" */;
-			productName = WaitlistData;
+			package = FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/StockAlert" */;
+			productName = StockAlertData;
 		};
-		FADE009900000000000000A2 /* WaitlistDI */ = {
+		FADE009900000000000000A2 /* StockAlertDI */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/Waitlist" */;
-			productName = WaitlistDI;
+			package = FADE009900000000000000B1 /* XCLocalSwiftPackageReference "Component/StockAlert" */;
+			productName = StockAlertDI;
 		};
 		FADE010100000000000000A2 /* OrderDI */ = {
 			isa = XCSwiftPackageProductDependency;

@@ -3,6 +3,7 @@ import Foundation
 import Bag
 import Money
 import Product
+import Settings
 import Tracking
 import TrackingUI
 
@@ -14,6 +15,10 @@ import TrackingUI
 ///
 /// Martin, Ch. 10 — Interface Segregation Principle: it is injected the capabilities it calls, not
 /// a container that could resolve anything.
+///
+/// Two bags are in play and only one is drawn. The bag that is kept is the one the shopper last
+/// saw; the bag on screen is that one held against what the shop says now. The difference between
+/// them is what the changes section lists, and leaving the screen keeps the second as the first.
 public final class BagScreenViewModel {
     /// The work the last interaction started.
     ///
@@ -26,16 +31,21 @@ public final class BagScreenViewModel {
     @ObservationIgnored public private(set) var inFlight: Task<Void, Never>?
     private(set) var rows: [BagRow] = []
 
-    /// Only the sections with something in them, in the order they are read. Five published arrays
-    /// and an if-statement each is what this replaced; the view now draws whatever it is given.
-    private(set) var noticeSections: [NoticeSection] = []
+    /// What changed since the shopper last viewed their bag, as it stood when the screen came into
+    /// view. It does not move while they are looking: a list that rewrote itself under a shopper
+    /// reading it would be telling them something different each time they glanced at it.
+    private(set) var changes: [BagChangeRow] = []
+
+    /// The bag as it is drawn: today's prices, no more of anything than the shop has, and no line
+    /// the shop cannot supply. Public because the checkout button below it, built in another
+    /// package's container, buys exactly this — what a shopper sees is what they pay.
+    public private(set) var bag = Bag()
 
     private let navigation: BagNavigation
     private let observeBag: ObserveBagUseCase
-    private let observeNotices: ObserveNoticesUseCase
     private let setBagItem: SetBagItemUseCase
-    private let refreshBag: RefreshBagUseCase
-    private let acknowledgeNotices: AcknowledgeNoticesUseCase
+    private let checkBag: CheckBagUseCase
+    private let observeSetting: ObserveSettingUseCase
 
     private let trackScreenView: TrackScreenViewUseCase
     private let trackElementView: TrackElementViewUseCase
@@ -51,23 +61,29 @@ public final class BagScreenViewModel {
     @ObservationIgnored private var hasReportedBagViewed = false
 
     private var cancellables = Set<AnyCancellable>()
-    private var bag = Bag()
-    private var news = Notices()
+
+    /// The bag as it is kept, which is the bag as the shopper last saw it.
+    private var kept = Bag()
+
+    /// The last thing the shop said. It is held against the kept bag again every time that bag
+    /// changes, so a tap on a stepper redraws truthfully at once rather than after a round trip.
+    private var shopSaid = Bag().checked(against: [], asked: [])
+
+    /// What had changed when this visit began — every change, whether or not the section that
+    /// lists them is switched on.
+    private var changesOnArrival: [BagChange] = []
+    private var showsChanges = true
     private var catalog: [ProductID: Product] = [:]
 
     /// Fowler, *PoEAA* (2002), Ch. 18 — Money: always from the bag, never the catalog, so the total
-    /// is right whether or not anything loaded.
+    /// is the sum of the lines above it.
     var total: Money? { bag.total }
 
     var isEmpty: Bool { bag.isEmpty }
 
-    /// Whether there is anything to tell the shopper. An empty bag with notices still waiting is
-    /// not an empty screen — the notices are the reason it emptied.
-    var hasNews: Bool { !noticeSections.isEmpty }
-
-    func notices(in kind: Notice.Kind) -> [NoticeRow] {
-        noticeSections.first { $0.kind == kind }?.rows ?? []
-    }
+    /// Whether there is anything to tell the shopper. A bag the shop has emptied is not an empty
+    /// screen — what changed is the reason it emptied.
+    var hasChanges: Bool { !changes.isEmpty }
 
     var itemCountSummary: String {
         bag.itemCount == 1 ? "1 item" : "\(bag.itemCount) items"
@@ -76,10 +92,9 @@ public final class BagScreenViewModel {
     public init(
         navigation: BagNavigation,
         observeBag: ObserveBagUseCase,
-        observeNotices: ObserveNoticesUseCase,
         setBagItem: SetBagItemUseCase,
-        refreshBag: RefreshBagUseCase,
-        acknowledgeNotices: AcknowledgeNoticesUseCase,
+        checkBag: CheckBagUseCase,
+        observeSetting: ObserveSettingUseCase,
         trackScreenView: TrackScreenViewUseCase,
         trackElementView: TrackElementViewUseCase,
         trackElementInteraction: TrackElementInteractionUseCase,
@@ -87,10 +102,9 @@ public final class BagScreenViewModel {
     ) {
         self.navigation = navigation
         self.observeBag = observeBag
-        self.observeNotices = observeNotices
         self.setBagItem = setBagItem
-        self.refreshBag = refreshBag
-        self.acknowledgeNotices = acknowledgeNotices
+        self.checkBag = checkBag
+        self.observeSetting = observeSetting
         self.trackScreenView = trackScreenView
         self.trackElementView = trackElementView
         self.trackElementInteraction = trackElementInteraction
@@ -116,9 +130,9 @@ public final class BagScreenViewModel {
         trackElementView(BagTrackingPlan.line, about: item(line, product: product, quantity: line.quantity), in: context)
     }
 
-    func didSee(_ row: NoticeRow, in context: TrackingContext) {
+    func didSee(_ row: BagChangeRow, in context: TrackingContext) {
         guard let product = row.product else { return }
-        trackElementView(BagTrackingPlan.noticeLine, about: TrackedProduct.item(product), in: context)
+        trackElementView(BagTrackingPlan.changeLine, about: TrackedProduct.item(product), in: context)
     }
 
     /// Once per visit, and only once the shop has answered — so a bag viewed carries the names and
@@ -166,36 +180,74 @@ public final class BagScreenViewModel {
         trackEvent(TrackingEvent(name: name, context: context, items: items, properties: [:]))
     }
 
-    /// A bag line as something the shop can measure — at the price the shopper agreed to, not
-    /// today's — and however many of it the event is about.
+    /// A bag line as something the shop can measure — at the price the line is showing, which is
+    /// the price it would be bought at — and however many of it the event is about.
     private func item(_ line: BagItem, product: Product, quantity: Int) -> TrackedItem {
         TrackedProduct.item(product, price: line.lastKnownPrice, quantity: quantity)
     }
 
+    /// The line as it is drawn. Steppers and swipes act on this one, so what a shopper changes is
+    /// the line they are looking at and it is kept at the price they were shown.
     private func line(_ productId: ProductID) -> BagItem? {
         bag.items.first { $0.id == productId }
     }
 
+    // MARK: - Coming and going
+
     /// `async` so the screen can await it from `.task`, which ties the ask to how
     /// long the bag is on screen and cancels it on the way out. A tap has no async
     /// context and goes through `startAskingTheShop()` instead.
+    ///
+    /// What changed is taken from this answer and no later one: it is what the shopper is told
+    /// for the whole of the visit.
     func onAppear() async {
         if cancellables.isEmpty {
             subscribe()
         }
-        await askTheShop()
+
+        let said = await checkBag()
+        guard !Task.isCancelled else { return }
+
+        changesOnArrival = said.changes
+        learn(said)
     }
+
+    /// The shopper has seen the bag as it is drawn, so that is the bag to keep — a line at a time,
+    /// the way every other change to a bag is made. Whatever they were told is now old news, and
+    /// the next visit will find nothing to tell unless the shop changes something else.
+    func didDisappear() {
+        for line in kept.lines(toBecome: bag) {
+            setBagItem(line)
+        }
+        changesOnArrival = []
+        render()
+    }
+
+    // MARK: - What the shopper does
 
     /// Two things to say: which way the stepper went, and what that added to or took from the bag.
     /// A line the shop has not answered about has no name to be reported by, so only the tap is.
+    ///
+    /// A line cannot hold more than the shop has left, so a step past that is cut to what there is
+    /// — and a step that changes nothing is not reported as one, or it would say something was
+    /// added that never was.
     func didChangeQuantity(productId: ProductID, quantity: Int, in context: TrackingContext) {
-        if let line = line(productId), quantity != line.quantity {
-            let change = quantity - line.quantity
-            tapped(change > 0 ? BagTrackingPlan.quantityUp : BagTrackingPlan.quantityDown, on: line, quantity: abs(change), in: context)
-            reportQuantityChange(of: line, to: quantity, in: context)
-            setBagItem(line.withQuantity(quantity))
+        if let line = line(productId) {
+            let quantity = quantityTheShopCanSupply(of: line, wanting: quantity)
+            if quantity != line.quantity {
+                let change = quantity - line.quantity
+                tapped(change > 0 ? BagTrackingPlan.quantityUp : BagTrackingPlan.quantityDown, on: line, quantity: abs(change), in: context)
+                reportQuantityChange(of: line, to: quantity, in: context)
+                setBagItem(line.withQuantity(quantity))
+            }
         }
         startAskingTheShop()
+    }
+
+    /// What the shop has not answered about is not capped: there is nothing yet to cap it to.
+    private func quantityTheShopCanSupply(of line: BagItem, wanting quantity: Int) -> Int {
+        guard let product = catalog[line.productId] else { return quantity }
+        return min(quantity, product.availability.remaining)
     }
 
     func didSwipeToDelete(productId: ProductID, in context: TrackingContext) {
@@ -207,22 +259,18 @@ public final class BagScreenViewModel {
         startAskingTheShop()
     }
 
-    /// Any line on this screen goes to its product, in the bag or in a notice. Opening it is
-    /// behaviour, so it lives here rather than being called straight out of the view — where
-    /// nothing could reach it, which is why the bag screen had a navigation double no test used.
-    ///
-    /// One method, because every section is now about something the shop still sells. It used to
-    /// ask the section whether there was a page worth opening, for the one kind where there was
-    /// not.
+    /// Any row on this screen goes to its product, a line of the bag or something that changed.
+    /// Opening it is behaviour, so it lives here rather than being called straight out of the view
+    /// — where nothing could reach it.
     ///
     /// The product goes to navigation, not its id — see `BagNavigation`. This screen has already
-    /// been told what every line is, which is where its names and pictures come from, so it opens
-    /// what it is drawing rather than asking the app layer to go and find it again. A line the shop
+    /// been told what every row is, which is where its names and pictures come from, so it opens
+    /// what it is drawing rather than asking the app layer to go and find it again. A row the shop
     /// has not answered about yet has no page to open, and drawing it as a name-less row is the
     /// same fact said in the other direction.
     ///
-    /// A product can be both in the bag and in a notice — a price that went up is still in the bag —
-    /// so there is one of these for each, and the view says which it was tapped in by which it calls.
+    /// A product can be both a line and a change — a price that went up is still in the bag — so
+    /// there is one of these for each, and the view says which it was tapped in by which it calls.
     func didTapRow(_ row: BagRow, in context: TrackingContext) {
         guard let product = catalog[row.id] else { return }
         if let line = line(row.id) {
@@ -231,25 +279,10 @@ public final class BagScreenViewModel {
         navigation.openProductDetails(product: product)
     }
 
-    func didTapRow(_ row: NoticeRow, in context: TrackingContext) {
-        guard let product = catalog[row.id] else { return }
-        trackElementInteraction(BagTrackingPlan.noticeLine, about: TrackedProduct.item(product), in: context)
+    func didTapRow(_ row: BagChangeRow, in context: TrackingContext) {
+        guard let product = row.product else { return }
+        trackElementInteraction(BagTrackingPlan.changeLine, about: TrackedProduct.item(product), in: context)
         navigation.openProductDetails(product: product)
-    }
-
-    /// Acknowledging is by product, not by notice — "Okay" has always meant "I have seen what
-    /// happened to this one". So accepting a whole section clears anything else outstanding about
-    /// the same product, which is the same thing tapping each Okay in turn would have done.
-    ///
-    /// Evans, *Domain-Driven Design* (2003), Ch. 2 — Ubiquitous Language: the shopper accepts a
-    /// section, so a section is what this is told. It used to be handed the rows themselves, read
-    /// back off the property they came from — which let a caller pair one section's button with
-    /// another section's contents, and said nothing a reader would recognise.
-    func didAcceptAll(_ kind: Notice.Kind, in context: TrackingContext) {
-        trackElementInteraction(BagTrackingPlan.acceptAll(kind), in: context)
-        for row in notices(in: kind) {
-            acknowledgeNotices(aboutProductId: row.id)
-        }
     }
 
     /// The shopper empties their own bag. Every line goes the way a single swipe sends one, so
@@ -263,94 +296,73 @@ public final class BagScreenViewModel {
         startAskingTheShop()
     }
 
-    /// Remove sits only on a notice line about a price rise, so that is the list it is reported in.
-    func didRemoveChangedItem(productId: ProductID, in context: TrackingContext) {
-        if let line = line(productId) {
-            tapped(BagTrackingPlan.removeChanged, on: line, quantity: line.quantity, in: context)
-            report(.productRemoved, about: [line], in: context)
-            setBagItem(line.withQuantity(0))
-        }
-        startAskingTheShop()
-    }
-
     // MARK: -
 
     private func subscribe() {
         observeBag()
-            .sink { [weak self] bag in
-                self?.bag = bag
+            .sink { [weak self] kept in
+                self?.kept = kept
                 self?.render()
             }
             .store(in: &cancellables)
 
-        observeNotices()
-            .sink { [weak self] news in
-                self?.news = news
+        observeSetting(.bagChangesSection)
+            .sink { [weak self] isOn in
+                self?.showsChanges = isOn
                 self?.render()
             }
             .store(in: &cancellables)
     }
 
-    /// Every product on screen: what is in the bag, and what the notices are about. The two are not
-    /// the same set — a notice that something has gone outlives the line it refers to, which is the
-    /// whole point of it — so a screen that keeps only what the bag holds cannot say what it was.
-    ///
-    /// The bag and the notices reach this screen on two publishers and land one after the other, so
-    /// there is a moment where a product has left the bag and its notice has not yet arrived.
-    /// Nothing is discarded on that edge; the set is only ever narrowed where both are settled.
-    private var productsOnScreen: Set<ProductID> {
-        Set(bag.items.map(\.id)).union(news.all.map(\.productId))
-    }
-
+    /// The one place the kept bag becomes the bag on screen. Before the shop has said anything
+    /// nothing was asked, so the two are the same bag and the rows do not wait for an answer.
     private func render() {
+        bag = kept.checked(against: shopSaid.products, asked: shopSaid.asked).bag
+
         rows = bag.items.map { item in
             BagRow(item: item, product: catalog[item.id])
         }
 
-        noticeSections = NoticeSection.readingOrder
-            .map { kind in NoticeSection(kind, rows: noticeRows(for: news.of(kind))) }
-            .filter { !$0.rows.isEmpty }
+        changes = showsChanges
+            ? changesOnArrival.map { BagChangeRow(change: $0, product: catalog[$0.productId]) }
+            : []
     }
 
-    private func noticeRows(for notices: [Notice]) -> [NoticeRow] {
-        notices.map { notice in
-            NoticeRow(notice: notice, product: catalog[notice.productId])
-        }
-    }
-
-    /// The whole bag, every time, not a page of it.
-    ///
-    /// Asking page by page meant the bag caught up page by page: prices settled and sold-out lines
-    /// left only once a shopper had scrolled far enough to ask about them, so the total moved under
-    /// them as they scrolled. A total that changes while you read it is not a total. What a bag is
-    /// worth is a fact about all of it, so all of it is what gets asked about.
-    ///
-    /// The use case does the asking now, and hands back what it was told — so this screen gets its
-    /// names and pictures out of the same reply that settled the prices, rather than making a
-    /// second round trip over the same ids to draw them.
     /// SwiftUI calls a button action synchronously, so a tap starts the ask and
     /// returns. The handle is what makes a fresh ask replace the one before it,
     /// and what lets a test wait for work a tap started rather than guess at it.
+    ///
+    /// What changed is not taken from this answer: the list is the one the visit began with.
     private func startAskingTheShop() {
         inFlight?.cancel()
         inFlight = Task { [weak self] in
             guard let self else { return }
-            await self.askTheShop()
+            let said = await self.checkBag()
+            guard !Task.isCancelled else { return }
+            self.learn(said)
         }
     }
 
-    private func askTheShop() async {
-        let onScreen = productsOnScreen
-        catalog = catalog.filter { onScreen.contains($0.key) }
+    /// The whole bag is asked about every time, not a page of it: what a bag is worth is a fact
+    /// about all of it. The use case does the asking and hands back what it was told, so this
+    /// screen gets its names and pictures out of the same reply that settled the prices.
+    ///
+    /// An answer to nothing teaches nothing. An empty bag asks nothing, and so does a shop that
+    /// could not be reached — and a dropped connection must not put back a line the shop had
+    /// already said was sold out. What was last known stands until there is a real answer.
+    private func learn(_ said: CheckedBag) {
+        if !said.asked.isEmpty {
+            shopSaid = said
+        }
 
-        guard !onScreen.isEmpty else { return }
-
-        let products = await refreshBag()
-        guard !Task.isCancelled else { return }
-
-        for product in products {
+        for product in said.products {
             catalog[product.id] = product
         }
+
+        /// Every product on screen: what is in the kept bag, and what the changes are about. The
+        /// two are not the same set — something sold out is listed after its line has gone.
+        let onScreen = Set(kept.items.map(\.id)).union(changesOnArrival.map(\.productId))
+        catalog = catalog.filter { onScreen.contains($0.key) }
 
         render()
         reportBagViewedIfDue()

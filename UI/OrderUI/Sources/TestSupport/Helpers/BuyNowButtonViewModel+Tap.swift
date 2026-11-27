@@ -1,11 +1,3 @@
-import ProductTestSupport
-import SnackbarUITestSupport
-import Bag
-import Money
-import Order
-import Product
-import AuthUI
-import SnackbarUI
 import Tracking
 @testable import OrderUI
 

@@ -25,9 +25,7 @@ struct ObserveOfferedSettingsUseCaseTests {
 
         #expect(recorder.latest.map(\.key) == [
             .pushNotifications,
-            .bagOutOfStockNotice,
-            .bagPriceIncreases,
-            .bagPriceDecreases
+            .bagChangesSection
         ])
         #expect(recorder.latest.first { $0.key == .pushNotifications }?.isOn == true)
     }

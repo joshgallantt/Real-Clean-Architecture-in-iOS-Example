@@ -54,8 +54,6 @@ let package = Package(
         .target(
             name: "AccountUITestSupport",
             dependencies: [
-                .product(name: "ProductTestSupport", package: "Product"),
-                .product(name: "SessionTestSupport", package: "Session"),
                 "AccountUI",
                 .product(name: "Session", package: "Session"),
             ],
@@ -66,7 +64,6 @@ let package = Package(
             dependencies: [
                 .product(name: "Tracking", package: "Tracking"),
                 .product(name: "TrackingTestSupport", package: "Tracking"),
-                .product(name: "ProductTestSupport", package: "Product"),
                 "AccountUITestSupport",
                 .product(name: "SessionTestSupport", package: "Session"),
                 "AccountUI",

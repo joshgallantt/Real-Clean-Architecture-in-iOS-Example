@@ -14,6 +14,7 @@ public struct SettingsDI {
     private let repository: SettingsRepository
 
     public let observeOfferedSettingsUseCase: ObserveOfferedSettingsUseCase
+    public let observeSettingUseCase: ObserveSettingUseCase
     public let setSettingUseCase: SetSettingUseCase
 
     @MainActor
@@ -38,6 +39,7 @@ public struct SettingsDI {
             repository: repository,
             observeSession: observeSession
         )
+        self.observeSettingUseCase = DefaultObserveSettingUseCase(repository: repository)
         self.setSettingUseCase = DefaultSetSettingUseCase(repository: repository, getSession: getSession)
     }
 }

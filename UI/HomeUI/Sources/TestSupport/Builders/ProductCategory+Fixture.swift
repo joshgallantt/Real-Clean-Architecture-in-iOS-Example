@@ -1,8 +1,4 @@
-import Money
 import Product
-import Home
-import ProductTestSupport
-@testable import HomeUI
 
 /// Test-fixture categories only — production code never extends a domain type (see
 /// `presentation-models-not-domain-extensions`), but a domain type inside a test fixture is fine.

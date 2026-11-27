@@ -69,7 +69,6 @@ let package = Package(
             name: "OrderUIAcceptanceTests",
             dependencies: [
                 .product(name: "Tracking", package: "Tracking"),
-                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "TrackingTestSupport", package: "Tracking"),
                 "OrderUITestSupport",
                 .product(name: "MoneyTestSupport", package: "Money"),
@@ -94,15 +93,7 @@ let package = Package(
             name: "OrderUITestSupport",
             dependencies: [
                 .product(name: "Tracking", package: "Tracking"),
-                .product(name: "ProductTestSupport", package: "Product"),
-                .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
-                "OrderUI",
-                .product(name: "Order", package: "Order"),
-                .product(name: "Bag", package: "Bag"),
-                .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money"),
-                .product(name: "AuthUI", package: "AuthUI"),
-                .product(name: "SnackbarUI", package: "SnackbarUI"),
+                "OrderUI"
             ],
             path: "Sources/TestSupport"
         ),
@@ -133,7 +124,6 @@ let package = Package(
             name: "OrderUISnapshotTests",
             dependencies: [
                 .product(name: "Tracking", package: "Tracking"),
-                .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "TrackingTestSupport", package: "Tracking"),
                 "OrderUI",
                 "OrderUITestSupport",

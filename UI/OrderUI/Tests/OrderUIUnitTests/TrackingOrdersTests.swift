@@ -45,14 +45,16 @@ struct TrackingOrdersTests {
         )
     }
 
-    /// `products` is what the bag screen can name when it is asked, as the app hands it over.
+    /// `items` is the bag as the bag screen is drawing it, and `products` is what that screen can
+    /// name when it is asked — both as the app hands them over.
     private func checkout(
         _ items: [BagItem],
         products: @escaping @MainActor () -> [ProductID: Product],
         placeOrder: SpyPlaceOrderUseCase
     ) -> CheckoutButtonViewModel {
-        let viewModel = CheckoutButtonViewModel(
-            observeBag: StubObserveBagUseCase(Bag(items: items)),
+        let bag = Bag(items: items)
+        return CheckoutButtonViewModel(
+            bag: { bag },
             placeOrder: placeOrder,
             setBagItem: setBagItem,
             authPresenter: SpyAuthPresenting(),
@@ -64,8 +66,6 @@ struct TrackingOrdersTests {
             trackElementInteraction: taps,
             trackEvent: reported
         )
-        viewModel.onAppear()
-        return viewModel
     }
 
     /// An order whose id the test can name, so the event that carries it can be compared whole.

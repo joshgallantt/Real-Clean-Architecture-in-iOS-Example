@@ -227,16 +227,16 @@ Each component has two test tiers. The acceptance tier speaks the shopper's lang
 
 **[`Component/Bag/Tests/BagAcceptanceTests/BeingToldWhatChangedTests.swift`](Component/Bag/Tests/BagAcceptanceTests/BeingToldWhatChangedTests.swift)**
 ```swift
-@Test("A shopper is told a price went up, and the bag is worth the new price")
+@Test("A shopper is told a price went up, and the bag they are shown is worth the new price")
 func priceWentUp() async {
     let shopper = Shopper()
     shopper.choose(productId: 1, atPrice: 9.99)
 
     shopper.theShopNowSells(shopSells(1, at: 12.99))
-    await shopper.comesBack()
+    await shopper.looks()
 
-    #expect(shopper.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
-    #expect(shopper.bag.total == usd(12.99))
+    #expect(shopper.shown.changes == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
+    #expect(shopper.shown.bag.total == usd(12.99))
 }
 ```
 

@@ -1,4 +1,3 @@
-import Money
 import Product
 
 /// One thing the shop has, said the way a shopper would describe finding it.

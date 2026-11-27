@@ -4,9 +4,8 @@ import ProductUI
 import Tracking
 import TrackingUI
 
-/// What a carousel's View All opens: the same products, all of them, in the grid every other
-/// full list in this app uses. It is one screen rather than two because the lists differ in their
-/// title and their empty state and in nothing else.
+/// What the faves row's View All opens: the same products, all of them, in the grid every other
+/// full list in this app uses.
 public struct SavedProductsListView: View {
     /// Owned, not observed. Unlike the tab's own screen — built once at startup and held — this is
     /// built by `makeView()` every time the navigation stack re-evaluates. Observing a view model

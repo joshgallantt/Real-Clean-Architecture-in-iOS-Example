@@ -1,10 +1,4 @@
-import SnackbarUITestSupport
 import Foundation
-import Money
-import Product
-import SearchHistory
-import SnackbarUI
-@testable import SearchUI
 
 @MainActor
 func waitUntil(_ isSatisfied: () -> Bool) async {

@@ -163,9 +163,9 @@
     {
       "parallelizable": true,
       "target": {
-        "containerPath": "container:Component/Waitlist",
-        "identifier": "WaitlistUnitTests",
-        "name": "WaitlistUnitTests"
+        "containerPath": "container:Component/StockAlert",
+        "identifier": "StockAlertUnitTests",
+        "name": "StockAlertUnitTests"
       }
     },
     {
@@ -182,6 +182,14 @@
         "containerPath": "container:Component/Wishlist",
         "identifier": "WishlistUnitTests",
         "name": "WishlistUnitTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/StockAlertUI",
+        "identifier": "StockAlertUIUnitTests",
+        "name": "StockAlertUIUnitTests"
       }
     }
   ],

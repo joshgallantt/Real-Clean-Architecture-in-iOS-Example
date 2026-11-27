@@ -3,12 +3,15 @@ import Combine
 import Foundation
 import ProductTestSupport
 import SessionTestSupport
+import SettingsTestSupport
 import SnackbarUITestSupport
 import Testing
 import Product
 import Tracking
 import TrackingTestSupport
 import TrackingUI
+import Wishlist
+import WishlistTestSupport
 @testable import WishlistUI
 @testable import WishlistUITestSupport
 
@@ -23,43 +26,28 @@ struct TrackingWishlistTests {
 
     private let tab = TrackingContext.screen("wishlist")
     private let faves = TrackingContext.List(id: "wishlist_faves", name: "My Faves")
-    private let waitlistList = TrackingContext.List(id: "wishlist_waitlist", name: "Waitlist")
+    private let navigation = SpyWishlistNavigation()
 
-    private func faves(
-        lookUp: SpyLookUpProductsUseCase,
-        opened: @escaping @MainActor (Product) -> Void
-    ) -> SavedProductsViewModel {
-        SavedProductsViewModel(
-            savedProductIds: StubObserveSavedProductIds([pid(1), pid(2)]).callAsFunction,
+    private func faves(lookUp: SpyLookUpProductsUseCase) -> SavedProductsViewModel {
+        let observeWishlist = StubObserveWishlistUseCase()
+        observeWishlist.send(.holding([pid(1), pid(2)]))
+        return SavedProductsViewModel(
+            observeWishlist: observeWishlist,
             lookUpProducts: lookUp,
+            setProductIsWishlisted: SpySetProductIsWishlistedUseCase(),
+            navigation: navigation,
             snackbar: SpySnackbarPresenting(),
-            couldNotLoad: "Faves Won't Load",
-            list: WishlistTrackingPlan.faves,
-            openProduct: opened,
             trackScreenView: screens,
             trackElementView: views,
-            trackElementInteraction: taps
-        )
-    }
-
-    private func waitlist(load: SpyGetAlertedProducts, opened: @escaping @MainActor (Product) -> Void) -> AlertedProductsViewModel {
-        AlertedProductsViewModel(
-            load: load.callAsFunction,
-            changes: StubObserveStockAlerts().callAsFunction,
-            clear: SpyClearTheList().callAsFunction,
-            snackbar: SpySnackbarPresenting(),
-            couldNotLoad: "Waitlist Won't Load",
-            list: WishlistTrackingPlan.waitlist,
-            openProduct: opened,
-            trackScreenView: screens,
-            trackElementView: views,
-            trackElementInteraction: taps
+            trackElementInteraction: taps,
+            pageSize: 30
         )
     }
 
     private func theTab(auth: SpyAuthPresenting) -> WishlistScreenViewModel {
         WishlistScreenViewModel(
             observeSession: SpyObserveSessionUseCase(),
+            observeSetting: StubObserveSettingUseCase(turnedOff: []),
             authPresenter: auth,
             trackScreenView: screens,
             trackElementInteraction: taps
@@ -75,7 +63,7 @@ struct TrackingWishlistTests {
 
     @Test("A full list coming into view is its own screen")
     func fullListView() {
-        faves(lookUp: SpyLookUpProductsUseCase(), opened: { _ in }).didAppear(in: .screen("wishlist_faves"))
+        faves(lookUp: SpyLookUpProductsUseCase()).didAppear(in: .screen("wishlist_faves"))
 
         #expect(screens.events == [TrackingEvent(name: .screenViewed, context: .screen("wishlist_faves"), items: [], properties: [:])])
     }
@@ -85,56 +73,36 @@ struct TrackingWishlistTests {
         let product = Product.fixture(id: 2)
         let where_ = TrackingContext.list("wishlist", faves, index: 1)
 
-        faves(lookUp: SpyLookUpProductsUseCase(), opened: { _ in }).didSee(product, in: where_)
+        faves(lookUp: SpyLookUpProductsUseCase()).didSee(product, in: where_)
 
         #expect(views.events == [TrackingEvent(name: .elementViewed, context: where_, items: [TrackedProduct.item(product)], properties: ["element": "product"])])
     }
 
-    @Test("A card tapped on the waitlist is a tap in the waitlist, and then opens the product")
+    @Test("A card tapped in My Faves is a tap in that list, and then opens the product")
     func cardTapped() {
-        let product = Product.fixture(id: 9, availability: .outOfStock)
-        let where_ = TrackingContext.list("wishlist", waitlistList, index: 0)
-        var opened: [ProductID] = []
+        let product = Product.fixture(id: 9)
+        let where_ = TrackingContext.list("wishlist", faves, index: 0)
 
-        waitlist(load: SpyGetAlertedProducts(), opened: { opened.append($0.id) }).didSelect(product, in: where_)
+        faves(lookUp: SpyLookUpProductsUseCase()).didSelect(product, in: where_)
 
         #expect(taps.events == [TrackingEvent(name: .elementSelected, context: where_, items: [TrackedProduct.item(product)], properties: ["element": "product"])])
-        #expect(opened == [product.id])
+        #expect(navigation.openedProducts.map(\.id) == [product.id])
     }
 
     @Test("View All says which list it opened")
     func viewAll() {
-        theTab(auth: SpyAuthPresenting()).didTapViewAll(WishlistTrackingPlan.backInStock, in: tab)
+        theTab(auth: SpyAuthPresenting()).didTapViewAllFaves(in: tab)
 
         #expect(taps.events == [
-            TrackingEvent(name: .elementSelected, context: tab, items: [.content(id: "wishlist_back_in_stock", name: "Back in Stock")], properties: ["element": "view_all"])
+            TrackingEvent(name: .elementSelected, context: tab, items: [.content(id: "wishlist_faves", name: "My Faves")], properties: ["element": "view_all"])
         ])
-    }
-
-    @Test("Confirming Clear is a tap about the list being emptied")
-    func clearConfirmed() async {
-        let load = SpyGetAlertedProducts()
-        load.result = .success([.fixture(id: 1, availability: .outOfStock)])
-        let viewModel = waitlist(load: load, opened: { _ in })
-        await viewModel.onAppear(in: tab)
-
-        viewModel.didConfirmClear(in: tab)
-
-        #expect(taps.events == [TrackingEvent(name: .elementSelected, context: tab, items: [.content(id: "wishlist_waitlist", name: "Waitlist")], properties: ["element": "clear"])])
-    }
-
-    @Test("Clearing a list that is already empty is not reported, because nothing was cleared")
-    func clearingNothing() {
-        waitlist(load: SpyGetAlertedProducts(), opened: { _ in }).didConfirmClear(in: tab)
-
-        #expect(taps.events.isEmpty)
     }
 
     @Test("A list that will not load says so, and the snackbar saying it is seen where the list was")
     func snackbarSeen() async {
         let lookUp = SpyLookUpProductsUseCase()
         lookUp.result = .failure(.unavailable)
-        let viewModel = faves(lookUp: lookUp, opened: { _ in })
+        let viewModel = faves(lookUp: lookUp)
 
         viewModel.onAppear(in: tab)
         await viewModel.inFlight?.value

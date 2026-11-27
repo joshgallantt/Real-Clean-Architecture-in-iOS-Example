@@ -11,9 +11,7 @@ struct ChangingASettingTests {
         "Turning a setting changes only that one setting",
         arguments: [
             SettingKey.pushNotifications,
-            .bagOutOfStockNotice,
-            .bagPriceIncreases,
-            .bagPriceDecreases
+            .bagChangesSection
         ]
     )
     func changingOneLeavesTheRest(_ key: SettingKey) async {

@@ -8,11 +8,8 @@ struct SettingKeyTests {
         "Each key belongs to exactly one section",
         arguments: [
             (SettingKey.pushNotifications, SettingsSection.notifications),
-            (.bagOutOfStockNotice, .bag),
-            (.bagPriceIncreases, .bag),
-            (.bagPriceDecreases, .bag),
-            (.favoritesWaitlistSection, .favorites),
-            (.favoritesBackInStockSection, .favorites)
+            (.bagChangesSection, .bag),
+            (.favoritesStockAlertsSection, .favorites)
         ] as [(SettingKey, SettingsSection)]
     )
     func section(_ example: (SettingKey, SettingsSection)) {

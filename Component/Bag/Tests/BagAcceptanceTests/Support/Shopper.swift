@@ -29,8 +29,12 @@ final class Shopper {
     /// over HTTP. Everything else in this driver is the real thing.
     let shop = FakeLookUpProductsUseCase()
 
+    /// The bag as it is kept, which is the bag as they last saw it.
     private(set) var bag = Bag()
-    private(set) var news = Notices()
+
+    /// What they were shown the last time they looked: the bag as it truthfully was, and what had
+    /// changed about it. Nothing, until they look.
+    private(set) var shown = Bag().checked(against: [], asked: [])
 
     init(in directory: URL = .newTemporaryDirectory, signedInAs userId: Int? = nil) {
         self.directory = directory
@@ -44,10 +48,6 @@ final class Shopper {
 
         di.observeBagUseCase()
             .sink { [weak self] in self?.bag = $0 }
-            .store(in: &cancellables)
-
-        di.observeNoticesUseCase()
-            .sink { [weak self] in self?.news = $0 }
             .store(in: &cancellables)
     }
 
@@ -72,10 +72,6 @@ final class Shopper {
         di.setBagItemUseCase(line.withQuantity(quantity))
     }
 
-    func seen(productId: Int) {
-        di.acknowledgeNoticesUseCase(aboutProductId: pid(productId))
-    }
-
     func signIn(asUserId userId: Int) {
         sessions.send(Self.session(forUserId: userId))
     }
@@ -92,16 +88,31 @@ final class Shopper {
         shop.stock = products
     }
 
-    /// The shopper looks again, and the bag catches up with whatever the shop is saying today.
-    func comesBack() async {
-        await di.refreshBagUseCase()
+    /// The shopper looks in their bag, and is shown it as the shop says it is today.
+    func looks() async {
+        shown = await di.checkBagUseCase()
     }
 
-    /// The shop could not be reached at all. Nothing was learned, so nothing may be concluded.
-    func theShopCannotBeReached() async {
+    /// They look, and the shop could not be reached at all. Nothing was learned, so nothing may be
+    /// concluded.
+    func looksWhileTheShopCannotBeReached() async {
         shop.cannotBeReached = true
-        await di.refreshBagUseCase()
+        await looks()
         shop.cannotBeReached = false
+    }
+
+    /// The shopper leaves the bag, and it is kept as they just saw it — which is what makes
+    /// everything they were told old news.
+    func leaves() {
+        for line in bag.lines(toBecome: shown.bag) {
+            di.setBagItemUseCase(line)
+        }
+    }
+
+    /// Looked and left: the whole of a visit to the bag.
+    func visits() async {
+        await looks()
+        leaves()
     }
 
     // MARK: - Leaving and coming back
@@ -116,7 +127,7 @@ final class Shopper {
 
     func writesToSettle() async {
         let onDisk = FileBagStore(directory: directory)
-        for _ in 0..<100 where onDisk.getBag(for: sessions.value).bag != bag {
+        for _ in 0..<100 where onDisk.getBag(for: sessions.value) != bag {
             try? await Task.sleep(for: .milliseconds(10))
         }
     }

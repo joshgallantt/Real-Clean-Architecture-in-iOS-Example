@@ -6,7 +6,6 @@ import SnapshotTesting
 import SwiftUI
 import Testing
 import Tracking
-import TrackingUI
 import TrackingTestSupport
 @testable import OrderUI
 

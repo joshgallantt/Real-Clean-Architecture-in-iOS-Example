@@ -1,7 +1,6 @@
 import Foundation
 import Testing
 import Settings
-@testable import SettingsUI
 
 @MainActor
 @Suite("Turning a toggle")
@@ -23,13 +22,13 @@ struct TurningAToggleTests {
     func togglingOneLeavesTheRest() async {
         let shopper = Shopper(signedIn: true)
         shopper.opensScreen()
-        let others = SettingKey.allCases.filter { $0 != .bagPriceIncreases }
+        let others = SettingKey.allCases.filter { $0 != .bagChangesSection }
         let before = others.map { shopper.isOn($0) }
 
-        shopper.toggles(.bagPriceIncreases, to: false)
+        shopper.toggles(.bagChangesSection, to: false)
         await shopper.settle()
 
         #expect(others.map { shopper.isOn($0) } == before)
-        #expect(shopper.isOn(.bagPriceIncreases) == false)
+        #expect(shopper.isOn(.bagChangesSection) == false)
     }
 }

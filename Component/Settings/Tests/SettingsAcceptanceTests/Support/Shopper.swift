@@ -40,12 +40,21 @@ final class Shopper {
     // MARK: - What the shopper sees
 
     /// `nil` when they are not offered it at all, which is a different answer from off. A guest is
-    /// not shown the favorites settings, so there is no value for them to be shown.
+    /// not shown the favorites setting, so there is no value for them to be shown.
     func isOn(_ key: SettingKey) -> Bool? {
         offered.first { $0.key == key }?.isOn
     }
 
-    var keysOffered: [SettingKey] { offered.map(\.key) }
+    /// Whether a screen that asks about one setting is told it is on — which is what decides
+    /// whether the section the setting names is drawn.
+    func sees(_ key: SettingKey) -> Bool {
+        var answer = false
+        di.observeSettingUseCase(key)
+            .first()
+            .sink { answer = $0 }
+            .store(in: &cancellables)
+        return answer
+    }
 
     // MARK: - What a shopper does
 

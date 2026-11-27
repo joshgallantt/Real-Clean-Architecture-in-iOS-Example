@@ -49,10 +49,10 @@ struct SettingsBelongToWhoeverIsSignedInTests {
         shopper.signIn(asUserId: 42)
         #expect(shopper.isOn(.pushNotifications) == false)
 
-        await shopper.turn(.bagPriceIncreases, false)
+        await shopper.turn(.bagChangesSection, false)
         shopper.signOut()
 
         #expect(shopper.isOn(.pushNotifications) == true)
-        #expect(shopper.isOn(.bagPriceIncreases) == true)
+        #expect(shopper.isOn(.bagChangesSection) == true)
     }
 }

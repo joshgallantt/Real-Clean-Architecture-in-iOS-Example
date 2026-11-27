@@ -2,28 +2,27 @@ import AuthUITestSupport
 import Foundation
 import ProductTestSupport
 import SnackbarUITestSupport
-import WaitlistTestSupport
+import StockAlertTestSupport
 import Testing
 import Tracking
 import TrackingTestSupport
 import Product
 @testable import ProductActionsUI
-@testable import ProductActionsUITestSupport
 
 @MainActor
 @Suite("The stock alert bell")
 struct StockAlertButtonViewModelTests {
     private func makeViewModel(
         product: Product = .fixture(id: 1),
-        observeProductIsWaitlisted: StubObserveProductIsWaitlistedUseCase = StubObserveProductIsWaitlistedUseCase(),
-        setProductIsWaitlisted: SpySetProductIsWaitlistedUseCase = SpySetProductIsWaitlistedUseCase(),
+        observeProductHasStockAlert: StubObserveProductHasStockAlertUseCase = StubObserveProductHasStockAlertUseCase(),
+        setProductStockAlert: SpySetProductStockAlertUseCase = SpySetProductStockAlertUseCase(),
         authPresenter: SpyAuthPresenting = SpyAuthPresenting(),
         snackbarPresenter: SpySnackbarPresenting = SpySnackbarPresenting()
     ) -> StockAlertButtonViewModel {
         let viewModel = StockAlertButtonViewModel(
             product: product,
-            observeProductIsWaitlisted: observeProductIsWaitlisted,
-            setProductIsWaitlisted: setProductIsWaitlisted,
+            observeProductHasStockAlert: observeProductHasStockAlert,
+            setProductStockAlert: setProductStockAlert,
             authPresenter: authPresenter,
             snackbarPresenter: snackbarPresenter,
             trackScreenView: SpyTrackScreenViewUseCase(),
@@ -38,83 +37,83 @@ struct StockAlertButtonViewModelTests {
 
     @Test("Whether the bell shows waiting follows what the use case already says")
     func isWaitingFollowsTheUseCase() {
-        let viewModel = makeViewModel(observeProductIsWaitlisted: StubObserveProductIsWaitlistedUseCase(true))
+        let viewModel = makeViewModel(observeProductHasStockAlert: StubObserveProductHasStockAlertUseCase(true))
 
         #expect(viewModel.isWaiting)
     }
 
     @Test("Tapping while not on the list asks to be put on it")
     func tapWhenNotWaitingAsksToBeAdded() async {
-        let setProductIsWaitlisted = SpySetProductIsWaitlistedUseCase()
+        let setProductStockAlert = SpySetProductStockAlertUseCase()
         let viewModel = makeViewModel(
             product: .fixture(id: 1),
-            observeProductIsWaitlisted: StubObserveProductIsWaitlistedUseCase(false),
-            setProductIsWaitlisted: setProductIsWaitlisted
+            observeProductHasStockAlert: StubObserveProductHasStockAlertUseCase(false),
+            setProductStockAlert: setProductStockAlert
         )
 
         viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
-        #expect(setProductIsWaitlisted.calls.map(\.productId) == [pid(1)])
-        #expect(setProductIsWaitlisted.calls.map(\.isWaitlisted) == [true])
+        #expect(setProductStockAlert.calls.map(\.productId) == [pid(1)])
+        #expect(setProductStockAlert.calls.map(\.isOn) == [true])
     }
 
     @Test("Tapping while already on the list asks to come off it")
     func tapWhenWaitingAsksToBeRemoved() async {
-        let setProductIsWaitlisted = SpySetProductIsWaitlistedUseCase()
-        let viewModel = makeViewModel(observeProductIsWaitlisted: StubObserveProductIsWaitlistedUseCase(true), setProductIsWaitlisted: setProductIsWaitlisted)
+        let setProductStockAlert = SpySetProductStockAlertUseCase()
+        let viewModel = makeViewModel(observeProductHasStockAlert: StubObserveProductHasStockAlertUseCase(true), setProductStockAlert: setProductStockAlert)
 
         viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
-        #expect(setProductIsWaitlisted.calls.map(\.isWaitlisted) == [false])
+        #expect(setProductStockAlert.calls.map(\.isOn) == [false])
     }
 
     @Test("Two taps in a row are two decisions, so it ends where it started")
     func tappingTwiceEndsWhereItStarted() async {
-        let observeProductIsWaitlisted = StubObserveProductIsWaitlistedUseCase(false)
-        let setProductIsWaitlisted = SpySetProductIsWaitlistedUseCase()
-        setProductIsWaitlisted.onSuccess = { observeProductIsWaitlisted.send($0) }
+        let observeProductHasStockAlert = StubObserveProductHasStockAlertUseCase(false)
+        let setProductStockAlert = SpySetProductStockAlertUseCase()
+        setProductStockAlert.onSuccess = { observeProductHasStockAlert.send($0) }
         let viewModel = makeViewModel(
-            observeProductIsWaitlisted: observeProductIsWaitlisted,
-            setProductIsWaitlisted: setProductIsWaitlisted
+            observeProductHasStockAlert: observeProductHasStockAlert,
+            setProductStockAlert: setProductStockAlert
         )
 
         viewModel.didTap(in: .screen("product_details"))
         viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
-        #expect(setProductIsWaitlisted.calls.map(\.isWaitlisted) == [true, false])
+        #expect(setProductStockAlert.calls.map(\.isOn) == [true, false])
         #expect(viewModel.isWaiting == false)
     }
 
     @Test("Removing waits its turn, and still takes it off whatever the bell says")
     func removeAfterATapStillTurnsItOff() async {
-        let observeProductIsWaitlisted = StubObserveProductIsWaitlistedUseCase(false)
-        let setProductIsWaitlisted = SpySetProductIsWaitlistedUseCase()
-        setProductIsWaitlisted.onSuccess = { observeProductIsWaitlisted.send($0) }
+        let observeProductHasStockAlert = StubObserveProductHasStockAlertUseCase(false)
+        let setProductStockAlert = SpySetProductStockAlertUseCase()
+        setProductStockAlert.onSuccess = { observeProductHasStockAlert.send($0) }
         let viewModel = makeViewModel(
-            observeProductIsWaitlisted: observeProductIsWaitlisted,
-            setProductIsWaitlisted: setProductIsWaitlisted
+            observeProductHasStockAlert: observeProductHasStockAlert,
+            setProductStockAlert: setProductStockAlert
         )
 
         viewModel.didTap(in: .screen("product_details"))
         viewModel.didTapRemove(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
-        #expect(setProductIsWaitlisted.calls.map(\.isWaitlisted) == [true, false])
+        #expect(setProductStockAlert.calls.map(\.isOn) == [true, false])
         #expect(viewModel.isWaiting == false)
     }
 
     @Test("Removing always takes it off the list, whatever the bell currently says")
     func didTapRemoveAlwaysTurnsItOff() async {
-        let setProductIsWaitlisted = SpySetProductIsWaitlistedUseCase()
-        let viewModel = makeViewModel(observeProductIsWaitlisted: StubObserveProductIsWaitlistedUseCase(false), setProductIsWaitlisted: setProductIsWaitlisted)
+        let setProductStockAlert = SpySetProductStockAlertUseCase()
+        let viewModel = makeViewModel(observeProductHasStockAlert: StubObserveProductHasStockAlertUseCase(false), setProductStockAlert: setProductStockAlert)
 
         viewModel.didTapRemove(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
-        #expect(setProductIsWaitlisted.calls.map(\.isWaitlisted) == [false])
+        #expect(setProductStockAlert.calls.map(\.isOn) == [false])
     }
 
     @Test("Success is confirmed with a snackbar")
@@ -130,33 +129,33 @@ struct StockAlertButtonViewModelTests {
 
     @Test("A guest is asked to sign in, and the ask resumes once they have")
     func guestIsAskedThenResumes() async {
-        let setProductIsWaitlisted = SpySetProductIsWaitlistedUseCase()
-        setProductIsWaitlisted.result = .failure(.unauthenticated)
-        let authPresenter = SpyAuthPresenting(onSignIn: { setProductIsWaitlisted.result = .success(()) })
+        let setProductStockAlert = SpySetProductStockAlertUseCase()
+        setProductStockAlert.result = .failure(.unauthenticated)
+        let authPresenter = SpyAuthPresenting(onSignIn: { setProductStockAlert.result = .success(()) })
         authPresenter.signsIn = true
-        let viewModel = makeViewModel(setProductIsWaitlisted: setProductIsWaitlisted, authPresenter: authPresenter)
+        let viewModel = makeViewModel(setProductStockAlert: setProductStockAlert, authPresenter: authPresenter)
 
         viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
         #expect(authPresenter.timesAsked == 1)
-        #expect(setProductIsWaitlisted.calls.count == 2)
-        #expect(setProductIsWaitlisted.calls.map(\.isWaitlisted) == [true, true])
+        #expect(setProductStockAlert.calls.count == 2)
+        #expect(setProductStockAlert.calls.map(\.isOn) == [true, true])
     }
 
     @Test("A guest who backs out is not left thinking they are on the list")
     func guestWhoBacksOutIsNotOnTheList() async {
-        let setProductIsWaitlisted = SpySetProductIsWaitlistedUseCase()
-        setProductIsWaitlisted.result = .failure(.unauthenticated)
+        let setProductStockAlert = SpySetProductStockAlertUseCase()
+        setProductStockAlert.result = .failure(.unauthenticated)
         let authPresenter = SpyAuthPresenting()
         authPresenter.signsIn = false
         let snackbarPresenter = SpySnackbarPresenting()
-        let viewModel = makeViewModel(setProductIsWaitlisted: setProductIsWaitlisted, authPresenter: authPresenter, snackbarPresenter: snackbarPresenter)
+        let viewModel = makeViewModel(setProductStockAlert: setProductStockAlert, authPresenter: authPresenter, snackbarPresenter: snackbarPresenter)
 
         viewModel.didTap(in: .screen("product_details"))
         await viewModel.inFlight?.value
 
-        #expect(setProductIsWaitlisted.calls.count == 1)
+        #expect(setProductStockAlert.calls.count == 1)
         #expect(snackbarPresenter.shown.isEmpty)
     }
 }

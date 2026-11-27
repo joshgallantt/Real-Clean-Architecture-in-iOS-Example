@@ -1,7 +1,6 @@
 import Foundation
 import Testing
 import Settings
-@testable import SettingsUI
 
 @MainActor
 @Suite("The screen reacts the instant the session changes")
@@ -16,12 +15,12 @@ struct TheScreenReactsToSessionChangesTests {
         let shopper = Shopper()
         shopper.opensScreen()
         #expect(shopper.sectionsShown == ["Notifications", "Bag"])
-        #expect(shopper.isOn(.favoritesWaitlistSection) == nil)
+        #expect(shopper.isOn(.favoritesStockAlertsSection) == nil)
 
-        shopper.signIn(settings: Settings([.favoritesWaitlistSection: false]))
+        shopper.signIn(settings: Settings([.favoritesStockAlertsSection: false]))
 
         #expect(shopper.sectionsShown == ["Notifications", "Bag", "Favorites"])
-        #expect(shopper.isOn(.favoritesWaitlistSection) == false)
+        #expect(shopper.isOn(.favoritesStockAlertsSection) == false)
     }
 
     // SettingsMenu-20: Signing out while the screen is open makes Favorites disappear immediately,
@@ -35,7 +34,7 @@ struct TheScreenReactsToSessionChangesTests {
         shopper.signOut(settings: Settings([.pushNotifications: false]))
 
         #expect(shopper.sectionsShown == ["Notifications", "Bag"])
-        #expect(shopper.isOn(.favoritesWaitlistSection) == nil)
+        #expect(shopper.isOn(.favoritesStockAlertsSection) == nil)
         #expect(shopper.isOn(.pushNotifications) == false)
     }
 }

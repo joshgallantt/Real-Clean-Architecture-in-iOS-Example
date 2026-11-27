@@ -5,16 +5,15 @@ import Foundation
 import Tracking
 import TrackingTestSupport
 import Bag
-import Money
 import Product
 import ProductTestSupport
 import Session
 import SessionTestSupport
-import Waitlist
+import StockAlert
 import AuthUI
 import SnackbarUI
 import SnackbarUITestSupport
-import WaitlistTestSupport
+import StockAlertTestSupport
 @testable import ProductActionsUITestSupport
 @testable import ProductActionsUI
 
@@ -26,7 +25,7 @@ final class AProduct {
     let product: Product
 
     private let bagRepository = FakeBagRepository()
-    private let waitlistRepository = FakeWaitlistRepository()
+    private let stockAlertRepository = FakeStockAlertRepository()
     private let session: StubGetSessionUseCase
     private let auth = SpyAuthPresenting()
     private let snackbars = SpySnackbarPresenting()
@@ -41,14 +40,8 @@ final class AProduct {
 
     var snackbarTitles: [String] { snackbars.shown.map(\.title) }
     var bagContains: [ProductID] { bagRepository.bag.items.map(\.id) }
-    var waitingFor: [ProductID] { waitlistRepository.waitlist.items.map(\.productId) }
+    var waitingFor: [ProductID] { stockAlertRepository.stockAlerts.items.map(\.productId) }
     var wasAskedToSignIn: Bool { auth.wasAsked }
-
-    /// The shopper signs in when the sheet asks them to, rather than dismissing it.
-    func willSignInWhenAsked() {
-        auth.signsIn = true
-        auth.onShown = { [session] in session.send(Self.shopper) }
-    }
 
     // MARK: - The buttons, built the way the app builds them
 
@@ -72,9 +65,9 @@ final class AProduct {
     func stockAlertButton() -> StockAlertButtonViewModel {
         let button = StockAlertButtonViewModel(
             product: product,
-            observeProductIsWaitlisted: DefaultObserveProductIsWaitlistedUseCase(repository: waitlistRepository),
-            setProductIsWaitlisted: DefaultSetProductIsWaitlistedUseCase(
-                repository: waitlistRepository,
+            observeProductHasStockAlert: DefaultObserveProductHasStockAlertUseCase(repository: stockAlertRepository),
+            setProductStockAlert: DefaultSetProductStockAlertUseCase(
+                repository: stockAlertRepository,
                 getSession: session
             ),
             authPresenter: auth,

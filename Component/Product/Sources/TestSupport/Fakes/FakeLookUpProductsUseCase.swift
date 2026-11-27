@@ -5,7 +5,7 @@ import Synchronization
 /// A shop with stock, which can be made to run out of a thing or to be
 /// unreachable altogether.
 ///
-/// One stub for Bag, Waitlist and Wishlist. There had been two — a
+/// One stub for Bag, StockAlert and Wishlist. There had been two — a
 /// `FakeLookUpProductsUseCase` handed its products and a `FakeLookUpProductsUseCase` that made them up from the
 /// ids it was told it sells — with the same lock, the same `cannotBeReached`,
 /// the same record of what it was asked and the same filtering. `stock` and
@@ -40,8 +40,9 @@ public final class FakeLookUpProductsUseCase: LookUpProductsUseCase {
         set { state.withLock { $0.cannotBeReached = newValue } }
     }
 
-    /// What it has run out of. A shopper's two alert lists are told apart by
-    /// exactly this, so it is a fact about the stock rather than a second shop.
+    /// What it has run out of. Which of a shopper's stock alerts have come back
+    /// is told by exactly this, so it is a fact about the stock rather than a
+    /// second shop.
     public var soldOut: Set<ProductID> {
         get { state.withLock { $0.soldOut } }
         set { state.withLock { $0.soldOut = newValue } }

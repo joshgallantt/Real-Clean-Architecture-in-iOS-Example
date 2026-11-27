@@ -1,5 +1,3 @@
-import ProductTestSupport
-@testable import AuthUITestSupport
 import Foundation
 import SessionTestSupport
 import Testing

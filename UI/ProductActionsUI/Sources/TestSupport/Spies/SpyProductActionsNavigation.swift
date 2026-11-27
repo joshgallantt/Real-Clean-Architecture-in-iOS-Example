@@ -1,11 +1,3 @@
-import SnackbarUITestSupport
-import Bag
-import Money
-import Product
-import Waitlist
-import Wishlist
-import AuthUI
-import SnackbarUI
 @testable import ProductActionsUI
 
 @MainActor

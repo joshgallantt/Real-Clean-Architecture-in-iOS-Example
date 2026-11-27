@@ -1,4 +1,3 @@
-import Product
 
 /// Martin, *Clean Architecture* (2017), Ch. 20 — Business Rules: an application-specific rule, named
 /// for what a shopper's Home does once per visit — draw a feed.

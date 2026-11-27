@@ -1,0 +1,12 @@
+# Dead-code scan. Run by Scripts/dead-code.sh, which the pre-commit hook calls.
+# It reads the index the last build wrote rather than building again, so run
+# Scripts/test.sh (or --build) first if you have changed code since.
+project: CleanArchitecture.xcodeproj
+schemes:
+  - iPhone
+skip_build: true
+index_store_path:
+  - .build/dd/Index.noindex/DataStore
+relative_results: true
+disable_update_check: true
+strict: true

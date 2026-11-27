@@ -1,9 +1,7 @@
 import MoneyTestSupport
 import Foundation
-import ProductTestSupport
 import Testing
 import Money
-import Product
 @testable import Order
 
 @Suite("Order")

@@ -18,8 +18,8 @@ func theSettingsScreenListsEverySetting() {
         viewModel: SettingsScreenViewModel(
             observeOfferedSettings: SpyObserveOfferedSettingsUseCase([
                 Setting(key: .pushNotifications, isOn: true),
-                Setting(key: .bagOutOfStockNotice, isOn: false),
-                Setting(key: .bagPriceDecreases, isOn: true)
+                Setting(key: .bagChangesSection, isOn: false),
+                Setting(key: .favoritesStockAlertsSection, isOn: true)
             ]),
             setSetting: SpySetSettingUseCase(),
             trackScreenView: SpyTrackScreenViewUseCase(),

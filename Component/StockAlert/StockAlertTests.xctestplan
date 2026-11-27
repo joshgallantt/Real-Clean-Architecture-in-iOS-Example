@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "3739E4D7-A1DB-2758-C7F8-5D62C10DBC4B",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/StockAlert",
+        "identifier": "StockAlertAcceptanceTests",
+        "name": "StockAlertAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:Component/StockAlert",
+        "identifier": "StockAlertUnitTests",
+        "name": "StockAlertUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

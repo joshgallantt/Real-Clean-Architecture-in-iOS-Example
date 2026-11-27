@@ -35,13 +35,13 @@ nonisolated struct DemoShop: Sendable {
     /// with the bag it filled last time, and a bag is only worth looking at when it disagrees:
     /// prices move, things sell out, and things stop being sold *between* one visit and the next.
     /// So the bag's before is what a shopper paid, which is on disk, and the after is this — and
-    /// nothing has to be told a different story to make a notice appear.
+    /// nothing has to be told a different story to make a change appear.
     ///
     /// One step per visit, not a number drawn at random. Look at the wheel below and every mood
-    /// steps somewhere useful: both sold-out slots land on an in-stock one, so anything waitlisted
-    /// last visit is *guaranteed* back this visit rather than back if the dice agreed. A random
-    /// offset made the waitlist demo a coin flip, and a demo nobody can rely on seeing is one that
-    /// gets called broken.
+    /// steps somewhere useful: both sold-out slots land on an in-stock one, so anything with a
+    /// stock alert on it last visit is *guaranteed* back this visit rather than back if the dice
+    /// agreed. A random offset made the stock alert demo a coin flip, and a demo nobody can rely on
+    /// seeing is one that gets called broken.
     let offset: Int
 
     init(offset: Int) {

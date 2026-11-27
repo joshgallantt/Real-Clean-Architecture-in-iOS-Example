@@ -1,13 +1,13 @@
-import Combine
 import SwiftUI
 import Product
 import Session
-import Waitlist
+import Settings
 import Wishlist
 import AuthUI
 import SnackbarUI
 import WishlistUI
 import ProductActionsUIDI
+import StockAlertUIDI
 import Tracking
 import TrackingUI
 
@@ -21,16 +21,19 @@ import TrackingUI
 public struct WishlistUIDI {
     private let navigation: WishlistNavigation
     private let observeWishlist: ObserveWishlistUseCase
-    private let observeWaitlist: ObserveWaitlistUseCase
-    private let getStillSoldOutProducts: GetStillSoldOutProductsUseCase
-    private let getBackInStockProducts: GetBackInStockProductsUseCase
-    private let setProductIsWaitlisted: SetProductIsWaitlistedUseCase
     private let setProductIsWishlisted: SetProductIsWishlistedUseCase
     private let lookUpProducts: LookUpProductsUseCase
     private let observeSession: ObserveSessionUseCase
+    private let observeSetting: ObserveSettingUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private let productActionsUIDI: ProductActionsUIDI
+
+    /// The peer container itself, rather than a finished `AnyView` from the composition root: the
+    /// tab shows the shopper's stock alerts above the faves, and `Package.swift` breaks if that
+    /// stops being true. Its use cases stay behind it — nothing of the stock alert domain reaches
+    /// here.
+    private let stockAlertUIDI: StockAlertUIDI
     private let trackScreenView: TrackScreenViewUseCase
     private let trackElementView: TrackElementViewUseCase
     private let trackElementInteraction: TrackElementInteractionUseCase
@@ -38,32 +41,28 @@ public struct WishlistUIDI {
     public init(
         navigation: WishlistNavigation,
         observeWishlist: ObserveWishlistUseCase,
-        observeWaitlist: ObserveWaitlistUseCase,
-        getStillSoldOutProducts: GetStillSoldOutProductsUseCase,
-        getBackInStockProducts: GetBackInStockProductsUseCase,
-        setProductIsWaitlisted: SetProductIsWaitlistedUseCase,
         setProductIsWishlisted: SetProductIsWishlistedUseCase,
         lookUpProducts: LookUpProductsUseCase,
         observeSession: ObserveSessionUseCase,
+        observeSetting: ObserveSettingUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
         productActionsUIDI: ProductActionsUIDI,
+        stockAlertUIDI: StockAlertUIDI,
         trackScreenView: TrackScreenViewUseCase,
         trackElementView: TrackElementViewUseCase,
         trackElementInteraction: TrackElementInteractionUseCase
     ) {
         self.navigation = navigation
         self.observeWishlist = observeWishlist
-        self.observeWaitlist = observeWaitlist
-        self.getStillSoldOutProducts = getStillSoldOutProducts
-        self.getBackInStockProducts = getBackInStockProducts
-        self.setProductIsWaitlisted = setProductIsWaitlisted
         self.setProductIsWishlisted = setProductIsWishlisted
         self.lookUpProducts = lookUpProducts
         self.observeSession = observeSession
+        self.observeSetting = observeSetting
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
         self.productActionsUIDI = productActionsUIDI
+        self.stockAlertUIDI = stockAlertUIDI
         self.trackScreenView = trackScreenView
         self.trackElementView = trackElementView
         self.trackElementInteraction = trackElementInteraction
@@ -81,16 +80,14 @@ public struct WishlistUIDI {
         WishlistScreenView(
             session: WishlistScreenViewModel(
                 observeSession: observeSession,
+                observeSetting: observeSetting,
                 authPresenter: authPresenter,
                 trackScreenView: trackScreenView,
                 trackElementInteraction: trackElementInteraction
             ),
             faves: favesViewModel(),
-            waitlist: waitlistViewModel(),
-            backInStock: backInStockViewModel(),
             navigation: navigation,
-            waitlistAccessories: waitlistAccessories(),
-            backInStockAccessories: backInStockAccessories(),
+            stockAlertSection: AnyView(stockAlertUIDI.sectionView()),
             favesAccessories: favesAccessories()
         )
         .trackingScreen(WishlistTrackingPlan.screen)
@@ -108,88 +105,13 @@ public struct WishlistUIDI {
         .trackingScreen(WishlistTrackingPlan.favesScreen)
     }
 
-    @MainActor
-    public func allWaitlistView() -> some View {
-        alertedList(
-            viewModel: waitlistViewModel(),
-            accessories: waitlistAccessories(),
-            listContext: WishlistTrackingPlan.waitlist,
-            title: "Waitlist",
-            emptyTitle: "Nothing to Wait For",
-            emptyIcon: "bell",
-            emptyMessage: "Hit the bell on anything sold out and it waits here."
-        )
-        .trackingScreen(WishlistTrackingPlan.waitlistScreen)
-    }
-
-    @MainActor
-    public func allBackInStockView() -> some View {
-        alertedList(
-            viewModel: backInStockViewModel(),
-            accessories: backInStockAccessories(),
-            listContext: WishlistTrackingPlan.backInStock,
-            title: "Back in Stock",
-            emptyTitle: "Nothing Back Yet",
-            emptyIcon: "sparkles",
-            emptyMessage: "Anything you're waiting on lands here the second it's back."
-        )
-        .trackingScreen(WishlistTrackingPlan.backInStockScreen)
-    }
-
     // MARK: -
-
-    /// A waitlist card is out of stock, so there is nothing to put in a bag from it. All it offers
-    /// is taking it off the list.
-    @MainActor
-    private func waitlistAccessories() -> (leading: (Product) -> AnyView, trailing: (Product) -> AnyView) {
-        (
-            leading: { _ in AnyView(EmptyView()) },
-            trailing: { product in AnyView(self.removeFromWaitlistButton(product: product)) }
-        )
-    }
-
-    /// Back in stock, so the bag button is the point of it — and the minus sits where the minus
-    /// sits on the list above, because it means the same thing in both.
-    @MainActor
-    private func backInStockAccessories() -> (leading: (Product) -> AnyView, trailing: (Product) -> AnyView) {
-        (
-            leading: { product in AnyView(self.productActionsUIDI.cardActionButton(product: product)) },
-            trailing: { product in AnyView(self.removeFromWaitlistButton(product: product)) }
-        )
-    }
 
     @MainActor
     private func favesAccessories() -> (leading: (Product) -> AnyView, trailing: (Product) -> AnyView) {
         (
             leading: { product in AnyView(self.productActionsUIDI.cardActionButton(product: product)) },
             trailing: { product in AnyView(self.button(product: product)) }
-        )
-    }
-
-    @MainActor
-    private func removeFromWaitlistButton(product: Product) -> some View {
-        productActionsUIDI.removeFromWaitlistButton(product: product)
-    }
-
-    @MainActor
-    private func alertedList(
-        viewModel: @autoclosure @escaping () -> AlertedProductsViewModel,
-        accessories: (leading: (Product) -> AnyView, trailing: (Product) -> AnyView),
-        listContext: TrackingContext.List,
-        title: String,
-        emptyTitle: String,
-        emptyIcon: String,
-        emptyMessage: String
-    ) -> some View {
-        AlertedProductsListView(
-            viewModel: viewModel(),
-            title: title,
-            emptyTitle: emptyTitle,
-            emptyIcon: emptyIcon,
-            emptyMessage: emptyMessage,
-            listContext: listContext,
-            accessory: accessories.trailing,
-            leadingAccessory: accessories.leading
         )
     }
 
@@ -213,70 +135,18 @@ public struct WishlistUIDI {
         )
     }
 
-    /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the Interface Adapters
-    /// ring. A wishlist and a set of stock alerts become the one thing the list view model reads —
-    /// ids, newest first — so neither aggregate is named above this file and one view model serves
-    /// both.
     @MainActor
     private func favesViewModel() -> SavedProductsViewModel {
         SavedProductsViewModel(
-            savedProductIds: { [observeWishlist] in
-                observeWishlist().map { $0.items.map(\.productId) }.eraseToAnyPublisher()
-            },
+            observeWishlist: observeWishlist,
             lookUpProducts: lookUpProducts,
+            setProductIsWishlisted: setProductIsWishlisted,
+            navigation: navigation,
             snackbar: snackbarPresenter,
-            couldNotLoad: "Faves Won't Load",
-            list: WishlistTrackingPlan.faves,
-            openProduct: { [navigation] product in navigation.openProductDetails(product: product) },
             trackScreenView: trackScreenView,
             trackElementView: trackElementView,
             trackElementInteraction: trackElementInteraction,
-            clear: { [setProductIsWishlisted] ids in
-                for id in ids { await setProductIsWishlisted(productId: id, isWishlisted: false) }
-            }
-        )
-    }
-
-    /// Which products are on which list is the domain's to say, and it says so by name. This picks
-    /// a use case; it does not sieve one list into two, which is what it used to do and what put a
-    /// rule about stock inside a DI container.
-    @MainActor
-    private func waitlistViewModel() -> AlertedProductsViewModel {
-        alertedProducts(
-            from: { [getStillSoldOutProducts] in await getStillSoldOutProducts() },
-            couldNotLoad: "Waitlist Won't Load",
-            list: WishlistTrackingPlan.waitlist
-        )
-    }
-
-    @MainActor
-    private func backInStockViewModel() -> AlertedProductsViewModel {
-        alertedProducts(
-            from: { [getBackInStockProducts] in await getBackInStockProducts() },
-            couldNotLoad: "That List Won't Load",
-            list: WishlistTrackingPlan.backInStock
-        )
-    }
-
-    @MainActor
-    private func alertedProducts(
-        from load: @escaping @MainActor () async -> Result<[Product], WaitlistError>,
-        couldNotLoad: String,
-        list: TrackingContext.List
-    ) -> AlertedProductsViewModel {
-        AlertedProductsViewModel(
-            load: load,
-            changes: { [observeWaitlist] in observeWaitlist() },
-            clear: { [setProductIsWaitlisted] ids in
-                for id in ids { _ = await setProductIsWaitlisted(productId: id, isWaitlisted: false) }
-            },
-            snackbar: snackbarPresenter,
-            couldNotLoad: couldNotLoad,
-            list: list,
-            openProduct: { [navigation] product in navigation.openProductDetails(product: product) },
-            trackScreenView: trackScreenView,
-            trackElementView: trackElementView,
-            trackElementInteraction: trackElementInteraction
+            pageSize: 30
         )
     }
 }

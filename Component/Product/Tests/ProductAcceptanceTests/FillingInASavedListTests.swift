@@ -1,5 +1,4 @@
 import Testing
-import Money
 import Product
 
 @Suite("Coming back to a list of things the shopper saved")

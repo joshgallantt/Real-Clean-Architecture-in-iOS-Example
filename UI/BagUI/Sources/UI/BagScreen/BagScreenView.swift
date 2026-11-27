@@ -1,6 +1,5 @@
 import SwiftUI
 import UIKit
-import Kingfisher
 import Product
 import Tracking
 import TrackingUI
@@ -10,13 +9,11 @@ public struct BagScreenView: View {
     @State private var isConfirmingRemoveAll = false
     @Environment(\.trackingContext) private var trackingContext
 
-    /// Martin, *Clean Architecture* (2017), Ch. 11 — Dependency Inversion Principle: a bell this
-    /// screen cannot name. `Component/Waitlist` and its buttons live outside this feature, so the
-    /// app layer passes one in already built and BagUI stays unaware there is a stock alert domain.
-    /// The erasure is what a boundary costs, not a shortcut around one.
+    /// The bell, for the changes section to put on something that sold out — see
+    /// `BagChangesSection`.
     ///
     /// No default. One of these used to be a wishlist button that nothing rendered, and a default
-    /// `EmptyView()` is exactly why nobody noticed.
+    /// `EmptyView()` is exactly why nobody saw that it was missing.
     let stockAlertButton: (Product) -> AnyView
 
     /// A way out of the bag that this screen cannot name, arriving the same way the bell does.
@@ -37,7 +34,7 @@ public struct BagScreenView: View {
 
     public var body: some View {
         Group {
-            if viewModel.isEmpty && !viewModel.hasNews {
+            if viewModel.isEmpty && !viewModel.hasChanges {
                 ContentUnavailableView(
                     "Nothing in Here Yet",
                     systemImage: "bag",
@@ -45,7 +42,9 @@ public struct BagScreenView: View {
                 )
             } else {
                 List {
-                    ForEach(viewModel.noticeSections) { noticeSection($0) }
+                    if viewModel.hasChanges {
+                        BagChangesSection(viewModel: viewModel, stockAlertButton: stockAlertButton)
+                    }
                     if !viewModel.isEmpty { bagSection }
                 }
                 .listStyle(.insetGrouped)
@@ -56,6 +55,7 @@ public struct BagScreenView: View {
         }
         .onScreenAppear { viewModel.didAppear(in: $0) }
         .task { await viewModel.onAppear() }
+        .onDisappear { viewModel.didDisappear() }
         .confirmationDialog(
             "Are you sure?",
             isPresented: $isConfirmingRemoveAll,
@@ -68,172 +68,6 @@ public struct BagScreenView: View {
         }
     }
     
-    // MARK: - What the shop changed
-
-    /// Every notice section, drawn the same way. What one is called, what it says for itself and
-    /// what it offers arrive as data — the view has no list of them and gains nothing when there is
-    /// a sixth.
-    private func noticeSection(_ section: NoticeSection) -> some View {
-        Section {
-            ForEach(Array(section.rows.enumerated()), id: \.element.id) { index, row in
-                TrackingContextReader { context in noticeRow(row, in: section, context: context) }
-                    .onImpression { viewModel.didSee(row, in: $0) }
-                    .trackingPosition(index)
-                    .trackingList(BagTrackingPlan.notices(section.kind))
-            }
-        } header: {
-            sectionHeader(
-                section.title,
-                icon: section.icon,
-                tint: color(section.tint),
-                description: section.description
-            ) {
-                Button("Okay") { viewModel.didAcceptAll(section.kind, in: trackingContext) }
-            }
-        }
-    }
-
-    /// The one thing about a section the view really does decide. A presenter naming `Color` would
-    /// need SwiftUI, and a presenter that imports SwiftUI has started becoming a view.
-    private func color(_ tint: NoticeSection.Tint) -> Color {
-        switch tint {
-        case .quiet: .secondary
-        case .warning: .orange
-        case .good: .accentColor
-        }
-    }
-
-    @ViewBuilder
-    private func accessoryButton(_ accessory: NoticeSection.Accessory, for row: NoticeRow, context: TrackingContext) -> some View {
-        switch accessory {
-        case .nothing: EmptyView()
-        /// The bell is about a product, so it waits for the shop to say which one — the same moment
-        /// the row's name stops being a placeholder.
-        case .tellMeWhenItIsBack: if let product = row.product { stockAlertButton(product) }
-        case .removeFromBag: removeFromBagButton(row.id, context: context)
-        }
-    }
-
-    /// A shopper who agreed to one price and is being asked for a higher one needs a way out of it
-    /// without hunting the bag for the line again. It takes the bell's shape because it stands
-    /// where the bell stands and is tapped the same way — once, on the right of a row, and the row
-    /// is dealt with — and a capsule reading "Remove" among circles was the odd one out.
-    ///
-    /// `bag.badge.minus` rather than an X. An X on a notice reads as dismissing the notice, which
-    /// is what Okay above it already does, and the two are not the same: one keeps the product at
-    /// the new price and the other gives it back. Red because this is the only accessory on the
-    /// screen that takes something away.
-    private func removeFromBagButton(_ id: ProductID, context: TrackingContext) -> some View {
-        Button {
-            UIImpactFeedbackGenerator(style: .light).impactOccurred()
-            viewModel.didRemoveChangedItem(productId: id, in: context)
-        } label: {
-            Image(systemName: "bag.badge.minus")
-                .font(.subheadline.weight(.bold))
-                .foregroundStyle(.red)
-                .frame(width: 32, height: 32)
-                .background(.ultraThinMaterial, in: Circle())
-        }
-        .buttonStyle(.plain)
-        .contentShape(Circle())
-        .accessibilityLabel("Remove from bag")
-    }
-
-    /// One row for every notice, so a shopper reads them the same way wherever they appear. What a
-    /// row says is only ever what its heading has not already said, and most say nothing at all —
-    /// they are a picture and a name, which is what a shopper opened the section to find out.
-    private func noticeRow(_ row: NoticeRow, in section: NoticeSection, context: TrackingContext) -> some View {
-        HStack(spacing: 12) {
-            HStack(spacing: 12) {
-                thumbnail(url: row.product?.thumbnail)
-
-                VStack(alignment: .leading, spacing: 4) {
-                    Text(row.product?.title ?? " ")
-                        .font(.subheadline.weight(.semibold))
-                        .lineLimit(2)
-                        .redacted(reason: row.product == nil ? .placeholder : [])
-
-                    switch row.says {
-                    case .nothing:
-                        EmptyView()
-
-                    case .howManyLeft(let howMany):
-                        Text(howMany)
-                            .font(.footnote)
-                            .foregroundStyle(.secondary)
-                            .fixedSize(horizontal: false, vertical: true)
-
-                    case .priceMoved(let move):
-                        priceMove(move)
-                    }
-                }
-
-                Spacer(minLength: 0)
-            }
-            /// The same target as a bag line: everything left of the accessory. A shopper reading
-            /// that something got dearer wants to go and look at it, and had no way to.
-            .contentShape(Rectangle())
-            .onTapGesture { viewModel.didTapRow(row, in: context) }
-
-            accessoryButton(section.accessory, for: row, context: context)
-        }
-        .padding(.vertical, 6)
-    }
-
-    /// The old amount struck through and the new one coloured, because a shopper takes in "less
-    /// than it was" faster than they read it. Down is the accent colour rather than green: green
-    /// against red reads as a gain or a loss, and a cheaper price is neither — it is just better.
-    ///
-    /// Two amounts and an arrow sit on one line until a product is expensive enough that they do
-    /// not. An amount that wraps is broken mid-number and has to be reassembled to be read, which
-    /// is the one thing a price may never ask of anybody. So neither amount can wrap or truncate:
-    /// when the line runs out they take a second one together, in the same order, still reading
-    /// old-then-new.
-    private func priceMove(_ move: NoticeRow.PriceMove) -> some View {
-        ViewThatFits(in: .horizontal) {
-            HStack(spacing: 6) {
-                oldAmount(move)
-                direction(move)
-                newAmount(move)
-            }
-
-            VStack(alignment: .leading, spacing: 2) {
-                oldAmount(move)
-
-                HStack(spacing: 6) {
-                    direction(move)
-                    newAmount(move)
-                }
-            }
-        }
-        .font(.subheadline)
-        .monospacedDigit()
-    }
-
-    /// `fixedSize` is what makes the fallback happen. Left to itself a `Text` would rather wrap than
-    /// report that it does not fit, so nothing above would ever measure as too wide.
-    private func oldAmount(_ move: NoticeRow.PriceMove) -> some View {
-        Text(move.was)
-            .strikethrough()
-            .foregroundStyle(.secondary)
-            .lineLimit(1)
-            .fixedSize()
-    }
-
-    private func direction(_ move: NoticeRow.PriceMove) -> some View {
-        Image(systemName: move.isCheaper ? "arrow.down" : "arrow.up")
-            .font(.caption2.weight(.bold))
-            .foregroundStyle(move.isCheaper ? Color.accentColor : .orange)
-    }
-
-    private func newAmount(_ move: NoticeRow.PriceMove) -> some View {
-        Text(move.now)
-            .fontWeight(.semibold)
-            .foregroundStyle(move.isCheaper ? Color.accentColor : .orange)
-            .lineLimit(1)
-            .fixedSize()
-    }
-
     // MARK: - The bag itself
 
     private var bagSection: some View {
@@ -252,8 +86,8 @@ public struct BagScreenView: View {
                 .trackingList(BagTrackingPlan.bagLines)
             }
         } header: {
-            sectionHeader(
-                "Your Bag",
+            BagSectionHeader(
+                title: "Your Bag",
                 icon: "bag",
                 tint: .accentColor,
                 description: "The good stuff. Swipe to lose one, or clear the lot."
@@ -281,7 +115,7 @@ public struct BagScreenView: View {
     private func bagRow(_ row: BagRow, context: TrackingContext) -> some View {
         HStack(spacing: 12) {
             HStack(spacing: 12) {
-                thumbnail(url: row.product?.thumbnail)
+                BagThumbnail(product: row.product)
 
                 VStack(alignment: .leading, spacing: 4) {
                     Text(row.product?.title ?? " ")
@@ -327,53 +161,6 @@ public struct BagScreenView: View {
     }
 
     // MARK: -
-
-    /// The description sits with the heading and the action rather than under the rows, so a
-    /// shopper reads what a section is and what they can do about it before they read its contents
-    /// — and does not have to scroll past the rows to find out why they are there.
-    private func sectionHeader<Trailing: View>(
-        _ title: String,
-        icon: String,
-        tint: Color,
-        description: String,
-        @ViewBuilder trailing: () -> Trailing
-    ) -> some View {
-        VStack(alignment: .leading, spacing: 6) {
-            HStack(alignment: .firstTextBaseline) {
-                Label(title, systemImage: icon)
-                    .font(.subheadline.weight(.bold))
-                    .foregroundStyle(tint)
-
-                Spacer()
-
-                trailing()
-                    .font(.footnote.weight(.semibold))
-            }
-
-            Text(description)
-                .font(.caption)
-                .foregroundStyle(.secondary)
-                .fixedSize(horizontal: false, vertical: true)
-        }
-        .textCase(nil)
-        .padding(.bottom, 4)
-    }
-
-    @ViewBuilder
-    private func thumbnail(url: String?) -> some View {
-        if let url {
-            KFImage(URL(string: url))
-                .resizable()
-                .placeholder { ProgressView() }
-                .aspectRatio(contentMode: .fill)
-                .frame(width: 56, height: 56)
-                .clipShape(RoundedRectangle(cornerRadius: 10))
-        } else {
-            RoundedRectangle(cornerRadius: 10)
-                .fill(Color(uiColor: .secondarySystemBackground))
-                .frame(width: 56, height: 56)
-        }
-    }
 
     private var totalFooter: some View {
         VStack(spacing: 12) {

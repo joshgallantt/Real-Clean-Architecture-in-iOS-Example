@@ -7,7 +7,6 @@ import ProductTestSupport
 import SnackbarUITestSupport
 import Testing
 import Tracking
-import TrackingUI
 import TrackingTestSupport
 import Bag
 import Money
@@ -20,15 +19,15 @@ import Product
 @Suite("Checking out")
 struct CheckoutButtonViewModelTests {
     private func makeViewModel(
-        observeBag: StubObserveBagUseCase = StubObserveBagUseCase(),
+        bag: Bag = Bag(),
         placeOrder: SpyPlaceOrderUseCase = SpyPlaceOrderUseCase(),
         setBagItem: SpySetBagItemUseCase = SpySetBagItemUseCase(),
         authPresenter: SpyAuthPresenting = SpyAuthPresenting(),
         snackbarPresenter: SpySnackbarPresenting = SpySnackbarPresenting(),
         confirm: @escaping (Order) -> Void = { _ in }
     ) -> CheckoutButtonViewModel {
-        let viewModel = CheckoutButtonViewModel(
-            observeBag: observeBag,
+        CheckoutButtonViewModel(
+            bag: { bag },
             placeOrder: placeOrder,
             setBagItem: setBagItem,
             authPresenter: authPresenter,
@@ -40,22 +39,18 @@ struct CheckoutButtonViewModelTests {
             trackElementInteraction: SpyTrackElementInteractionUseCase(),
             trackEvent: SpyTrackEventUseCase()
         )
-        /// The screen subscribes on appear rather than in `init`, so the test has
-        /// to do what the screen does before it can expect anything published.
-        viewModel.onAppear()
-        return viewModel
     }
 
     private func bag(_ items: BagItem...) -> Bag { Bag(items: items) }
 
     @Test("Checking out orders every line in the bag, at the prices it was showing")
     func ordersEveryLine() async {
-        let observeBag = StubObserveBagUseCase(bag(
+        let drawn = bag(
             BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(9.99), dateAdded: .now),
             BagItem(productId: pid(2), quantity: 1, lastKnownPrice: usd(5), dateAdded: .distantPast)
-        ))
+        )
         let placeOrder = SpyPlaceOrderUseCase()
-        let viewModel = makeViewModel(observeBag: observeBag, placeOrder: placeOrder)
+        let viewModel = makeViewModel(bag: drawn, placeOrder: placeOrder)
 
         await viewModel.tapAndSettle()
 
@@ -65,14 +60,39 @@ struct CheckoutButtonViewModelTests {
         ]])
     }
 
+    @Test("What is ordered is the bag as it is drawn when the button is tapped, not as it was when the button was made")
+    func ordersTheBagAsItIsWhenTapped() async {
+        let screen = FakeBagRepository(bag: bag(BagItem(productId: pid(1), quantity: 1, lastKnownPrice: usd(9.99), dateAdded: .now)))
+        let placeOrder = SpyPlaceOrderUseCase()
+        let viewModel = CheckoutButtonViewModel(
+            bag: { screen.bag },
+            placeOrder: placeOrder,
+            setBagItem: SpySetBagItemUseCase(),
+            authPresenter: SpyAuthPresenting(),
+            snackbarPresenter: SpySnackbarPresenting(),
+            confirm: { _ in },
+            products: { [:] },
+            trackScreenView: SpyTrackScreenViewUseCase(),
+            trackElementView: SpyTrackElementViewUseCase(),
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            trackEvent: SpyTrackEventUseCase()
+        )
+
+        screen.save(bag(BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(12.99), dateAdded: .now)))
+        await viewModel.tapAndSettle()
+
+        #expect(placeOrder.calls == [[OrderLine(productId: pid(1), quantity: 2, pricePaid: usd(12.99))]])
+        #expect(viewModel.totalLabel == usd(25.98).formatted())
+    }
+
     @Test("A successful checkout empties every line that was ordered")
     func emptiesEveryLineOnSuccess() async {
-        let observeBag = StubObserveBagUseCase(bag(
+        let drawn = bag(
             BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(9.99)),
             BagItem(productId: pid(2), quantity: 1, lastKnownPrice: usd(5))
-        ))
+        )
         let setBagItem = SpySetBagItemUseCase()
-        let viewModel = makeViewModel(observeBag: observeBag, setBagItem: setBagItem)
+        let viewModel = makeViewModel(bag: drawn, setBagItem: setBagItem)
 
         await viewModel.tapAndSettle()
 
@@ -82,13 +102,13 @@ struct CheckoutButtonViewModelTests {
 
     @Test("A declined payment leaves the bag exactly as it was")
     func declinedLeavesTheBag() async {
-        let observeBag = StubObserveBagUseCase(bag(BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(9.99))))
+        let drawn = bag(BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(9.99)))
         let placeOrder = SpyPlaceOrderUseCase()
         placeOrder.result = .failure(.paymentDeclined)
         let setBagItem = SpySetBagItemUseCase()
         let snackbarPresenter = SpySnackbarPresenting()
         let viewModel = makeViewModel(
-            observeBag: observeBag,
+            bag: drawn,
             placeOrder: placeOrder,
             setBagItem: setBagItem,
             snackbarPresenter: snackbarPresenter
@@ -109,8 +129,8 @@ struct CheckoutButtonViewModelTests {
 
     @Test("The total shown is what the bag is worth, formatted")
     func totalLabelMatchesTheBag() {
-        let observeBag = StubObserveBagUseCase(bag(BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(10))))
-        let viewModel = makeViewModel(observeBag: observeBag)
+        let drawn = bag(BagItem(productId: pid(1), quantity: 2, lastKnownPrice: usd(10)))
+        let viewModel = makeViewModel(bag: drawn)
 
         #expect(viewModel.totalLabel == usd(20).formatted())
         #expect(viewModel.isEmpty == false)
@@ -118,14 +138,14 @@ struct CheckoutButtonViewModelTests {
 
     @Test("A guest who backs out of signing in keeps their bag, and checks out nothing")
     func guestWhoBacksOutKeepsTheBag() async {
-        let observeBag = StubObserveBagUseCase(bag(BagItem(productId: pid(1), quantity: 1, lastKnownPrice: usd(9.99))))
+        let drawn = bag(BagItem(productId: pid(1), quantity: 1, lastKnownPrice: usd(9.99)))
         let placeOrder = SpyPlaceOrderUseCase()
         placeOrder.result = .failure(.unauthenticated)
         let authPresenter = SpyAuthPresenting()
         authPresenter.signsIn = false
         let setBagItem = SpySetBagItemUseCase()
         let viewModel = makeViewModel(
-            observeBag: observeBag,
+            bag: drawn,
             placeOrder: placeOrder,
             setBagItem: setBagItem,
             authPresenter: authPresenter

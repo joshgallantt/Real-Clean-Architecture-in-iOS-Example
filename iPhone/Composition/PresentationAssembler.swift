@@ -4,7 +4,7 @@ import HomeDI
 import OrderDI
 import SearchHistoryDI
 import SessionDI
-import WaitlistDI
+import StockAlertDI
 import WishlistDI
 import AccountUIDI
 import AuthUIDI
@@ -19,6 +19,7 @@ import SettingsDI
 import SettingsUIDI
 import SheetUIDI
 import SnackbarUIDI
+import StockAlertUIDI
 import TrackingDI
 import WishlistUIDI
 
@@ -30,8 +31,9 @@ import WishlistUIDI
 /// feature can reach a capability it did not ask for.
 ///
 /// The order below is the graph's, not a preference: the sheet host exists before the auth flow
-/// that presents on it, the auth flow before the navigator that gates on it, and the shared
-/// wishlist button before the two features that render one.
+/// that presents on it, the auth flow before the navigator that gates on it, the shared
+/// wishlist button before the two features that render one, and the stock alerts before the
+/// wishlist tab that shows them.
 @MainActor
 struct PresentationAssembler {
     let navigator: Navigator
@@ -44,6 +46,7 @@ struct PresentationAssembler {
     let product: ProductUIDI
     let home: HomeUIDI
     let search: SearchUIDI
+    let stockAlert: StockAlertUIDI
     let wishlist: WishlistUIDI
     let bag: BagUIDI
     let order: OrderUIDI
@@ -92,8 +95,8 @@ struct PresentationAssembler {
             setProductIsWishlisted: domain.wishlist.setProductIsWishlistedUseCase,
             observeBag: domain.bag.observeBagUseCase,
             setBagItem: domain.bag.setBagItemUseCase,
-            observeProductIsWaitlisted: domain.stockAlerts.observeProductIsWaitlistedUseCase,
-            setProductIsWaitlisted: domain.stockAlerts.setProductIsWaitlistedUseCase,
+            observeProductHasStockAlert: domain.stockAlerts.observeProductHasStockAlertUseCase,
+            setProductStockAlert: domain.stockAlerts.setProductStockAlertUseCase,
             authPresenter: auth.presenter,
             snackbarPresenter: snackbar.presenter,
             trackScreenView: tracking.trackScreenViewUseCase,
@@ -107,7 +110,6 @@ struct PresentationAssembler {
         let order = OrderUIDI(
             placeOrder: domain.orders.placeOrderUseCase,
             observeOrders: domain.orders.observeOrdersUseCase,
-            observeBag: domain.bag.observeBagUseCase,
             setBagItem: domain.bag.setBagItemUseCase,
             authPresenter: auth.presenter,
             snackbarPresenter: snackbar.presenter,
@@ -122,10 +124,9 @@ struct PresentationAssembler {
         let bag = BagUIDI(
             navigation: navigator,
             observeBag: domain.bag.observeBagUseCase,
-            observeNotices: domain.bag.observeNoticesUseCase,
             setBagItem: domain.bag.setBagItemUseCase,
-            refreshBag: domain.bag.refreshBagUseCase,
-            acknowledgeNotices: domain.bag.acknowledgeNoticesUseCase,
+            checkBag: domain.bag.checkBagUseCase,
+            observeSetting: domain.settings.observeSettingUseCase,
             productActionsUIDI: productActions,
             orderUIDI: order,
             trackScreenView: tracking.trackScreenViewUseCase,
@@ -135,19 +136,30 @@ struct PresentationAssembler {
         )
         self.bag = bag
 
+        let stockAlert = StockAlertUIDI(
+            navigation: navigator,
+            getStockAlertProducts: domain.stockAlerts.getStockAlertProductsUseCase,
+            observeStockAlerts: domain.stockAlerts.observeStockAlertsUseCase,
+            setProductStockAlert: domain.stockAlerts.setProductStockAlertUseCase,
+            snackbarPresenter: snackbar.presenter,
+            productActionsUIDI: productActions,
+            trackScreenView: tracking.trackScreenViewUseCase,
+            trackElementView: tracking.trackElementViewUseCase,
+            trackElementInteraction: tracking.trackElementInteractionUseCase
+        )
+        self.stockAlert = stockAlert
+
         let wishlist = WishlistUIDI(
             navigation: navigator,
             observeWishlist: domain.wishlist.observeWishlistUseCase,
-            observeWaitlist: domain.stockAlerts.observeWaitlistUseCase,
-            getStillSoldOutProducts: domain.stockAlerts.getStillSoldOutProductsUseCase,
-            getBackInStockProducts: domain.stockAlerts.getBackInStockProductsUseCase,
-            setProductIsWaitlisted: domain.stockAlerts.setProductIsWaitlistedUseCase,
             setProductIsWishlisted: domain.wishlist.setProductIsWishlistedUseCase,
             lookUpProducts: catalog.lookUpProducts,
             observeSession: session.observeSessionUseCase,
+            observeSetting: domain.settings.observeSettingUseCase,
             authPresenter: auth.presenter,
             snackbarPresenter: snackbar.presenter,
             productActionsUIDI: productActions,
+            stockAlertUIDI: stockAlert,
             trackScreenView: tracking.trackScreenViewUseCase,
             trackElementView: tracking.trackElementViewUseCase,
             trackElementInteraction: tracking.trackElementInteractionUseCase

@@ -35,18 +35,6 @@ struct ComingBackToTheBagTests {
         #expect(returning.bag.total == usd(10.20))
     }
 
-    @Test("Notices are kept with the bag, so they are still waiting on the next visit")
-    func newsSurvivesLeaving() async {
-        let shopper = Shopper()
-        shopper.choose(productId: 1, atPrice: 9.99)
-        shopper.theShopNowSells(shopSells(1, at: 12.99))
-        await shopper.comesBack()
-
-        let returning = await shopper.leaveAndComeBack()
-
-        #expect(returning.news.of(.priceWentUp, .priceWentDown) == [.priceWentUp(productId: pid(1), from: usd(9.99), to: usd(12.99))])
-    }
-
     @Test("A burst of changes ends as the bag the shopper actually left")
     func lastChangeWins() async {
         let shopper = Shopper()
@@ -133,8 +121,8 @@ struct ComingBackToTheBagTests {
         #expect(shopper.bag.total == usd(20))
     }
 
-    @Test("A notice naming something this build no longer understands costs the shopper a notice, not their bag")
-    func survivesAnUnreadableNotice() throws {
+    @Test("A bag left by a build that kept what the shop had changed still opens, and keeps every line")
+    func opensABagThatStillListsChanges() throws {
         let directory = URL.newTemporaryDirectory
         try FileManager.default.createDirectory(at: directory, withIntermediateDirectories: true)
         try """
@@ -144,6 +132,9 @@ struct ComingBackToTheBagTests {
               "currencyCode": "USD", "dateAdded": 100 }
           ],
           "pendingChanges": [
+            { "kind": "priceWentUp", "productId": 1, "fromMinorUnits": 799, "toMinorUnits": 999,
+              "currencyCode": "USD" },
+            { "kind": "outOfStock", "productId": 2 },
             { "kind": "theShopMovedHouse", "productId": 1 }
           ]
         }
@@ -151,7 +142,7 @@ struct ComingBackToTheBagTests {
 
         let shopper = Shopper(in: directory)
 
+        #expect(shopper.bag.items.map(\.id) == [pid(1)])
         #expect(shopper.bag.total == usd(19.98))
-        #expect(shopper.news.isEmpty)
     }
 }

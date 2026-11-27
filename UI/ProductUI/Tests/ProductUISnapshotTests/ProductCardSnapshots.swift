@@ -1,4 +1,3 @@
-import Money
 import Product
 import SnapshotTesting
 import SwiftUI

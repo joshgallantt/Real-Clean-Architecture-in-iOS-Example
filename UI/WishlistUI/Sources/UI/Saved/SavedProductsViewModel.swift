@@ -2,6 +2,7 @@ import Combine
 import Foundation
 import Product
 import SnackbarUI
+import Wishlist
 import ProductUI
 import Tracking
 
@@ -10,14 +11,10 @@ import Tracking
 /// Martin, *Clean Architecture* (2017), Ch. 23 — Presenters and Humble Objects: state and behaviour
 /// live here so the view has nothing in it worth testing.
 ///
-/// Martin, Ch. 7 — Single Responsibility Principle: one job, done once — a list of product ids the
-/// shopper is holding, filled in from the catalog. Both lists on this tab are that. They differ in
-/// where the ids come from and in nothing else, so they differ by an argument rather than by a
-/// second copy of the paging, caching and hydration below.
-///
-/// Martin, Ch. 10 — Interface Segregation Principle: it is given a stream of ids, not a wishlist
-/// and not a set of stock alerts. Neither aggregate reaches this file, which is why one type can
-/// serve both without knowing that either exists.
+/// Martin, Ch. 7 — Single Responsibility Principle: one job — the shopper's faves, filled in from
+/// the catalog a page at a time. A wishlist holds ids and nothing else, so what each one is called
+/// and what it costs today is asked of the shop here, and only for as much of the list as has been
+/// reached.
 public final class SavedProductsViewModel {
     /// Carries the cancellation: a fresh load replaces the one before it.
     @ObservationIgnored private var hydrationTask: Task<Void, Never>?
@@ -36,29 +33,15 @@ public final class SavedProductsViewModel {
     private(set) var isLoadingMore = false
 
     private let pageSize: Int
-    private let savedProductIds: () -> AnyPublisher<[ProductID], Never>
+    private let observeWishlist: ObserveWishlistUseCase
     private let lookUpProducts: LookUpProductsUseCase
+    private let setProductIsWishlisted: SetProductIsWishlistedUseCase
+    private let navigation: WishlistNavigation
     private let snackbar: SnackbarPresenting
-    private let couldNotLoad: String
-    private let list: TrackingContext.List
-    private let openProduct: @MainActor (Product) -> Void
     private let trackScreenView: TrackScreenViewUseCase
     private let trackElementView: TrackElementViewUseCase
     private let trackElementInteraction: TrackElementInteractionUseCase
     private let cardTracking: ProductCardTracking
-
-    /// Which of them belong on this list, decided by what the shop says about them *now*.
-    /// Two lists are drawn from the same set of asks — the ones still sold out, and the ones back —
-    /// and which is which is a fact about stock, not something the app has to have been told.
-    ///
-    /// Nothing at all where a list is everything the shopper holds. That is not the same as a
-    /// filter that keeps everything: an unfiltered list can be counted without fetching a single
-    /// product, and a filtered one cannot be judged at all until it has.
-    private let keeping: (@MainActor (Product) -> Bool)?
-
-    /// Taking the whole list away. It is given the ids rather than deciding anything, so this type
-    /// still does not know whether it is showing a wishlist or a set of alerts.
-    private let clear: @MainActor ([ProductID]) async -> Void
 
     private var cancellables = Set<AnyCancellable>()
     private var saved: [ProductID] = []
@@ -66,31 +49,25 @@ public final class SavedProductsViewModel {
     private var loadedCount: Int
 
     public init(
-        savedProductIds: @escaping () -> AnyPublisher<[ProductID], Never>,
+        observeWishlist: ObserveWishlistUseCase,
         lookUpProducts: LookUpProductsUseCase,
+        setProductIsWishlisted: SetProductIsWishlistedUseCase,
+        navigation: WishlistNavigation,
         snackbar: SnackbarPresenting,
-        couldNotLoad: String,
-        list: TrackingContext.List,
-        openProduct: @escaping @MainActor (Product) -> Void,
         trackScreenView: TrackScreenViewUseCase,
         trackElementView: TrackElementViewUseCase,
         trackElementInteraction: TrackElementInteractionUseCase,
-        keeping: (@MainActor (Product) -> Bool)? = nil,
-        clear: @escaping @MainActor ([ProductID]) async -> Void = { _ in },
-        pageSize: Int = 30
+        pageSize: Int
     ) {
-        self.savedProductIds = savedProductIds
+        self.observeWishlist = observeWishlist
         self.lookUpProducts = lookUpProducts
+        self.setProductIsWishlisted = setProductIsWishlisted
+        self.navigation = navigation
         self.snackbar = snackbar
-        self.couldNotLoad = couldNotLoad
-        self.list = list
-        self.openProduct = openProduct
         self.trackScreenView = trackScreenView
         self.trackElementView = trackElementView
         self.trackElementInteraction = trackElementInteraction
         self.cardTracking = ProductCardTracking(trackElementView: trackElementView, trackElementInteraction: trackElementInteraction)
-        self.keeping = keeping
-        self.clear = clear
         self.pageSize = pageSize
         self.loadedCount = pageSize
     }
@@ -98,28 +75,26 @@ public final class SavedProductsViewModel {
     var isEmpty: Bool { products.isEmpty }
 
     /// How many belong on this list, which is not how many a carousel shows: a row shows a handful
-    /// and the heading still says how many there are altogether.
-    ///
-    /// A filtered list can only count what it has fetched, because whether something belongs on it
-    /// is a fact about the product. Which is why a filtered list fetches the lot rather than paging
-    /// — the alert lists are a handful, and a heading that undercounted them would be worse than
-    /// the request it saved.
-    var savedCount: Int { keeping == nil ? saved.count : products.count }
+    /// and the heading still says how many there are altogether. Counted from what the shopper
+    /// holds, so it is right before a single product has been fetched.
+    var savedCount: Int { saved.count }
 
-    /// Everything the shopper would lose. Taken from the list as it is, so clearing the waitlist does
-    /// not touch what has come back and clearing Back in Stock does not touch what is still waited
-    /// on — they are two lists, and each Clear means its own.
+    /// Everything the shopper would lose, taken from the list as it is drawn.
     func didConfirmClear(in context: TrackingContext) {
         let losing = products.map(\.id)
         guard !losing.isEmpty else { return }
-        trackElementInteraction(WishlistTrackingPlan.clear, about: WishlistTrackingPlan.item(list), in: context)
-        inFlight = Task { await clear(losing) }
+        trackElementInteraction(WishlistTrackingPlan.clear, about: WishlistTrackingPlan.item(WishlistTrackingPlan.faves), in: context)
+        inFlight = Task { [setProductIsWishlisted] in
+            for productId in losing {
+                await setProductIsWishlisted(productId: productId, isWishlisted: false)
+            }
+        }
     }
 
     // MARK: - What the shopper saw and did
 
-    /// Only on the list's own screen. On the tab this list is one of three, and the tab's view is
-    /// the tab's to report.
+    /// Only on the list's own screen. On the tab this list is one of several, and the tab's view
+    /// is the tab's to report.
     func didAppear(in context: TrackingContext) {
         trackScreenView(context.screen)
     }
@@ -132,7 +107,7 @@ public final class SavedProductsViewModel {
     /// is the view model's to do, so no screen can open a product without saying so.
     func didSelect(_ product: Product, in context: TrackingContext) {
         cardTracking.selected(product, in: context)
-        openProduct(product)
+        navigation.openProductDetails(product: product)
     }
 
     private func show(_ snackbar: Snackbar, in context: TrackingContext) {
@@ -143,9 +118,9 @@ public final class SavedProductsViewModel {
     func onAppear(in context: TrackingContext) {
         guard cancellables.isEmpty else { return }
 
-        savedProductIds()
-            .sink { [weak self] ids in
-                self?.savedChanged(ids, in: context)
+        observeWishlist()
+            .sink { [weak self] wishlist in
+                self?.savedChanged(wishlist.items.map(\.productId), in: context)
             }
             .store(in: &cancellables)
     }
@@ -158,7 +133,7 @@ public final class SavedProductsViewModel {
     }
 
     private func loadNextPage(in context: TrackingContext) {
-        guard keeping == nil, loadedCount < saved.count, !isLoading, !isLoadingMore else { return }
+        guard loadedCount < saved.count, !isLoading, !isLoadingMore else { return }
         loadedCount += pageSize
         hydrate(isPaging: true, in: context)
     }
@@ -175,7 +150,7 @@ public final class SavedProductsViewModel {
     private func hydrate(isPaging: Bool, in context: TrackingContext) {
         hydrationTask?.cancel()
 
-        let window = keeping == nil ? Array(saved.prefix(loadedCount)) : saved
+        let window = Array(saved.prefix(loadedCount))
         let missing = window.filter { cache[$0] == nil }
 
         guard !missing.isEmpty else {
@@ -204,7 +179,7 @@ public final class SavedProductsViewModel {
 
             case .failure:
                 self.show(Snackbar(
-                    title: self.couldNotLoad,
+                    title: "Faves Won't Load",
                     message: "Check your signal and give it another go.",
                     icon: "wifi.exclamationmark",
                     action: .retry { [weak self] in self?.hydrate(isPaging: isPaging, in: context) }
@@ -220,8 +195,6 @@ public final class SavedProductsViewModel {
     }
 
     private func showing(_ window: [ProductID]) -> [Product] {
-        let held = window.compactMap { cache[$0] }
-        guard let keeping else { return held }
-        return held.filter(keeping)
+        window.compactMap { cache[$0] }
     }
 }

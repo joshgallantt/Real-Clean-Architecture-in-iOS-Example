@@ -61,8 +61,7 @@ let package = Package(
                 .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 "ProductUI",
-                .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money")
+                .product(name: "Product", package: "Product")
             ],
             path: "Tests/ProductUIUnitTests"
         ),

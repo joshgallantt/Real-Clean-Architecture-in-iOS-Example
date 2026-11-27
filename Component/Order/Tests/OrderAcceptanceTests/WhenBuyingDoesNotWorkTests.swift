@@ -1,10 +1,8 @@
 import MoneyTestSupport
 import Foundation
-import ProductTestSupport
 import Testing
 import Money
 import Order
-import Product
 
 @MainActor
 @Suite("When buying does not work")

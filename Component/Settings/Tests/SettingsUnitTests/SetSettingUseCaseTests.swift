@@ -31,7 +31,7 @@ struct SetSettingUseCaseTests {
 
     @Test(
         "A setting the shopper is not offered is refused, and the record is left exactly as it was",
-        arguments: [SettingKey.favoritesWaitlistSection, .favoritesBackInStockSection]
+        arguments: [SettingKey.favoritesStockAlertsSection]
     )
     func unofferedSettingIsRefusedAndChangesNothing(_ key: SettingKey) async {
         let before = Settings()
@@ -50,10 +50,10 @@ struct SetSettingUseCaseTests {
         let repository = StubSettingsRepository()
         let useCase = makeUseCase(repository: repository, session: .shopper)
 
-        let outcome = await useCase(.favoritesWaitlistSection, isOn: false)
+        let outcome = await useCase(.favoritesStockAlertsSection, isOn: false)
 
         #expect(outcome.failure == nil)
-        #expect(repository.settings.value(for: .favoritesWaitlistSection) == false)
+        #expect(repository.settings.value(for: .favoritesStockAlertsSection) == false)
     }
 
     @Test("A change that could not be kept is not reported as one")
@@ -74,7 +74,7 @@ struct SetSettingUseCaseTests {
         let repository = StubSettingsRepository()
         repository.whenItCannotKeep = true
 
-        let refused = await makeUseCase(repository: repository)(.favoritesWaitlistSection, isOn: false)
+        let refused = await makeUseCase(repository: repository)(.favoritesStockAlertsSection, isOn: false)
         let unkept = await makeUseCase(repository: repository)(.pushNotifications, isOn: true)
 
         #expect(refused.failure == .unauthenticated)

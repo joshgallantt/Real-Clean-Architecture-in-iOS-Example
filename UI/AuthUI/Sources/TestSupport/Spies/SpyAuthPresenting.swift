@@ -1,5 +1,4 @@
 import AuthUI
-@testable import AuthUIDI
 
 @MainActor
 /// Answers the prompt the way the shopper would, and records having been asked.

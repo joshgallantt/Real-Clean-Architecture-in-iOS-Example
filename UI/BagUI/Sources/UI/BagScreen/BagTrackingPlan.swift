@@ -1,6 +1,3 @@
-import Bag
-import Money
-import Product
 import Tracking
 
 /// The tracking plan for the bag: its screen, its elements and its lists, named once. What a change
@@ -13,26 +10,14 @@ public enum BagTrackingPlan {
 
     static let bagLines = TrackingContext.List(id: "bag", name: "Bag")
 
+    /// One list for everything that changed since the shopper last viewed the bag. The rows in it
+    /// are told apart by the product each is about, which is what a report asks of them.
+    static let changes = TrackingContext.List(id: "bag_changes", name: "Changes Since You Last Viewed")
+
     static let line = "bag_line"
-    static let noticeLine = "notice_line"
+    static let changeLine = "bag_change_line"
     static let quantityUp = "quantity_up"
     static let quantityDown = "quantity_down"
     static let swipeRemove = "remove"
-    static let removeChanged = "remove_from_bag"
     static let removeAll = "remove_all"
-
-    /// One list per kind of notice, because "sold out" and "price went up" are read for different
-    /// reasons and a report that pooled them could not say which one sent a shopper anywhere.
-    static func notices(_ kind: Notice.Kind) -> TrackingContext.List {
-        switch kind {
-        case .outOfStock: TrackingContext.List(id: "bag_notices_out_of_stock", name: "Sold Out")
-        case .onlySomeLeft: TrackingContext.List(id: "bag_notices_only_some_left", name: "Nearly Gone")
-        case .priceWentUp: TrackingContext.List(id: "bag_notices_price_went_up", name: "Price Went Up")
-        case .priceWentDown: TrackingContext.List(id: "bag_notices_price_went_down", name: "Price Went Down")
-        }
-    }
-
-    static func acceptAll(_ kind: Notice.Kind) -> String {
-        "accept_all_" + String(notices(kind).id.dropFirst("bag_notices_".count))
-    }
 }

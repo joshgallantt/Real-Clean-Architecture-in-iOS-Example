@@ -1,6 +1,4 @@
 import Bag
-import Product
-import ProductTestSupport
 
 @MainActor
 public final class SpySetBagItemUseCase: SetBagItemUseCase {

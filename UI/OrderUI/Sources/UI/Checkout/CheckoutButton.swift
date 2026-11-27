@@ -39,6 +39,5 @@ public struct CheckoutButton: View {
         .controlSize(.large)
         .tint(.primary)
         .disabled(viewModel.isPlacing || viewModel.isEmpty)
-        .onAppear { viewModel.onAppear() }
     }
 }

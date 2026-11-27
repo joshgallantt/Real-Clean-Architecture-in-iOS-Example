@@ -71,7 +71,6 @@ let package = Package(
                 "HomeUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Home", package: "Home"),
-                .product(name: "Money", package: "Money"),
                 "HomeUITestSupport"
             ],
             path: "Tests/HomeUIAcceptanceTests"
@@ -83,7 +82,6 @@ let package = Package(
                 "HomeUI",
                 .product(name: "Product", package: "Product"),
                 .product(name: "Home", package: "Home"),
-                .product(name: "Money", package: "Money"),
                 .product(name: "ProductUI", package: "ProductUI"),
             ],
             path: "Sources/TestSupport"

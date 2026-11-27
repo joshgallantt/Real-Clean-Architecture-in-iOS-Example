@@ -10,7 +10,7 @@ enum ProductActionsTrackingPlan {
 
     static func stockAlert(isOn: Bool) -> String { isOn ? "stock_alert_on" : "stock_alert_off" }
 
-    static let removeFromWaitlist = "remove_from_waitlist"
+    static let removeStockAlert = "remove_stock_alert"
     static let addToBag = "add_to_bag"
 
     /// The View on the snackbar that follows adding to the bag.

@@ -30,20 +30,17 @@ struct TrackingTheSettingsScreenTests {
 
     @Test("Turning a switch off reports that switch, left off, on the settings screen")
     func toggleOff() {
-        makeViewModel().didToggle(.bagPriceIncreases, to: false, in: .screen("settings"))
+        makeViewModel().didToggle(.bagChangesSection, to: false, in: .screen("settings"))
 
         #expect(taps.events == [
-            TrackingEvent(name: .elementSelected, context: .screen("settings"), items: [], properties: ["element": "bag_price_increases_off"])
+            TrackingEvent(name: .elementSelected, context: .screen("settings"), items: [], properties: ["element": "bag_changes_section_off"])
         ])
     }
 
     @Test("Every switch is reported under a name of its own", arguments: [
         (SettingKey.pushNotifications, "push_notifications"),
-        (.bagOutOfStockNotice, "bag_out_of_stock_notice"),
-        (.bagPriceIncreases, "bag_price_increases"),
-        (.bagPriceDecreases, "bag_price_decreases"),
-        (.favoritesWaitlistSection, "favorites_waitlist_section"),
-        (.favoritesBackInStockSection, "favorites_back_in_stock_section")
+        (.bagChangesSection, "bag_changes_section"),
+        (.favoritesStockAlertsSection, "favorites_stock_alerts_section")
     ])
     func everySwitchHasAName(_ example: (SettingKey, String)) {
         makeViewModel().didToggle(example.0, to: true, in: .screen("settings"))

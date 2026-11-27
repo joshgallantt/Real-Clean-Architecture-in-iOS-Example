@@ -1,4 +1,3 @@
-import Combine
 import Foundation
 import Bag
 import Money
@@ -17,6 +16,10 @@ import TrackingUI
 /// Martin, Ch. 13 — Component Cohesion: this lives in `OrderUI` rather than `BagUI` because it
 /// changes when ordering changes, not when the bag does. `BagUI` is handed a finished button and
 /// never learns there is an order domain, the same way it is handed a stock alert bell.
+///
+/// What it buys is the bag the screen above it is drawing, handed over as that screen draws it. The
+/// bag that is kept may be older — the one the shopper last saw, before the shop changed a price or
+/// sold out of something — and an order made from that would charge a price nobody was shown.
 public final class CheckoutButtonViewModel {
     /// The work the last interaction started.
     ///
@@ -28,9 +31,8 @@ public final class CheckoutButtonViewModel {
     /// caller that started the work, not for anything drawn from it.
     @ObservationIgnored public private(set) var inFlight: Task<Void, Never>?
     private(set) var isPlacing = false
-    private(set) var bag = Bag()
 
-    private let observeBag: ObserveBagUseCase
+    private let bag: @MainActor () -> Bag
     private let placeOrder: PlaceOrderUseCase
     private let setBagItem: SetBagItemUseCase
     private let authPresenter: AuthPresenting
@@ -41,10 +43,9 @@ public final class CheckoutButtonViewModel {
     private let trackElementView: TrackElementViewUseCase
     private let trackElementInteraction: TrackElementInteractionUseCase
     private let trackEvent: TrackEventUseCase
-    private var cancellables = Set<AnyCancellable>()
 
     public init(
-        observeBag: ObserveBagUseCase,
+        bag: @escaping @MainActor () -> Bag,
         placeOrder: PlaceOrderUseCase,
         setBagItem: SetBagItemUseCase,
         authPresenter: AuthPresenting,
@@ -56,7 +57,7 @@ public final class CheckoutButtonViewModel {
         trackElementInteraction: TrackElementInteractionUseCase,
         trackEvent: TrackEventUseCase
     ) {
-        self.observeBag = observeBag
+        self.bag = bag
         self.placeOrder = placeOrder
         self.setBagItem = setBagItem
         self.authPresenter = authPresenter
@@ -69,22 +70,11 @@ public final class CheckoutButtonViewModel {
         self.trackEvent = trackEvent
     }
 
-    /// Subscribing happens here rather than in `init`, because `@State` builds its
-    /// initial value on every view initialisation and a subscription is a side
-    /// effect Apple's guidance says to keep out of that.
-    func onAppear() {
-        guard cancellables.isEmpty else { return }
+    /// Unavailable only when there is nothing to buy. Nothing the shop changed stands in the way:
+    /// the lines being bought already say what they cost today.
+    var isEmpty: Bool { bag().isEmpty }
 
-        observeBag()
-            .sink { [weak self] bag in
-                self?.bag = bag
-            }
-            .store(in: &cancellables)
-    }
-
-    var isEmpty: Bool { bag.isEmpty }
-
-    var totalLabel: String { bag.total?.formatted() ?? "" }
+    var totalLabel: String { bag().total?.formatted() ?? "" }
 
     /// The names on a checkout are the bag screen's: it is handed the products the bag is drawing,
     /// so the report says what was bought, not only which ids. Read before the bag is emptied,
@@ -106,10 +96,10 @@ public final class CheckoutButtonViewModel {
 
     /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the Interface Adapters
     /// ring, converting what a bag holds into what an order is made of. The price a shopper is
-    /// charged is the one their bag was showing them, which `RefreshBagUseCase` has already
-    /// brought level with the shop.
+    /// charged is the one on the line they were looking at, and something the shop has sold out of
+    /// is not a line.
     private var whatTheyAreBuying: [OrderLine] {
-        bag.items.map {
+        bag().items.map {
             OrderLine(productId: $0.productId, quantity: $0.quantity, pricePaid: $0.lastKnownPrice)
         }
     }
@@ -180,7 +170,7 @@ public final class CheckoutButtonViewModel {
     /// Every line goes the way a single swipe sends one, so there is no second path through the
     /// domain to keep in step with the first.
     private func emptyTheBag() {
-        for item in bag.items {
+        for item in bag().items {
             setBagItem(item.withQuantity(0))
         }
     }

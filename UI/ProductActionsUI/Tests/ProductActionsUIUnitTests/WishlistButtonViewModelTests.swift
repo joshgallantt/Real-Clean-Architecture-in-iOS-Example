@@ -8,7 +8,6 @@ import TrackingTestSupport
 import Product
 import WishlistTestSupport
 @testable import ProductActionsUI
-@testable import ProductActionsUITestSupport
 
 @MainActor
 @Suite("The wishlist heart")

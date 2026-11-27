@@ -1,4 +1,3 @@
-import MoneyTestSupport
 import Foundation
 import ProductTestSupport
 import Testing

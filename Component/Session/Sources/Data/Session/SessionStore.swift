@@ -9,7 +9,6 @@ import Session
 public protocol SessionStore: AnyObject, Sendable {
     var session: Session { get }
     var sessionPublisher: AnyPublisher<Session, Never> { get }
-    var authToken: AuthToken? { get }
     func setUser(_ user: User, token: AuthToken)
     func clear()
 }

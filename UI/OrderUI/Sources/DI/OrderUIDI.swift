@@ -19,7 +19,6 @@ import TrackingUI
 public struct OrderUIDI {
     private let placeOrder: PlaceOrderUseCase
     private let observeOrders: ObserveOrdersUseCase
-    private let observeBag: ObserveBagUseCase
     private let setBagItem: SetBagItemUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
@@ -32,7 +31,6 @@ public struct OrderUIDI {
     public init(
         placeOrder: PlaceOrderUseCase,
         observeOrders: ObserveOrdersUseCase,
-        observeBag: ObserveBagUseCase,
         setBagItem: SetBagItemUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
@@ -44,7 +42,6 @@ public struct OrderUIDI {
     ) {
         self.placeOrder = placeOrder
         self.observeOrders = observeOrders
-        self.observeBag = observeBag
         self.setBagItem = setBagItem
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
@@ -73,13 +70,18 @@ public struct OrderUIDI {
         )
     }
 
-    /// `products` is what the bag screen is drawing, so a checkout can say what was bought by name.
-    /// The button never looks the catalog up itself: the screen it sits on already has.
+    /// `bag` is the bag as the screen is drawing it, so a checkout buys what the shopper is looking
+    /// at, at the prices shown. `products` is what that screen has been told, so a checkout can say
+    /// what was bought by name. The button never looks the catalog up itself: the screen it sits on
+    /// already has.
     @MainActor
-    public func checkoutButton(products: @escaping @MainActor () -> [ProductID: Product]) -> some View {
+    public func checkoutButton(
+        bag: @escaping @MainActor () -> Bag,
+        products: @escaping @MainActor () -> [ProductID: Product]
+    ) -> some View {
         CheckoutButton(
             viewModel: CheckoutButtonViewModel(
-                observeBag: observeBag,
+                bag: bag,
                 placeOrder: placeOrder,
                 setBagItem: setBagItem,
                 authPresenter: authPresenter,

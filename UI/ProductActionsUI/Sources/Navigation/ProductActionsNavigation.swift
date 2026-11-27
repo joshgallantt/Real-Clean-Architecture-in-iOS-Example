@@ -3,7 +3,7 @@
 /// or which tab it sits in.
 ///
 /// Fowler, *PoEAA* (2002) — Separated Interface. Martin, Ch. 10 — Interface Segregation Principle:
-/// the product actions make exactly one move between them — the "View" on an added-to-bag notice —
+/// the product actions make exactly one move between them — the "View" on an added-to-bag snackbar —
 /// so that is the whole protocol. Importing `BagNavigation` for it would make every package that
 /// renders a heart depend on the bag feature.
 public protocol ProductActionsNavigation: AnyObject {

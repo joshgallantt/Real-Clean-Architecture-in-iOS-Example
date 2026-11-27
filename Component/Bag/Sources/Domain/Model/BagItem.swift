@@ -31,4 +31,31 @@ public struct BagItem: Equatable, Sendable, Identifiable {
     public func withPrice(_ price: Money) -> BagItem {
         BagItem(productId: productId, quantity: quantity, lastKnownPrice: price, dateAdded: dateAdded)
     }
+
+    /// The line as the shop can supply it: at today's price, and no more of it than there is.
+    func matching(_ product: Product) -> BagItem {
+        withPrice(product.price).withQuantity(min(quantity, product.availability.remaining))
+    }
+
+    /// Two facts about a line the shop can still supply, told apart because they are two facts:
+    /// what it costs now, if that is not what the line was kept at, and how many are left, if the
+    /// line asks for more than that.
+    ///
+    /// Fowler, *PoEAA* (2002), Ch. 18 — Money: exact amounts, so a price that did not move is no
+    /// change at all. Float drift would manufacture one.
+    func changes(nowThatTheShopSays product: Product) -> [BagChange] {
+        var changes: [BagChange] = []
+
+        if product.price > lastKnownPrice {
+            changes.append(.priceWentUp(productId: productId, from: lastKnownPrice, to: product.price))
+        } else if product.price < lastKnownPrice {
+            changes.append(.priceWentDown(productId: productId, from: lastKnownPrice, to: product.price))
+        }
+
+        if quantity > product.availability.remaining {
+            changes.append(.onlySomeLeft(productId: productId, available: product.availability.remaining))
+        }
+
+        return changes
+    }
 }

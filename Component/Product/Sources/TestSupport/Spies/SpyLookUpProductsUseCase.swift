@@ -1,4 +1,3 @@
-import Money
 import Product
 
 /// Answers whatever it was told to, and remembers what it was asked. Kept apart

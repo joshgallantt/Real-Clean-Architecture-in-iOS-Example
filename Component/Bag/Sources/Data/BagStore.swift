@@ -6,6 +6,6 @@ import Session
 /// Martin, *Clean Architecture* (2017), Ch. 22 — The Clean Architecture: the outermost ring,
 /// replaceable without anything inward moving.
 public protocol BagStore: Sendable {
-    func getBag(for session: Session) -> (bag: Bag, notices: Notices)
-    func setBag(_ bag: Bag, notices: Notices, for session: Session) async
+    func getBag(for session: Session) -> Bag
+    func setBag(_ bag: Bag, for session: Session) async
 }

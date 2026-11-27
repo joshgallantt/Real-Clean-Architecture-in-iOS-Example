@@ -8,38 +8,32 @@ import Settings
 /// words, so a failure reads as a broken expectation rather than a broken method.
 struct WhatAShopperStartsWithTests {
     // SettingsMenu-01: A guest's settings start at the app's defaults — push notifications off,
-    // every bag notice shown.
-    @Test("A guest's settings start at the app's defaults — push notifications off, every bag notice shown")
+    // what changed in the bag shown.
+    @Test("A guest's settings start at the app's defaults — push notifications off, what changed in the bag shown")
     func guestDefaults() {
         let shopper = Shopper()
 
         #expect(shopper.isOn(.pushNotifications) == false)
-        #expect(shopper.isOn(.bagOutOfStockNotice) == true)
-        #expect(shopper.isOn(.bagPriceIncreases) == true)
-        #expect(shopper.isOn(.bagPriceDecreases) == true)
+        #expect(shopper.isOn(.bagChangesSection) == true)
     }
 
     // SettingsMenu-02: A newly signed-in shopper's settings start at the same defaults, including
-    // both favorites settings.
+    // the favorites setting.
     @Test("A newly signed-in shopper's settings start at the same defaults, including favorites")
     func signedInDefaults() {
         let shopper = Shopper(signedInAs: 42)
 
         #expect(shopper.isOn(.pushNotifications) == false)
-        #expect(shopper.isOn(.bagOutOfStockNotice) == true)
-        #expect(shopper.isOn(.bagPriceIncreases) == true)
-        #expect(shopper.isOn(.bagPriceDecreases) == true)
-        #expect(shopper.isOn(.favoritesWaitlistSection) == true)
-        #expect(shopper.isOn(.favoritesBackInStockSection) == true)
+        #expect(shopper.isOn(.bagChangesSection) == true)
+        #expect(shopper.isOn(.favoritesStockAlertsSection) == true)
     }
 
-    // A guest is not shown the favorites settings at all, which is why nothing above asks what they
-    // are set to: there is no value to show somebody who is not offered the setting.
-    @Test("A guest is not shown the favorites settings at all")
+    // A guest is not shown the favorites setting at all, which is why nothing above asks what it
+    // is set to: there is no value to show somebody who is not offered the setting.
+    @Test("A guest is not shown the favorites setting at all")
     func guestIsNotShownFavorites() {
         let shopper = Shopper()
 
-        #expect(shopper.isOn(.favoritesWaitlistSection) == nil)
-        #expect(shopper.isOn(.favoritesBackInStockSection) == nil)
+        #expect(shopper.isOn(.favoritesStockAlertsSection) == nil)
     }
 }

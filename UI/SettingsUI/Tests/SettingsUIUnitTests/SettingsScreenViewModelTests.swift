@@ -48,23 +48,20 @@ struct SettingsScreenViewModelTests {
 
     @Test("A section is shown only where the shopper has a setting in it")
     func emptySectionsAreLeftOut() {
-        let viewModel = makeViewModel(showing: [Setting(key: .bagPriceIncreases, isOn: true)])
+        let viewModel = makeViewModel(showing: [Setting(key: .bagChangesSection, isOn: true)])
 
         viewModel.onAppear()
 
         #expect(viewModel.sections.map(\.id) == [.bag])
-        #expect(viewModel.sections.flatMap(\.rows).map(\.id) == [.bagPriceIncreases])
+        #expect(viewModel.sections.flatMap(\.rows).map(\.id) == [.bagChangesSection])
     }
 
     @Test(
         "Every row is worded for the shopper",
         arguments: [
             (SettingKey.pushNotifications, "Push Notifications"),
-            (.bagOutOfStockNotice, "Show Out-of-Stock Notice"),
-            (.bagPriceIncreases, "Show Price Increases"),
-            (.bagPriceDecreases, "Show Price Decreases"),
-            (.favoritesWaitlistSection, "Show Waitlist"),
-            (.favoritesBackInStockSection, "Show Back in Stock")
+            (.bagChangesSection, "Show Changes Since You Last Viewed"),
+            (.favoritesStockAlertsSection, "Show Stock Alerts")
         ] as [(SettingKey, String)]
     )
     func rowWording(_ example: (SettingKey, String)) {
@@ -89,7 +86,7 @@ struct SettingsScreenViewModelTests {
     @Test("Every row shows the value it was handed")
     func rowsShowTheValueTheyWereHanded() {
         let handed = Setting.offered(
-            from: Settings([.pushNotifications: true, .bagPriceIncreases: false]),
+            from: Settings([.pushNotifications: true, .bagChangesSection: false]),
             signedIn: true
         )
         let viewModel = makeViewModel(showing: handed)
@@ -132,10 +129,10 @@ struct SettingsScreenViewModelTests {
         let setSetting = SpySetSettingUseCase()
         let viewModel = makeViewModel(setSetting: setSetting)
 
-        viewModel.didToggle(.bagPriceDecreases, to: false, in: .screen("settings"))
+        viewModel.didToggle(.bagChangesSection, to: false, in: .screen("settings"))
         await viewModel.inFlight?.value
 
-        #expect(setSetting.calls.map(\.key) == [.bagPriceDecreases])
+        #expect(setSetting.calls.map(\.key) == [.bagChangesSection])
         #expect(setSetting.calls.map(\.isOn) == [false])
     }
 }

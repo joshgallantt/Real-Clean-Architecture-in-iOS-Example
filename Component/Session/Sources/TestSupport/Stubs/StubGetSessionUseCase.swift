@@ -26,16 +26,6 @@ public final class StubGetSessionUseCase: GetSessionUseCase {
         self.sessions = sessions
     }
 
-    public init(initial: Session) {
-        self.sessions = CurrentValueSubject(initial)
-    }
-
-    /// Pushes a new session, for a test that changes who is signed in partway
-    /// through rather than setting it up once.
-    public func send(_ session: Session) {
-        sessions.send(session)
-    }
-
     /// Readable and settable, for a unit test that simply wants a different
     /// answer next time.
     public var session: Session {

@@ -1,4 +1,3 @@
-import Product
 import SearchHistory
 
 @MainActor

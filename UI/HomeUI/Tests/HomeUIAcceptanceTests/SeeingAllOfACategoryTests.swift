@@ -2,7 +2,6 @@ import Foundation
 import Testing
 import Product
 @testable import HomeUITestSupport
-@testable import HomeUI
 
 @MainActor
 @Suite("Seeing all of a category", .serialized)

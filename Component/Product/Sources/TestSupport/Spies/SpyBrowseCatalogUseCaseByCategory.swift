@@ -1,4 +1,3 @@
-import Money
 import Product
 
 /// Answers differently per category, for a screen that draws several at once.

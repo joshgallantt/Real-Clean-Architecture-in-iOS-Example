@@ -1,5 +1,4 @@
 import Testing
-import Money
 import Product
 
 @Suite("What the shop has stopped selling")

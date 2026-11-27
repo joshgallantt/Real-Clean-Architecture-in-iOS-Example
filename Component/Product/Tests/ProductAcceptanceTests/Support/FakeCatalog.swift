@@ -48,10 +48,6 @@ final class FakeCatalog: HTTPClient, @unchecked Sendable {
         return try JSONDecoder().decode(T.self, from: data)
     }
 
-    func post<Body: Encodable, T: Decodable>(_ url: URL, body: Body) async throws -> T {
-        throw HTTPClientError.server(statusCode: 405)
-    }
-
     private static func respond(
         path: String,
         query: [String: String],

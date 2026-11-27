@@ -1,9 +1,4 @@
 import SwiftUI
-import HomeUIDI
-import SearchUIDI
-import WishlistUIDI
-import BagUIDI
-import AccountUIDI
 import SnackbarUIDI
 
 struct TabScreen: View {

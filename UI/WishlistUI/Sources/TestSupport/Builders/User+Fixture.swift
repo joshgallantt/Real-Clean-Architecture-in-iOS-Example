@@ -1,12 +1,4 @@
-import ProductTestSupport
-import SnackbarUITestSupport
-import Money
-import Product
 import Session
-import SessionTestSupport
-import SnackbarUI
-import Waitlist
-@testable import WishlistUI
 
 extension User {
     static func fixture() -> User {

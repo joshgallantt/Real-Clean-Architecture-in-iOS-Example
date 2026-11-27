@@ -25,7 +25,6 @@ public final class FakeShop: BagRepository {
 
     public nonisolated var lookups: [[ProductID]] { catalogLock.withLock { _lookups } }
     public var currentBag: Bag { repository.bag }
-    public var currentNotices: Notices { repository.notices }
 
     public nonisolated var catalog: [Product] {
         get { catalogLock.withLock { _catalog } }
@@ -76,36 +75,28 @@ public final class FakeShop: BagRepository {
         }
     }
 
-    public init(bag: Bag = Bag(), notices: Notices = Notices(), catalog: [Product] = []) {
-        self.repository = FakeBagRepository(bag: bag, notices: notices)
+    public init(bag: Bag = Bag(), catalog: [Product] = []) {
+        self.repository = FakeBagRepository(bag: bag)
         self._catalog = catalog
     }
 
     // MARK: - The real use cases, over this as their repository
 
     public var observeBag: ObserveBagUseCase { DefaultObserveBagUseCase(repository: self) }
-    public var observeNotices: ObserveNoticesUseCase { DefaultObserveNoticesUseCase(repository: self) }
     public var setBagItem: SetBagItemUseCase { DefaultSetBagItemUseCase(repository: self) }
-    public var refreshBag: RefreshBagUseCase {
-        DefaultRefreshBagUseCase(repository: self, lookUpProducts: lookUpProducts)
+    public var checkBag: CheckBagUseCase {
+        DefaultCheckBagUseCase(repository: self, lookUpProducts: lookUpProducts)
     }
-    public var acknowledge: AcknowledgeNoticesUseCase { DefaultAcknowledgeNoticesUseCase(repository: self) }
 
     public nonisolated var lookUpProducts: LookUpProductsUseCase { Lookup(shop: self) }
-
-    public func choose(_ item: BagItem) {
-        setBagItem(item.withQuantity(bag.quantity(of: item.productId) + item.quantity))
-    }
 
     // MARK: - BagRepository
 
     public var bag: Bag { repository.bag }
     public var bagPublisher: AnyPublisher<Bag, Never> { repository.bagPublisher }
-    public var notices: Notices { repository.notices }
-    public var noticesPublisher: AnyPublisher<Notices, Never> { repository.noticesPublisher }
 
-    public func save(bag: Bag, notices: Notices) {
-        repository.save(bag: bag, notices: notices)
+    public func save(_ bag: Bag) {
+        repository.save(bag)
     }
 
     // MARK: -

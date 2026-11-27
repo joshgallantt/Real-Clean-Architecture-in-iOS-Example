@@ -2,7 +2,6 @@ import Foundation
 import Testing
 import Product
 @testable import HomeUITestSupport
-@testable import HomeUI
 
 @MainActor
 @Suite("Loading and trouble", .serialized)

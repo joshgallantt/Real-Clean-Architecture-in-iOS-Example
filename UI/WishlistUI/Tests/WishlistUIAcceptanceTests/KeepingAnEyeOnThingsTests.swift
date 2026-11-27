@@ -8,7 +8,7 @@ import Product
 @MainActor
 @Suite("Keeping an eye on things", .serialized)
 /// Evans, *Domain-Driven Design* (2003), Ch. 2 — Ubiquitous Language: what a shopper sees on the
-/// tab they keep things on, whether the thing they kept was a fave or something they are waiting for.
+/// tab they keep things on, of the things they saved because they liked them.
 struct KeepingAnEyeOnThingsTests {
     @Test("What a shopper has kept is filled in from the shop")
     func showsWhatIsKept() async {
@@ -57,7 +57,7 @@ struct KeepingAnEyeOnThingsTests {
         await keeper.settle()
 
         #expect(keeper.list.isEmpty)
-        #expect(keeper.snackbars.shown.first?.title == "Couldn't Load")
+        #expect(keeper.snackbars.shown.first?.title == "Faves Won't Load")
     }
 
     @Test("The count is what the shopper has kept, not what is on screen")

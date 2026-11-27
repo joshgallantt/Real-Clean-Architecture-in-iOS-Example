@@ -1,5 +1,4 @@
 import SwiftUI
-import AuthUI
 import Session
 import SheetUI
 import Tracking
@@ -50,19 +49,6 @@ public struct AuthUIDI {
             viewModel: AuthEntryButtonViewModel(
                 element: AuthTrackingPlan.logIn,
                 authenticate: { [presenter] in await presenter.logIn() },
-                trackElementInteraction: trackElementInteraction,
-                onAuthenticated: onAuthenticated
-            ),
-            title: title
-        )
-    }
-
-    @MainActor
-    public func createAccountButtonView(title: String, onAuthenticated: @escaping () -> Void) -> some View {
-        AuthEntryButton(
-            viewModel: AuthEntryButtonViewModel(
-                element: AuthTrackingPlan.createAccount,
-                authenticate: { [presenter] in await presenter.createAccount() },
                 trackElementInteraction: trackElementInteraction,
                 onAuthenticated: onAuthenticated
             ),

@@ -1,4 +1,3 @@
-import ProductTestSupport
 import SheetUITestSupport
 @testable import AuthUITestSupport
 import Foundation

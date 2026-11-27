@@ -31,7 +31,6 @@ public final class CatalogResultsViewModel {
     private let snackbar: SnackbarPresenting
     private let trackScreenView: TrackScreenViewUseCase
     private let trackElementView: TrackElementViewUseCase
-    private let trackElementInteraction: TrackElementInteractionUseCase
     private let cardTracking: ProductCardTracking
 
     private let pageSize = 30
@@ -51,7 +50,6 @@ public final class CatalogResultsViewModel {
         self.snackbar = snackbar
         self.trackScreenView = trackScreenView
         self.trackElementView = trackElementView
-        self.trackElementInteraction = trackElementInteraction
         self.cardTracking = ProductCardTracking(trackElementView: trackElementView, trackElementInteraction: trackElementInteraction)
     }
 

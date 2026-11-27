@@ -6,7 +6,6 @@ import ProductTestSupport
 import SnackbarUITestSupport
 import Testing
 import Tracking
-import TrackingUI
 import TrackingTestSupport
 import Money
 import Order

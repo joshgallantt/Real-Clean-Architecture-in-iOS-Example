@@ -1,7 +1,5 @@
 import Bag
 import Combine
-import Product
-import ProductTestSupport
 
 @MainActor
 public final class StubObserveBagUseCase: ObserveBagUseCase {
@@ -12,6 +10,4 @@ public final class StubObserveBagUseCase: ObserveBagUseCase {
     }
 
     public func callAsFunction() -> AnyPublisher<Bag, Never> { subject.eraseToAnyPublisher() }
-
-    public func send(_ bag: Bag) { subject.send(bag) }
 }

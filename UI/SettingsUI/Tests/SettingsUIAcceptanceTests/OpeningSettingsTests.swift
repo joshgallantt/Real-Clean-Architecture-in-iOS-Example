@@ -1,7 +1,6 @@
 import Foundation
 import Testing
 import Settings
-@testable import SettingsUI
 
 @MainActor
 @Suite("Opening Settings")
@@ -40,19 +39,15 @@ struct OpeningSettingsTests {
     func rowsAreWordedAndCurrent() {
         let shopper = Shopper(
             signedIn: true,
-            settings: Settings([.pushNotifications: true, .bagPriceIncreases: false])
+            settings: Settings([.pushNotifications: true, .bagChangesSection: false])
         )
 
         shopper.opensScreen()
 
         #expect(shopper.rowsShown(in: "Notifications") == ["Push Notifications"])
-        #expect(shopper.rowsShown(in: "Bag") == [
-            "Show Out-of-Stock Notice",
-            "Show Price Increases",
-            "Show Price Decreases"
-        ])
-        #expect(shopper.rowsShown(in: "Favorites") == ["Show Waitlist", "Show Back in Stock"])
+        #expect(shopper.rowsShown(in: "Bag") == ["Show Changes Since You Last Viewed"])
+        #expect(shopper.rowsShown(in: "Favorites") == ["Show Stock Alerts"])
         #expect(shopper.isOn(.pushNotifications) == true)
-        #expect(shopper.isOn(.bagPriceIncreases) == false)
+        #expect(shopper.isOn(.bagChangesSection) == false)
     }
 }

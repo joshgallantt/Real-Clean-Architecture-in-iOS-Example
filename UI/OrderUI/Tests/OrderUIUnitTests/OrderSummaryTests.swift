@@ -5,7 +5,6 @@ import Testing
 import Money
 import Order
 @testable import OrderUI
-@testable import OrderUITestSupport
 
 @Suite("Order summary")
 struct OrderSummaryTests {

@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 import Product
-import Waitlist
+import StockAlert
 import AuthUI
 import SnackbarUI
 import Tracking
@@ -27,8 +27,8 @@ public final class StockAlertButtonViewModel {
     private(set) var isWaiting = false
 
     private let product: Product
-    private let observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase
-    private let setProductIsWaitlisted: SetProductIsWaitlistedUseCase
+    private let observeProductHasStockAlert: ObserveProductHasStockAlertUseCase
+    private let setProductStockAlert: SetProductStockAlertUseCase
     private let authPresenter: AuthPresenting
     private let snackbarPresenter: SnackbarPresenting
     private let trackScreenView: TrackScreenViewUseCase
@@ -41,8 +41,8 @@ public final class StockAlertButtonViewModel {
 
     public init(
         product: Product,
-        observeProductIsWaitlisted: ObserveProductIsWaitlistedUseCase,
-        setProductIsWaitlisted: SetProductIsWaitlistedUseCase,
+        observeProductHasStockAlert: ObserveProductHasStockAlertUseCase,
+        setProductStockAlert: SetProductStockAlertUseCase,
         authPresenter: AuthPresenting,
         snackbarPresenter: SnackbarPresenting,
         trackScreenView: TrackScreenViewUseCase,
@@ -50,8 +50,8 @@ public final class StockAlertButtonViewModel {
         trackElementInteraction: TrackElementInteractionUseCase
     ) {
         self.product = product
-        self.observeProductIsWaitlisted = observeProductIsWaitlisted
-        self.setProductIsWaitlisted = setProductIsWaitlisted
+        self.observeProductHasStockAlert = observeProductHasStockAlert
+        self.setProductStockAlert = setProductStockAlert
         self.authPresenter = authPresenter
         self.snackbarPresenter = snackbarPresenter
         self.trackScreenView = trackScreenView
@@ -65,7 +65,7 @@ public final class StockAlertButtonViewModel {
     func onAppear() {
         guard cancellables.isEmpty else { return }
 
-        observeProductIsWaitlisted(productId: product.id)
+        observeProductHasStockAlert(productId: product.id)
             .sink { [weak self] value in
                 self?.isWaiting = value
             }
@@ -86,12 +86,12 @@ public final class StockAlertButtonViewModel {
         }
     }
 
-    /// Taking it off the list, whatever the bell happens to say. A minus on a waitlist card means
+    /// Taking it off the list, whatever the bell happens to say. A minus on a stock alert card means
     /// one thing, and it must not become "put it back" because the state arrived late.
     func didTapRemove(in context: TrackingContext) {
         enqueue { [weak self] in
             guard let self else { return }
-            self.trackElementInteraction(ProductActionsTrackingPlan.removeFromWaitlist, about: self.item, in: context)
+            self.trackElementInteraction(ProductActionsTrackingPlan.removeStockAlert, about: self.item, in: context)
             await self.apply(isOn: false, in: context)
         }
     }
@@ -114,7 +114,7 @@ public final class StockAlertButtonViewModel {
     }
 
     private func apply(isOn: Bool, in context: TrackingContext) async {
-        switch await setProductIsWaitlisted(productId: product.id, isWaitlisted: isOn) {
+        switch await setProductStockAlert(productId: product.id, isOn: isOn) {
         case .success:
             show(told(isOn), in: context)
 
@@ -156,7 +156,7 @@ public final class StockAlertButtonViewModel {
                 icon: "bell.fill"
             )
             : AuthenticationPrompt(
-                title: "Your Waitlist",
+                title: "Your Stock Alerts",
                 message: "Sign in to change what we tell you about.",
                 icon: "bell.slash"
             )

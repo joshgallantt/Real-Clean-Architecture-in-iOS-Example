@@ -1,6 +1,5 @@
 import Foundation
 import Testing
-import SearchHistory
 
 @MainActor
 @Suite("Coming back to a search")

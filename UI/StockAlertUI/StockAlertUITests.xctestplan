@@ -1,0 +1,29 @@
+{
+  "configurations": [
+    {
+      "id": "7C0E1B52-6A3D-4F18-9B7E-2D5A8C41F0A3",
+      "name": "Configuration 1",
+      "options": {}
+    }
+  ],
+  "defaultOptions": {},
+  "testTargets": [
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/StockAlertUI",
+        "identifier": "StockAlertUIAcceptanceTests",
+        "name": "StockAlertUIAcceptanceTests"
+      }
+    },
+    {
+      "parallelizable": true,
+      "target": {
+        "containerPath": "container:UI/StockAlertUI",
+        "identifier": "StockAlertUIUnitTests",
+        "name": "StockAlertUIUnitTests"
+      }
+    }
+  ],
+  "version": 1
+}

@@ -1,4 +1,3 @@
-import Combine
 import Product
 import ProductTestSupport
 import SnackbarUITestSupport
@@ -7,6 +6,7 @@ import SwiftUI
 import Testing
 import Tracking
 import TrackingTestSupport
+import WishlistTestSupport
 @testable import WishlistUI
 @testable import WishlistUITestSupport
 
@@ -15,15 +15,15 @@ import TrackingTestSupport
 func anEmptyWishlistExplainsItself() {
     let list = SavedProductsListView(
         viewModel: SavedProductsViewModel(
-            savedProductIds: { Just([]).eraseToAnyPublisher() },
+            observeWishlist: StubObserveWishlistUseCase(),
             lookUpProducts: SpyLookUpProductsUseCase(),
+            setProductIsWishlisted: SpySetProductIsWishlistedUseCase(),
+            navigation: SpyWishlistNavigation(),
             snackbar: SpySnackbarPresenting(),
-            couldNotLoad: "We could not load your list.",
-            list: WishlistTrackingPlan.faves,
-            openProduct: { _ in },
             trackScreenView: SpyTrackScreenViewUseCase(),
             trackElementView: SpyTrackElementViewUseCase(),
-            trackElementInteraction: SpyTrackElementInteractionUseCase()
+            trackElementInteraction: SpyTrackElementInteractionUseCase(),
+            pageSize: 30
         ),
         title: "Saved",
         emptyTitle: "Nothing saved yet",

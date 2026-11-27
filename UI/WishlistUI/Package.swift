@@ -25,14 +25,15 @@ let package = Package(
         .package(path: "../../Component/Tracking"),
         .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.19.0"),
         .package(path: "../../Component/Wishlist"),
-        .package(path: "../../Component/Waitlist"),
         .package(path: "../../Component/Product"),
         .package(path: "../../Component/Money"),
         .package(path: "../../Component/Session"),
+        .package(path: "../../Component/Settings"),
         .package(path: "../ProductUI"),
         .package(path: "../SnackbarUI"),
         .package(path: "../AuthUI"),
-        .package(path: "../ProductActionsUI")
+        .package(path: "../ProductActionsUI"),
+        .package(path: "../StockAlertUI")
     ],
     targets: [
         .target(
@@ -41,10 +42,10 @@ let package = Package(
                 .product(name: "Tracking", package: "Tracking"),
                 .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "Wishlist", package: "Wishlist"),
-                .product(name: "Waitlist", package: "Waitlist"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
+                .product(name: "Settings", package: "Settings"),
                 .product(name: "ProductUI", package: "ProductUI"),
                 .product(name: "SnackbarUI", package: "SnackbarUI"),
                 .product(name: "AuthUI", package: "AuthUI")
@@ -60,13 +61,14 @@ let package = Package(
                 .product(name: "TrackingUI", package: "TrackingUI"),
                 "WishlistUI",
                 .product(name: "Wishlist", package: "Wishlist"),
-                .product(name: "Waitlist", package: "Waitlist"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
+                .product(name: "Settings", package: "Settings"),
                 .product(name: "SnackbarUI", package: "SnackbarUI"),
                 .product(name: "AuthUI", package: "AuthUI"),
-                .product(name: "ProductActionsUIDI", package: "ProductActionsUI")
+                .product(name: "ProductActionsUIDI", package: "ProductActionsUI"),
+                .product(name: "StockAlertUIDI", package: "StockAlertUI")
             ],
             path: "Sources/DI"
         ),
@@ -77,27 +79,22 @@ let package = Package(
                 .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
+                .product(name: "WishlistTestSupport", package: "Wishlist"),
+                "WishlistUITestSupport",
                 "WishlistUI",
-                .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money"),
-                .product(name: "SnackbarUI", package: "SnackbarUI")
+                .product(name: "Wishlist", package: "Wishlist"),
+                .product(name: "Product", package: "Product")
             ],
             path: "Tests/WishlistUIAcceptanceTests"
         ),
         .target(
             name: "WishlistUITestSupport",
             dependencies: [
-                .product(name: "ProductTestSupport", package: "Product"),
-                .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
-                .product(name: "SessionTestSupport", package: "Session"),
                 "WishlistUI",
                 .product(name: "Wishlist", package: "Wishlist"),
-                .product(name: "Waitlist", package: "Waitlist"),
                 .product(name: "Product", package: "Product"),
-                .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
                 .product(name: "ProductUI", package: "ProductUI"),
-                .product(name: "SnackbarUI", package: "SnackbarUI"),
                 .product(name: "AuthUI", package: "AuthUI"),
             ],
             path: "Sources/TestSupport"
@@ -111,13 +108,16 @@ let package = Package(
                 .product(name: "TrackingUI", package: "TrackingUI"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
+                .product(name: "WishlistTestSupport", package: "Wishlist"),
                 "WishlistUITestSupport",
                 .product(name: "SessionTestSupport", package: "Session"),
+                .product(name: "SettingsTestSupport", package: "Settings"),
                 "WishlistUI",
+                .product(name: "Wishlist", package: "Wishlist"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),
-                .product(name: "Waitlist", package: "Waitlist"),
+                .product(name: "Settings", package: "Settings"),
                 .product(name: "SnackbarUI", package: "SnackbarUI")
             ],
             path: "Tests/WishlistUIUnitTests"
@@ -129,10 +129,10 @@ let package = Package(
                 .product(name: "TrackingTestSupport", package: "Tracking"),
                 .product(name: "ProductTestSupport", package: "Product"),
                 .product(name: "SnackbarUITestSupport", package: "SnackbarUI"),
-                "WishlistUI",
+                .product(name: "WishlistTestSupport", package: "Wishlist"),
                 "WishlistUITestSupport",
+                "WishlistUI",
                 .product(name: "Wishlist", package: "Wishlist"),
-                .product(name: "Waitlist", package: "Waitlist"),
                 .product(name: "Product", package: "Product"),
                 .product(name: "Money", package: "Money"),
                 .product(name: "Session", package: "Session"),

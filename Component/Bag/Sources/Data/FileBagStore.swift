@@ -16,18 +16,18 @@ public struct FileBagStore: BagStore, @unchecked Sendable {
         return base.appending(path: "Bag", directoryHint: .isDirectory)
     }
 
-    public func getBag(for session: Session) -> (bag: Bag, notices: Notices) {
+    public func getBag(for session: Session) -> Bag {
         guard
             let data = try? Data(contentsOf: url(for: session)),
             let dto = try? JSONDecoder().decode(BagDTO.self, from: data)
         else {
-            return (Bag(), Notices())
+            return Bag()
         }
         return dto.toDomain()
     }
 
-    public func setBag(_ bag: Bag, notices: Notices, for session: Session) async {
-        let dto = BagDTO(bag: bag, notices: notices)
+    public func setBag(_ bag: Bag, for session: Session) async {
+        let dto = BagDTO(bag: bag)
         let directory = self.directory
         let url = url(for: session)
 

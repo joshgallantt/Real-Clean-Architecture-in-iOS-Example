@@ -62,6 +62,97 @@ struct CheckingOutTheBagTests {
         #expect(shopper.bag.bag.isEmpty == false)
     }
 
+    // MARK: - A bag the shop has changed since it was kept
+
+    @Test("A shopper whose bag holds something that got dearer is charged the price they were shown")
+    func chargedThePriceShown() async {
+        let shopper = AShopper()
+        shopper.putInBag(1, quantity: 2, at: 9.99)
+        shopper.theShopNowSells(.fixture(id: 1, price: 12.99))
+        await shopper.looksInTheirBag()
+        let button = shopper.checkoutButton()
+
+        #expect(button.totalLabel == usd(25.98).formatted())
+        await button.tapAndSettle()
+
+        #expect(shopper.till.amountsAskedFor == [usd(25.98)])
+        #expect(shopper.confirmed.first?.lines == [OrderLine(productId: pid(1), quantity: 2, pricePaid: usd(12.99))])
+    }
+
+    @Test("Something the shop has sold out of is not ordered, and the rest of the bag still is")
+    func soldOutIsNotOrdered() async {
+        let shopper = AShopper()
+        shopper.putInBag(1, at: 9.99)
+        shopper.putInBag(2, at: 5)
+        shopper.theShopNowSells(.fixture(id: 1, price: 9.99), .fixture(id: 2, price: 5, availability: .outOfStock))
+        await shopper.looksInTheirBag()
+        let button = shopper.checkoutButton()
+
+        await button.tapAndSettle()
+
+        #expect(shopper.till.amountsAskedFor == [usd(9.99)])
+        #expect(shopper.confirmed.first?.lines.map(\.productId) == [pid(1)])
+    }
+
+    @Test("No more of anything is ordered than the shop has left")
+    func onlyWhatIsLeftIsOrdered() async {
+        let shopper = AShopper()
+        shopper.putInBag(1, quantity: 5, at: 10)
+        shopper.theShopNowSells(.fixture(id: 1, price: 10, availability: .inStock(remaining: 2)))
+        await shopper.looksInTheirBag()
+        let button = shopper.checkoutButton()
+
+        await button.tapAndSettle()
+
+        #expect(shopper.till.amountsAskedFor == [usd(20)])
+        #expect(shopper.confirmed.first?.itemCount == 2)
+    }
+
+    @Test("Nothing the shop changed blocks the checkout while there is still something to buy")
+    func changesDoNotBlockTheCheckout() async {
+        let shopper = AShopper()
+        shopper.putInBag(1, quantity: 5, at: 9.99)
+        shopper.putInBag(2, at: 5)
+        shopper.theShopNowSells(
+            .fixture(id: 1, price: 12.99, availability: .inStock(remaining: 1)),
+            .fixture(id: 2, availability: .outOfStock)
+        )
+        await shopper.looksInTheirBag()
+        let button = shopper.checkoutButton()
+
+        #expect(button.isEmpty == false)
+        await button.tapAndSettle()
+
+        #expect(shopper.confirmed.count == 1)
+    }
+
+    @Test("A bag holding only what has sold out has nothing to check out")
+    func nothingLeftToBuy() async {
+        let shopper = AShopper()
+        shopper.putInBag(1, at: 9.99)
+        shopper.theShopNowSells(.fixture(id: 1, availability: .outOfStock))
+        await shopper.looksInTheirBag()
+        let button = shopper.checkoutButton()
+
+        #expect(button.isEmpty)
+    }
+
+    @Test("What was bought is out of the bag afterwards, whatever price it had been kept at")
+    func emptiesWhatWasBought() async {
+        let shopper = AShopper()
+        shopper.putInBag(1, at: 9.99)
+        shopper.theShopNowSells(.fixture(id: 1, price: 12.99))
+        await shopper.looksInTheirBag()
+        let button = shopper.checkoutButton()
+
+        await button.tapAndSettle()
+
+        #expect(shopper.bag.bag.isEmpty)
+        #expect(button.isEmpty)
+    }
+
+    // MARK: -
+
     @Test("The button says what it is about to charge")
     func showsTheTotal() async {
         let shopper = AShopper()
